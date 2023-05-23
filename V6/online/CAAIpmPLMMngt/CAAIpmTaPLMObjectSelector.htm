@@ -1,0 +1,313 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Object Selector</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Object Selector Command</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A PLM Object Selector is a UI to retrieve a PLM Entity of a specific 
+		PLM type which conforms to a search criteria (attribute-value sets) input 
+		by an end-user.</p>
+		<p>Its standard usage occurs in various contexts. For eg. an Object Selector 
+		is integrated within a &quot;<strong>Catalog Browser</strong>&quot; command to seek 
+		and load a Catalog in session. An &quot;<strong>Insert Existing Product</strong>&quot; 
+		command integrates it to seek and load a Product/Representation Reference 
+		in session, to instantiate it as a Child under the Root.</p>
+		<p>A CAA customer can also integrate in their applications, an Object Selector, 
+		having customized it to their own specific needs with services exposed by 
+		the <code>CATPLMUIInterfaces</code> framework. This CAA Openness enables 
+		us to predefine the object scope of search (PLM Type for query) and the 
+		search criteria (attribute-value sets)</p>
+		<ul>
+			<li><a href="#Why use it">An Introduction to the Object Selector. Why 
+			Use It?</a></li>
+			<li><a href="#Steps to customize">Steps to Customize an Object Selector</a><ul>
+				<li><a href="#Retrieve Factory">Retrieve Factory and Create an Object 
+				Selector</a></li>
+				<li><a href="#Set the PLM Entity type to Query">Set the PLM Entity 
+				Type (Object Scope) to query</a></li>
+				<li><a href="#Set the attr-value set for query">Set the Attribute-Value 
+				set for Query</a></li>
+				<li><a href="#Launch the Object Selector panel">Launch the Object 
+				Selector Dialog Panel</a></li>
+				<li><a href="#Retrieve the User Selection from the Panel">Retrieve 
+				the User Selection from the Panel</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Why use it"></a>An Introduction to the Object Selector. Why Use It?</h2>
+<p>A PLM Object Selector is a UI to retrieve a PLM Entity which conforms to a search 
+criteria from an underlying database and load it in the current session. In standard 
+usage, each application customizes the Object Selector panel in ways best suited 
+for their own specific needs. </p>
+<p>An Object Selector panel is depicted in [<a href="#Fig.1">Fig.1</a>] below. It 
+is invoked when in a &quot;<strong>VPM Physical Editor</strong>&quot;, under a Root Product 
+we instantiate a child Reference, with the &quot;<strong>Insert Existing Product</strong>&quot; 
+command. In this design context, this Object Selection panel, lets an end user select 
+only a Product Reference from the database.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 Object Selector Panel in the &quot;Inset Existing 
+	Product&quot; Command context</caption>
+	<tr>
+		<td>
+		<img alt="Object Selector Panel" src="images/CAAPLMObjectSelectorTA_img25.jpg" width="653" height="440"></td>
+	</tr>
+</table>
+<p>The Object Selection panel consists of an edit field. A search string (built 
+with wildcard characters) is input. This string is associated with each IDSet attribute 
+of the PLM Entity type being searched, to build a query criteria.</p>
+<p>Alternatively, user can also access the &quot;Advanced Search&quot; panel depicted in [<a href="#Fig.2">Fig. 
+2</a>] below, to build a query criteria with those attributes listed in this panel. 
+The attributes in the Advanced Search panel, are those defined by the EZQuery mask 
+of the associated PLM Entity type.</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig. 2 Search Panel</caption>
+	<tr>
+		<td>
+		<img alt="Search Panel" src="images/CAAPLMObjectSelectorTA_img24.jpg" width="217" height="257"></td>
+	</tr>
+</table>
+<p>The &quot;Advanced Search&quot; panel elaborates the query criteria further. Its salient 
+features include:</p>
+<ul>
+	<li>It depicts the current Environment (VPM, in this case).</li>
+	<li>It lists the PLM Entity types (usable types) available for query (Product 
+	DS, Product (abstract), in this case).</li>
+	<li>Name and Responsible, the two attributes listed in the panel are those defined 
+	by the EZQuery mask for a Product (abstract) type.</li>
+</ul>
+<p>On similar lines, the CATALOG application too, customizes the &quot;Object Selector&quot; 
+and the &quot;Advanced Search&quot; panel for its own specific needs. The scope of search 
+is here limited to only the Catalog Modeler and its custo types.</p>
+<p>In much the similar way, the Object Selector could be customized to specific 
+CAA customer requirements and integrated in their applications by accessing the 
+services exposed by the <code>PLMUIInterfaces</code> framework. The possible customizations 
+are:</p>
+<ul>
+	<li>PLM Entity type</li>
+	<li>The PLM Attribute-value sets which define the query criteria</li>
+	<li>Modify the User Access mode (Read, Write) of the PLM Attributes for query 
+	in the Advanced Search panel, if those are part of the EZQuery mask</li>
+</ul>
+<p>[<a href="#Fig.3">Fig. 3</a>] depicts one such Customization.</p>
+<table>
+	<caption><a name="Fig.3"></a>Fig.3 Advanced Search Panel Customized</caption>
+	<tr>
+		<td>
+		<img alt="Advanced Search Panel Customized" src="images/CAAPLMObjectSelectorTA_img26.jpg" width="222" height="259"></td>
+	</tr>
+</table>
+<p>Here the query is for a Product (abstract) type. The attribute-value sets which 
+further restrict the scope of search are:</p>
+<ul>
+	<li>PLM_ExternalID==&quot;CAAPLMObjectSelector_Root*&quot;. An end-user cannot change 
+	this value</li>
+	<li>Responsible is initialized with a value, which end-users can change</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Steps to customize"></a>Steps to Customize an Object Selector</h2>
+<p>The customization of an Object Selection panel, fundamentally involves accessing 
+the services of a dedicated CAA Component, called an Object Selector handled by 
+the <code><em>CATIPLMObjectSelector</em></code> Interface, exposed by the <code>
+PLMUIInterfaces</code> framework.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieve Factory"></a>Retrieve Factory and Create an Object Selector</h3>
+<pre class="code">CATIPLMObjectSelectorFactory * piPLMObjectSelectorFactory = NULL;
+<strong>CATPLMObjectSelectorServices::GetPLMObjectSelectorFactory(piPLMObjectSelectorFactory)</strong>;
+	
+rc = <strong>piPLMObjectSelectorFactory-&gt;CreateObjectSelector</strong> (MainWindowAsFatherDialog,
+				         DialogTitle,
+			                 _piPLMObjectSelector);
+				CATPLMCoreType ChosenCoreType(PLMCoreReference);
+...</pre>
+<p>To begin with we retrieve an Object Selector Factory. The factory creates an 
+Object Selector component, with a call to CATIPLMObjectSelectorFactory::CreateObjectSelector() 
+call. It is significant to note with regard to its arguments</p>
+<ul>
+	<li>arg1, ipParent, a CATDialog* type. It represents the father of the Object 
+	Selector panel. We set the Application Frame main window, as the father. All 
+	notifications sent by the Object Selector panel are thus handled by the parent. 
+	(unless the Object Selector panel resets its parent with an explicit call to 
+	SetFather() later)</li>
+	<li>arg2, iDialogObjectName, a CATString type. It represents an Identifier string 
+	for the Object Selection dialog panel. Quite contrary to the general case, this 
+	Identifier string is not accessed to manage the resources (NLS) associated with 
+	a dialog box. It however facilitates the Object Selector with internal management 
+	other than the NLS</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Set the PLM Entity type to Query"></a>Set the PLM Entity Type (Object 
+Scope) to Query</h3>
+<pre class="code">  char* ChosenCusto = &quot;<strong>PLMProductDS</strong>&quot;;
+  <strong>CATIType_var</strong> spCATITypeOnCustoType ; 
+  <strong>CATCkePLMNavCustoAccessPublicServices</strong>::<strong>RetrieveCustoType</strong>(ChosenCusto,spCATITypeOnCustoType) ;
+  <strong>_piPLMObjectSelector</strong> -&gt;<strong>SetObjectScopeFromType</strong>(spCATITypeOnCustoType);
+...</pre>
+<p>We next set the scope of search on the Object Selector. Firstly, we restrict 
+our query to specific PLM Entity types with a call to CATIPLMObjectSelector::SetObjectScopeFromType(). 
+Its argument is of <em>CATIType_var</em> type.</p>
+<p>The effect of values input to SetObjectScopeFromType are reflected in the search 
+panel depicted in [<a href="#Fig.3">Fig. 3</a>] above. If only Modeler is input, 
+the scope (Object field) will include the type (Product DS).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Set the attr-value set for query"></a>Set the Attribute-Value set for 
+Query</h3>
+<p>We next proceed to further restrict the scope of search to attribute-value sets. 
+These attribute values which, if displayed in the Advanced Search panel, could be 
+set in user defined edit modes (read-only/ read-write)</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="build the attr-value set"></a>Build the Attribute-Value Sets</h4>
+<pre class="code">
+...
+  CATLISTV(CATBaseUnknown_var)*  ListOfCkePLMAttributes  =  new  CATLISTV(CATBaseUnknown_var); 
+<strong>  CATICkeParmFactory_var  spCkeParmFactory  =  CATCkeGlobalFunctions::GetVolatileFactory()</strong>;  
+  if  (!!spCkeParmFactory )  
+  {
+         CATICkeParm_var  spCkeParmForID =  spCkeParmFactory-&gt;CreateString(&quot;<strong>PLM_ExternalID</strong>&quot;, &quot;<strong>CAAPLMObjectSelector_Root</strong>*&quot;);
+</pre>
+<p>The steps to build an attribute-value set are detailed in the UC &quot;Modifying Product 
+Attributes&quot; [<a href="#References">2</a>]. Here the expression &quot;PLM_ExternalID==&quot;CAAPLMObjectSelector_Root*&quot;&quot; 
+defines the query criteria.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="set the access mode"></a>Set the Access Mode for Attribute Values in 
+Query Panel</h4>
+<pre class="code">
+...
+<strong>	CATICkeParm::UserAccessMode wantedRightsForID= CATICkeParm::ReadOnly;
+</strong>	<strong>spCkeParmForID-&gt;SetUserAccess</strong>(wantedRightsForID);
+...
+	ListOfCkePLMAttributes-&gt;Append(spCkeParmForID);
+         rc = <strong>_piPLMObjectSelector -&gt;  SetAttributesScope</strong>( ListOfCkePLMAttributes);</pre>
+<p>We next set the access-mode for the attribute values in the Advanced Search panel. 
+The call to CATICkeParm::SetUserAccess() sets it in read-only / read-write modes. 
+If set in read-only mode, the attribute value is not editable in the Advanced Search 
+panel. Ofcourse, the access mode is relevant only if the attribute-value is listed 
+in the Advanced Search panel, meaning it is defined in the EZQuery mask scope of 
+the PLM type being queried. But nevertheless, in either case, the attribute-value 
+set is taken into account when the query is run.</p>
+<p>If SetAttributeScope() is not called, attribute-value sets are not taken into 
+account, when the query is run. Meaning, effectively all PLM Entities of an input 
+PLM Type, are output by the query.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Launch the Object Selector panel"></a>Launch the Object Selector Dialog 
+Panel</h3>
+<p>It is significant to note that the Object Selector component, we discussed so 
+far, is primarily an OM Component handled by the CATIPLMObjectSelector Interface. 
+It is distinct from the Object Selector dialog panel, which we now retrieve in the 
+current step.</p>
+<pre class="code">...
+ CATCommand* pCmd = NULL;
+<strong> piPLMObjectSelector-&gt;StartCommand(pCmd)</strong>;
+<strong> pCmd-&gt;SetFather(this)</strong>;
+...</pre>
+<ul>
+	<li>The call to CATIPLMObjectSelector::StartCommand() returns the UI equivalent 
+	of the Object Selector, its dialog panel</li>
+	<li>The call to CATCommand::SetFather() on the Object Selector Dialog panel, 
+	sets our CATCommand as its Father. This ensures that the notifications sent 
+	by the Object selector panel are handled by the user application. </li>
+	<li>If SetFather() is not called, the father we set in the earlier section [<a href="#Retrieve Factory">Retrieve 
+	Factory</a>] at the time of creating an Object Selector, is considered the parent 
+	of the Object Selection panel</li>
+	<li>The call to SetFather() is useless, if the user command is already set as 
+	the Object Selection panel parent. This happens if the user command is a CATDialog 
+	type</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieve the User Selection from the Panel"></a>Retrieving the User 
+Selection from the Object Selection Dialog Panel</h3>
+<p>At this stage, the Object Selector panel is launched. The &quot;Advanced Search&quot; panel 
+is initialized with the Query criteria. User runs this query and a list of PLM Entities 
+which conform to this criteria are output in the Object Selection panel. The user 
+selects an item. The code below, retrieves this user selection.</p>
+<pre class="code">...
+ CATBaseUnknown * pBaseComp = NULL;
+<strong> rc = _piPLMObjectSelector-&gt;GetSelection(pBaseComp)</strong>;
+....</pre>
+<p>The call to CATIPLMObjectSelector::GetSelection() retrieves this selection. By 
+retrieval, we imply the PLM Entity is loaded in the current session in the Authoring 
+(ExpandAll) mode, and a handle to it, is returned to the calling code. The PLM Entity 
+retrieved is then handled further by the Business Logic defined by the user applications.</p>
+<p>Typically this call, will occur in the Action associated with the Object Selector 
+Panel close event.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A PLM Object Selector is a UI to retrieve a PLM Entity of a specific PLM type 
+which conforms to a search criteria (attribute-value sets) input by an end-user.</p>
+<p>Its standard usage occurs in various contexts. For eg. an Object Selector is 
+integrated within a &quot;<strong>Catalog Browser</strong>&quot; command to seek and load 
+a Catalog in session. An &quot;<strong>Insert Existing Product</strong>&quot; command integrates 
+it to seek and load a Product/Representation Reference in session, to instantiate 
+it as a Child under the Root.</p>
+<p>A CAA customer can also integrate in their applications, an Object Selector, 
+having customized it to their own specific needs with services exposed by the
+<code>CATPLMUIInterfaces</code> framework. This CAA Openness enables us to predefine 
+the object scope of search (PLM Type for query) and the search criteria (attribute-value 
+sets). The attribute-value sets which define the search criteria, are visible in 
+the Advanced Search panel, only if those are defined in the <strong>EZQuery</strong> 
+mask for the PLM Entity type being queried. But nevertheless, the attributes visible 
+or not in the search panel, are always taken into account by the query.</p>
+<p>The article provides a glance of the steps involved in this customization, further 
+detailed in a dedicated UC [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAIpmUcObjectSelector.htm">Querying and Loading a PLM Component Using Object Selection</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [March 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>How to Use Callbacks to Trigger Actions</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Use Callbacks to Trigger Actions</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The controls of your windows are merely designed to support user interactions 
+		and choices. The end user can select an item in a list, such as a file, 
+		push on to a push button, select a quantity using a slider or a spinner, 
+		and so forth. To convey the user choice to your application, you will use 
+		callbacks. When a given control is activated by the end user, it sends a 
+		notification which reflects its modification or state. If you have asked 
+		to react to this control for this notification using the callback mechanism 
+		and if you have coded a method to execute when such a notification is sent, 
+		this method will be executed each time the given notification is emitted 
+		by the control.</p>
+		<ul>
+			<li><a href="#100000">Overview</a></li>
+			<li><a href="#200000">Using Callbacks</a></li>
+			<li><a href="#300000">Creating and Deleting a Transient Dialog Window</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Overview</h2>
+<p>The dialog window class usually aggregates by reference the different controls 
+it contains. When the dialog window Build method instantiates the controls, it sets 
+the parent of this control. This parent must be the control container. This parent 
+has a dual meaning. It is the containment parent, but also the command parent. The 
+containment parent is the object that physically contains the control on the display 
+[<a href="#References">1</a>]. The command parent is the object to which the control 
+will send the notifications that correspond to the events happening to it. Since 
+all dialog objects are instances of classes that derive from CATDialog which itself 
+derive from CATCommand, each of these instances occupies a node in the command tree 
+structure [<a href="#References">2</a>]. This enables you to use the Send/Receive 
+communication protocol between commands to convey the notifications sent by your 
+controls to the appropriate class that holds the corresponding method to execute. 
+These methods can't be hold by the control itself, because it is just instantiated 
+from a supplied class.</p>
+<p>For example, consider the part of a dialog window shown below:</p>
+<p>
+<img alt="Part of a Dialog Box" height="80" src="images/CAADlgParent.jpg" width="334"/></p>
+<p>It contains two frames named Axis and Bottom. Assume that these two frames have 
+the dialog window as parent. The Axis frame contains three controls: the Reverse 
+push button, the Normal to Surface check button, and the disabled editor displaying 
+No selection. These three controls have the Axis frame as parent because they are 
+contained in this frame. A pointer to the Axis frame were passed as the first argument 
+of their constructor. Consequently they also have the Axis frame as command parent.</p>
+<table>
+	<thead>
+		<tr>
+			<th>Containment Tree Structure</th>
+			<th>Command Tree Structure</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>
+		<img alt="Containment Tree Structure" height="371" src="images/CAADlgParent3.gif" width="339"/></td>
+		<td>
+		<img alt="Command Tree Structure" height="225" src="images/CAADlgParent1.gif" width="267"/></td>
+	</tr>
+</table>
+<p>Nevertheless, this command parent can be changed afterwards. For example, the 
+dialog window could be set as their command parent to shorten the sent notification 
+path across the command tree structure. This is possible thanks to the <code>SetFather</code> 
+method of CATCommand. Conversely, the containment parent cannot be changed. This 
+is shown below.</p>
+<table>
+	<tr>
+		<th>Containment Tree Structure</th>
+		<th>Command Tree Structure</th>
+	</tr>
+	<tr>
+		<td>
+		<img alt="Containment Tree Structure" height="371" src="images/CAADlgParent3.gif" width="339"/></td>
+		<td>
+		<img alt="Command Tree Structure" height="209" src="images/CAADlgParent2.gif" width="259"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Using Callbacks</h2>
+<p>As an example, let's take one of the push buttons of the Burger window. It is 
+instantiated using the following statements:</p>
+<pre class="code">CATDlgPushButton * pApply;                    // Instantiate the push button
+pApply = new CATDlgPushButton(this, &quot;Apply_Push_Button&quot;);
+...                                          // Set a callback on it
+AddAnalyseNotificationCB(pApply,                                 // push button
+                         pApply-&gt;GetPushBActivateNotification(), // notification
+                         (CATCommandMethod)&amp;Burger::labelApply,  // method to trigger
+                         NULL);                                  // no data to pass to labelApply</pre>
+<p>where:</p>
+<ul>
+	<li><code>pApply</code> is a pointer to push button</li>
+	<li><code>pApply-&gt;GetPushBActivateNotification()</code> retireves the notification 
+		to which the window must react</li>
+	<li><code>(CATCommandMethod)&amp;Burger::labelApply</code> is the method to 
+		trigger when the notification is emitted. The method l<code>abelApply</code> 
+		of the Burger object is casted to a <code>CATCommandMethod</code> method.</li>
+</ul>
+<p>Each time the user pushes on the Apply push button, a activation notification 
+of the Apply push button, instance of the CATDlgPushBActivateNotification class, 
+is emitted, and the callback mechanism is used to trigger the method labelApply. 
+This method has the following signature:</p>
+<pre class="code">void Burger::labelApply(
+        CATCommand           * ipControl,          // push button
+        CATNotification      * ipNotification,     // notification
+        CATCommandClientData   iUsefulData=NULL);  // no data here</pre>
+<p>The parameters are those you put as parameters of the method <code>AddAnalyseNotificationCB</code>:</p>
+<table>
+	<tr>
+		<td><code>ipControl</code></td>
+		<td>The pointer to the push button which sets the callback, seen here as 
+		a CATCommand (all classes of the Dialog framework derive from the class 
+		CATCommand of the System framework)</td>
+	</tr>
+	<tr>
+		<td><code>ipNotification</code></td>
+		<td>The pointer to the notification emitted by the push button</td>
+	</tr>
+	<tr>
+		<td><code>iUsefulData</code></td>
+		<td>Data that you can request to pass using this parameter which can be 
+		useful to the method to execute. For example, if the control is an editor, 
+		you can pass the character string selected.</td>
+	</tr>
+</table>
+<p>When the user closes the window into which the control was located, you need 
+to remove all the callbacks set on this control. To do this, in the window destructor, 
+use the method <code>RemoveAnalyseNotificationCB</code> as follows:</p>
+<pre class="code">RemoveAnalyseNotificationCB(pApply,
+                            pApply-&gt;GetPushBActivateNotification(),
+                            NULL) </pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Creating and Deleting a Transient Dialog Window</h2>
+<p>You will often need to create a transient window from your main window or from 
+another transient window. Usually, the transient window is the result of a user 
+action on a push button, or a selection in a list displayed in an editor, or whatever 
+scenario which uses a control you can imagine to request from the user the data 
+your application is expecting.</p>
+<p>To create and display a transient window, you need to use a callback set on the 
+control you propose to the user. The method called from this callback should then 
+include the instantiation of the transient window. In addition to the different 
+dialog object you will put in this transient window, some of them, when activated, 
+will close the window, whether the data input is complete or the user cancels the 
+data input.</p>
+<p>To do this, you need to set callbacks on the controls in the transient window 
+to be able to perform the task appropriate to the user action.</p>
+<p>For example, suppose you create a transient window to key in a character string 
+in an editor when the end user has pressed on a push button. Proceed as follows:</p>
+<pre class="code">...
+AddAnalyseNotificationCB(          // set callback on the control to
+       pPushButton,                // create the transient window
+       pPushButton-&gt;GetPushBActivateNotification(),
+       (CATCommandMethod)&amp;MyDocument::CreateTransWindow,
+       UsefulData);
+...
+void MyDocument::CreateTransWindow(
+                  CATCommand * pCommand,
+                  CATNotification * pNotification
+                  CATCommandClientData UsefulData) {
+  MyTransientWindow * _Window;
+  _pWindow = new MyTransientWindow(         // create the transient
+                 this,                      // window
+                 &quot;Transient_Window_Name&quot;,
+                 CATDlgWndOK);
+  ...
+  AddAnalyseNotificationCB(                 // set callback on the
+          _pWindow,                         // window when the
+          _pWindow-&gt;GetDiaOKNotification(), // text is keyed in
+          (CATCommandMethod)&amp;MyDocument::MethodOK,
+          (void *) _pWindow);
+}
+...
+void MyDocument::MethodOK(                // do what is needed
+                  CATCommand * pCommand,  // to retrieve the text
+                  CATNotification * pNotification
+                  CATCommandClientData UsefulData) {
+  ...
+  *Text = ((MyTransientWindow *) UsefulData)-&gt;
+               TransWindowEditor-&gt;GetText() ;
+  ...
+  delete ((MyTransientWindow *) UsefulData); // delete transient window
+}</pre>
+<p>You normally set a callback, for example on a push button of your main window. 
+The method called back when the user presses on this push button creates the transient 
+window with all its stuff. To react to user actions in this window, you set callbacks 
+wherever you need, and especially to react to completion and closing request, that 
+is in these cases:</p>
+<ul>
+	<li>when the text is keyed in and the end user has pressed Enter or the OK button: 
+		this is shown in the example. The transient window pointer is passed to 
+		the method MethodOK as a CATCommandClientData (void *) and allows to retrieve 
+		the text input. Before exiting, the transient window is deleted. This window 
+		is handled through the pointer passed to the method, casted to a MyTransientWindow 
+		pointer.</li>
+	<li>when the end user cancels its input by pressing the Cancel button. To do 
+		this, set a callback for the CATDlgDiaCANCELNotification using <code>GetDiaCANCELNotification</code> 
+		as follows:
+		<pre class="code">AddAnalyseNotificationCB(
+          _pWindow,
+          _pWindow-&gt;GetDiaCANCELNotification(),
+          (CATCommandMethod)&amp;MyDocument::MethodCANCEL,
+          (void *) _Window) </pre>
+	</li>
+	<li>when the end user closes the window by means of the close item, or using 
+		ALT F4. To do this, set a callback for the CATDlgWindCloseNotification using
+		<code>GetWindCloseNotification</code> as follows:
+		<pre class="code"> AddAnalyseNotificationCB(
+          _pWindow,
+          _pWindow-&gt;GetWindCloseNotification(),
+          (CATCommandMethod)&amp;MyDocument::MethodClose,
+          (void *) _Window);</pre>
+	</li>
+</ul>
+<p>Note that a single method could be used for cancelling or closing.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Callbacks are used to associate an action to a control activation. When activated 
+the control sends a notification that goes upwards in the command tree structure, 
+that usually matches the dialog containment tree structure. A transient window can 
+be created from a callback method that itself can set callbacks to manage control 
+activation in the transient window.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADlgTaCreatingDialogs.htm">How to Create Dialog Objects</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidSendReceive.htm">
+		The Send/Receive Communication Protocol</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

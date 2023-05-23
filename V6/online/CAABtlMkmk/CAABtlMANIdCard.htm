@@ -1,0 +1,283 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>The IdentityCard Special File</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>The IdentityCard Special File</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="Remark" style="margin-left: 0px;">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: The IdentityCard.h 
+		file format is <strong>deprecated</strong> starting with V6R2012x, and is 
+		replaced with XML. You should convert your IdentityCard.h files to XML ones. 
+		Refer to <a href="CAABtlMANIdCardXMLMig.htm">Migrating Your Identity Cards 
+		to XML</a>. The following commands help you to do this:<ul>
+			<li>The <a href="CAABtlMkICE.htm">mkICE</a> command enables you to interactively 
+			edit an XML Identity Card, or open a .h Identity Card to save it as 
+			an XML one.</li>
+			<li>The <a href="CAABtlMkCreateIC.htm">mkCreateIC</a> command enables 
+			you to create an empty Identity Card ready to be edited using mkICE.</li>
+			<li>The <a href="CAABtlMkIc2Xml.htm">mkIc2Xml</a> command enables you 
+			to convert a .h Identity Card to an XML one.</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The <strong>IdentityCard</strong> file is one of the files needed to 
+		build a program using the Native Apps Builder mkmk. The aim of this 
+		article is to explain the purpose of this file, how to write it and where 
+		it must be installed in the file tree.</p>
+		<div id="toc">
+		</div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Purpose"></a>Purpose</h2>
+<p>Since almost all components (frameworks) are built upon other components, it 
+is necessary:</p>
+<ul>
+	<li>To include at compile time the corresponding header files.</li>
+	<li>To reference at link time the corresponding libraries.</li>
+</ul>
+<p>However the source files of a given component may include a lot of header files 
+and, without the <strong>IdentityCard</strong> file, we must browse all the files 
+to know the names of included header files and then find the names of the corresponding 
+components.</p>
+<p>The IdentityCard file synthesizes these relationships between frameworks in order 
+to get quickly the prerequisite frameworks.</p>
+<p><strong>Warning</strong>: The <strong>IdentityCard</strong> file of any framework 
+must at least contain a statement to set the <strong>System</strong> framework as 
+a prerequisite framework up to its public part, as follows:</p>
+<pre class="code">AddPrereqComponent (&quot;System&quot;, Public);</pre>
+<p>You must be aware that a user has often not all frameworks in his/her own workspace, 
+and that most of the prerequisite frameworks he/she needs are located in other workspaces. 
+Thanks to the IdentityCard file(s), tools like mkmk gain an easy way to determine 
+and then access prerequisite frameworks.</p>
+<p>The figure below gives a summary of the use of IdentityCard files. An application 
+is made of components:</p>
+<ul>
+	<li>Built or not upon other components.</li>
+	<li>Using the architecture each component is known as a framework possibly having 
+	prerequisite frameworks</li>
+	<li>Prerequisite frameworks of a given framework are specified in its IdentityCard 
+	file.</li>
+</ul>
+<table>
+	<tr>
+		<td rowspan="3">
+		<img alt="Prequisite Frameworks" src="images/CAABtlIdCard02.png" width="281" height="299"/></td>
+		<td>A logical view of the architecture, seen from the application standpoint</td>
+	</tr>
+	<tr>
+		<td>Each framework owns an IdentityCard file which declares its prerequisite 
+		frameworks.</td>
+	</tr>
+	<tr>
+		<td>A framework having no prerequisite at all has an empty IdentityCard 
+		file.</td>
+	</tr>
+</table>
+<p>Note also that:<br />
+Each framework has an IdentityCard file which can be empty if it does not need other 
+component to implement its services.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Location"></a>Location</h2>
+<p>Each framework must have an Identity Card file, named IdentityCard.h. This file 
+is located in the folder IdentityCard, just below the framework root folder itself. 
+This file allows the framework to declare (the list of) its prerequisite frameworks.</p>
+<p>
+<img alt="IdentityCard Folder" src="images/CAABtlIdCard18.png" width="165" height="179"/></p>
+<p>Conversely, to export a service, a framework must just store the header file 
+of its service in its PublicInterfaces folder.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Content"></a>Content</h2>
+<h3><a name="Syntax"></a>Syntax</h3>
+<p>The IdentityCard.h file is a text file containing dependencies of the current 
+framework. The syntax to declare a dependency is:</p>
+<pre class="code"><strong>AddPrereqComponent(&quot;</strong><em>&lt;framework name&gt;</em>&quot;, [&lt;itfScope&gt; [, <em>&lt;export&gt;</em> [, <em>&lt;expose&gt;</em> ] ] ]);</pre>
+<table class="fill">
+	<tr>
+		<th>Parameter</th>
+		<th>Description</th>
+		<th>Required</th>
+		<th>Default Value</th>
+	</tr>
+	<tr>
+		<td><code>framework name</code></td>
+		<td>The name of the prerequisite framework between double quotes.</td>
+		<td>Yes</td>
+		<td>None</td>
+	</tr>
+	<tr>
+		<td><code>itfScope</code></td>
+		<td>The scope of interfaces required (<strong>Public</strong>, <strong>Protected</strong>,
+		<strong>Private</strong>). For example, <strong>Public</strong> will give 
+		access to all interfaces in the PublicInterfaces folder of the prerequisite 
+		framework. <strong>Protected</strong> will give access to all interfaces 
+		in the ProtectedInterfaces and PublicInterfaces folders of the prerequisite 
+		framework.</td>
+		<td>No</td>
+		<td>Public</td>
+	</tr>
+	<tr>
+		<td><code>export</code></td>
+		<td>This parameter is reserved for future use. Set it to <strong>Exported</strong> 
+		if you need to specify the fourth parameter.</td>
+		<td>No</td>
+		<td>None</td>
+	</tr>
+	<tr>
+		<td><code>expose</code></td>
+		<td>Specifies whether the current framework exports headers of its prerequisite. 
+		In other words, specifies whether the client frameworks of the current one 
+		will also need the prerequisite to build. Possible values are <strong>ExposePrereq</strong> 
+		and <strong>DoNotExposePrereq</strong>.</td>
+		<td>No</td>
+		<td>DoNotExposePrereq</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PrereqCompatibility"></a>Framework Prerequisite Compatibility</h3>
+<p>For architecture matter, any type of framework (code, test, education) cannot 
+declare a prerequisite on any type of framework. The following table specifies prerequisite 
+composition rules depending on framework type.<br />
+The table indicate if a a framework of type (Row header) can have a prerequisite 
+on a framework of type (Column header). </p>
+<table class="fill">
+	<tr>
+		<th>Framework type</th>
+		<th>Code</th>
+		<th>Test (.tst)</th>
+		<th>Edu (.edu)</th>
+	</tr>
+	<tr>
+		<th>Code</th>
+		<td>Yes</td>
+		<td>No</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<th>Test (.tst)</th>
+		<td>Yes</td>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<th>Edu (.edu)</th>
+		<td>Yes</td>
+		<td>No</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PrereqCompleteness"></a>Prerequisite Completeness</h3>
+<p>A framework must declare Frameworks prerequisites are explicit, you need to specify 
+all frameworks you will need (directly or not) to compile. Please refer to
+<a href="#Example2">Example 2</a> for more details</p>
+<h3><a name="Export"></a>Export and Expose</h3>
+<p>Those concepts exist to ensure stability or architecture and are mostly used 
+when frameworks are layered. A framework required by others frameworks (its clients) 
+must as much as possible prevents its clients to break when it changes or at least 
+detect a possibility of breaking its clients. </p>
+<p>By specifying export with the value of AddToClientPrereqs for a prerequisite, 
+all clients of the framework will also inherit that prerequisite. If the value is 
+DoNotAddToClientPrereqs, the client will have to declare it if it needs it to build.
+</p>
+<p>A framework expose or not interfaces from its prerequisite. If in its own Public, 
+Protected or Private interfaces a framework reference an header from its prerequisite 
+then its clients will also need it to build. In this case, the framework must declare 
+the prerequisite as exposed by specifying expose with the value of ExposePrereq. 
+Exposing headers from its prerequisites but not declaring them is considering to 
+be an architecture error and will provoke a BAD004 error to appear during build.
+</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Examples"></a>Examples</h2>
+<h3><a name="Example1"></a>Example 1: Basic Use Case</h3>
+<p>In the following example, the source file myObject.cpp in Framework1/Module1 
+includes the header file ExposedService.h<em> </em>which is neither in module Module1, 
+nor in Framework1, but in another framework named Framework2. Thus, Framework1 needs 
+to declare Framework2 as a prerequisite in its IdentityCard.h file:</p>
+<p>
+<img alt="Example" src="images/CAABtlIdCard00.png" width="401" height="322"/></p>
+<p>The previous schema gives an example of a prerequisite between two code frameworks. 
+You can also have:</p>
+<ul>
+	<li>A prerequisite between an education framework (.edu) and a code framework, 
+	when the education framework contains code samples which need code frameworks 
+	to be implemented.</li>
+	<li>A prerequisite between an education framework and other education frameworks, 
+	if the first framework contains files which refer to files located in other 
+	frameworks.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Example2"></a>Example 2: Prerequisite Completeness</h3>
+<p>A framework must declare as a prerequisite any framework it will need to be built. 
+In the following example, Framework1 must declare a prerequisite on DirectPrereqFW1 
+and DirectPrereqFW2 because it&#39;s header and source directly reference a .h from 
+those frameworks but it also need to declare IndirectPrereqFW1 and IndirectPrereqFW2 
+because those framework will also be needed to build. </p>
+<p><img alt="Prerequisite Completeness" src="images/CAABtlIdCard03.png"/></p>
+<p><strong>Note</strong>: Framework1 must also declare DirectPrereqFW1 as exposed 
+but not DirectPrereqFW2.</p>
+<p>This way, the architecture is more explicit and the build is safer.</p>
+<p><strong>Note</strong>: The <code>AddToClientPrereqs</code> keyword modifies this 
+behavior. See [1] for guidelines on how and when to use it.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Reference"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="CAAlinkOutOfPreqs('CAACppTechArticles/CAADocBADErrors.htm');">
+		Framework Architecture Rules</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>2</strong> [Dec 2009]</td>
+		<td>Update with new prerequisite keywords.</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

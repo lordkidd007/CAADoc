@@ -1,0 +1,406 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Exchange Data using PLM Batch</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Exchange Data using PLM Batch</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use-Case</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article gives information on the basic concepts behind launching 
+		xPDM Transfer in Export or Import mode. xPDM Transfer is based on a
+		<strong>PLM Batch</strong> which can be configured and launched from CAA 
+		C++ code.</p>
+		<p>The purpose of this article is to give more details (with list of 
+		specific parameters) and CAA code flow (with source extracts) for 
+		preparing and launching the batch used for xPDM Transfer in Export or 
+		Import mode.</p>
+		<ul> 
+		<li> <a href="#What">What you will learn with this Use?</a></li>
+		<li> <a href="#UC"> The CAAVIExchangeServicesInBatch Usecase</a></li>
+		<li> <a href="#WhatUC"> What Does CAAVIExchangeServicesInBatch do</a></li>
+		<li> <a href="#HOW"> How to Launch CAAVIExchangeServicesInBatch</a></li>
+		<li> <a href="#Where">Where to Find CAAVIExchangeServicesInBatch Code</a></li>
+		<li> <a href="#Step"> Step By Step</a></li>
+		<li> <a href="#Inshort">InShort</a></li>
+		<li> <a href="#References">References</a></li>
+		</ul>
+		
+		</td>
+		</tr>   
+  </table>
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="What"> </a> What you will learn with this Usecase</h2>
+<p> This usecase is intended to show the use of PLM Batch in transferring the 
+data between two PDMs. This usecase can work in Export and Import mode.</p>
+<p> User will be able to understand about basic steps involved in launching PLM 
+Batch. This usecase also illustrates about exchange without event bus 
+connectivity.</p>
+<h3> PLM Batch </h3>
+
+<p>A <code><strong>PLM Batch</strong></code> is a Batch built on an architecture, 
+referred to as the Batch Infrastructure [<a href="#References">2</a>]. 
+&quot;<strong>PLM</strong>&quot; prefixed before Batch implies that it is exclusively dedicated for querying 
+PLM Components from and saving them to a PLM database.</p>
+		
+<p>A <code><strong>PLM Batch</strong></code> is typically run with a
+<code><strong>BatchMonitor</strong></code> tool, invoked from a
+<code><strong>session</strong></code> through <code><strong>Tools Utility</strong></code> or from a command 
+line, using <code><strong>CATBatchStarter</strong></code> or <code><strong>CATUtil</strong></code>.
+
+<p>An alternative way to launch the <code><strong>PLM Batch</strong></code> outside 
+the official BatchMonitor environment involves generating an input Parameters XML 
+file and launching the batch.</p>
+
+<p>The steps to launch the batch are as detailed in the Use Case &quot;<strong>Launching a CAA Batch</strong>&quot; 
+[<a href="#References">3</a>] while the rest is specific to the <code><strong>PLM 
+Batch</strong></code> environment. </p>
+
+<p>The article [<a href="#References">1</a>] details the set of CAA Services exposed by the <code><strong>CATPLMBatch</strong></code> 
+class, to set the parameters for the <code><strong>PLM Batch</strong></code> execution 
+by generating an input <strong>Parameters XML</strong> file. These parameters include for example the batch name, 
+a set of PLM Component <code><strong>Identificators</strong></code> and the file which has the Licensing information 
+to authorize our batch run.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="UC"> </a> The CAAVIExchangeServicesInBatch Usecase</h2>
+<p> <strong>CAAVIExchangeServicesInBatch</strong> belongs to CAAVIExchangeServices.edu framework, which uses the 
+capabilities of <strong>PLMBatchDataAccessInterfaces</strong>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="WhatUC"> </a>What Does CAAVIExchangeServicesInBatch do</h2>
+<p>This usecase illustrates the steps involved in xPDM Transfer by using a PLM 
+batch.</p>
+<p>This usecase execution follows though the following steps :</p>
+<ul>  
+<li> Instantiate PLMBatch with XPGClientBatch </li>
+<li> Set Applicative Parameters from XML File</li>
+<li> Query PLM components from the database and retrieved the identifier of it. 
+This component will be exchanged during this transfer.</li>
+<li> Set PLM Components to PLM Batch</li>
+<li> Generate parameter XML file which serves as input for PLM Batch</li>
+<li> Launch the batch and monitor it.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="HOW"> </a>How to Launch CAAVIExchangeServicesInBatch</h2>
+<p>To launch <code><strong>CAAVIExchangeServicesInBatch</strong></code>, 
+you will need to set up the build time environment, then compile <code><strong>CAAVIExchangeServicesInBatch
+</strong></code>along with its prerequisites, set up the run time environment, 
+and then execute the use case.</p>
+<p>To launch the use case execute the command:</p>
+<p><code><strong><a>mkrun -c &quot;</a>CAAVIExchangeServicesInBatch <a>Repository 
+Server User Password SecurityCtx XMLPath InputDataFilePath OutputP</a>ath &quot;</strong></code><a> </p>
+<p>where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The name and port of the server as name:port_number</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th style="height: 16px">Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th style="height: 24px">SecurityCtx</th>
+		<td>a string representing the security context 
+		(Role.Organization.Project).</td>
+	</tr>
+	<tr>
+		<th>XMLPath</th>
+		<td>The complete path of Parameter XML File,including file name. e.g. 
+		&quot;D:\Param.xml&quot;</td>
+	</tr>
+	<tr>
+		<th>InputDataFilePath</th>
+		<td>The complete path of file which contains information about input 
+		data,including file name. e.d. &quot;D:\InputData.txt&quot;<br> This file will have lin entry in following sequence 
+		corresponding to each PLM components whichn need to be transferred :<br>
+		<strong>PLMType</strong> : A String representing PLM Type of component<br>
+		-<strong>IDSet</strong> : indicates the arguments that follow are the IDSet 
+		attribute-value for a PLM component<br>
+		<strong>IDAttributeName1</strong> : ID Attribute name for the PLM component<br>
+		<strong>value1</strong> : Attr value for the PLM <a> component</a><br>
+		<strong>N Attr-value sets</strong> : which define the IDSet for the PLM components to be 
+		transferred using this batch.</td>
+	</tr>
+	<tr>
+		<th>OutputPath</th>
+		<td>&nbsp;</td>
+	</tr>
+	
+</table>
+<p>You can directly execute this use case if you know how to locate your own component, 
+i.e. its PLMType and its attributes like: PLMExternal_ID,Version,Title . If not, 
+you can import a 3D XML file supplied in the CAAVIExchangeServices.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAVIExchangeServices.edu\InputData\CAAVIExchangeServicesInBatch.3dxml</code>
+</p>
+<p>where InstallRootFolder [<a href="#References">1</a>] is the folder where 
+the API CD-ROM is installed.</p>
+<p>Please refer to the document [<a href="#References">2</a>] for how to import 
+and re-import such a 3D XML file in your PLM repository.</p>
+<p>The details of the Root Product in the 3DXML are listed below:</p>
+<ul>
+	<li><a><code>PLM_ExternalID : CAAVIExchangeServicesInBatch_Root</code></a>
+	</li>
+	<li><a><code>Title :CAAProductForBatch </code></a></li>
+</ul>
+<p>In InputDataFilePath,One row dedicated to each PLM entity. Sample contents of InputDataFilePath : </p>
+<p>VPMReference;-IdSet;PLM_ExternalID;CAAVIExchangeServicesInBatch;V_Name;CAAProductForBatch;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Where"></a>Where to Find CAAVIExchangeServicesInBatch Code</h2>
+<p>The <code>CAAVIExchangeServicesInBatch </code> use case is made of a <strong>main</strong> 
+routine in the source file <strong>CAAVIExchangeServicesInBatch.cpp</strong> which exists 
+at the location:</p>
+<p><code>InstallRootFolder\CAADoc\CAAVIExchangeServices.edu\CAAVIExchangeServicesInBatch.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">2</a>] is the folder 
+where the API CD-ROM is installed.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Step"></a>Step By Step</h2>
+<ol> 
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Instantiating PLM Batch</a></li>
+	<li><a href="#Step2">Setting Applicative Parameters</a></li>
+	<li><a href="#Step3">Query PLM components from the database</a></li>
+	<li><a href="#Step4">Setting PLM Components to PLM Batch</a></li>
+	<li><a href="#Step5">Generating parameter XML file</a></li>
+	<li><a href="#Step6">Launching the PLM Batch</a></li>
+	<li><a href="#Epilog"> Epilog</a></li>
+	
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code><strong>CAAVIExchangeServicesInBatch</strong></code> use case 
+begins by creating a session and connecting to the Input Repository. This, being 
+the most fundamental prerequisite for all batch use cases, it is the first step 
+in their execution.</p>
+<p>In this case, we create a session and connect to Repository, details of this 
+can be found in the &quot;<strong>Creating a Basic PLM Batch</strong>&quot; use 
+case article [<a href="#References">3</a>]. This article primarily deals with Opening 
+and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step1"></a>Instantiating PLM Batch</h3>
+<p> We are illustrating the exchange mechanisms by using PLM Batch. For using 
+CAA services exposed in <strong>CATPLMBatch</strong> class. </p>
+<pre class="code">
+CATUnicodeString iBatchName(&quot;XPGClientBatch&quot;);
+CATPLMBatch *PLMBatch = new CATPLMBatch(iBatchName.ConvertToChar());
+</pre>
+<p> We instantiate this class by using XPG's batch name that is used in XPDM 
+transfer.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step2"></a>Setting Applicative Parameters</h3>
+<p> For execution of PLM batch it requires parameter XML file. This parameters 
+are explained in <a href="#References">xPDM Transfer Batch Parameters[4]</a>.
+<p> In CAA usecase,we have provided all these parameters and values in XML format. 
+Local method named as <code> SetApplicativeParameterFromXML </code> has been used for parsing this XML file and setting the applicative parameters in PLM Batch.</p>
+<pre class="code">
+const char* iParamXMLFileName = iArgv[6];
+if(iParamXMLFileName != "")  hr = SetApplicativeParameterFromXML(PLMBatch,iParamXMLFileName);
+</pre>
+<pre class="code">HRESULT SetApplicativeParameterFromXML(CATPLMBatch* iPLMBatch, const char* iParamXMLFile)
+{
+  ...
+    hr = iPLMBatch-&gt;SetApplicativeParameters(oNodeName.ConvertToChar(), optionValueList);
+  ...
+    hr = iPLMBatch-&gt;SetReportParameters(oNodeName.ConvertToChar(),oNodeValue);
+  ...  
+}
+</pre>
+<p> Here, <strong>CATPLMBatch::SetApplicativeParameters</strong> method has been used 
+for setting the input related applicative parameters and <strong>
+CATPLMBatch::SetReportParameters</strong> method has been used for setting 
+output parameters which are used in report generation. </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step3"></a>Query PLM components from the database</h3>
+<p> We are using this usecase for transfer of PLM components. In Export mode, we 
+are querying and retrieving this component from V6 database. </p>
+<p> In CAA usecase, we have provided the text file which contains the 
+information about PLM components which need to be transferred.This file contains 
+the information about PLMType, Name and value of attributes to uniquely identify 
+the attribute from database. e.g. PLM_EXTERNALID,Version etc.</p>
+<pre class="code">
+CATLISTP(CATIAdpPLMIdentificator) oPLMComponentsId;
+CATUnicodeString iDataFileName = iArgv[7];
+if(iDataFileName != "")  hr = RetrievePLMComponents(PLMBatch,iDataFileName,oPLMComponentsId);
+</pre>
+<p> Local method named as <code>RetrievePLMComponents</code> has been used for reading text file, 
+creating attribute set and querying the PLM component from database. </p>
+
+<pre class="code">HRESULT RetrievePLMComponents(CATPLMBatch* iPLMBatch, CATUnicodeString iDataFileName,CATLISTP(CATIAdpPLMIdentificator) &amp;oPLMComponentsId)
+{
+  ... 
+  const char* iStrPLMType = listOfStrings[1].ConvertToChar();
+  hr = ::CAARetrieveIDofUniquePLMObject(iListAttributeName,iListAttributeValue,iStrPLMType,opiIDComp);
+  ...
+}
+</pre>
+<p> This local method uses CAA API <code> CAARetrieveIDofUniquePLMObject</code> for querying the PLM Components from database. 
+This is explained in <a href="#References">Querying PLM Object With Unique Key[5]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step4"></a>Setting PLM Components to PLM Batch</h3>
+<p> Once identificators of PLM components are successfully retrieved from database then we set 
+this PLM components in PLM Batch. </p>
+<p> We are using <code>CATPLMBatch::SetSelectedObjects</code> method for this 
+purpose. Here <code>oPLMComponentsId </code> is list of <strong>CATIAdpPLMIdentificator</strong> type.</p>
+<pre class="code">
+hr = PLMBatch-&gt;SetSelectedObjects(oPLMComponentsId);
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step5"></a>Generating parameter XML file</h3>
+<p> <code> CATPLMBatch::FillXmlFile</code> call will generate the input 
+parameter XML file.</p>
+<pre class="code">
+CATUnicodeString batchProduct;
+CATUnicodeString inputXMLPath = iArgv[8];
+
+hr = PLMBatch-&gt;FillXmlFile(batchProduct,inputXMLPath);
+</pre>
+<p> &nbsp;This method takes following arguments : </p>
+<ul>
+<li> <code> <strong>batchProduct</strong></code> , a CATUnicodeString 
+representing the complete License File Name (including absolute path) of the 
+file which has the licensing information,to authorize the run of the PLM Batch.</li>
+<li> <code> <strong>inputXMLPath</strong></code> , a CATUnocideString which 
+defines the complete filename (including absolute path) of the output parameters 
+XML file.</li>
+
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step6"></a>Launching the PLM Batch</h3>
+<p> In this step we retrieve <code> CATBatClientMonitorCAA </code> interface.This 
+interface will allow us to start and monitor PLM Batch.</p>
+<p> The method <code><strong>GetTheClientMonitorCAA</strong></code> returns a 
+pointer to the interface <code><strong>CATBatClientMonitorCAA</strong></code>.</p>
+<pre class="code">
+...
+CATBatClientMonitorCAA *PLMBatchMonitor = NULL;
+PLMBatchMonitor = CATBatClientMonitorCAA::GetTheClientMonitorCAA();
+
+char ouuid[SIZE_T_ID];
+if(NULL != PLMBatchMonitor)  hr = PLMBatchMonitor-&gt;StartV5Batch(inputXMLPath,ouuid);
+...
+</pre>
+<p><code> CATBatClientMonitorCAA::StartV5Batch</code> method will start executing the PLM Batch. This method takes following arguments :</p>
+<ul>
+<li><code>inputXMLPath</code>, this is parameter XML file which has been enerated in 
+<a href="#Step5">Generating parameter XML file</a> step, by using <code> CATPLMBatch::FillXmlFile</code> method.</li>
+<li><code>ouuid</code>, this is an unique identifier that identifies running 
+batch. It is used as an input argument to get information about the batch 
+execution. ouuid is an output retrieved by a call to <code> CATBatClientMonitorCAA::StartV5Batch</code> 
+method.</li>
+
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Epilog"></a>Epilog</h3>
+<p> The <code><strong>CAAVIExchangeServicesInBatch</strong></code> use case 
+ends by simply closing the PLM session. Since all batch use cases necessarily 
+conclude by closing the PLM session, we have a dedicated article on this topic 
+<a href="#References">Creating a Basic PLM Batch[3]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Inshort"></a>In Short</h2>
+<p> This usecase illustrates the exchange of PLM components between two PDMs by 
+using PLM Batch. This article gives detailed information about CAA services 
+which are exposed for executing the PLM batch.</p>
+<p> All necessary information and parameters which required to set for execution 
+of PLM batch is listed in this article.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">
+		PLM Environment Overview</a> </td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a CAA Use Case</a> </td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">Creating a Basic PLM Batch</a></td>
+	</tr>
+        <tr>
+       <td >[4]</td>
+       <td >
+		<a href="CAAVIExchangeBatchParam.htm">xPDM Transfer Batch Parameters</a></td>
+     </tr>
+   
+ 
+     <tr>
+       <td>[5]</td>
+       <td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponentWithUniqueKey.htm">Querying PLM Object with Unique Key</a></td>
+     </tr>
+
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [July 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

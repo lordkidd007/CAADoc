@@ -1,0 +1,192 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Tessellated Geometry Conversion</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>MultiCAD Import: Assembly Conversion</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article describes how to convert the Assembly of a xCAD document to 
+		corresponding Product Structure and Tessellated Geometry in V6 using the Format Conversion Services APIs.</td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Introduction</h2>
+<p>An Assembly consists of Product References and Representations aggregated 
+under a Root Reference. In our scenario, the Assembly file selected for Import 
+in CATIA is the Root Reference, then all the assembly files aggregated in this 
+file (i.e. CAAasm files) are our References aggregated under Root and at last 
+all the Component files (.CAAcmp) aggregated under these References are called 
+Representations. The Component or part file from xCAD Application will contain detail 
+information about a Representation Instance. This information can be the 
+absolute Geometry data (which is used to present in our Use-case xCAD file). E.g. 
+Co-ordinates of a Point X(10,20,30). </p>
+<p>If the xCAD file is an Assembly file, it will contain more Assembly or 
+Component files. If the xCAD file is a Component file, it will contain only Geometry information. 
+We will have to 
+implement both Product Structure Convertor and Tessellated Geometry Convertor to 
+convert such Scenario. Please refer to the 
+following article for Geometry Convertor Implementation Use-case [<a href="#References">1</a>].</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Architecture</h2>
+<p> The Architecture explanation of Assembly conversion can be well understood 
+with the help of following schema</p>
+
+<p> The picture shown below illustrates MultiCAD Convertor Import Architecture 
+for Assembly file.<br>
+</p>
+<table>
+	<caption><strong>Fig. 1. MultiCAD Assembly Convertor IMPORT architecture</strong></caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAV6AssConvCodeFlowIm.jpg" width="1263" height="555"></td>
+	</tr>
+</table>
+
+
+
+
+<p>&nbsp;</p>
+<h3>Implementation Code flow architecture</h3>
+<p>When we Import an xCAD file (step 'a'), the control goes to the V6 Writer 
+provided by DS. This writer checks for the CAA Component through specific 
+Late-type (see article [<a href="#References">2</a>]). This CAA Component is called as V6 Reader.</p>
+<p>If the CAA Component is implemented, V6 Writer sends callbacks to the APIs 
+implemented in the component. V6 Reader then answers to all the callbacks of V6 
+Writer by implementing the interfaces as shown in the class diagram above. It 
+answers to the calls through the implementation classes in the alphabetical 
+series as illustrated in above figure 2.</p>
+<p>The main interfaces to implement are:</p>
+<table class="fill">
+	<tr>
+		<th>INTERFACE</th>
+		<th>Function/IP Exposed</th>
+	</tr>
+	<tr>
+		<td>CATIExchangeInputDocument</td>
+		<td>File Access, Open, Document links</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProductRepresentation</td>
+		<td>Access to Root Product Reference</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProduct</td>
+		<td>Access to Product and its number of Instance</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProductInstance</td>
+		<td>Access to Product Instances and their Instance (if any)</td>
+	</tr>
+
+	<tr>
+		<td>CATIExchangeRepresentation</td>
+		<td>Access to Representation Attributes</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeTessellatedRepresentation</td>
+		<td>Access to Tessellated Geometry</td>
+	</tr>
+
+
+
+</table>
+
+<p>This class sends all 
+the geometry information present in the component file selected. The CATIExchangeTessellatedRepresentation provides a view on the document as a tessellated representation 
+and retrieves all the Tessellated information.</p>
+<p>It is intended to support the conversions of scene graphs, essentially to 
+retrieve the graphic representation of parts, as an alternate representation of 
+the Boundary Rep. The major application will be the Digital Mock-up, in graphic 
+mode.</p>
+<p>Finally, the V6 Writer takes all the Geometry information and calls the core 
+APIs which create geometrical shapes to display in 3D Viewer/CATIA Editor.</p>
+<p>And a cgr file gets created and stored in the local database in CATTemp 
+folder of DassaultSystemes installation</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Basic Scenario for File based Assembly Import</h2>
+<p> The Basic Scenario for the File based Import in CATIA V6 to convert into 
+tessellated geometry will demonstrate 
+following points:</p>
+<p> 1. Select the xCAD component file to be imported to V6 (extension .CAAasm)<br>
+2. Reading the xCAD file. In case of XML format file, we need to implement DOM 
+or SAX parsers to read the data.<br>
+3. Passing the relevant data from file to the Format Convertor APIs<br>
+4. Conversion of the data into Geometry shape and Product Structure. The shape can be viewed in 3D 
+Viewer<br>
+5. A .cgr file is generated locally and Product References are stored in 
+database</p>
+<h3> Pre-requisites</h3>
+<p> The information present inside the xCAD file should be in XML format (since 
+we have demonstrated the use-cases with XML format files). The file can be of 
+any extension, but for our use-cases it should be .CAAasm</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="In short"></a>In Short</h2>
+<p>We have seen the interfaces which have to be implemented in order to convert 
+simple geometry data present in component XML files. Also the article explains 
+the Scene graphs which can be used to correctly display Tessellated geometry </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+    
+       <td >[1]</td>
+       <td ><a href="CAAConvertorUCTessPoint.htm">Conversion of Geometry data to cgr</a></td>
+     </tr>  
+     <tr>
+    
+       <td >[2]</td>
+       <td ><a href="CAAConvertorImportPlugIn.htm">Import Plug-in</a></td>
+     </tr> 
+   </table>
+   
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Oct 2013]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

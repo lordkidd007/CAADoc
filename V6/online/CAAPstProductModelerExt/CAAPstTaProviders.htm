@@ -1,0 +1,634 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding Applicative Container Integration</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Applicative Container Integration</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains how you can integrate in a DS Application your 
+		applicative containers included in PLM Technological Representation. It 
+		is the rest of the article describing this specific PLM Representation Reference 
+		[<a href="#References">1</a>].</p>
+		<div id="toc">
+		</div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Context</h2>
+<p>In the referenced article [<a href="#References">1</a>], we have explained that 
+thanks to a PLM Technological Representation (Techno Rep) you could insert applicative 
+data in an assembly. These data (features) are stored inside applicative containers 
+[<a href="#References">8</a>], them self included in the main stream of the PLM 
+Representation Representation.</p>
+<table>
+	<caption>Fig.1: Applicative Containers inside a Technological Representation</caption>
+	<tr>
+		<td>
+		<img alt="Applicative Containers inside a Technological Representation" height="202" src="images/CAAPstTechnoRep_Contents.gif" width="425"/></td>
+	</tr>
+</table>
+<p>For some application, this persistent storage can be sufficient. The application 
+accesses the features, read or modify the attributes values, and can process &quot;batch&quot; 
+operations. But, for some another ones, this integration level can turn out to be 
+insufficient. An application can require that its applicative features are visible 
+in 3D, in the specification tree, taken into account by the knowledge, or contextual 
+menu mechanisms. But since only the owner of a container knows its structure, and 
+knows what he/she want to be taken into account, the applicative data integration 
+is not natively done by DS code. This article describes the provider Mechanism enabling 
+to fully integrate your data in a DS application.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Provider Mechanism</h2>
+<p>To understand the mechanism, taken a little example showing the data integration 
+inside the specification tree.</p>
+<p>Here is a PLM Technological Representation with two applicative containers:</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2: An Example of a Techno Rep</caption>
+	<tr>
+		<td>
+		<img alt="An Example of a Techno Rep" height="159" src="images/CAAPstProvidersTechnoRepContent.gif" width="176"/></td>
+	</tr>
+</table>
+<p>Each container contains features (we said a set of features), whose a root structuring 
+thi set. Lets suppose, that this Techno Rep, <code>TechnoRepA</code> [<a href="#Fig2">Fig.2</a>], 
+is instantiated in the following assembly structure:</p>
+<table>
+	<caption>Fig.3: Techno Rep in an Assembly</caption>
+	<tr>
+		<td>
+		<img alt="Techno Rep in an Assembly" height="123" src="images/CAAPstProvidersPSAssemblage.gif" width="163"/></td>
+	</tr>
+</table>
+<p>When you display in a 3D viewer this assembly, you wish that in the specification 
+tree, your applicative features are beneath the techno Rep instance such as presented 
+by this picture below:</p>
+<table>
+	<caption><a name="Fig4"></a>Fig.4: Feature Visualized in the Spec Tree</caption>
+	<tr>
+		<td>
+		<img alt="Feature Visualized in the Spec Tree" height="227" src="images/CAAPstProvidersPSAssemblageTotal.gif" width="165"/></td>
+	</tr>
+</table>
+<p>To obtain this result, a provider mechanism is used. The PLM Technological Representation 
+instance (more precisely the PLM Technological Representation itself) will delegate 
+to a <strong>manager of providers</strong> to retrieve the children beneath it. 
+The process is the following:</p>
+<ul>
+	<li>First, and one time, each container declares to this manager an object which 
+		will be called on an interface implemented by this object. This interface 
+		will return the direct child features in the context of the techno rep. 
+		This specific object is a <strong>provider</strong>.</li>
+	<li>When a techno rep wants to know its children, it requires to the manager 
+		to collect all the children returned by the providers declared to this manager.</li>
+</ul>
+<p>This manager of providers is unique to the session.</p>
+<p>Let's detail these concepts.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>Provider Definition</h2>
+<p>A provider is a <strong>component</strong> (Object Modeler meaning[<a href="#References">2</a>]) 
+which implements an <strong>interface</strong> whose the contract is to retrieve 
+the features of a container for a given <strong>context</strong>.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part31"></a>An Object Modeler Component</h3>
+<p>The provider is a component dedicated to the provider mechanism, in other words 
+a component only implementing interfaces (1 or N) dedicated to this mechanism. It 
+is dedicated to a container. In the last section, <a href="#Part46">How Are the 
+Manager of Providers Invoked to List the Children?</a>, this implementation aspect 
+will be detailed.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part32"></a>Implementing Specific Interfaces</h3>
+<p>Each interface implemented by a provider (and relying to the provider mechanism) 
+is linked to a behavior in the DS application. This table lists all the available 
+behaviors in the context of the PLM Technological Representation.</p>
+<table class="fill">
+	<caption><a name="Tab1"></a>Tab.1: Available Behavior for Techno Rep</caption>
+	<tr>
+		<th>Behavior</th>
+		<th>Interface Activated on the Feature</th>
+		<th>Interface Provider</th>
+	</tr>
+	<tr>
+		<td>Visualization in Spec Tree</td>
+		<td>CATINavigateObject</td>
+		<td>CATINavigateProvider</td>
+	</tr>
+	<tr>
+		<td>3D Visualization</td>
+		<td>CATI3DGeoVisu</td>
+		<td>CATI3DVisuProvider</td>
+	</tr>
+	<tr>
+		<td>Contextual Sub Menu</td>
+		<td>CATIContextualSubMenu</td>
+		<td>CATICtxMenuProvider</td>
+	</tr>
+	<tr>
+		<td>Knowledge Parameter</td>
+		<td>CATIParmPublisher</td>
+		<td>CATIParmProvider</td>
+	</tr>
+</table>
+<p>You should read this table such as: In its <em>CATI3DVisuProvider</em> implementation, 
+a provider browses its relying container, and returns features for which the DS 
+application will invoke further the <em>CATI3DGeoVisu</em> interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part33"></a>Providing Lists of Features for a Context</h3>
+<p>The interfaces [<a href="#Tab1">column 3</a>] presented in the table just above 
+[<a href="#Tab1">Tab.1</a>] have all the same template: one <code>GetChildren</code> 
+method with two arguments:</p>
+<ul>
+	<li>
+		<p>Argument IN: a pointer on the <strong>context</strong> object. This object 
+		is those which delegates to the manager of providers to retrieve its children.</p>
+	</li>
+	<li>
+		<p>Argument OUT: a list of features, contained in the container, and which 
+		are the <strong>direct</strong> children of the <strong>good</strong> context.</p>
+	</li>
+</ul>
+<p>Taken an example to illustrate the concepts behind the bold words. </p>
+<table>
+	<caption><a name="Fig5"></a>Fig.5: Context</caption>
+	<tr>
+		<td>
+		<img alt="Context" height="263" src="images/CAAPstProvidersContext.gif" width="431"/></td>
+	</tr>
+</table>
+<p>On this picture [<a href="#Fig5">Fig.5</a>] beneath <strong>RootProduct1</strong> 
+there is the PLM technological Representation TechnoRepA with its two containers 
+[<a href="#Fig2">Fig.2</a>], and on the right, beneath <strong>RootProduct2</strong> 
+there is a PLM technological Representation TechnoRepB with one container.</p>
+<ul>
+	<li>There are three applicative containers, so three providers will be declared 
+		to the manager.</li>
+	<li>When TechnoRepA (context) will require its direct children, it will invoke 
+		the manager of providers, which will ask the question to its three declared 
+		providers.
+		<ul>
+			<li>The provider associated with ContainerRoot1 of TechnoRepA returns 
+				Root1, and the provider associated with ContainerRoot2 returns Root2. 
+				The providers only return Root1 and Root2, because these two features 
+				are the direct children: the <em>CATINavigateObject</em> [<a href="#References">5</a>] 
+				applied in turn to these two objects will return feat1, feat2, and 
+				feat3, feat4 respectively.</li>
+			<li>The provider associated with the unique container of TechnoRepB 
+				must return an empty list since TechnoRepB is not aggregated by 
+				RootProduct1.</li>
+		</ul>
+	</li>
+	<li>When TechnoRepB (context) will require its direct children, it will invoke 
+		the manager of providers, which will ask the question to its three declared 
+		providers.
+		<ul>
+			<li>The providers associated with the containers of TechnoRepA must 
+				return an empty list, since TechnoRepA is not aggregated by RootProduct2.</li>
+			<li>The provider associated with the unique container of TechnoRepB 
+				return Root3.</li>
+		</ul>
+	</li>
+</ul>
+<p>Through this basic sample, (see <a href="#Fig7">Fig.7</a> for a complete view), 
+you can see what are the contexts, and their importance in the returned list of 
+children.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part4"></a>Manager of Providers</h2>
+<h3><a name="Part41"></a>Two Kinds of Manager</h3>
+<p>The manager of providers associated with a <strong>type of context</strong>, 
+is unique to the session. You retrieve it thanks its implementation of the <em>CATICreateInstance</em> 
+interface [<a href="#References">3</a>].</p>
+<pre class="code">...
+<strong>CATIProviders</strong> *pIProvidersOnManager = NULL ;
+HRESULT rc ::CATInstantiateComponent(<strong>CAAZZZxxxProvider</strong>, 
+                               IID_CATIProviders , 
+                               (void**)&amp; pIProvidersOnManager );
+
+...</pre>
+<p>There are three managers:</p>
+<ol>
+	<li>ZZZ =&quot;rep&quot; , xxx = Visu, the &quot;<code>CAARepVisuProvider</code>&quot; 
+		component for <em>CATINavigateProvider</em>, <em>CATI3DVisuProvider</em>.</li>
+	<li>ZZZ =&quot;rep&quot; , xxx= Model, the &quot;<code>CAARepModelProvider</code>&quot; 
+		component for <em>CATIParmProvider</em>.</li>
+	<li>ZZZ =&quot;Prd&quot; , xxx = Visu, <code>&quot;CAAPrdVisuProvider&quot;</code> 
+		component for <em>CATINavigateProvider</em>.</li>
+</ol>
+<p>They implement the <em>CATIProviders interface</em> to manage their provider 
+list. In the session, there is one instance of each one.</p>
+<p>But attention explanations have been simplified, until now the article lets suppose 
+that the manager is only linked to the PLM Technological Representation contexts. 
+But in fact, <code>CATRepVisuProviders/CATRepModelProviders,</code> are available 
+for any kind PLM Representation Reference[<a href="#References">4</a>]. It means, 
+that the context of the <code>GetChildren</code> method can be any kind of PLM Rep 
+Ref, and not only Techno Rep.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part42"></a>Which Kind of Container for those Managers</h3>
+<p>The manager <code>CATRepVisuProviders/CATRepModelProviders/CAAPrdVisuProvider</code> 
+is dedicated to the PLM Representation Reference, so it means that all the applicative 
+containers contained in such PLM Component could be involved by this manager.</p>
+<ul>
+	<li>For applicative containers inside PLM Rep Ref of V5 data, there is (or not) 
+		a manager dedicated to the Rep modeler.
+		<p>For container inside the 3D Shape, the PLM Representation Reference delegates 
+		to the MechanicalPart feature, and this object manages itself its applicative 
+		containers using its own manager of providers [<a href="#References">6</a>].</p>
+	</li>
+	<li>for PLM Rep Ref of non V5 data, there is no applicative containers.</li>
+</ul>
+<p>In fact there are only the containers of the PLM Technological Representation 
+which can been involved by these three managers (<code>CATRepVisuProviders/CATRepModelProviders/CAAPrdVisuProvider</code>).
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part43"></a>Where to Add a Provider?</h3>
+<p>Once the containers of a PLM technological Representation are loaded in memory, 
+you want integrate its features in the DS application. So the dedicated place to 
+add the Providers associated with an applicative container is the <em>CATInit</em> 
+implementation of this applicative container.</p>
+<p>Note that for an applicative container inserting inside a PLM Technological Representation, 
+the <em>CATInit</em> interface is automatically called when the container is loaded 
+in memory [<a href="#References">1</a>], conversely to the applicative containers 
+of the 3D Shape.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part44"></a>How to Add a Provider?</h3>
+<p>We use the <code>AddProvider</code> of the <em>CATIProviders</em> interface.</p>
+<pre class="code">...
+MyProClass * pProvider  = new MyProClass ();
+rc = pIProvidersOnManager-&gt; <strong>AddProvider</strong>(IID_CATINavigateProvider,pProvider);
+...</pre>
+<p>Just above we have declared that the provider, <code>pProvider</code>, which 
+is an instance of the <em>MyProClass</em> class, must be kept by the manager
+<code>pIProvidersOnManager</code> (see at the top of the <a href="#Part4">Manager 
+of Providers</a> Section), and that <code>pProvider</code> will be invoked for the 
+specification tree behavior.</p>
+<p>You can use one again the <code>AddProvider</code> method to add providers for 
+other behaviors.</p>
+<pre class="code">...
+rc = pIProvidersOnManager-&gt; <strong>AddProvider</strong>(IID_CATI3DGeoVisuProvider,pProvider);
+...</pre>
+<p>In this example, pProvider, which implements <em>CATI3DGeoVisuProvider</em> too, 
+has been added twice.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part45"></a>A Picture to Sum-Up</h3>
+<table>
+	<caption><a name="Fig6"></a>Fig.6: Providers Added to the Manager</caption>
+	<tr>
+		<td>
+		<img alt="Providers Added to the Manager" height="430" src="images/CAAPstProvidersManagerProvider.gif" width="579"/></td>
+	</tr>
+</table>
+<p>This picture shows:</p>
+<ul>
+	<li>PLM Technological Representations (Techno Rep) contain applicative containers 
+		implementing <em>CATInit</em>.</li>
+	<li>In each <em>CATInit</em> implementation, a provider is created, and declared 
+		to the manager of providers for the <em>CATINavigateProvider</em> interface.<p>
+		The manager should have 4 couples (ProNav1, <em>CATINavigateProvider</em>), 
+		(ProNav2, <em>CATINavigateProvider</em>), (ProNav3,
+		<em>CATINavigateProvider</em>) and (ProNav1, <em>CATINavigateProvider</em>). 
+		But in fact there are only three couples: The manager keeps the newly inserted 
+		couple, only if the provider component does not already exist for the input 
+		interface. So, [<a href="#Fig6">Fig.6</a>], there are four providers in 
+		session, but only three are kept by CATRepVisuProviders: (ProNav1,
+		<em>CATINavigateProvider</em>), (ProNav2, <em>CATINavigateProvider</em>), 
+		(ProNav3, <em>CATINavigateProvider</em>).</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part46"></a>How Are the Manager of Providers Invoked to List the Children?</h3>
+<p>This last section presents the complete view of the providers mechanism for PLM 
+Representation Reference.</p>
+<table>
+	<caption><a name="Fig7"></a>Fig.7: Complete Scenario</caption>
+	<tr>
+		<td>
+		<img alt="Complete Scenario" height="340" src="images/CAAPstProvidersCompleteScenario.gif" width="474"/></td>
+	</tr>
+</table>
+<p>In the above schema, [<a href="#Fig7">Fig.7</a>], we have:</p>
+<ul>
+	<li>Two products opened in a 3D viewer (RootProduct1 &amp; RootProduct2) and 
+		indirectly Product3.</li>
+	<li>Several PLM Techno Rep instantiated in these three products. Note that TechnoRepD 
+		is inside a sub-product.</li>
+	<li>TechnoRepA has two containers (containerRoot1 &amp; containerRoot2), but 
+		TechnoRepB, TechnoRepC; TechnoRepD have only 1 container (containerRoot3, 
+		containerRoot4, containerRoot5) respectively.</li>
+	<li>containerRoot1, containerRoot2, containerRoot3, containerRoot4, containerRoot5 
+		are the name of five applicative containers. To be exact the name of their 
+		latetype.</li>
+	<li>RootProduct2 contains an instance of a PLM Rep Ref with V5 data (3D shape 
+		for example).</li>
+</ul>
+<p>In the scenario below, all the products are opened with the PLM Representation 
+Reference loaded in edit mode. So all applicative containers of the Techno rep are 
+loaded too, and the <em>CATInit</em> is called on each of them.</p>
+<p>RootProduct1 is opened:</p>
+<ul>
+	<li>when TechnoRepA is loaded, the <em>CATInit</em> implementation on containerRoot1 
+		and containerRoot2 declare to the CATRepVisuProviders manager the providers 
+		for each wished behaviors.</li>
+	<li>when TechnoRepC is loaded, the <em>CATInit</em> implementation on containerRoot4 
+		declares to the CATRepVisuProviders manager the providers for each wished 
+		behaviors.</li>
+</ul>
+<p>RootProduct2 is opened:</p>
+<ul>
+	<li>when TechnoRepB is loaded, the <em>CATInit</em> implementation on containerRoot3 
+		declares to the CATRepVisuProviders manager the providers for each wished 
+		behaviors.</li>
+	<li>when TechnoRepDis loaded, the <em>CATInit</em> implementation on containerRoot5 
+		declares to the CATRepVisuProviders manager the providers for each wished 
+		behaviors.</li>
+</ul>
+<p>CATRepVisuProviders manages five couple for a behavior (one for each kind of 
+container). It is five couples because all the containers are different (different 
+late type, different name).</p>
+<p>RootProduct1 and RootProduct2 are refreshed for the specification tree.</p>
+<p>For RootProduct1</p>
+<ul>
+	<li>The TechnoRepA instance must be updated, CATRepVisuProviders is invoked 
+		a first time for the TechnoRepA context.</li>
+	<li>The TechnoRepC instance must be updated, CATRepVisuProviders is invoked 
+		a second time for the TechnoRepC context.</li>
+</ul>
+<p>For RootProduct2:</p>
+<ul>
+	<li>The instance of the Rep Ref V5data must be updated, CATRepVisuProviders 
+		is invoked a third time with the Rep Ref V5 context.</li>
+	<li>The TechnoRepB instance must be updated, CATRepVisuProviders is invoked 
+		a forth time for the TechnoRepB context.</li>
+	<li>The TechnoRepD instance must be updated, CATRepVisuProviders is invoked 
+		a fifth time for the TechnoRepD context.</li>
+</ul>
+<p>Here are the list of features returned by the providers in the five updates:</p>
+<table class="fill">
+	<colgroup>
+		<col align="center" span="7" />
+	</colgroup>
+	<tr>
+		<th rowspan="2">Update Cases</th>
+		<th rowspan="2">Context</th>
+		<th colspan="5">Provider for</th>
+	</tr>
+	<tr>
+		<th>ContainerRoot1</th>
+		<th>ContainerRoot2</th>
+		<th>ContainerRoot3</th>
+		<th>ContainerRoot4</th>
+		<th>ContainerRoot5</th>
+	</tr>
+	<tr>
+		<th>update 1</th>
+		<td>TechnoRepA</td>
+		<td>Root1</td>
+		<td>Root2</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 2</th>
+		<td>TechnoRepC</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root4</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 3</th>
+		<td>Rep Ref V5 data</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 4</th>
+		<td>TechnoRepB</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root3</td>
+		<td>empty</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 5</th>
+		<td>TechnoRepD</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root5</td>
+	</tr>
+</table>
+<p>For each update, the provider of each couple kept by the manager of provider 
+are invoked with the interface of the couple.</p>
+<p>But now imagine, that the container of TechnoRepC is no more a container of containerRoot4 
+type, but a container of containerRoot3 type. The contents of the container for 
+TechnoRepC is (featx, featy, featz), and the contents of the container for TechnoRepB 
+is always (feat5,feat6). But in this case the manager of provide will manage four 
+providers:</p>
+<p>RootProduct1 is opened:</p>
+<ul>
+	<li>When TechnoRepA is loaded, the <em>CATInit</em> implementation on containerRoot1 
+		and containerRoot2 declare to the CATRepVisuProviders manager the providers 
+		for each wished behaviors.</li>
+	<li>When TechnoRepC is loaded, the <em>CATInit</em> implementation on containerRoot3 
+		declares to the CATRepVisuProviders manager the providers for each wished 
+		behaviors.</li>
+</ul>
+<p>RootProduct2 is opened:</p>
+<ul>
+	<li>When TechnoRepB is loaded, the <em>CATInit</em> implementation on containerRoot3 
+		tries to declare to the CATRepVisuProviders manager the providers for each 
+		wished behaviors. But the manager refuse this declaration since a provider 
+		to manage containerRoot3 already exist.</li>
+	<li>When TechnoRepD is loaded, the <em>CATInit</em> implementation on containerRoot5 
+		declares to the CATRepVisuProviders manager the providers for each wished 
+		behaviors.</li>
+</ul>
+<table class="fill">
+	<colgroup>
+		<col align="center" span="7" />
+	</colgroup>
+	<tr>
+		<th rowspan="2">Update Cases</th>
+		<th rowspan="2">Context</th>
+		<th colspan="4">Provider for</th>
+	</tr>
+	<tr>
+		<th>ContainerRoot1</th>
+		<th>ContainerRoot2</th>
+		<th>ContainerRoot3</th>
+		<th>ContainerRoot5</th>
+	</tr>
+	<tr>
+		<th>update 1</th>
+		<td>TechnoRepA</td>
+		<td>Root1</td>
+		<td>Root2</td>
+		<td>empty</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 2</th>
+		<td>TechnoRepC</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root4</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 3</th>
+		<td>Rep Ref V5 data</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 4</th>
+		<td>TechnoRepB</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root3</td>
+		<td>empty</td>
+	</tr>
+	<tr>
+		<th>update 5</th>
+		<td>TechnoRepD</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>empty</td>
+		<td>Root5</td>
+	</tr>
+</table>
+<p>The same provider (those of <strong>ContainerRoot3</strong>) must return the 
+root feature(s) of the container according to the context.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part5"></a>Implementing a Provider</h2>
+<p>The provider will be add to the manager of providers inside the <em>CATInit</em> 
+implementation of a container. This implementation is on the late type of the container. 
+So we recommend to associate one provider with one kind of container type. The late 
+type of the container defines the way to parse the container.</p>
+<p>You can create on provider which implements all the requested interfaces, or 
+you can create as many classes as interface. In the use case [<a href="#References">7</a>] 
+we have created two components:</p>
+<ul>
+	<li>CAAPstNavigProvForCAAPstINFCont for the <em>CATINavigateProvider</em> interface 
+		and for the container of late type CAAPstINFCont.</li>
+	<li>CAAPstVisuProvForCAAPstINFCont for the <em>CATI3DVisuProvider</em> interface 
+		and for the container of late type CAAPstINFCont.</li>
+</ul>
+<p>In the <code>GetChildren</code> method of <em>CATINavigateProvider</em> and
+<em>CATI3DVisuProvider</em>, first at all we check that the container whose the 
+name is <code>CAAPstINFContainer</code> exists in the context. Then we check that 
+the late type of this container is <code>CAAPstINFCont.</code></p>
+<p>This double check is mandatory since two containers with the same name, but with 
+not the same late type, can exist.</p>
+<p>If containers of same late type can have different name, you should integrate 
+in the provider these name.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPstTaTechnoRep.htm">PLM Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">
+		Creating Components</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysUcOMSimpleCmp.htm">
+		Creating and Instantiating a Component</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm">
+		PLM Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAOmbModelingProtocol/CAAOmbUcGeoNavigate.htm">
+		The Object Navigator</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMmrTaProvidersInMechPart.htm')">
+		Provider In Mechanical Modeler Domain</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAPstUcINFBuildCatalog.htm">Integrating Applicative Data In 
+		Product Context</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaApplicativeContainer.htm">
+		Understanding Applicative Container</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Overview of PLM New Services</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Overview of PLM New Services</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>PLM New Services is a framework which enables you to create entities 
+		of a specific modeler in a generic way. This article provides an overview 
+		of this PLM New Service and describes required steps to use this Service.
+		</p>
+		<ul>
+			<li><a href="#Why">Why PLM New Services</a></li>
+			<li><a href="#What">What Does PLM New Services Provide</a>
+				<ul>
+					<li><a href="#Capabilities">Capabilities and Constraints to 
+						Use PLM New Service</a></li>
+				</ul>
+			</li>
+			<li><a href="#How">How to Use PLM New Service</a>
+				<ul>
+					<li><a href="#Step">Step-by-Step</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Why"></a>Why PLM New Services</h2>
+<p>Customers who build their own applications need to create new PLM entities. To 
+do this, a dedicated CAA APIs reflecting the interactive PLM new command is needed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>What Does PLM New Services Provide</h2>
+<p>This Service provides some CAA APIs to create PLM Objects of the modelers provided, 
+the modelers support such creation.</p>
+<p>The PLM new CAA API provides generic way to create PLM entities.</p>
+<p>It launches an exclusive command where a PLM frame (Dialog box) has to be filled 
+to valuate the PLM attributes.</p>
+<p>The entities are created as new in the PLM session without any database propagation. 
+A propagate action is needed to save in database the newly created data.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Capabilities"></a>Capabilities and Constraints to Use PLM New Service</h3>
+<p>The API is a CAA service available in interactive mode ONLY.</p>
+<p>The PLM Modeler Objects which are declared as '<em>Newable in CAA</em>' in the 
+Modeler metadata can only be created.</p>
+<p>Only <em>'one by one'</em> CAA creation is available: Multiple creation at the 
+same time is not possible.</p>
+<p>The type of the object to create is identified by its CATIType sent to the CAA 
+New engine which is an interface dedicated to describing the knowledge type of an 
+object. Thus, the PLMType is hard coded in the data.</p>
+<p>After successful creation, the created object can be retrieved as a CATICkeObject 
+in the AfterCreation Method of the implementation of the CATIPLMNewEngineListenerPublic 
+interface provided as input to the CAA New Engine [<a href="#References">1</a>]. 
+CATICkeObject is a CAA interface representing an object that can be manipulated 
+by the CAA Knowledge interfaces.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="How"></a>How to Use PLM New Service</h2>
+<p>The PLM New Service can be used/implemented with the help of some Classes and 
+Interfaces. Following is the list of classes/interfaces and their methods</p>
+<ul>
+	<li><strong>CATPLMNewServicesPublic</strong>: Methods are GetPLMNewEnginePublic()</li>
+	<li><strong>CATIPLMNewEnginePublic</strong>: Methods are SetType(), AssociateListener(), StartNew()</li>
+	<li><strong>CATIPLMNewEnginePublic</strong>: Methods are AfterCreation(), 
+		CancelCreation()</li>
+</ul>
+<p>In Standard usage, when we want to Create a PLM Entity, a State Chart command 
+is invoked and we have to perform following steps:</p>
+<ul>
+<li>Choose the PLM Type for Entity.</li>
+<li>Input the PLM Attributes associated with this Type.</li>
+</ul>
+<p>In CAA Openness usage (which is of our interest), the End-User can customize 
+this State Chart command so as to pre-define the PLMType for Entity. Hence it launches 
+the State Chart command directly from the 2<sup>nd</sup> state, prompting the End-User 
+to fill in the required Attributes.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step"></a>Step-by-Step</h3>
+<ol>
+	<li>Creating CATCommand and Retrieving the factory i.e. PLMNew Engine</li>
+	<li>Defining the Type</li>
+	<li>Creating the Implementation to CATIPLMNewEngineListenerPublic and Send It 
+		to PLM New Engine</li>
+	<li>Running PLM New Engine</li>
+	<li>Retrieving the Created Data in AfterCreation() Method of the Implementation</li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Creating CATCommand and Retrieving the factory i.e. PLMNew Engine</h4>
+<p>First, get the PLMNewEngine pointer.</p>
+<pre class="code">...
+CATPLMMyCmd::CATPLMMyCmd(): CATCommand("MyPLMCmd ")
+...
+CATIPLMNewEnginePublic_var spPLMNewEngine;
+hr = CATPLMNewServicesPublic::GetPLMNewEnginePublic (spPLMNewEngine);
+...
+</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Defining the Type</h4>
+<p>Then, pass the PLMType of the Modeler for which you want to create an object.</p>
+<pre class="code">...
+CATIType_var  ihType;
+// define the type
+rc = spPLMNewEngine -&gt; SetType (ihType);
+...
+</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Creating the Implementation to CATIPLMNewEngineListenerPublic and Send It to PLM New Engine</h4>
+<p>Then create the implementation class for the above interface. Send the listener 
+to PLM New engine. Please refer the Use-case [<a href="#References">1</a>] for detail 
+code</p>
+<pre class="code">...
+// CATPLMUIInterfaces  
+#include "TIE_CATIPLMNewEngineListenerPublic.h"
+TIE_CATIPLMNewEngineListenerPublic(CATPLMMyListener);
+
+CATImplementClass(CATPLMMyListener, Implementation, CATIPLMNewEngineListenerPublic, CATNull);
+...
+</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Running PLM New Engine</h4>
+<p>A call to this method will start the PLM New service.</p>
+<pre class="code">...
+rc = spPLMNewEngine -&gt; StartNew ();
+...
+</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Retrieving the Created Data in AfterCreation() Method of the Implementation</h4>
+<p>After successful creation of the modeler object, there will be a callback to 
+this method. You may implement this method according to your requirements</p>
+<pre class="code">...
+HRESULT CATPLMMyListener::AfterCreation(CATICkeObject _var &amp; iCreatedObject);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This Technical Article explains the concept of PLMNew Service which can be used 
+for CAA customization of the State Chart command for the new PLM entity creation. 
+In interactive mode CATIA PLM Component creation is a two stage process. In first 
+stage we select the PLM Component type and in second stage actual PLM Component 
+creation method get launched according to selection.</p>
+<p>But due to CAA Openness, we can just skip the First stage and directly go to 
+the second stage.</p>
+<p>To understand the above steps with Product Modeler example please read the Use-Case 
+article [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPuiUcCreateAndEditNewProdRef.htm">Creating New Product Reference 
+		With PLM New Services</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="reference">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2013]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

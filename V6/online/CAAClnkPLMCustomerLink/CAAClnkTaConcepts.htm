@@ -1,0 +1,434 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Custom Link for RFLP Domains</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Custom Link for RFLP Domains</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The customer creates and manages custom links (also named relationship) 
+		by using CAA exposed APIs, either in his batch application or through his 
+		own commands (Add-Ins) integrated in an editor of his choice, normally the 
+		RFLP editor in CATIA.</p>
+		<p>This relationship is referred to as a RFLP (<strong>Requirement</strong>,
+		<strong>Function</strong>, <strong>Physical</strong>, <strong>Logical</strong>) 
+		Agnostic Relationship or RFLP Custom Link, since it typically occurs either 
+		within one of the RFLP domains or spans across them. It allows the user 
+		to put in relation some RFLP objects and this is the user himself that specify 
+		on each relationship its purpose (condition, dependent, etc.).</p>
+		<p>This technical article details various aspects of a Custom Link as listed 
+		below:</p>
+		<ul>
+			<li><a href="#Learn">Client Ecosystem Positioning</a></li>
+			<li><a href="#Concepts">Concepts and Behaviors</a>
+			<ul>
+				<li><a href="#Creation">Creation Behavior</a></li>
+				<li><a href="#Delete">Delete Behavior</a></li>
+				<li><a href="#Reroute">Reroute Behavior</a></li>
+				<li><a href="#Versioning">Versioning Behavior</a></li>
+			</ul>
+			</li>
+			<li><a href="#Implementation">Implementation 
+			by Agnostic Connection Modeler</a>
+			<ul>
+				<li><a href="#Agnostic">Agnostic Connection</a></li>
+				<li><a href="#Source">What Can Be the Source 
+				Object?</a></li>
+				<li><a href="#Target">What Can Be the Target 
+				Object?</a></li>
+			</ul>
+			</li>
+			<li><a href="#CAAAPIs">CAA APIs</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>Client Ecosystem Positioning</h2>
+<p><strong>RFLP</strong> refers to a domain which is a superset of fundamentally 
+four sub-domains namely. <strong>Requirement</strong>, <strong>Functional</strong>,
+<strong>Logical</strong> and <strong>Physical</strong>. The RFLP Editor provides 
+several commands to work on functional decomposition and flow, logical components 
+etc. Typically, a Functional Connection which represents the data flow between objects 
+may be implemented in the Logical domain with a Logical Component. In this case 
+this is through an <strong>Implement Link</strong> (Functional Connection / Logical 
+Component) that insures the traceability across the RFLP domains for engineers and 
+architects during the process of design. Now and in addition if this user would 
+like to express that these two objects are also related for an other reason (internal 
+rule, internal process, etc.) then he will create a<strong> Custom Link </strong>on 
+which he&#8217;ll specify the purpose of this link.</p>
+<p>These commands allow to edit an exhaustive set of objects based on the concepts 
+that are natively supported by the RFLP service. The [<a href="#Fig.1">Fig. 1</a>] 
+below shows an input model loaded within an RFLP Editor in CATIA. The spec tree, 
+depicts a Functional and a Physical Model are open in the current session.</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Input Model (RFLP Editor)</caption>
+	<tr>
+		<td>
+		<img alt="Input Model (RFLP Editor)" src="images/CAACustoLinkCreate_InputModel.jpg"/></td>
+	</tr>
+</table>
+<p>Typically, in an industry where the RFLP domain is predominantly in use, in addition 
+to the relations that natively exist within the RFLP domain, a need has also been 
+felt to have a relationship that can occur either within any of the four domains 
+mentioned above or can span across these domains, if felt necessary. With the following 
+particularity: the purpose - or type we could say - of a such relationship is set 
+by the user himself at creation time.</p>
+<p>Hence, a set of <a href="#CAAAPIs">CAA Exposed APIs</a> have been provided, 
+for an end-user to edit and work with custom link. This link typically relates objects 
+in the RFLP domain and thus can occur either within one of the following RFLP domains 
+or span across the following domains:</p>
+<ul>
+	<li><strong>FUNCTIONAL</strong></li>
+	<li><strong>LOGICAL</strong></li>
+	<li><strong>PHYSICAL (PRODUCT)</strong></li>
+</ul>
+<p>These relationships can be created, accessed and authored through his own
+<strong>commands (<em>Add Ins</em>)</strong> integrated within the <strong>RFLP 
+Editor</strong> in CATIA through which the CAA exposed APIs for creating a Custom 
+Link are invoked.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Concepts"></a>Concepts and Behaviors</h2>
+<p>Conceptually the RFLP custom Link is simply a relationship bewteen one Source 
+object and one Target object. </p>
+<table>
+	<caption>Fig.2 Conceptual Model</caption>
+	<tr>
+		<td>
+		<img alt="Conceptual Model" src="images/CAACustoLinkConcepts_ConceptModel.jpg"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Creation"></a>Creation Behavior</h3>
+<p>Both Source and Target must exist in Session</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Delete"></a>Delete Behavior</h3>
+<ul>
+	<li>For a given object deleted, the RFLP Custom Relationships having this object 
+	as Source are not automatically deleted. This pointing is just seen as broken 
+	link which a situation supported by the system.
+	<table>
+		<caption>Fig. 3 A Behavior on Source Deletion</caption>
+		<tr>
+			<td><img alt="A Behavior on Source Deletion" src="images/CAACustoLinkConcepts_Fig9.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+	<li>For a given object deleted, the RFLP Custom Relationships having this object 
+	as Target are not automatically deleted. This pointing is just seen as broken 
+	link which a situation supported by the system. It is also possible to these 
+	links to a new target.
+	<table>
+		<caption>Fig.3b Behavior on Target Deletion</caption>
+		<tr>
+			<td><img alt="Behavior on Target Deletion" src="images/CAACustoLinkConcepts_Fig10.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+	<li>RFLP Custom Relationship can be deleted independent of its Source or Target 
+	(if maturity on objects allow this).
+	<table>
+		<caption>Fig. 3c Behavior on Custom Link Deletion</caption>
+		<tr>
+			<td><img alt="Behavior on Custom Link Deletion" src="images/CAACustoLinkConcepts_Fig11.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Reroute"></a>Reroute Behavior</h3>
+<ul>
+	<li>An existing RFLP Custom Relationship can be rerouted to a new Target as 
+	[<a href="#Fig.4a">Fig.4a</a>] illustrates.
+	<table>
+		<caption><a name="Fig.4a">Fig.4a</a> Rerouting a Custom Link Target</caption>
+		<tr>
+			<td><img alt="Rerouting a Custom Link Target" src="images/CAACustoLinkConcepts_Fig12.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+	<li>Source cannot be rerouted for a given RFLP Custom Relationship as the [<a href="#Fig.4b">Fig.4b</a>] 
+	depicts.
+	<table>
+		<caption><a name="Fig.4b">Fig.4b</a> Rerouting a Custom Link Source</caption>
+		<tr>
+			<td><img alt="Rerouting a Custom Link Source" src="images/CAACustoLinkConcepts_Fig13.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Versioning"></a>Versioning Behavior</h3>
+<ul>
+	<li>If Source is versioned [<a href="#References">4</a>], the relationship originating 
+	from it is duplicated. [<a href="#Fig.5a">Fig.5a</a>] illustrates this case.
+	<table>
+		<caption><a name="Fig.5a"></a>Fig.5a Versioning the Source</caption>
+		<tr>
+			<td><img alt="Versioning the Source" src="images/CAACustoLinkConcepts_Fig14.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+	<li>If Target is versioned, then the relationship is not duplicated, as illustrated 
+	by [<a href="#Fig.5b">Fig.5b</a>] below.
+	<table>
+		<caption><a name="Fig.5b"></a>Fig.5b Versioning the Target</caption>
+		<tr>
+			<td><img alt="Versioning the Target" src="images/CAACustoLinkConcepts_Fig15.jpg"/></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<p>It is important to notice that Custom Link is not considered as an item contributing 
+to the definition of the engineered data. That&#39;s why in almost all commands for 
+engineering data it is not taken into account natively.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Implementation"></a>Implementation by Agnostic Connection Modeler</h2>
+<p>As shown in [<a href="#Fig.6">Fig.6</a>] below, RFLP Custom Relationship is physically 
+modeled through the entity <code><strong>RFLPLMAgnosticFreeConnection</strong></code> 
+(<strong>PLM Modeler<code> RFLPLMAgnosticFreeConnection </code></strong>[<a href="#References">5</a>]) 
+which inherits from a <code><strong>PLMConnection</strong></code>. It is an abstract 
+entity implying at least one customization is mandatory.</p>
+<table>
+	<caption><a name="Fig.6"></a>Fig.6 RFLP Agnostic Free Relationship Data Model</caption>
+	<tr>
+		<td><img alt="RFLP Agnostic Free Relationship Data Model" src="images/CAACustoLinkConcepts_Fig1.jpg"/></td>
+	</tr>
+</table>
+<p>The entity <code><strong>RFLPLMAgnosticFreeConnection</strong></code> whose the 
+name is Agnostic Connection represents the custom link.</p>
+<p>This specialized PLMConnection allows to reference two objects (one Source and 
+one Target) and is - as a consequence of being a PLM Connection - aggregated under 
+a PLMCoreReference.</p>
+<p>The Source/Target objects belong to one the following modelers :</p>
+<ul>
+	<li><strong>FUNCTIONAL</strong>, Functional Modeler [<a href="#References">1</a>].</li>
+	<li><strong>LOGICAL</strong>, Logical Modeler [<a href="#References">2</a>].</li>
+	<li><strong>PHYSICAL</strong>, Product Modeler [<a href="#References">3</a>].</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Agnostic"></a>Agnostic Connection</h3>
+<p>In addition of the attributes inherited from PLM Connection, the Agnostic Connection 
+PLM object provides one more attribute which the type of the custom link. Therefore 
+the attributes that are key for the user when working on a such Custom Link:</p>
+<ul>
+	<li><strong>Name</strong> (<code>PLM_ExternalID</code>)
+	<p>To give a name to one given custom link</p>	
+	</li>
+	<li><strong>Description</strong> (<code>V_description</code>)
+		<p>To say few words about the given custom link</p>
+	</li>
+	<li><strong>Type</strong> (<code>V_RelationTypeName </code>)
+	<p>To store the meaning or purpose of the given custom link. It could be for 
+	instance: &quot;condition&quot;, &quot;depend&quot;, &quot;prerequisite&quot;,...</p>
+</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Source"></a>What can be the Source Object?</h3>
+<p><strong>Cardinality</strong></p>
+<ul>
+	<li>One and only one source object per relationship (and an object can be a 
+	source of 1 to N relationships)</li>
+	<li>Temporary, having no source object is supported (case of deleted Source 
+	object: seen as broken relationship which is a situation supported by the system)</li>
+</ul>
+<p><strong>Possible Source Objects</strong></p>
+<p>A source can be:</p>
+<ul>
+	<li><a href="#PLMReference">A PLM Reference</a>.</li>
+	<li><a href="#PLMInstance">A PLM Instance 
+	or a PLM Representation Instance</a>.</li>
+</ul>
+<p>Each case is detailed below. <a href="#ForbiddenCases">Forbiden cases</a> are 
+also detailed.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMReference">PLM Reference</a></h4>
+<p>The [<a href="#Fig.7">Fig. 7</a>] depicts a Custom Link which points to a PLM 
+Reference, as its Source. In this case, the source itself is also the owner of the 
+Custom Link, which exists aggregated under the Source.</p>
+<table>
+	<caption><a name="Fig.7"></a>Fig.7 Custom Link with PLM Reference as Source</caption>
+	<tr>
+		<td><img alt="Custom Link with PLM Reference as Source" src="images/CAACustoLinkConcepts_Fig4.jpg"/></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMInstance">PLM Instance or PLM Representation Instance</a></h4>
+<p>In this case, illustrated by [<a href="#Fig. 8">Fig. 8</a>] below, the Custom 
+Link points to a <code><strong>PLM Instance</strong></code>, as its Source and exists 
+aggregated beneath the Root <code><strong>PLM Reference</strong></code> which also 
+aggregates the source (<code><strong>PLM Instance</strong></code>)</p>
+<p>In other words, we have a single Root <code><strong>PLM Reference</strong></code> 
+which aggregates both the <strong>Custom Link</strong> and its pointed Source, beneath 
+it.</p>
+<table>
+	<caption><a name="Fig. 8"></a>Fig. 8 Custom Link with PLM Instance as Source</caption>
+	<tr>
+		<td><img alt="Custom Link with PLM Instance as Source" src="images/CAACustoLinkConcepts_Fig5.jpg"/></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="ForbiddenCases">Forbidden Cases</a></h4>
+<p>It is important to note that a <strong>RFLP Custom Link</strong> cannot point 
+to a PLM entity (neither as Source nor as Target) inheriting from a <code>
+<strong>PLM Representattion Reference</strong></code>, <code><strong>PLM Port</strong></code>,
+<code><strong>PLM Connection</strong></code>.</p>
+<p>[<a href="#Fig.9">Fig. 9</a>] depicts a forbidden case where a PLM Representation 
+Reference, PLMPort and PLMConnections are set as source of a Custom Link.</p>
+<table>
+	<caption><a name="Fig.9"></a>Fig. 9 PLM Entities forbidden as Custom Link Source/Target</caption>
+	<tr>
+		<td><img alt="PLM Entities forbidden as Custom Link Source/Target" src="images/CAACustoLinkConcepts_Fig7.jpg"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Target"></a>What can be the Target Object?</h3>
+<p><strong>Cardinality</strong></p>
+<p>One and only one target object per relationship (and an object can be the target 
+of 0 to N relationships)</p>
+<ul>
+	<li><strong>One</strong> is a nominal case</li>
+	<li><strong>Zero</strong> to support the fact that the target object has been 
+	deleted. In this case the RFLP Custom Link is seen as broken.</li>
+</ul>
+<p><strong>Possible Target Object</strong></p>
+<p>A Custom Link can have as its target, all those PLM entities which are valid 
+as its source, as described in the section above. Also the restrictions we have 
+with regard to the type of PLM entities as target, are the same as that for the 
+source of a Custom Link. Hence a PLM entity which derives from <code><strong>PLMCoreRepReference</strong></code>,
+<code><strong>PLMPort</strong></code> or a <code><strong>PLMConnection</strong></code> 
+are not valid targets. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CAAAPIs"></a>CAA APIs</h2>
+<p>The <code><strong><em>PLMCustomLinkInterfaces</em></strong></code> framework 
+provide us with services (exposed CAA APIs) to create and manage a Custom Link. 
+These include:</p>
+<ul>
+	<li><code><strong>PLMICustomRelationshipManager</strong></code>, a Relationship 
+	Manager, primarily responsible for creating a Custom Link. The Manager also 
+	provides a service to list the custom relations originating from a source and 
+	terminating at a target. It also enables us delete a specified custom link.</li>
+	<li><code><strong>PLMICustomRelationship</strong></code>, an Interface implemented 
+	by a Custom Link through which one can retrieve and set properties/attributes 
+	associated with a custom link. It also enables rerouting a target of a custom 
+	link to a new target.</li>
+</ul>
+<p>There are two CAA Sample, [<a href="#References">6</a>, <a href="#References">
+7</a>] to illustrate their use.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In the RFLP (<strong>Requirement</strong>, <strong> Functional</strong>,
+<strong>Logical</strong>, <strong> Physical</strong>) domain a new capability has 
+been provided for CAA customers, by exposing a set of CAA APIs, to create and manage 
+a Custom Link. The Custom Link typically occurs either in one of the RFLP domains 
+or spans across them. It allows the user to put in relation some RFLP objects and 
+this is the user himself that specify on each relationship its purpose (condition, 
+depend,&#8230;).</p>
+<p>A Custom Link is accessed and authored through the <strong>RFLP Editor</strong>.
+The customer can also have his own commands (<em><strong>Add Ins</strong></em>) 
+in an editor of his choice, through which a Custom Link can be managed.</p>
+<p>A Custom Link is a relationship modeled through the entity <code><strong>RFLPLMAgnosticFreeConnection</strong></code> 
+(<code><strong>RFLPLMAgnosticFreeConnection.metadata</strong></code>) 
+which inherits from a <code><strong>PLMConnection</strong></code>. It is an abstract 
+entity implying atleast one customization is mandatory. It is characterized by a
+<strong>source</strong> from which it originates, a <strong>target</strong> at which 
+it terminates and a purpose (Relation Type) which depicts the relationship of the 
+source with its target.</p>
+<p>A PLM entity in FLP deriving from a <code><strong>PLMCoreReference</strong></code>,
+<code><strong>PLMCoreInstance</strong></code> or a <code><strong>PLMCoreRepInstance</strong></code> 
+is a valid destination for a Custom Link. (meaning either its source or target). 
+A <code><strong>PLMRepReference</strong></code>, <code><strong>PLMPort</strong></code> 
+and <code><strong>PLMConnection</strong></code> are forbidden as inputs as a source/target 
+for a Custom Link. </p>
+<p>The rules/behavior governing a Custom Link are fundamentally similar to that 
+of a PLMConnection, from which it is derived. Hence, it could be created/deleted 
+only if the Maturity state of its aggregating PLM Reference permits this operation. 
+(&quot;<strong>In Work</strong>&quot;, as of now). Also, the rules governing the behavior 
+of a Custom Link, in response to versioning and deletion of its source/target are 
+defined at the data model level.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>Functional Modeler PLM Package</td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>Logical Modeler PLM Package</td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>Product Modeler PLM Package</td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAPlmTaVersioningPrinciples.htm')">
+		Understanding PLM Versioning</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>Agnostic Connection Modeler PLM Package</td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAClnkUcCreation.htm">Creating a Custom Relation</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAClnkUcManagement.htm">Managing a Custom Relation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,390 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en"><html>
+
+ <head>
+ <meta http-equiv="Content-Language" content="fr">
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+ <meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+ <meta name="ProgId" content="FrontPage.Editor.Document">
+ <title>adl_promote</title>
+ <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+ </head>
+
+ <body>
+
+ <p>&nbsp; </p>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP">
+     <h1>RADE</h1>
+     </td>
+     <td VALIGN="TOP">
+     <h2>Source Code Manager</h2>
+     </td>
+     <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2">
+     <h3><a NAME="Top"></a>adl_promote</h3>
+     <p><i>Promoting modifications</i></td>
+   </tr>
+   <tr>
+     <td COLSPAN="2" class="quick">Quick Reference</td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <table class="abstract">
+   <tr>
+     <td>
+     <h3>Abstract</h3>
+     <p>The <b>adl_promote</b> command promotes the last revision of the current 
+     workspace. </p>
+     <ul>
+       <li><b><a href="#Synopsis">Synopsis</a></b></li>
+       <li><b><a href="#Usage">Usage</a></b></li>
+       <li><b><a href="#What">What do you promote? What do you collect?</a></b></li>
+       <li><b><a href="#Options">Options</a></b></li>
+       <li><b><a href="#Prerequisite">Prerequisite commands</a></b></li>
+       <li><b><a href="#Simulation">Simulation</a></b></li>
+       <li><b><a href="#Examples">Examples</a></b></li>
+       <li><b><a href="#References">References</a></b></li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Synopsis"></a>Synopsis</h3>
+ <b>
+ <p>adl_promote</b> [<b>-to|-target</b> workspace_name...] {[<b>-tree</b> 
+ ws_tree_name...] [<b>-old</b>]} | [<b>-ws_rev</b> ws_rev] [<b>-no_ds</b>] [<b>-simul</b> 
+ [-no_check_caa_rules]]&nbsp; [-desc description [-cr CR...]]<br>
+ [<b>-program</b> [<b>-sep </b>|<b>-separator</b> char]]&nbsp; [<b>-out</b> 
+ file_path] [<b>-h</b> | <b>-help</b> | <b>-?</b>] </p>
+ <h3><a NAME="Usage"></a>Usage</h3>
+ <p>A promotion takes into account all modifications since the last 
+ synchronization. <br>
+ <u>Beware: </u>There is no auto-publication for a workspace having or having 
+ had at least one child (move or delete of a child). In this case, the 
+ publication of the workspace is necessary before the promotion. </p>
+ <p>With the “–old” option, you can promote the modifications of the last public 
+ revision (without label) (instead of the modifications of the last revision 
+ which must be public without label in the other cases). <br>
+ <u>Beware: </u>in the case of a leaf workspace, if the promotion is done with 
+ the “–old” option, there is no auto-publication. </p>
+ <p>When a workspace runs a promotion, his collector's workspace will accept the 
+ promotion, with the [<a href="#References">1</a>] adl_collect promotion. </p>
+ <p><b><u>Different modification cases calling for a promotion&nbsp; (Promoted = 
+ No):</u></b> </p>
+ <ul>
+   <li>Creation of objects</li>
+   <li>Check-out followed by modifications followed by a check-in</li>
+   <li>Deletion of objects</li>
+   <li>Move of objects</li>
+   <li>Rename of objects</li>
+   <li>Synchronization with resolved merge</li>
+   <li>Collect with or without merge</li>
+ </ul>
+ <p><br>
+ <b><u>Different modification cases possibly calling for promotion (Promoted = 
+ ?):</u></b> </p>
+ <ul>
+   <li>Check-out (without any modifications, such as creation, move, delete or 
+   rename of objects… since the last promotion) followed by modifications</li>
+   <li>Check-out without any modification</li>
+ </ul>
+ <p><br>
+ <b><u>Different modification cases not calling for a promotion (Promoted = 
+ Yes):</u></b> </p>
+ <ul>
+   <li>Synchronization without merge to solve</li>
+   <li>Attach only</li>
+   <li>Check-out only followed by an uncheck-out</li>
+   <li>Check-out only without any modifications followed by a photo</li>
+ </ul>
+ <p><br>
+ <a NAME="What"></a><b><u>What do you promote? What do you collect?</u></b> <br>
+&nbsp; </p>
+ <table BORDER="1" WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP" WIDTH="10%"><tt>&nbsp;<b>Step&nbsp;</b></tt></td>
+     <td><b>&nbsp;Child Workspace</b></td>
+     <td VALIGN="TOP" WIDTH="10%"><b><tt>&nbsp;Step&nbsp;</tt></b></td>
+     <td><b>&nbsp;Parent Workspace</b></td>
+   </tr>
+   <tr>
+     <td ALIGN="CENTER">1</td>
+     <td>Modification 1 <br>
+     Promotion: Modification 1</td>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+   </tr>
+   <tr>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+     <td ALIGN="CENTER">2</td>
+     <td>Collect: Modification 1 <br>
+     Publication</td>
+   </tr>
+   <tr>
+     <td ALIGN="CENTER">3</td>
+     <td>Synchronization <br>
+     Modification 2 <br>
+     Promotion: Modification 2</td>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+   </tr>
+   <tr>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+     <td ALIGN="CENTER">4</td>
+     <td>Collect: Modification 2 <br>
+     (Publication)</td>
+   </tr>
+   <tr>
+     <td ALIGN="CENTER">5</td>
+     <td>Modification 3 <br>
+     Promotion: Modifications 2 + 3&nbsp;</td>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+   </tr>
+   <tr>
+     <td>&nbsp;</td>
+     <td>&nbsp;</td>
+     <td ALIGN="CENTER">6</td>
+     <td>Collect: Modification 3 <br>
+     Publication</td>
+   </tr>
+ </table>
+ <p>An option let’s you specify that the last published version must be promoted 
+ and not the last version. The default behavior is that the workspace must be 
+ published before being promoted (note that publication is automatically made 
+ for the leaf workspace). </p>
+ <p>By default, the command displays the list of the modifications promoted to 
+ the parent workspace; an option exist, preventing this display. </p>
+ <p><b><u>State:</u></b> </p>
+ <ul>
+   <li>1. Publication if necessary and if the workspace has never had any 
+   children</li>
+   <li>2. Uncheck-out of checked-out files, if they have not been modified</li>
+   <li>3. Promotion</li>
+ </ul>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Options"></a>Options</h3>
+ <p>adl_promote accepts the following options:&nbsp;&nbsp; </p>
+ <table width="891">
+   <tr>
+     <td VALIGN="TOP" WIDTH="265"><tt>-h|-help|-?</tt></td>
+     <td width="612">Help of the command</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP" WIDTH="265"><tt>-to|-target workspace_name ...</tt></td>
+     <td width="612">Workspace(s) name destination of the promotion request: 
+     child or parent workspaces.</td>
+   </tr>
+   <tr>
+     <td width="265"><tt>-tree ws_tree_name ...</tt></td>
+     <td width="612">Promote only these workspace trees.</td>
+   </tr>
+   <tr>
+     <td width="265"><tt>-old</tt></td>
+     <td width="612">The modifications of the last published revision are 
+     promoted instead of the last workspace revision.</td>
+   </tr>
+   <tr>
+     <td width="265"><tt>-ws_rev</tt></td>
+     <td width="612">The workspace revision to consider, with the format 
+     &quot;ws.tree[.{number|label|last|date}]&quot; (date format: YYYY/MM/DD-hh:mm:ss, 
+     time is optional (00:00:00 by default)).</td>
+   </tr>
+   <tr>
+     <td width="265"><tt>-no_ds</tt></td>
+     <td width="612">No display</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP" WIDTH="265"><tt>-simul</tt></td>
+     <td width="612">To simulate the promotion request. If the last workspace 
+     revision is promoted, the check in of all checked out file elements are 
+     simulated too.</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP" WIDTH="265">-<tt>no_check_caa_rules</tt></td>
+     <td width="612">Can be used along with -simul option. It prevents to call 
+     the C++ Source Checker product to verify rules on the promoted set of 
+     files. Use the [<a href="#Ref4">4</a>] adl_ls_tree command to know whether 
+     rules are checked.</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP" WIDTH="265">-<tt>desc description</tt></td>
+     <td width="612">Description for the opened change set without description. 
+     If more than one opened change set is associated to the current workspace, 
+     adl_close_cs command must be executed before adl_promote.</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP" WIDTH="265">-<tt>cr</tt> CR...</td>
+     <td width="612">Change request names for the opened change set without 
+     description (internal DS only).</td>
+   </tr>
+   <tr>
+     <td width="271"><tt>-program</tt></td>
+     <td width="651">Display for programs [<a href="#Ref5">5</a>]</td>
+   </tr>
+   <tr>
+     <td width="271"><tt>-sep separator</tt></td>
+     <td width="651">Separator between each field for programs (default value is 
+     blank)&nbsp;</td>
+   </tr>
+   <tr>
+     <td width="271"><tt>-separator separator</tt></td>
+     <td width="651">Separator between each field for programs (default value is 
+     blank)</td>
+   </tr>
+   <tr>
+     <td width="271"><tt>-out file_path</tt></td>
+     <td width="651">Path to a file for writing the results.</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]&nbsp; </p>
+ <h3><a NAME="Prerequisite"></a>Prerequisite commands</h3>
+ <ul>
+   <li>[<a href="#References">2</a>] adl_sync; the workspace must be 
+   synchronized before running the adl_promote</li>
+   <li>[<a href="#References">3</a>] adl_publish if the “–old” option is not 
+   specified, for the workspaces having at least one child, or having had at 
+   least one child.</li>
+ </ul>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Simulation"></a>Simulation</h3>
+ <p>With the “-simul” option, you can simulate a promotion, without validating 
+ it. At the beginning and at the end of the simulation, the following messages 
+ are displayed: </p>
+ <p>--- Beginning of simulation --- <br>
+ ... <br>
+ ---&nbsp; End of simulation&nbsp; --- </p>
+ <p>These messages explain the use of the “-simul” option, and reassure the 
+ user. <br>
+ A control that would cancel a command in usual mode, becomes a warning in 
+ simulation mode. </p>
+ <p>For example, an “adl_promote” is refused if the parent workspace has blocked 
+ the requests for promotion, but an “adl_promote –simul” will display a message 
+ indicating the refusal of these promotion requests, but will finish the 
+ promotion simulation. You can see the list of all the promoted modifications.&nbsp;&nbsp;
+ </p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Examples"></a>Examples</h3>
+ <dl>
+   <b>
+   <p>Promote </b>of the “MyWs” workspace: </p>
+   <table class="code">
+     <tr>
+       <td>
+       <dl>
+         <p>adl_ch_ws MyWs <br>
+         <b>adl_promote</b></p>
+       </dl>
+       </td>
+     </tr>
+   </table>
+   <p>&nbsp;</p>
+   <p><b>Promote </b>of the “MyWs” workspace in a simulation mode:&nbsp;&nbsp;
+   </p>
+   <table class="code">
+     <tr>
+       <td>
+       <dl>
+         <p>adl_ch_ws MyWs <br>
+         <b>adl_promote </b>-simul <br>
+         --- Simulation start --- <br>
+         Verifying the promotion rules. <br>
+         !WNG! ADLCMD - 1721: The workspace &quot;MyWs&quot; is not synchronized with the 
+         last revision published of the workspace &quot;MyParentWs&quot; in the workspace 
+         tree &quot;ToolsTree&quot;. <br>
+         Run the command adl_sync to synchronize the workspace. </p>
+         <p>Promoting the workspace &quot;MyWs&quot; to &quot;MyParentWs&quot; in the workspace tree 
+         &quot;ToolsTree&quot;. <br>
+         AdeleFwDoc\MySecondModule.m\src has been created <br>
+         AdeleFwDoc\MySecondModule.m\src\MyFile.doc has been created <br>
+         AdeleFwDoc\MyFirstModule.m\src\MyFirstFile.doc has been modified <br>
+         AdeleFwDoc\MyFirstModule.m\src\MyOtherFile.doc has been deleted </p>
+         <p>---&nbsp; Simulation end&nbsp; ---</p>
+       </dl>
+       </td>
+     </tr>
+   </table>
+   <p>&nbsp;</p>
+   <p><b>Promote </b>one of the my &quot;MyWs&quot; workspace, promotion sent to the 
+   &quot;AnotherParentWs&quot; workspace:&nbsp;&nbsp; </p>
+   <table class="code">
+     <tr>
+       <td>
+       <dl>
+         <b>
+         <p>adl_promote</b> -to AnotherParentWs</p>
+       </dl>
+       </td>
+     </tr>
+   </table>
+   <p>&nbsp;</p>
+   <p><b>Promote </b>of the current workspace, only in the tree &quot;ToolsTree&quot;:&nbsp;&nbsp;
+   </p>
+   <table class="code">
+     <tr>
+       <td>
+       <dl>
+         <b>
+         <p>adl_promote</b> -tree ToolsTree&nbsp;</p>
+       </dl>
+       </td>
+     </tr>
+   </table>
+ </dl>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="References"></a>References</h3>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP"><a name="Ref1"></a>[1] <br>
+     <a name="Ref2"></a>[2] <br>
+     <a name="Ref3"></a>[3]<br>
+     <a name="Ref4"></a>[4]<br>
+     <a name="Ref5"></a>[5]</td>
+     <td><a href="CAAWsmCollect.htm">adl_collect: Collecting promotion</a> <br>
+     <a href="CAAWsmSync.htm">adl_sync: Synchronizing workspace</a> <br>
+     <a href="CAAWsmPublish.htm">adl_publish: Publishing workspace</a><br>
+     <a href="CAAWsmLsTree.htm">adl_ls_tree: Listing trees<br>
+     </a>
+     <a href="../CAAWsmUseCases/CAAWsmCustomization.htm#StructureAdlDsChg">
+     adl_promote in program mode</a></td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="History"></a>History</h3>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP">Version 4<b> </b>[Nov 2004]</td>
+     <td VALIGN="TOP">Document update : -desc option added</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP">Version <b>3 </b>[Jan 2004]</td>
+     <td VALIGN="TOP">Document update : -ws_rev option added</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP">Version <b>2</b> [Mar 2002]</td>
+     <td VALIGN="TOP">Support of output for programs</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP">Version: <b>1</b> [Mar 2001]</td>
+     <td VALIGN="TOP">Document created</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i> </p>
+
+ </body>
+
+</html>

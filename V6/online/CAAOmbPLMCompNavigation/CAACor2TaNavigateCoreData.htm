@@ -1,0 +1,240 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Navigation on PLM Core data</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Navigation on PLM Core data</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This article introduces a set of API dedicated to the navigation on PLM 
+		Core data.</p>
+		<ul>
+			<li><a href="#Introduction">Introduction</a></li>
+			<li><a href="#Reference">Navigation on Reference</a></li>
+			<li><a href="#Instance">Navigation on Instance</a></li>
+			<li><a href="#RepReference">Navigation on Representation Reference</a></li>
+			<li><a href="#RepInstance">Navigation on Representation Instance</a></li>
+			<li><a href="#Entity">Retrieve information on Entities</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>This article introduces a set of API dedicated to the navigation on PLM Core 
+data. These API enable the navigation of the data ignoring data specificities. They 
+are designed for applications that are using data in generic ways: such as graph, 
+query, attributes display and son on.</p>
+<p>Using these API, it is possible to navigate on data that are already loaded in 
+memory: <strong>it is not possible to navigate on database</strong>.</p>
+<p>The current version enables the navigation on References, Instances, RepresentationReferences 
+and RepresentationInstances.</p>
+<p>For instance in the following scheme, it is possible to navigate:</p>
+<ul>
+	<li>From R1 (a reference) to IR2.1 (an instance of reference R2).</li>
+	<li>From IR2.1 to R2 or to R1.</li>
+</ul>
+<p>
+<img alt="Navigation" height="339" src="images/CAACor2NavigateCoreData1.png" width="406"/>
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Reference"></a>Navigation on Reference</h2>
+<p>The <em>CATIPLMNavReference</em> interface enables the navigation on Reference: 
+it can be obtain using QueryInterface on a Reference object or using the set of 
+API.</p>
+<p>Having a Reference object it is possible to retrieve all the aggregated Instances 
+or RepresentationInstances by calling <code>CATIPLMNavReference::ListChildren</code>:</p>
+<pre class="code">...
+CATIPLMNavReference * piReference = ...;
+CATListPtrCATIPLMNavEntity allChildrenList;
+HR = piReference-&gt;ListChildren(allChildrenList, 0, NULL);
+...
+</pre>
+<p>For example, using this code with R1 as Reference returns IR2.1, IR2.2 and IR4.1.
+</p>
+<p>It is possible also possible to retrieve only the aggregated Instances or the 
+aggregated RepresentationInstances by calling <code>CATIPLMNavReference::ListChildren</code> 
+with filter:</p>
+<pre class="code">...
+CATIPLMNavReference * piReference = ...;
+CATListPtrCATIPLMNavEntity oneTypeChildrenList;
+CATPLMCoreType coreType = PLMCoreRepInstance;
+HR = piReference-&gt;ListChildren(oneTypeChildrenList,  1, &amp;coreType);
+...
+</pre>
+<p>For example, using this code with R4 as Reference returns IRep6.</p>
+<p>It is possible also possible to retrieve the Instances which instantiate the 
+Reference by calling <code>CATIPLMNavReference::ListInstances</code>:</p>
+<pre class="code">...
+CATIPLMNavReference * piReference = ...;
+CATListPtrCATIPLMNavInstance allInstancesList;
+HR = piReference-&gt;ListInstances(allInstancesList);
+...
+</pre>
+<p>For example, using this code with R2 as Reference returns IR2.1 and IR2.2.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Instance"></a>Navigation on Instance</h2>
+<p>The <em>CATIPLMNavInstance</em> interface enables the navigation on Instance: 
+it can be obtain using QueryInterface on an Instance object or using the set of 
+API.</p>
+<p>Having an Instance object it is possible to retrieve the Reference which aggregates 
+it by calling <code>CATIPLMNavInstance::GetFather</code>:</p>
+<pre class="code">...
+CATIPLMNavInstance * piInstance = ...;
+CATIPLMNavReference * piAggregatingReference = NULL;
+HR = piInstance-&gt;GetFather(piAggregatingReference);
+...
+</pre>
+<p>For example, using this code with IR3.1 as Reference returns R2.</p>
+<p>It is possible also possible to retrieve the Reference which is instanciated 
+by calling <code>CATIPLMNavInstance::GetReferenceInstanceOf</code>:</p>
+<pre class="code">...
+CATIPLMNavInstance * piInstance = ...;
+CATIPLMNavReference * piInstanciatedReference = NULL;
+HR = piInstance-&gt;GetReferenceInstanceOf(piInstanciatedReference);
+...
+</pre>
+<p>For example, using this code with IR3.1 as Reference returns R3.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="RepReference"></a>Navigation on Representation Reference</h2>
+<p>The <em>CATIPLMNavRepReference</em> interface enables the navigation on RepresentationReference: 
+it can be obtain using QueryInterface on a RepresentationReference object or using 
+the set of API.</p>
+<p>Having a RepresentationReference object it is possible to retrieve the RepresentationInstances 
+which instantiate the RepresentationReference by calling <code>CATIPLMNavRepReference::ListInstances</code>:
+</p>
+<pre class="code">...
+CATIPLMNavRepReference * piRepReference = ...;
+CATListPtrCATIPLMNavRepInstance allRepInstancesList;
+HR = piReference-&gt;ListInstances(allRepInstancesList);
+...
+</pre>
+<p>For example, using this code with Rep6 as RepresentationReference returns IRep6.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="RepInstance"></a>Navigation on Representation Instance</h2>
+<p>The <em>CATIPLMNavRepInstance</em> interface enables the navigation on RepresentationInstance: 
+it can be obtain using QueryInterface on a RepresentationInstance object or using 
+the set of API.</p>
+<p>Having a RepresentationInstance object it is possible to retrieve the Reference 
+which aggregates it by calling <code>CATIPLMNavRepInstance::GetFather</code>:
+</p>
+<pre class="code">...
+CATIPLMNavRepInstance * piRepInstance = ...;
+CATIPLMNavReference * piAggregatingReference = NULL;
+HR = piRepInstance-&gt;GetFather(piAggregatingReference);
+...
+</pre>
+<p>For example, using this code with IRep6 as Reference returns R4.</p>
+<p>It is possible also possible to retrieve the Reference which is instanciated 
+by calling <code>CATIPLMNavRepInstance::GetRepReferenceInstanceOf</code>:</p>
+<pre class="code">...
+CATIPLMNavRepInstance * piRepInstance = ...;
+CATIPLMNavRepReference * piInstanciatedRepReference = NULL;
+HR = piRepInstance-&gt;GetRepReferenceInstanceOf(piInstanciatedRepReference);
+...
+</pre>
+<p>For example, using this code with IRep6 as Reference returns Rep6.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Entity"></a>Retrieve information on Entities</h2>
+<p>The <em>CATIPLMNavEntity</em> interface enables the introspection of PLM Core 
+data: it can be obtain using QueryInterface on an object.</p>
+<p>Having a Reference, an Instance, a Representatioeference or a RepresentationInstnce 
+it is possible to retrieve its PLMCore type [<a href="#References">1</a>] by calling
+<code>CATIPLMNavEntity::GetPLMCoreType</code>:</p>
+<pre class="code">...
+CATIPLMNavEntity * piEntity = ...;
+CATPLMCoreType type;
+HR = piEntity-&gt;GetPLMCoreType(type);
+...
+</pre>
+<p>It is possible also possible to retrieve its PLM type by calling <code>CATIPLMNavEntity::GetPLMType</code>:
+</p>
+<pre class="code">...
+CATIPLMNavEntity * piEntity = ...;
+CATIAdpType * piType = NULL;
+HR = piEntity-&gt;GetPLMType(piType);
+...
+</pre>
+<p>It is possible also possible to retrieve all its attributes by calling <code>
+CATIPLMNavEntity::GetPublicAttributes</code>:</p>
+<pre class="code">...
+CATIPLMNavEntity * piEntity = ...;
+CATListOfCATUnicodeString attributeNameList;
+CATListOfCATUnicodeString attributeValueList;
+HR = piEntity-&gt;GetPublicAttributes(attributeNameList, attributeValueList);
+...
+</pre>
+<p>It is possible also possible to retrieve some of its attributes (one attribute 
+named "XXX" for example) by calling <code>CATIPLMNavEntity::GetPublicAttributes</code>:
+</p>
+<pre class="code">...
+CATIPLMNavEntity * piEntity = ...;
+CATListOfCATUnicodeString attributeNameList;
+attributeNameList.Append("XXX");
+CATListOfCATUnicodeString attributeValueList;
+HR = piEntity-&gt;GetPublicAttributes(attributeNameList, attributeValueList);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article presents a set of API to navigate on PLM Core data and various examples 
+of use.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">
+		PLM Core Modeler Overview</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

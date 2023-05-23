@@ -1,0 +1,353 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Reading XML from a Custom Source</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Reading XML from a Custom Source</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to create your own XML source to feed XML directly 
+		to a DOM or a SAX parser.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAXMLCustomStream Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAXMLCustomStream Do</a></li>
+					<li><a href="#How">How to Launch CAAXMLCustomStream</a></li>
+					<li><a href="#Where">Where to Find the CAAXMLCustomStream Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The XML parsers provided in the XMLParserItf framework know how to parse XML 
+from various sources: files, URLs and memory buffers. This use case shows how to 
+create your own XML sources and use them with a DOM or a SAX parser. This use case 
+also shows you how to save your DOM tree as XML in a memory buffer.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAXMLCustomStream Use Case</h2>
+<p>The CAAXMLCustomStream Use Case is a use case of the CAAXMLParser.edu framework 
+that illustrates XMLParser framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAXMLCustomStream Do</h3>
+<p>This use case provides an implementation of a new XML source. The XML source 
+is capable of fetching a large XML document split over several files (each file 
+contains a chunk of the complete XML document). The use case instantiates a DOM 
+parser, instantiates the XML source with the files passed as an argument in the 
+command line, parses the contents of the supplied source to build a DOM tree, and 
+finally dumps the content of the DOM tree in the console.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAXMLCustomStream</h3>
+<p>To launch CAAXMLCustomStream, you will need to set up the build time environment, 
+then compile CAAXMLCustomStream along with its prerequisites, set up the run time 
+environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>The use case should be launched as follows from the command line:</p>
+<pre>CAAXMLCustomStream &lt;file1&gt; ... &lt;fileN&gt;</pre>
+<p>where <code>&lt;file1&gt;</code> is the path of the file containing the first 
+XML chunk, <code>&lt;fileN&gt;</code> is the path of the file containing the last 
+XML chunk.</p>
+<p>A sample XML file split in three chunks is provided with the use case. To use 
+it, launch the following command from the command line:</p>
+<p><code>cd InstallRoot\OS\resources\xml\CAAXMLCustomStream<br />
+CAAXMLCustomStream caaxmlchunk1.xml caaxmlchunk2.xml caaxmlchunk3.xml</code></p>
+<p>where <code>InstallRoot</code> is the folder in which you have installed the 
+run time part or the product line and <code>OS</code> is the directory containing 
+the installed code [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAXMLCustomStream Code</h3>
+<p>The CAAXMLCustomStream use case is made of several classes located in the CAAXMLCustomStream.m 
+module of the CAAXMLParser.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAXMLParser.edu\CAAXMLCustomStream.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the directory 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To create your own XML source and use it to parse XML, there are six main steps:</p>
+<table>
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+	</tr>
+	<tr>
+		<td><a href="#Step1">1</a></td>
+		<td>Implement an XML Custom Stream</td>
+	</tr>
+	<tr>
+		<td><a href="#Step2">2</a></td>
+		<td>Create a DOM Component and a SAX Component</td>
+	</tr>
+	<tr>
+		<td><a href="#Step3">3</a></td>
+		<td>Use the SAX Component to Create a SAX Input Source Based on Your XML 
+		Stream</td>
+	</tr>
+	<tr>
+		<td><a href="#Step4">4</a></td>
+		<td>Parse the Custom Source Using DOM</td>
+	</tr>
+	<tr>
+		<td><a href="#Step5">5</a></td>
+		<td>Dump Your DOM Tree in the Console</td>
+	</tr>
+	<tr>
+		<td><a href="#Step6">6</a></td>
+		<td>Manage Errors</td>
+	</tr>
+</table>
+<p>Please note that most of the APIs from the XMLParserItf framework return a
+<code>HRESULT</code>. To avoid excessive indentation of the code, which would cause 
+poor readability, the following coding style has been used: all the code is put 
+in a <code>do {} while(0)</code> loop; if one of the APIs returns a bad <code>HRESULT</code>, 
+the execution is stopped with a <code>break</code> and the error handler is invoked.</p>
+<pre class="code">HRESULT hr = E_FAIL;
+do {
+    hr = XMLParserItfAPI_1();
+    if (FAILED(hr)) { break; }
+    hr = XMLParserItfAPI_2();
+    if (FAILED(hr)) { break; }
+    ...
+    hr = XMLParserItfAPI_N();
+    if (FAILED(hr)) { break; }
+} while(0);
+if (FAILED(hr)) {
+    // Error handling code.
+}
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Implement an XML Custom Stream</h3>
+<p>Custom streams enable you to access XML, which is stored in a location you cannot 
+access with the default types of input sources available in the XMLParserItf framework, 
+such as a relational database or an encrypted file. In theory, the same result can 
+be achieved by first fetching the whole XML into a memory buffer and then parsing 
+the XML from that memory buffer. However, such a solution creates memory peaks and 
+does not perform as well as the custom stream approach. To create a custom stream, 
+you need to declare and define an Object Modeler component, which implements the
+<em>CATIXMLInputStream</em> interface.</p>
+<pre class="code">// CAAXMLMultiFileStream.h
+...
+class CAAXMLMultiFileStream : <strong>public CATBaseUnknown</strong> {
+    <strong>CATDeclareClass</strong>;
+    public:
+        ...
+        // Implement the CATIXMLInputStream interface.
+        <strong>virtual HRESULT Read(
+            unsigned char* ioByteArray,
+            unsigned int iByteArrayCapacity,
+            unsigned int&amp; oSizeRead);</strong>
+};
+</pre>
+<pre class="code">// CAAXMLMultiFileStream.cpp
+#include &quot;CAAXMLMultiFileStream.h&quot; // Import the definition of the component
+
+// Declare the class as an Object Modeler component
+<strong>CATImplementClass( CAAXMLMultiFileStream, Implementation, CATBaseUnknown, CATnull );</strong>
+
+// Implement the CATIXMLInputStream interface
+<strong>#include &quot;TIE_CATIXMLInputStream.h&quot;
+TIE_CATIXMLInputStream(CAAXMLMultiFileStream);</strong></pre>
+<p>The <em>CATIXMLInputStream</em> interface contains just one method, called
+<code>Read</code>. You use this method to return fragments of XML to parser. The 
+parser calls this method repeatedly, any time it has finished analyzing the current 
+XML fragment and needs the next one to be fetched. You never call this method directly: 
+you pass your implementation of <em>CATIXMLInputStream</em> to the parser and the 
+parser will call it automatically when it needs it.</p>
+<pre class="code">// CAAXMLMultiFileStream.cpp
+HRESULT CAAXMLMultiFileStream::<strong>Read(
+    unsigned char* ioByteArray,
+    unsigned int iByteArrayCapacity,
+    unsigned int&amp; oSizeRead)</strong> {
+    ...
+}</pre>
+<p>The method accepts the following parameters:</p>
+<table>
+	<tr>
+		<td><code>ioByteArray</code></td>
+		<td>A buffer where you must put the XML fragment.</td>
+	</tr>
+	<tr>
+		<td><code>iByteArrayCapacity</code></td>
+		<td>The size of the <code>ioByteArray</code> buffer.</td>
+	</tr>
+	<tr>
+		<td><code>oSizeRead</code></td>
+		<td>The size of the fragment returned to the parser. Returning a zero-length 
+		read size signals the end of the XML input to the parser.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Create a DOM Component and a SAX Component</h3>
+<pre class="code">...
+CATIXMLDOMDocumentBuilder_var builder;
+hr = <strong>::CreateCATIXMLDOMDocumentBuilder</strong>(builder);
+...</pre>
+<p>To parse the XML, you will use a DOM parser, so the next step is to instantiate 
+a DOM component. The DOM component can be created by calling the <code>CreateCATIXMLDOMDocumentBuilder</code> 
+global function. This function returns a handler on the <em>CATIXMLDOMDocumentBuilder</em> 
+interface, which is the main interface for the DOM component. Using this interface 
+you will be able to create documents (either by parsing an XML input source, as 
+here, or from scratch) and save existing documents to disk.</p>
+<pre class="code">...
+CATIXMLSAX2Factory_var factory;
+hr = <strong>::CreateCATIXMLSAX2Factory</strong>(factory);
+...</pre>
+<p>To provide the XML, you will need to provide a custom input source to the DOM 
+parser. Custom input source are created by the <em>CATIXMLSAX2Factory</em> interface, 
+so you will also need a SAX component. The SAX component can be created by calling 
+the <code>CreateCATIXMLSAX2Factory</code> global function. This function returns 
+a handler on the <em>CATIXMLSAX2Factory</em> interface, which is the main interface 
+for the SAX component. Using this interface you will be able to create SAX2 parsers 
+and to create input source to feed XML to the parser.</p>
+<p>Note that this call automatically chooses the XML parser component which is best 
+suited for the platform where the code is running.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Use the SAX Component to Create a SAX Input Source Based 
+on Your XML Stream</h3>
+<pre class="code">...
+CAAXMLMultiFileStream* customStreamImpl = new CAAXMLMultiFileStream(files);
+CATIXMLInputStream_var customStream = customStreamImpl;
+customStreamImpl-&gt;Release();
+customStreamImpl = NULL;
+...
+CATISAXInputSource_var source;
+hr = factory-&gt;<strong>CreateInputSourceFromStream</strong>(customStream, &quot;MyCustomSource&quot;, source);
+...</pre>
+<p>To create a custom XML source, you first need to instantiate your custom XML 
+stream component by doing a <code>new</code> of its main implementation class and 
+getting its <code>CATIXMLInputStream</code> handle. Then, you use the <code>CreateInputSourceFromStream</code> 
+method from the <code>CATISAXInputSource</code> interface to create the custom XML 
+source. The methods takes as a parameter your custom implementation of the <em>CATIXMLInputStream</em> 
+interface. It uses this implementation to obtain the XML content to parse. </p>
+<p>
+<img alt="catixmlinputstream.png (1853 bytes)" height="278" src="images/catixmlinputstream.png" width="369"/></p>
+<p><span class="run-in">Warning:</span> The lifecycle of your <em>CATIXMLInputStream</em> 
+implementation depends on the lifecycle the <em>CATISAXInputSource</em> object. 
+As soon as the <em>CATISAXInputSource</em> goes out of scope, the destructor of 
+the <em>CATIXMLInputStream</em> implementation will be called, provided that you 
+do not have any other references on it. You can they perform cleanup and release 
+resources in this destructor.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Parse the Custom Source Using DOM</h3>
+<pre class="code">...
+CATListOfCATUnicodeString readOptions;
+readOptions.Append(<strong>&quot;CATDoValidation&quot;</strong>);
+CATListOfCATUnicodeString readOptionValues;
+readOptionValues.Append(<strong>&quot;false&quot;</strong>);
+
+CATIDOMDocument_var document;
+hr = builder&gt;<strong>Parse</strong>(source, document, readOptions, readOptionValues);
+...</pre>
+<p>To parse the custom input source, you need to invoke the <code>Parse</code> method 
+of the <em>CATIXMLDOMDocumentBuilder</em> interface. If you want to parse using 
+SAX, you can just as well pass the input to the <code>Parse</code> method of a
+<em>CATISAXXMLReader</em>.</p>
+<p>The DOM parser can run in two modes: non-validating and validating. You determine 
+what mode is used in the <code>Parse</code> method using the <code>&quot;CATDoValidation&quot;</code> 
+option. Options are passed to the parser using two <em>CATListOfCATUnicodeStrings</em>. 
+The first one contains the option names, the second one contains the option values. 
+For a discussion of non-validating parsers versus validating parsers and how to 
+choose which parser to instantiate, please see <a href="#Ref3">[3]</a> and
+<a href="#Ref4">[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Dump Your DOM Tree in the Console</h3>
+<pre class="code">...
+CATUnicodeString rawOutput;
+hr = builder-&gt;<strong>Write</strong>(document, rawOutput);
+...
+cout &lt;&lt; rawOutput.ConvertToChar() &lt;&lt; endl;
+...</pre>
+<p>To obtain an XML representation of your DOM tree, call the <code>Write</code> 
+method of the <em>CATIXMLDOMDocumentBuilder</em> interface. The resulting XML is 
+returned in a <em>CATUnicodeString</em>. For a discussion of supported encodings 
+and write options, see <a href="#Ref3">[3]</a> and <a href="#Ref4">[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Manage Errors</h3>
+<p>The XMLParserItf framework uses the <code>HRESULT</code> / <em>CATError</em> 
+mechanism to manage errors. Make sure to use the <code>CATError::CATGetLastError</code> 
+to obtain all the available error diagnostics when using XMLParserItf. More information 
+about error management is available here <a href="#Ref2">[2]</a> and
+<a href="#Ref4">[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows you how to create your own XML sources and use them with 
+a DOM or a SAX parser.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidErrors.htm">
+		Managing Errors Using HRESULT</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref3"></a>[3]</td>
+		<td><a href="CAAXmlTaOverview.htm">Using XML</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref4"></a>[4]</td>
+		<td><a href="CAAXmlTaTipsAndTricks.htm">XML Tips and Tricks</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2005]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

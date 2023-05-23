@@ -1,0 +1,232 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>PLM Acquisition Agent Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Acquisition Agent Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article mainly presents the changes between the V5 acquisition agent
+		<em>CATImmIdentifierAcquisitionAgent</em> and the V6 acquisition agent
+		<em>CATPLMNavPropertiesAcquisition</em>. But to take fully advantage of 
+		this article, you should read first all the articles describing the new 
+		PLM concepts [<a href="#References">1</a>].</p>
+		<ul>
+			<li><a href="#What">About CATImmIdentifierAcquisitionAgent, 
+			What Has Changed? </a>
+			<ul>
+				<li><a href="#Specification">Specification</a></li>
+				<li><a href="#Identification">Identification</a></li>
+				<li><a href="#Properties">Properties</a></li>
+			</ul>
+			</li>
+			<li><a href="#CATPDMNavServices">About CATPDMNavServices</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>About CATImmIdentifierAcquisitionAgent, What 
+Has Changed?</h2>
+<p>In V6, with the PLM Core model, there is no more confusion between entities. 
+For example, CATPart and CATProduct which are based on the Feature modeler in V5, 
+are in fact based on same model entities. With V6 we deal with new separate entities 
+to avoid this confusion. Six core entities have been defined. Here are the relations 
+between these core entities.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="PLM Core Objects" src="images/CAACenImmPLMCoreObjects.png" width="361" height="276"/></td>
+	</tr>
+</table>
+<p>For more details, please refer to the <em>PLM Core Model Overview</em> article 
+[<a href="#References">1</a>] and the <em>PLM Core Modeler Reference</em> article 
+[<a href="#References">2</a>].</p>
+<p>This modeler is the base of all PLM Modelers involved in V6. A PLM Modeler is 
+a PLM Core Modeler specialization. It is composed of a set of PLM Classes, each 
+of them being a specialization of one PLM Core Modeler class. This specialization 
+can be partial: one to six classes specialized. But these PLM Modelers are only 
+created by DS. If you want your own modeler with your own class objects, you must 
+customize these customizable PLM Modeler classes. For more details about PLM specialization 
+and PLM customization, please refer to the article <em>Understanding PLM Modeler 
+and Customization</em> [<a href="#References">3</a>].</p>
+<p>One of the most popular customization example, is the PLMProductDS which is a 
+customization of PLMProduct modeler. PLMProductDS deals with six classes which are 
+PLMProductDS (reference class), PLMPRoductInstanceDS(instance class), PLMRepresentationDS 
+(representation class), PLMRepresentationInstanceDS(instance representation class) 
+PLMConnectionDS (connection class) and PLMPortDS (port class).</p>
+<p>According to this new concepts, we will see that these notions of base class 
+or PLMCore type, modeler and customized modeler can be involved in the new acquisition 
+agent use.</p>
+<p>Let&#39;s review now what is similar in these both acquisition agent, and what are 
+the differences.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Specification"></a>Specification</h3>
+<p>In both cases, they are derived from <em>CATPathElementAgent</em>. The behavior 
+is given as a concatenation of the facet values using the | character. For more 
+details about these facets, please refer to <em>CATDlgEngUtility</em> header file 
+[<a href="#References">4</a>]. </p>
+<p>Both agents are supposed to allow selection in VPM Navigator views. For the new 
+acquisition agent, the selection in the VPM Search Results window is allowed too. 
+The selection in a VPM Editor window is forbidden. </p>
+<p>One important evolution with the new acquisition agent is that you can specify 
+some selection criteria according to the PLM Core type, the modeler name, or the 
+customized modeler name (concepts seen above). The acquisition agent will be valuated 
+only if it fits these criteria.</p>
+<p>The V6 acquisition agent supports the multiple selection if the corresponding 
+facet is defined.</p>
+<ul>
+	<li><strong>Constructor</strong>
+	<ul>
+		<li>V5 agent definition
+		<pre class="code">...
+    CATImmIdentifierAcquisitionAgent(CATDlgEngBehavior iBehavior=NULL);
+...</pre>
+		</li>
+		<li>V6 agent definition
+		<pre class="code">...
+    CATPLMNavPropertiesAcquisition(const CATString&amp; iId, CATDlgEngBehavior iBehavior=NULL);
+...</pre>
+		</li>
+	</ul>
+	</li>
+	<li><strong>Specifications</strong>
+	<ul>
+		<li>V5 agent
+		<p>No possible criteria specification.</p>
+		</li>
+		<li>V6 agent
+		<pre class="code">...
+    HRESULT SetPLMIdentificationFilter(const CATPLMCoreType&amp; iPLMCoreType, CATString&amp; iModelerName, CATString&amp; iCustoModelingName);
+    HRESULT SetPLMIdentificationFilter(CATString&amp; iModelerName, CATString&amp; iCustoModelingName);
+...</pre>
+		</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Identification"></a>Identification</h3>
+<p>After the acquisition agent is valuated, you can retrieve the PLM identifier 
+of the selected element. More than the simple PLM identifier, you can retrieve the 
+complete path of the selected element. You can also retrieve the PLM identifier 
+of each subpath of the selected element. These two facilities are only available 
+with the V6 acquisition agent.</p>
+<ul>
+	<li>
+	<p>V5 agent</p>
+	<pre class="code">...
+   HRESULT GetIdentificator(CATIPLMIdentificator** opId);
+   CATUnicodeString GetType();
+...</pre>
+	</li>
+	<li>
+	<p>V6 agent</p>
+	<pre class="code">...
+   int GetSelectionCount();
+   HRESULT GetPLMIdentification(int&amp; iIndex, CATPathIdentificators&amp; oIdent);
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Properties"></a>Properties</h3>
+<p>With the V5 acquisition agent, the retrieved information is only the identifier 
+attributes of the selected element. With the V6 acquisition agent, you can retrieve 
+any information attributes that are allowed to be retrieved. This extraction of 
+information is detailed in the use case <em>Using a PLM Acquisition Agent</em> [<a href="#References">5</a>].
+</p>
+<ul>
+	<li>
+	<p>V5 agent</p>
+	<pre class="code">...
+   HRESULT GetIdentifiers(CATListOfCATUnicodeString&amp; oNames, CATListOfCATUnicodeString&amp; oValues);
+...</pre>
+	</li>
+	<li>
+	<p>V6 agent</p>
+	<pre class="code">...
+   HRESULT GetPLMProperties(int&amp; iIndex, CATICkeObject*&amp; oProperties);
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATPDMNavServices"></a>About CATPDMNavServices </h2>
+<p>The two methods relying on the server and client VPM Navigator model are obsolete. 
+In V6, Explore &amp; Search and authoring windows don&#39;t share the same object in session, 
+but they share the same identifier (CATIPLMIdentificator). Using the <em>CATPLMNavPropertiesAcquisition</em> 
+agent you can get a CATIPLMIdentificator interface pointer, available in authoring 
+sessions too. From the CATIPLMIdentificator, you can get the element in session 
+using the <code>CATAdpOpener::CompleteAndOpen</code> method.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>We have seen that there are some differences between the V5 and the V6 acquisition 
+agent. But all what can be done with the V5 agent can still be done with the V6 
+agent.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm');">
+		PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCoreModelerReference.htm');">
+		PLM Core Modeler Reference</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCusto.htm');">
+		Understanding PLM Modeler and Customization</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

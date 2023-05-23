@@ -1,0 +1,440 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Using Events Service to Developp an xPDM Adapter</title>
+<style type="text/css">
+.style1 {
+				color: #00FF00;
+}
+.style2 {
+				color: #008000;
+}
+</style>
+</head><body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tbody><tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using Events Service to Develop an Adapter<br></h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</tbody></table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tbody><tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article illustrates how to use the <i>EventsService</i> 
+        web service's operations to develop your Adapter that will integrate into the XPG's Events Exchanges infrastructure.</p>
+        <p>To take full advantage out of this use case, refer to the &quot;Events Service Description&amp;quot [<a href="#References">1</a>] and technical article [<a href="#References">2</a>].</p>
+
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Cases</a></li>
+			
+			<li><a href="#ProcessUseCase">The CAAXPGProcessEvents Use Case</a>
+			<ul>
+				<li><a href="#ProcessWhat">What Does CAAXPGProcessEvents Do</a></li>
+				<li><a href="#ProcessHow">How to Launch CAAXPGProcessEvents </a></li>
+				<li><a href="#ProcessWhere">Where to Find the CAAXPGProcessEvents Code</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#SendUseCase">The CAAXPGSendEvents Use Case</a>
+			<ul>
+				<li><a href="#SendWhat">What Does CAAXPGSendEvents Do</a></li>
+				<li><a href="#SendHow">How to Launch CAAXPGSendEvents </a></li>
+				<li><a href="#SendWhere">Where to Find the CAAXPGSendEvents Code</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#UsesCasesScenario">How to use the two use cases</a>
+			<ul>
+				<li><a href="#SendWithoutProcess">Send an event without pre-processing, retrieve it from the gateway and process it</a></li>
+				<li><a href="#SendWith">Send an event with pre-processing and see that it is not delegated for processing </a></li>
+				<li><a href="#RemoteProcessing">Processing a remote event</a></li>
+			</ul>
+			</li>
+			
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</tbody></table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Cases</h2>
+<p>These use cases are intended to show you the usage of the 
+events web service via simple scenarios; how to send an event to the Gateway and how to handle the polling and processing of events. 
+They only support sending and processing of the OOTB event <em>
+XPGBaseTransferFile</em> that does not require any &quot;PLM&quot; business logic. The 
+business logic necessary to process XPGXML related to XPG domains is not 
+addressed in this documentation.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ProcessUseCase">The CAAXPGProcessEvents Use Case</a></h2>
+<p>CAAXPGProcessEvents is a use case of the CAAXPGWebServices.edu framework that 
+illustrates how to handle the polling of events and processing 
+of <em>XPGBaseTransferFile</em> events delegated by the Gateway.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="ProcessWhat"></a>What Does CAAXPGProcessEvents Do</h3>
+<p>CAAXPGProcessEvents begins by a 
+simple command menu that allows to start and stop event polling as well as exit 
+the use case. Once the polling is started it will periodically ask the Gateway if 
+there is any events available to process. If yes, and if any processing jobs are 
+available it will retrieve the events and process them.</p>
+
+<p>This use case is split into two files : <em>Main.cs</em> 
+and <em>PollingTask.cs.</em></p>
+
+<p><em>Main.cs</em> is the entry point of the application, it 
+parses the input arguments, creates a new <code>PollingTask</code> (see bellow) and starts/stops it.</p>
+
+<p><em>PollingTask.cs</em> contains two class : <code>PollingTask</code> that starts and stop the event polling thread and <code>ProcessingPool</code>
+that manage the processing jobs and their business logic.</p>
+
+<p>Once events have been retrieved from the Gateway by the <code>
+PollingTask</code> it adds them to the <code>ProcessingPool</code> which will 
+create a new thread dedicated to process each events. Once the processing is 
+done this thread will send a processing feedback to the Gateway and end.</p>
+
+<p>The processing operations will differ between a <em>Remote</em> event and a <em>Local</em> event.</p>
+
+<p>A <em>Remote</em> event is an event that comes from the V6 side therefore it might have some data attached to it. The processing here consists in just checking if the attached files exist in the shadow directory.</p>
+<p>A <em>Local</em> event is an event that has been fired by the Adapter side therefore data might have to be attached to it. The processing here consists in creating a dummy txt file filled with the processing args passed when the event was fired and attaching a reference to the generated file to the processing feedback.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="ProcessHow"></a>How to Launch CAAXPGProcessEvents </h3>
+<p>To launch CAAXPGProcessEvents , you will need to set up the build time 
+environment, then 
+compile <code>CAAXPGProcessEvents</code> along with its prerequisites (the proxy), set up the run time 
+environment, 
+and then execute the use case [<a href="#References">3</a>].</p>
+<p><code>CAAXPGProcessEvents.exe -jobs=n -shadowPath=/path/to/shadow serviceUrl</code></p>
+<p>where:</p>
+
+  <table class="border1" id="table1">
+   <tbody>
+    <tr> <th>jobs</th>  	  <td>Number of parallel processing jobs</td> </tr>
+    <tr> <th>shadowPath</th>  <td>Path of the Gateway shadow</td> </tr>
+    <tr> <th>serviceUrl</th>  <td>The url of the EventsService on the Gateway; it should look like this <code>http://host:port/webappname/webservice?id=XPGEventsService</code></td> </tr>
+   </tbody>
+  </table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="ProcessWhere"></a>Where to Find the CAAXPGProcessEvents Code</h3>
+<p>The CAAXPGProcessEvents use case is made of several source files located in 
+the&nbsp;CAAXPGWebServices.edu framework: </p>
+<table id="table2" border="1">
+  <tbody>
+  <tr>
+    <td>The <code>Main</code> application class</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGProcessEvents.m\src\Main.cs</code></td>
+  </tr>
+  <tr>
+    <td>The <code>PollingTask</code> class</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGProcessEvents.m\src\PollingTask.cs</code></td>
+  </tr>
+
+  <tr>
+    <td>The C# proxy [<a href="#References">4</a>]&nbsp; file</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\XPGEventsServiceClientProxy.m\src\IXPGEventsService.cs</code></td>
+  </tr>
+  <tr>
+    <td>The config file [<a href="#References">3</a>]</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGProcessEvents.m\src\App.config</code></td>
+  </tr>
+</tbody></table>
+<p>where <code>GatewayHome</code> is the folder where the xPDM Gateway is installed.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SendUseCase">The CAAXPGSendEvents Use Case</a></h2>
+<p>CAAXPGSendEvents is the second use case of the 
+CAAXPGWebServices.edu framework. Its role is to illustrate how use the <code>GetListOfSites</code> and <code>GetListOfSupportedEvents</code> and more importantly how to send an 
+event to the Gateway. Both scenario of sending event that has not been already processed and already processed are demoed [<a href="#References">2</a>].</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="SendWhat"></a>What Does CAAXPGSendEvents Do</h3>
+
+<p>This use case is split into several files, one per scenario addressed. The files are detailed <a href="#SendWhere">bellow</a>.</p>
+<p>The two "Get*" scenario show how to uses the web service to retrieve the list of sites and supported events configured on the gateway.</p>
+<p>The two &quot;Send&quot; scenario show the two way of sending an event to the Gateway. With and without pre-processing.</p>
+<p>Pre processing means that the data attached with the event was already generated before sending it to the Gateway. The processing code is highly looking like the <code>Processing</code> of the CAAXPGProcessEvents use case.</p>
+<p>If Pre processing is not done then the event will later be delegated to the adapter.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="SendHow"></a>How to Launch CAAXPGSendEvents </h3>
+<p>To launch <code>CAAXPGSendEvents</code> , you will need to set up the build time 
+environment, then 
+compile <code>CAAXPGSendEvents</code> along with its prerequisites (the proxy), set up the run time 
+environment, 
+and then execute the use case [<a href="#References">3</a>].</p>
+<p><code>CAAXPGSendEvents.exe -shadowPath=/path/to/shadow serviceUrl</code></p>
+<p>where:</p>
+
+  <table class="border1" id="table1">
+   <tbody>
+    <tr> <th>shadowPath</th>  <td>Path of the Gateway shadow</td> </tr>
+    <tr> <th>serviceUrl</th>  <td>The url of the EventsService on the Gateway; it should look like this <code>http://host:port/webappname/webservice?id=XPGEventsService</code></td> </tr>
+   </tbody>
+  </table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="SendWhere"></a>Where to Find the CAAXPGSendEvents Code</h3>
+<p>The <code>CAAXPGSendEvents</code> use case is made of several source files located in 
+the&nbsp;CAAXPGSendEvents.edu framework: </p>
+<table id="table2" border="1">
+  <tbody>
+  
+  <tr>
+    <td>The <code>Main</code> application class</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\Main.cs</code></td>
+  </tr>
+  
+  <tr>
+    <td>The <code>GetListOfSites.cs</code> source file that contains the GetListOfSites sample code (choice n°1 in the application menu)</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\GetListOfSites.cs</code></td>
+  </tr>
+  
+  <tr>
+    <td>The <code>GetListOfSupportedEvents.cs</code> source file that contains thee GetListOfSupportedEvents sample code (choice n°2 in the application menu)</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\GetListOfSupportedEvents.cs</code></td>
+  </tr>
+  
+   <tr>
+    <td>The <code>SendEvent.cs</code> source file that contains the "send event without pre-processing" sample code (choice n°3 in the application menu)</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\SendEvent.cs</code></td>
+  </tr>
+  
+   <tr>
+    <td>The <code>ProcessAndSendEvent.cs</code> source file that contains the "send event with pre-processing" sample code (choice n°4 in the application menu)</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\ProcessAndSendEvent.cs</code></td>
+  </tr>
+
+
+  <tr>
+    <td>The C# proxy [<a href="#References">4</a>]&nbsp; file</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\XPGEventsServiceClientProxy.m\src\IXPGEventsService.cs</code></td>
+  </tr>
+  <tr>
+    <td>The config file [<a href="#References">3</a>]</td>
+    <td> <code>:GatewayHome\CAA\UseCases\CAAXPGWebServices.edu\CAAXPGSendEvents.m\src\App.config</code></td>
+  </tr>
+</tbody></table>
+<p>where <code>GatewayHome</code> is the folder where the xPDM Gateway is installed.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UsesCasesScenario">How to use the two use cases</a></h2>
+
+<p>The two use cases are design to work together. One sends the events to the 
+Gateway, the other process them as they come. The following part demonstrate their usage in some basic sending/processing scenarios.</p>
+
+<h3><a name="SendWithoutProcess">Send an event without pre-processing, retrieve it from the gateway and process it :</a></h3>
+
+<ul>
+<li>Start event polling in <code>CAAXPGProcessEvents</code> by typing "1".</li>
+<li>Send the event to the Gateway with <code>CAAXPGSendEvents</code> by typing "3".</li>
+</ul>
+
+<p>These steps can be done in both order.</p>
+<p>Here is the expected output :</p>
+
+<p><code>CAAXPGSendEvents : </code></p>
+<pre class="code">
+--------------------------------------------------------------------------------
+ 1 : GetListOfSites
+ 2 : GetListOfSupportedEvents
+ 3 : Send an Event Without Local Pre Processing
+ 4 : Send an Event With Beforehand Local Processing
+ ESC key : Exit the application
+--------------------------------------------------------------------------------
+3
+<span class="style1">XPGBaseTransferFile successfully sent :
+        Event Id = aea654f--3763d8c8-1286e5ea820--8000
+        Processing parameters are = arg0/value0 arg1/value1 arg2/value2
+        Event state is now : LOCAL_RECEIVED
+</span></pre>
+
+<p><code>CAAXPGProcessEvents : </code></p>
+<pre class="code">
+--------------------------------------------------------------------------------
+ 1 : Start / Stop Processing Polling
+ ESC key : Exit the application
+--------------------------------------------------------------------------------
+1
+<span class="style1">Starting the polling thread
+Assigning 1 event(s) to a job and there is 0 event(s) left on the gateway waiting to be processed</span>
+<span class="style2">XPGBaseTransferFile successfully processed :
+        Event Id = aea654f--3763d8c8-1286e5ea820--8000
+        Queue Type = LOCAL
+        Queue Name = User_1426672203
+        Attachment =
+         Event Path : aea654f--3763d8c8-1286e5ea820--8000
+         Bulk Data : dummyFile.txt/ASCII
+         No Xpgxml
+        Event state is now : SENDING_TO_REMOTE</span>
+<span class="style1">No Available Events to process</span>
+</pre>
+
+<p>Here the <em>Local</em> event was successfully processd and will be forwarded to the V6 side.</p>
+
+<h3><a name="SendWith">Send an event with pre-processing and see that it is not delegated for processing :</a></h3>
+
+<ul>
+<li>Start event polling in <code>CAAXPGProcessEvents</code> by typing "1".</li>
+<li>Send the event to the Gateway with <code>CAAXPGSendEvents</code> by typing "4".</li>
+</ul>
+
+<p>These steps can be done in both order.</p>
+<p>Here is the expected output :</p>
+
+<p><code>CAAXPGSendEvents : </code></p>
+<pre class="code">
+--------------------------------------------------------------------------------
+ 1 : GetListOfSites
+ 2 : GetListOfSupportedEvents
+ 3 : Send an Event Without Local Pre Processing
+ 4 : Send an Event With Beforehand Local Processing
+ ESC key : Exit the application
+--------------------------------------------------------------------------------
+4
+<span class="style1">XPGBaseTransferFile successfully sent :
+        Event Id = aea654f-3c386e04-1286e6c81a8--8000
+        Attachment =
+         Event Path : aea654f--b7cd029-1286e6c8189--8000-TKGEN
+         Bulk Data : dummyFile1.txt/ASCII dummyFile2.txt/ASCII
+         No Xpgxml
+        Event state is now : LOCAL_UPLOADING_FILES_TO_FILESERVER</span></pre>
+
+<p><code>CAAXPGProcessEvents : </code></p>
+<pre class="code">
+--------------------------------------------------------------------------------
+ 1 : Start / Stop Processing Polling
+ ESC key : Exit the application
+--------------------------------------------------------------------------------
+1
+<span class="style1">Starting the polling thread
+No Available Events to process</span></pre>
+
+<p>This behavior is normal, the event has already been processed therefore there is no need to delegate it to the adaptor. It was directly forwarded to the V6 side.</p>
+
+<h3><a name="RemoteProcessing">Processing a remote event :</a></h3>
+
+<p>There is currently no way to send an <em>XPGBaseTransferFile</em>
+on the V6 server but the Gateway can simulate this and delegate a remote event to the Adapter.</p>
+
+<ul>
+<li>Start event polling in <code>CAAXPGProcessEvents</code> by typing "1".</li>
+<li>Open a browser and go to the test page of the Gateway. It should look like http://host:port/webappname/test/</li>
+<li>Click on <em>Test Event Delegation.</em></li>
+</ul>
+
+<p>Here is the expected output :</p>
+
+<p>On the test webpage</p>
+
+<p><img alt="Web Delegation Test Result" src="images/CAAXpgWebDelegationResult.png"></p>
+
+<p><code>CAAXPGProcessEvents : </code></p>
+<pre class="code">
+--------------------------------------------------------------------------------
+ 1 : Start / Stop Processing Polling
+ ESC key : Exit the application
+--------------------------------------------------------------------------------
+1
+<span class="style1">Starting the polling thread
+Assigning 1 event(s) to a job and there is 0 event(s) left on the gateway waiting to be processed
+</span><span class="style2">XPGBaseTransferFile successfully processed :
+        Event Id = aea654f--1923eb20-1286e774e20--8000
+        Queue Type = REMOTE
+        Queue Name = test
+        Attachment =
+         Event Path : testDelegation
+         Bulk Data : 1.txt/ASCII
+         No Xpgxml
+</span><span class="style1">No Available Events to process</span></pre>
+
+<p>As you can see here an event with a <em>Remote</em> Queue Type has been delegated to and successfully processed by the <code>CAAXPGProcessEvents</code> use case.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tbody>
+	
+		<tr>
+		<td valign="top">[1] </td>
+		<td>
+		<a href="../CAAXpgWsArticles/XPGEventsService.html">Events Service Description</a></td>
+	</tr>
+
+
+		<tr>
+		<td valign="top">[2] </td>
+		<td>
+		<a href="../CAAXpgWsArticles/CAAXpgTaEventsExchanges.htm">XPG Events Exchanges Technical Article</a></td>
+	</tr>
+
+
+	<tr>
+		<td valign="top">[3] </td>
+		<td>
+		<a href="../CAAWSCommon/CAAWSBuildingLaunching.htm">Building
+ and Launching a 
+        Web Service Use Case</a></td>
+	</tr>
+    <tr>
+		<td valign="top">[4] </td>
+		<td>
+        <a href="../CAAWSCommon/CAAWSGenerateClientBinding.htm">Generating
+ a C# Client Binding</a></td>
+	</tr>
+	</tbody></table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tbody><tr>
+		<td valign="top">Version: <b>1</b> [May 2010]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</tbody></table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body></html>

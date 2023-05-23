@@ -1,0 +1,369 @@
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>6WTagger Documentation</title>
+<style type="text/css">
+.style1 {
+				color: #FF0000;
+}
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>6WTagger Documentation</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This document is to explain what the TagNavigator is, and how it 
+		works.</p>
+		<ul>
+			<li><a href="#Part1">What is the 6WTagger?</a>
+			<ul>
+							<li><a href="#Part11">What's a tag?</a></li>
+							<li><a href="#Part12">Identifiers</a></li>
+			</ul></li>
+			<li><a href="#Part2">Overall System flow and responsibilities</a></li>
+			<li style="list-style:none;">
+			<ul>
+							<li><a href="#Part21">Loading</a></li>
+							<li><a href="#Part22">Searching, Refinement mode</a><ul>
+											<li><a href="#Part221">Find tags under a predicate</a></li>
+											<li><a href="#Part222">Sort tags under a predicate</a></li>
+							</ul>
+							</li>
+							<li><a href="#Part23">Edition mode</a></li>
+			</ul>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>What is the 6WTagger?</h2>
+<p>The 6WTagger is resident on the page. It interacts with one or more 
+&quot;content components&quot; that are also on the page. The 6WTagger can 
+be initialized on multiple platforms (Web Browser, iOS, potentially Rich Clients) as 
+well as in a variety of application contexts, including Enovia, Swym, 
+IFWECompass, and potentially other Rich Applications.(Please see <a href="#elem">
+Fig.1: 6WTagger</a>)</p>
+<table>
+	<caption><a name="elem"></a>Fig.1: Elements on page</caption>
+	<tbody>
+		<tr>
+			<td><img alt="Elements" src="images/tagnavigator.png"/></td>
+		</tr>
+	</tbody>
+</table>
+<p>The 6WTagger helps the user to catch the information contain in a page so the 
+user can find what he is looking for. <br />
+<br />
+The 6WTagger has two modes: Refinement and Edition. </p>
+<ol>
+				<li>In Refinement mode, the 6WTagger is used to refine and 
+				filter the display of tags data from the content components.</li>
+				<li>In 
+Author mode, the 6WTagger can manage tags for a selected object or set of 
+				objects. The 6WTagger does interact with the content components on the 
+				page. The content components are associated with a tagger proxy 
+				(Tagger6WProxy). To put the 6WTagger into Edition mode, a content component needs 
+				to tell the 6WTagger what object(s) any authored tags should be 
+				associated with (or, in the case of a tag deletion, dis-associated 
+				with) by using the API : focusOnSubject() (see TagNavigatorProxy 
+				API documentation)</li>
+</ol>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part11"></a>What's a tag?</h3>
+<p>A tag is more than just a string. It is a statement about the relationship 
+between entities consisting of a subject, a predicate, and an object (Please see <a href="#aTag">
+Fig.2: A tag</a>). A tag is a piece of knowledge that connects entities in a 
+relationship where the relationship is defined by the predicate.</p>
+<table>
+	<caption><a name="aTag"></a>Fig.2: A tag</caption>
+	<tbody>
+		<tr>
+			<td><img alt="A tag" src="images/tag.jpg"/></td>
+		</tr>
+		<tr>
+			<td style="height: 31px"><p>All parts of this sentence can be characterized by a globally 
+			non-ambiguous reference to a URI and, in fact, by convention we will 
+			assume that all parts of a Tag are represented implicitly by a URI.</p></td>
+		</tr>
+	</tbody>
+</table>
+<p>The &quot;object&quot; at the end of the statement can also be what's called a 
+&quot;literal&quot;.
+				A literal is, in fact, simply a string value. An example of a 
+			literal is the string &quot;Car&quot; which might be the &quot;object&quot; in a sentence 
+			like. On the web, conventionally when people say &quot;tag&quot; they often mean &quot;literal&quot; 
+i.e., just a flat string which gets associated with a web page URL. The way we 
+use the concept of &quot;tag&quot; in the 6W Framework is more robust and aligns with the 
+concepts of the Semantic Web and it's supporting framework - the Resource 
+Description Framework (RDF). <br />
+				<br />
+				Therefore it is important to note the distinction 
+between &quot;tag&quot; in the sense we use it in 6W and &quot;tag&quot; in the conventional sense.</p>
+		<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Important</span>:&nbsp; There are 
+		2 types of tags: the implicit tags, and the explicit tags.</td>
+	</tr>
+</table>
+<ol>
+				<li>An<strong> implicit tag</strong> is a 
+statement that derives from data sourced from the content (Please see
+				<a href="#implicit">Fig.3: Implicit tag</a>).
+				Implicit Tags are not stored as &#8220;Tags&#8221;, as it comes from 
+				attributes and relationships defined in the data source (ENOVIA 
+				and SwYm). Implicit Tags are deduced from data during indexing.
+<table>
+	<caption><a name="implicit"></a>Fig.3: Implicit tag</caption>
+	<tbody>
+		<tr>
+			<td><img alt="A tag" src="images/typeOfTag.jpg"/></td>
+		</tr>
+		<tr>
+			<td><p> For example, the objects and attributes stored in Enovia 
+			would constitute implicit tags.</p></td>
+		</tr>
+	</tbody>
+</table>
+</li>
+<li>
+<p>An <strong>explicit tag</strong> is one sourced from users &#8211; that is, tags created by user 
+action via the 6WTagger. Note that for now, Explicit Tags will be created 
+using only one of the 6W based predicates. Explicit tags are stored in an ENOVIA 
+Instance (potentially different from the ENOVIA instance for applications). 
+Indexing of Explicit Tags is done inside each 
+data source index, enabling to build a consistent view of all Tags in each of 
+the index of data sources. Therefore, the content components interact with their 
+own data source services to get tag-related data for the content they contain.
+</p></li></ol>
+<h3><a name="Part12"></a>Identifiers</h3>
+<p>For identifying the subjects, predicates, and objects within a &quot;tag&quot;, we will 
+use URIs based on the following conventions:</p>
+<ul>
+	<li>The subject URI, predicate, object URI should be passed to the 
+	TagNavigator through the setTags API or setSubjectsTags depends on the 
+	filtering mode <a href="CAATgnTagNavigatorProxy.htm">(see TagNavigatorProxy API documentation)</a>. It corresponds to the 
+	identifier of data present in a content component which is candidate for 
+	tagging.</li>
+	<li  style="list-style:none;"><ul>
+		<li>Format of URIs is not yet defined, it may depend on data source</li>
+		<li>We assume that we may use shorthand URIs &#8211; that is, we will shorten 
+		the URI for internal services and APIs. The extreme shortening of a URI 
+		is basically just a string.</li>
+		<li>URI will be used during indexing of Explicit Tags by each data 
+		source index, so format is under responsibility of each data source</li>
+	</ul></li>
+	<li>Whereas we will use these &#8220;shortened&#8221; URIs for passing data between 
+	services and APIs, when we publish data externally, our services should have 
+	the capability to publish full URIs for all subject/predicate/object 
+	references</li>
+	<li style="list-style:none;"><ul>
+		<li>As of today, no publish is done</li>
+	</ul></li>
+</ul>
+<h2><a name="Part2"></a>Overall System flow and responsibilities</h2>
+<p>There are three fundamental scenarios for the overall system flow: loading, 
+filtering content (from search or content), and Tag CRUD. The flows and 
+responsibilities are described in this section.</p>
+<h3><a name="Part21"></a>Loading</h3>
+<p>Typical loading scenario (Please see <a href="#searchingFig">Fig.5: Search 
+flow</a>) :</p>
+<ol>
+				<li>When a content component loads, it gets its data from its data source 
+services, which should get the tag-related data for each data object (for 
+example from Exalead index).</li>
+				<li>The content component then passes the tag-related 
+data to the TagNavigatorProxy by calling into the TNP API setTags or 
+setSubjectsTags. The content component is 
+responsible for passing a data object into the TP that is properly formatted 
+JSON and which contains 
+all the tag data for the objects in the content component. (Please see
+				<a href="#loadingFig">Fig.4: Loading tags</a>)<br />
+				<strong>Example of JSON</strong> passed through the API setTags or 
+setSubjectsTags: (for more details see <a href="CAATgnTagNavigatorProxy.htm">TagNavigatorProxy API documentation)</a></li>
+</ol>
+<pre class="code">
+var tags =  {
+    'subject-1-uri':[
+        {'object':"Alice",'sixw':"ds6w:who/ds6w:responsible", 'field':"Owner", 'dispValue':"Alice"},
+        {'object':"Post",'sixw':"ds6w:what/ds6w:type", 'field':"Type", 'dispValue':"Post"}
+        ],
+    'subject-2-uri':[
+        {'object':"Thomas",'sixw':"ds6w:who/ds6w:responsible", 'field':"Owner", 'dispValue':"Thomas"},
+        {'object':"Post",'sixw':"ds6w:what/ds6w:type", 'field':"Type", 'dispValue':"Post"}
+        ]
+    };
+var summaryData= [
+    {'object':"Thomas",'sixw':"ds6w:who/ds6w:responsible", 'field':"Owner", 'dispValue':"Thomas", 'count':1},
+    {'object':"Alice",'sixw':"ds6w:who/ds6w:responsible", 'field':"Owner", 'dispValue':"Alice", 'count':1},
+    {'object':"Post",'sixw':"ds6w:what/ds6w:type", 'field':"Type", 'dispValue':"Post", 'count':2}
+];
+this.taggerProxy.setTags(tagsdata,summaryData);
+</pre>
+<table>
+	<caption><a name="loadingFig"></a>Fig.4: Loading</caption>
+	<tbody>
+		<tr>
+			<td>
+			<img alt="Loading" src="images/loading.png"/></td>
+		</tr>
+	</tbody>
+</table>
+<h3><a name="Part22"></a>Searching, Refinement mode</h3>
+<p>Typical search scenario (Please see <a href="#searchingFig">Fig.5: Search 
+flow</a>) :</p>
+<ol>
+	<li>User refines the search results by clicking on one or more &#8220;tag&#8221; 
+	elements in the TagNavigator.</li>
+	<li>Selected tags appear in the Active tags section.</li>
+	<li>An event is triggered to the content components in page with the 
+	filterObj, which is the active tags formatted in a JSON object. Or the or 
+	filteredSubjectList (if you are in withFilteringSerivices mode).<br />
+	Example of filterObj (for more explanation
+	<a href="CAATgnTagNavigatorProxy.htm">see TagNavigatorProxy API documentation</a>):<br />
+	<pre class=" code">filterObj = {
+    "allfilters": {
+        "ds6w:when": [
+            {
+                "disptext": "2011/June/29",
+                "object": "2011/06",
+                "type": "date",
+                "field": []
+            }
+        ],
+        "ds6w:why/ds6w:fulfills/ds6w:fulfillsPriority": [
+            {
+                "disptext": "P0",
+                "object": "P0",
+                "type": "string",
+                "field": [
+                    "V_Priority"
+                ]
+            }
+        ],
+        "ds6w:what/ds6w:radius": [
+            {
+                "disptext": "1 cm",
+                "object": "1 cm",
+                "type": "string",
+                "field": [
+                    "Radius"
+                ]
+            }
+        ]
+    }
+}</pre></li>
+<li>Get the new tag to display from your tag data sources ( could be Exalead for 
+example), according to what you 
+receive as a filterObj</li>
+	<li>Set your filtered tags into the TagNavigator. <span class="style1"><strong>
+	(IMPORTANT TO DO OR THE TAGNAVIGATOR WILL REMAIN IN WAINTING FOR RESPONSE 
+	MODE, unless you are in WithFilteringServices mode.)</strong></span></li>
+</ol>
+<p>Considering that, only content components can be responsible for persisting 
+the search criteria relevant to them. That is, they must store and &#8220;remember&#8221; 
+the search criteria. </p>
+<table>
+	<caption><a name="searchingFig"></a>Fig.5: Search flow</caption>
+	<tbody>
+		<tr>
+			<td>
+			<img alt="Loading" src="images/searching.png"/></td>
+		</tr>
+	</tbody>
+</table>
+<h3><a name="Part221"></a>Find tags under a predicate</h3>
+<p>To ease the search in the TagNavigator the user can use the search predicate 
+button <img alt="Loading" src="images/searchIcon.png"/>. This will open a search 
+box so the user can search under a 6Wpredicate.<br />
+<br />
+<img alt="Loading" src="images/searchTag.png"/><br />
+<br />
+For example here all tags that hold the chain of character &quot;one&quot; will have their 
+predicate expanded for the filtered tags to be visible for the user.<br />
+<br />
+<img alt="Loading" src="images/searchTag2.png"/><br />
+<br />
+</p>
+<h3><a name="Part222"></a>Sort tags under a predicate</h3>
+<p>
+The user can also change the sorting mode under a predicate via the sorting tool 
+box.<img alt="Loading" src="images/sortingToolBox.png"/><br />
+The first icon is to sort the tag alphabetically or reverse alphabetically, the 
+second is to sort the number of tag recurrence increasingly or decreasingly. It is active when it is 
+blue.</p>
+<p>&nbsp;</p>
+<h3><a name="Part23"></a>Edition mode</h3>
+<p>Users interact with the TagNavigator to create, update, and delete tags. 
+These tags are considered &#8220;explicit&#8221; tags (in contrast with the &#8220;implicit&#8221; tags 
+that come from Data source). Tags are persisted in a Tag Storage, which is not 
+linked with Data source (today it is ENOVIA, but it may change in the future). 
+All Explicit Tags, even if set on objects outside of ENOVIA, are stored in a 
+single database. When a user creates / updates / deletes a tag, the TagNavigator must 
+communicate with the server and the content components. First, it communicates with the backend 
+services to persist the tag data. Second, it prevents the tagger view of the 
+response of the server. User can select only one proxy at a time to create, 
+update, and delete tags but multiple subjects in this proxy (Please see <a href="#crudFig">
+Fig.5: CRUD flow</a>).</p>
+<table>
+	<caption><a name="crudFig"></a>Fig.5: CRUD flow</caption>
+	<tbody>
+		<tr>
+			<td>
+			<img alt="CRUD flow" src="images/CRUD.png"/></td>
+		</tr>
+	</tbody>
+</table>
+<p>NOTE: All tag data in the TagNavigator comes from the Content Components. The 
+Tagnavigator never directly get datas from Enovia.</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="InShort"></a>In Short</h2>
+      <p>The TagNavigator is used in the 3DExperience platform, to help the user 
+		to catch the information contain in a page and find what he is looking 
+		for.</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="References"></a>References</h2>
+      <table class="reference">
+         <tr>
+            <td>[1]</td>
+            <td><a href="#">Tools Options</a></td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="History"></a>History</h2>
+      <table class="history">
+         <tr>
+            <td>Version: <strong>1</strong> [Jan 2000]</td>
+            <td>Document created</td>
+         </tr>
+      </table>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <script type="text/javascript">insertCopyright();</script>
+   </body>
+</html>

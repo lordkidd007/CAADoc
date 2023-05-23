@@ -1,0 +1,252 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_solve_merge_is</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp; <br>
+&nbsp; </p>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><h1>RADE</h1>
+    </td>
+    <td VALIGN="TOP"><h2>Source Code Manager</h2>
+    </td>
+    <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2"><h3><a NAME="Top"></a>adl_solve_merge_is</h3>
+    <p><i>Solving merges in an inter-site environment</i></td>
+  </tr>
+  <tr>
+    <td COLSPAN="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+      <p>The <b>adl_solve_merge_is</b> command resolves conflict cases in the
+      remote mirror workspace associated with a local workspace in an inter-site environment.&nbsp; <ul>
+      <li><b><a href="#Synopsis">Synopsis</a></b></li>
+      <li><b><a href="#Usage">Usage</a></b></li>
+      <li><b><a href="#IntersiteMergeCases">Intersite Merge Cases</a></b></li>
+      <li><b><a href="#Options">Options</a></b></li>
+      <li><b><a href="#Examples">Examples</a></b></li>
+      <li><b><a href="#References">References</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Synopsis"></a>Synopsis</h3>
+<b>
+
+<p>adl_solve_merge_is</b>  [<b>-transfer</b> TransferName] [<b>-tree</b>
+TreeName] [<b>-h </b>| <b>-help</b> | <b>-?</b>] </p>
+
+<h3><a NAME="Usage"></a>Usage</h3>
+
+<p>The adl_solve_merge_is command is used when merges occur in the remote mirror
+workspace associated with the current intersite transfer. The purpose of this
+command is to solved those distant merges by </p>
+
+<ol>
+  <li>importing them in the local workspace</li>
+  <li>solving then locally using the adl_solve_merge command</li>
+  <li>exporting the results to the remote mirror workspace</li>
+</ol>
+
+<p><img border="0" src="../CAAIcons/images/warning.gif" width="30" height="30">
+Note that the third step consists in transferring all the modifications that
+exist in the local workspace and not only the results of the merges. So it is
+possible to see other changes than the results of the merges that are
+transferred into the remote mirror workspace. </p>
+
+<p><img border="0" src="../CAAIcons/images/information.gif" width="31" height="30">it
+is possible to interrupt the adl_solve_merge command that is started during the
+step 2. In that case the local workspace will remain in a state where the only
+command that can be run is the adl_solve_merge [<a href="#Ref5">5</a>]
+command.&nbsp; </p>
+
+<p>To read more about the inter-site transfer, see the <a href="../CAAWsmUseCases/CAAWsmMultiSite.htm">&quot;Inter-site
+transfer&quot; article</a>. </p>
+
+<p>To read more about merge's principle, you can see either the <a href="#References"> [2]</a>
+&quot;Merger User Interface article&quot;, either the <a href="#References"> [3]</a>
+&quot;Resolving Conflicting Changes article&quot; with the merger article. </p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><b><u><a name="IntersiteMergeCases"></a>Inter-site merge cases</u></b></h3>
+<p>This command will be necessary if there is a conflict between the remote
+mirror workspace and the local workspace. Here are two cases that can
+happen:</p>
+<p>- Case 1 -</p>
+<ul>
+  <li>adl_promote_is&nbsp; in the local workspace: the promotion is then waiting
+    for collect by the remote parent workspace</li>
+  <li>adl_rm req&nbsp; in the remote parent workspace: the pending promotion is
+    then canceled and the changes remain in the remote mirror workspace</li>
+  <li>adl_sync_is in the local workspace</li>
+  <li>another adl_sync_is later in the local workspace. In this case, if the
+    synchronization is OK, then there is no problem. The synchronization can
+    fail if there is a merge to resolve in the mirror workspace. To resolve this case, you have to
+    execute in the local
+    workspace an adl_solve_merge_is command</li>
+</ul>
+<p>The adl_solve_merge_is command downloads the objects in the local workspace,
+resolves the merge, then sends immediately the result in the mirror workspace.</p>
+<p>- Case 2 -</p>
+<ul>
+  <li>adl_promote_is&nbsp; in the local workspace</li>
+  <li>adl_publish&nbsp; in the remote workspace at the same time. In this case,
+    the promotion is stopped in the remote workspace. Merge can happen, and they
+    are not resolved
+    then.</li>
+</ul>
+<p>The adl_solve_merge_is has to be launched in the local workspace.</p>
+
+<h3 align="right">[<a href="#Top">Top</a>]</h3>
+
+<h3><a NAME="Options"></a>Options</h3>
+
+<p>adl_solve_merge_is accepts the following options: </p>
+
+<table width="100%">
+  <tr>
+    <td VALIGN="TOP"><tt>-h|-help|-?</tt></td>
+    <td width="614">Help of the command</td>
+  </tr>
+  <tr>
+    <td><tt>-transfer transfer_name</tt></td>
+    <td width="614"><tt>Name of the transfer</tt></td>
+  </tr>
+  <tr>
+    <td><tt>-tree tree_name</tt></td>
+    <td width="614"><tt>Name of the tree</tt></td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Examples"></a>Examples</h3>
+
+<dl>
+  <p><b>Resolving </b>merges to be done in the current workspace &quot;MyRootLocalWs&quot;
+  for the transfer Transfer1: </p>
+  <table class="code">
+    <tr>
+      <td><pre>adl_ch_ws MyRootLocalWs&nbsp; 
+...</pre>
+        <pre><b>adl_solve_merge_is </b>-transfer Transfer1
+Changing current remote working workspace to &quot;MIRROR_DSY_MyRootLocalWs_1&quot;...
+Solving merge(s) for the workspace &quot;MyRootLocalWs&quot; in the workspace tree &quot;treelocal&quot;...
+Extracting changes in remote workspace MIRROR_DSY_MyRootLocalWs_1...
+Computing new changes in remote workspace &quot;MIRROR_DSY_MyRootLocalWs_1&quot; since last transfer...
+...
+Forcing new modifications in local workspace MyRootLocalWs...
+Solving implicit and automatic merges in workspace &quot;MyRootLocalWs&quot; in the workspace tree &quot;treelocal&quot;.
+No merge can be solved.</pre>
+        <pre>Solving manual merges in workspace &quot;MyRootLocalWs&quot;</pre>
+        <pre>Merge type: Change of content
+1 - Fw1/mod.m/src/fic.cpp            treelocal</pre>
+        <pre>Enter
+- 1, 2... to solve a merge
+- G not to use the graphic tool for text file contents
+- L to list the merges to solve again
+- Q to quit
+Your choice: 1</pre>
+        <pre>... # HERE THE GRAPHIC MERGER TOOL IS STARTED #</pre>
+        <pre>No more merge.</pre>
+        <pre>Refreshing the image &quot;UNIX&quot; of the workspace &quot;MyRootLocalWs&quot;.
+Fw1/mod.m/src/fic.cpp has been modified
+Command successful.</pre>
+        <pre>Checking for changes on responsibles of components...
+</pre>
+        <pre># HERE, THERE ARE MESSAGES CORRESPONDING TO THE SENDING OF THE LOCAL WORKSPACE TO THE REMOTE MIRROR WORKSPACE #</pre>
+        <pre>...</pre>
+        <pre>Intersite command successful.</pre>
+      </td>
+    </tr>
+  </table>
+</dl>
+
+<p>&nbsp;</p>
+
+<p><b>Resolving</b> merges in the mirror workspace associated with the local workspace &quot;MyRootLocalWs&quot;, with no merge left to do:</p>
+<tableclass="code">
+
+<table class="code">
+  <tr>
+    <td><pre>adl_ch_ws MyRootLocalWs&nbsp; 
+...</pre>
+      <pre><b>adl_solve_merge_is</b> 
+There is no merge to be solved in the remote mirror workspace &quot;MIRROR_DSY_MyRootLocalWs_1&quot;.</pre>
+    </td>
+  </tr>
+</table>
+
+<dl>
+  <p align="right">[<a href="#Top">Top</a>]</p>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <h3><a NAME="References"></a>References</h3>
+  <table WIDTH="100%" height="123">
+    <tr>
+      <td VALIGN="TOP" height="21">[1]</td>
+      <td height="21"><a href="CAAWsmMkIsTransfer.htm">adl_mk_is_transfer: creating
+        inter-site transfer</a></td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP" height="21">
+      [2]</td>
+      <td height="21"><a href="CAAWsmMerger2UI.htm">Merger User Interface</a> </td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP" height="21">
+      [3]</td>
+      <td height="21">
+      <a href="../CAAWsmUseCases/CAAWsmMerge.htm">Merging Conflicting Changes</a></td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP" height="19">[4]</td>
+      <td height="19"><a href="../CAAWsmUseCases/CAAWsmMultiSite.htm">Inter-site
+        transfer documentation</a></td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP" height="21"><a name="Ref5"></a>[5]</td>
+      <td height="21"><a href="CAAWsmSolveMerge.htm">adl_solve_merge: solving
+        merges</a></td>
+    </tr>
+  </table>
+  <p align="right">[<a href="#Top">Top</a>]</p>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <h3><a NAME="History"></a>History</h3>
+  <table WIDTH="100%">
+    <tr>
+      <td VALIGN="TOP">Version: <b>1</b>  [June 2002]</td>
+      <td VALIGN="TOP">Document created</td>
+    </tr>
+  </table>
+  <p align="right">[<a href="#Top">Top</a>]</p>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i></p>
+</dl>
+</body>
+</html>

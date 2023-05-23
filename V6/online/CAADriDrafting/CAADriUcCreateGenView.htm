@@ -1,0 +1,452 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating a Generative View from 3D Data</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating a Generative View from 3D Data</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the CAADrwCreateGenView use case. This use case 
+		explains how to create a generative view from 3D Data in an existing drawing 
+		representation reference.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAADrwCreateGenView Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAADrwCreateGenView Do</a></li>
+					<li><a href="#How">How to Launch CAADrwCreateGenView</a></li>
+					<li><a href="#Where">Where to Find the CAADrwCreateGenView Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how to create, and save in database, a 
+PLM drawing representation reference. You will learn:</p>
+<ul>
+	<li>How to initialize the PLM environment</li>
+	<li>How to retrieve the Product Reference from the PLM ID</li>
+	<li>How to retrieve the Drawing Representation Reference from the PLM ID</li>
+	<li>How to create a <span lang="fr">CATOmbObjectInContext</span> info form the 
+		Product Reference</li>
+	<li>How to create an associative Generative Front View thanks to the
+		<span lang="fr">CATOmbObjectInContext class</span></li>
+	<li>How to create a Generative Section View from the Front View.</li>
+	<li>How to save the created representation.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADrwCreateGenView Use Case</h2>
+<p>CAADrwCreateGenView is a use case of the CAADraftingInterfaces.edu framework 
+that illustrates DraftingUseItf framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADrwCreateGenView Do</h3>
+<p>The CAADrwCreateGenView use case creates two Generative Views from 3D Data in 
+a Drawing Representation Reference already created.</p>
+<table>
+	<caption>Fig. 1: Drawing Representation Template Used by the Use Case</caption>
+	<tr>
+		<td>
+		<img alt="Input Drawing Representation Template" height="455" src="images/CAADrwCreateGenView1.jpg" width="692"/></td>
+	</tr>
+</table>
+<table id="table1">
+	<caption>Fig. 2: Drawing Representation Modified by the Use Case</caption>
+	<tr>
+		<td>
+		<img alt="Modified Drawing Representation Template" height="363" src="images/CAADrwCreateGenView2.jpg" width="717"/></td>
+	</tr>
+</table>
+<p>This picture represents a drawing representation modified by the use case program. 
+The program creates two Generative Views associative to 3D Data.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADrwCreateGenView</h3>
+<p>To launch CAADrwCreateGenView, you will need to set up the build time environment, 
+then compile CAADrwCreateGenView along with its prerequisites, set up the run time 
+environment, and then execute the use case [<a href="#References">1</a>].</p>
+<pre class="code">mkrun -c<em> &quot;</em>CAADrwCreateGenView <em>Repository</em> <em>Server User</em> <em>Password</em> <em>SecurityCtx PLMType AttributeVal1 PLMType_Drawing AttributeVal2 Version</em>&quot;</pre>
+<p>where the description of the arguments is the following:</p>
+<table class="fill">
+	<colgroup align="center" span="1">
+	</colgroup>
+	<tr>
+		<th>Position</th>
+		<th>Description</th>
+		<th>Example</th>
+		<th>Category</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td>PLM repository</td>
+		<td>PLM1</td>
+		<td rowspan="5">Connection</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td>PLM server</td>
+		<td>The name and port of the server as <em>name</em>:<em>port_number</em></td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td>Username</td>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td>Password</td>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<td>5</td>
+		<td>SecurityCtx</td>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(as the use case modifies the PLM data)</td>
+	</tr>
+	<tr>
+		<td>6</td>
+		<td>PLM Type</td>
+		<td>A PLM Type for component to be opened</td>
+		<td>component Type</td>
+	</tr>
+	<tr>
+		<td>7</td>
+		<td>AttributeVal1<em> </em></td>
+		<td>CAADrwCreateGenViewPRD </td>
+		<td>Component Attribute</td>
+	</tr>
+	<tr>
+		<td>8</td>
+		<td>PLM Type</td>
+		<td>A PLM Type for Drawing component to be opened</td>
+		<td>Drawing component Type</td>
+	</tr>
+	<tr>
+		<td>9</td>
+		<td>AttributeVal2</td>
+		<td>CAADrwCreateGenViewDRW</td>
+	</tr>
+	<tr>
+		<td>10</td>
+		<td>Version<em> </em></td>
+		<td>---</td>
+	</tr>
+</table>
+<p><strong>Import PLM Data:</strong> The use case may require input PLM Data: PLM 
+Reference or PLM Representation Reference. This data is stored in 3D XML files, 
+whose extension is &quot;3dxml&quot;. You must import these PLM Data in the database 
+using the PLM Access / Import As 3D XML command prior to launching the use case.<br />
+The &quot;3dxml&quot; file is supplied in the the CAADraftingInterfaces.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADraftingInterfaces.edu\InputData\CAADrwCreateGenViewDRW.3dxml
+</code></p>
+<p><code>InstallRootFolder\CAADoc\CAADraftingInterfaces.edu\InputData\CAADrwCreateGenViewPRD.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAADrwCreateGenView Code</h3>
+<p>The CAADrwCreateGenView use case is made of a single source file named CAADrwCreateGenView.cpp 
+located in the CAADrwCreateGenView.m module of the CAADraftingInterfaces.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADraftingInterfaces.edu\CAADrwCreateGenView.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are 10 steps in CAADrwCreateGenView:</p>
+<ol>
+	<li><a href="#Step1">Parsing the Input Arguments</a></li>
+	<li><a href="#Step2">Creating a PLM Session and Connecting to the Input Repository</a></li>
+	<li><a href="#Step3">Opening the Root Reference</a></li>
+	<li><a href="#Step4">Retrieving the Drawing Representation Reference</a></li>
+	<li><a href="#Step5">Retrieving the Drawing Root from the Drawing Representation 
+		Reference</a></li>
+	<li><a href="#Step6">Retrieving the Active Sheet from the Drawing Root</a></li>
+	<li><a href="#Step7">Creating a CATOmbObjectInContext
+		from the Root Product Reference</a></li>
+	<li><a href="#Step8">Creating a Generative Front View by using the
+		<span lang="fr">CATOmbObjectInContext class</span></a></li>
+	<li><a href="#Step9">Creating a Section View from the Front View</a></li>
+	<li><a href="#Step11">Saving the Drawing Representation Reference in the Database 
+		and Closing the Session</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Parsing the Input Arguments</h3>
+<pre class="code">int main(int iargc, char *iargv[])
+{
+  HRESULT hr;
+  int rc = 1;
+  cout &lt;&lt; &quot;CAADrwCreateGenView started&quot; &lt;&lt; endl;
+
+  // 1. Checks the input arguments
+  // =========================
+  if (11 != iargc) {
+    cout &lt;&lt; &quot;Usage: &quot; &lt;&lt; iargv[0] &lt;&lt; &quot; &lt;repository&gt; &lt;server&gt; &lt;user&gt; &lt;password&gt; &lt;SecurityCtx&gt; &lt;PLMType&gt; &lt;PLM External Id Product&gt; &lt;PLMType_Drawing&gt; &lt;PLM External Id Drawing&gt; &lt;version&gt; &quot;&lt;&lt; endl;
+    return 1;
+  }
+  const char* repository = iargv[1];
+  const char* server = iargv[2];
+  const char* user = iargv[3];
+  const char* password = iargv[4];
+  const char* SecurityCtx = iargv[5];
+  const char* comp_PLMType = iargv[6];
+  const char* comp_externalId = iargv[7];
+  const char* comp_PLMTypeDrawing = iargv[8];
+  const char* comp_drw_externalId = iargv[9];
+  const char* comp_version     = iargv[10];...</pre>
+<ul>
+	<li><code>Repository</code> is the repository name (also named provider) to 
+		use</li>
+</ul>
+<p>All these data will be used in the next sections to initialize the PLM session 
+then to search representation in the database.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating a PLM Session and Connecting to the Input Repository</h3>
+<pre class="code"> ...
+CATBoolean traceok = TRUE;
+hr = ::CAAAdpCreateSession(repository,server,user,password,SecurityCtx,traceok);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Opening the Root Reference</h3>
+<pre class="code">...   
+  // 3. Open the Root Reference
+   // ==========================
+   // Open Product in Authoring mode
+   CATIPLMRepInstances* piRepInstOnRoot= NULL;
+
+   // Entire product model is loaded for the generative view creation
+   CATBoolean ExpandAllMode = TRUE;
+   CATOmbLifeCycleRootsBag Bag;
+  
+   hr = ::CAAOpenPLMComponent(comp_PLMType,comp_externalId,comp_version,
+                              IID_CATIPLMRepInstances,(void **)&amp;piRepInstOnRoot,Bag,ExpandAllMode);
+
+ ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Retrieving the Drawing Representation Reference</h3>
+<pre class="code">...   
+  // 4. Retrieves the Drawing representation reference 
+   // ============================================
+   CATIPsiRepresentationReference *piDrawingRepRef = NULL;
+   hr = ::CAAOpenPLMComponent(comp_PLMTypeDrawing,
+                              comp_drw_externalId,comp_version,
+                              IID_CATIPsiRepresentationReference,(void **)&amp;piDrawingRepRef,Bag);
+  ...
+  // 4.1 Loads the Drawing Representation in "Edit Mode"
+   // ===================================================
+   CATIPsiRepresentationLoadMode *piRepLoadMode = NULL;
+   if (piDrawingRepRef &amp;&amp;SUCCEEDED( piDrawingRepRef-&gt;QueryInterface( IID_CATIPsiRepresentationLoadMode, (void **) &amp; piRepLoadMode ) ) )
+   {
+      hr = piRepLoadMode-&gt;ChangeLoadingMode( CATIPsiRepresentationLoadMode::EditMode );
+      piRepLoadMode-&gt;Release();piRepLoadMode=NULL;
+   }
+
+
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Retrieving the Drawing Root from the Drawing Representation 
+Reference</h3>
+<pre class="code">...
+CATIDftDrawing *piDftDrawing = NULL;
+if (SUCCEEDED(CATDftDrawingPLMServices::GetDrawingRoot(piDrawingRepRef,&amp;piDftDrawing)))
+{
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Retrieving the Active Sheet from the&nbsp; Drawing Root</h3>
+<pre class="code">...   
+ if (piDftDrawing)
+{
+  CATIDftSheet *piDftSheet = NULL;
+  piDftDrawing-&gt;GetActiveSheet(&amp;piDftSheet);
+  if (piDftSheet)
+  {
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Creating a <span lang="fr">CATOmbObjectInContext</span> 
+from the Root Product Reference</h3>
+<pre class="code">
+...
+CATOmbObjectInContext * OmbObjCtx = NULL;
+CATIPrdObject_var spPrdObjOnRoot(piRepInstOnRoot);
+if (NULL_var != spPrdObjOnRoot)
+{
+  CATListPtrCATIPLMComponent ComponentList; //empty list, Product is a 3D Part, not several levels
+  CATOmbObjectInContext::CreateObjectInContext(ComponentList, NULL, spPrdObjOnRoot, OmbObjCtx);
+}
+
+// A CATOmbObjectInContext has been created
+if (OmbObjCtx)
+{
+  CATIUnknownListImpl * ListImpl = new CATIUnknownListImpl();
+  CATIUnknownList * ListOmbLink = NULL;
+  HRESULT hr = ListImpl-&gt;QueryInterface(IID_CATIUnknownList, (void**)&amp;ListOmbLink);
+  ListImpl-&gt;Release(); ListImpl = NULL;
+  if (SUCCEEDED(hr))
+  {
+    ListOmbLink-&gt;Add(0, (IUnknown*)OmbObjCtx);
+  }
+}
+...</pre>
+<p>Thanks to the <span lang="fr">CATOmbObjectIncontext</span> a Generative View 
+must be created from 3D Data.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step8"></a>Creating the Generative Front View</h3>
+<pre class="code">...
+if (OmbObjCtx)
+{
+  CATIUnknownListImpl * ListImpl = new CATIUnknownListImpl();
+  CATIUnknownList * ListOmbLink = NULL;
+  HRESULT hr = ListImpl-&gt;QueryInterface(IID_CATIUnknownList, (void**)&amp;ListOmbLink);
+  ListImpl-&gt;Release(); ListImpl = NULL;
+  if (SUCCEEDED(hr))
+  {
+    ListOmbLink-&gt;Add(0, (IUnknown*)OmbObjCtx);
+  }
+
+  // Retrieves the factory
+  CATIDftGenViewFactory *piDftGenViewFact = NULL;
+  if (piDftSheet &amp;&amp; SUCCEEDED(piDftSheet-&gt;QueryInterface(IID_CATIDftGenViewFactory,(void **)&amp;piDftGenViewFact)))
+  {
+    CATIDftView *piDftFrontView = NULL;
+    if (ListOmbLink)
+    {
+      // Defines the view anchor point
+      double ptOrigin[2] = {350.0,250.0};
+
+      // Defines the view projection plane
+      CATMathPlane viewProjPlane;
+
+      // Defines the view style
+      CATUnicodeString viewStyle=&quot; &quot;;
+      hr = piDftGenViewFact-&gt;CreateFrontView (ptOrigin, viewProjPlane, ListOmbLink,&amp;piDftFrontView,viewStyle);
+      if (SUCCEEDED(hr) &amp;&amp; piDftFrontView) 
+      {
+        cout &lt;&lt; &quot;The Front view is correclty created&quot; &lt;&lt; endl;
+      }
+      ListOmbLink-&gt;Release(); ListOmbLink= NULL;
+    }
+  }
+...</pre>
+<p>CATIDftGenViewFactory interface implemented by the Sheet object allows to create 
+the Generative Views in one shoot. It is possible to trigger the view update or 
+not. CATIDftGenViewUpdate interface allows the generative view to be updated.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step9"></a>Creating the Generative Section View from the Front View</h3>
+<pre class="code">...   
+ if (piDftFrontView) 
+{
+  // Defines the cutting profile
+  CATListPtrCATMathPoint2D listOfPoints;
+  double ptCoord1[2] = {0.0,-70.0};
+  CATMathPoint2D *tmpPointStart = new CATMathPoint2D (ptCoord1[0],ptCoord1[1]);
+  listOfPoints.Append(tmpPointStart);
+  double ptCoord2[2] = {0.0,250.0};
+  CATMathPoint2D *tmpPointEnd = new CATMathPoint2D (ptCoord2[0],ptCoord2[1]);
+  listOfPoints.Append(tmpPointEnd);
+
+  // Defines the side to keep: The direstion is perpendicular to the first segment of the cutting profile.
+  CATMathDirection iDir(1.0,0.0,0.0); 
+
+  CATIDftView *piDftSectionView = NULL;
+
+  // Defines the view anchor point
+  double ptOriginSect[2] = {920.0,250.0};
+  // Defines the view style
+  CATUnicodeString viewStyle=&quot; &quot;;
+
+  hr = piDftGenViewFact-&gt;CreateSectionView (ptOriginSect, CATDftSectionOffset, listOfPoints, iDir, piDftFrontView,&amp;piDftSectionView,viewStyle);
+  if (SUCCEEDED(hr) &amp;&amp; piDftSectionView) 
+  {
+    cout &lt;&lt; &quot;The Section view is correclty created&quot; &lt;&lt; endl;
+    piDftSectionView-&gt;Release();piDftSectionView=NULL;
+}
+...</pre>
+<p>The CreateSectionView method, defined in CATIDftGenViewFactory allows to create 
+an associative Generative View to 3D Data<span lang="fr">. There is no need to specify 
+a CATOmbObjectIncontext class. Links information are </span>extrated from the Front 
+View link<span lang="fr">s</span>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step11"></a>Saving the Drawing Representation Reference in the Database 
+and Closing the Session</h3>
+<pre class="code">...   
+CATListPtrCATBaseUnknown pListToSave ;
+pListToSave.Append(piDrawingRepRef);
+CATAdpSaver saver;
+hr = <strong>saver.Save</strong>(&amp;pListToSave);
+hr = Bag.RemoveAll();
+hr = CATPLMSessionServices::ClosePLMSession();</pre>
+<p>This section represents the usual sequence for saving a representation reference.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to create Generative Views associative to a product structure 
+by using methods defined in CATIDftGenViewFactory interface implemented by the Drawing 
+Sheet. The use case shows how to create a <span lang="fr">CATOmbObjectInContext 
+class</span> on the Root Product to create a link between the Generative View and 
+the Root Product.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

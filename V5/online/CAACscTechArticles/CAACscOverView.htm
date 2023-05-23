@@ -1,0 +1,259 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>mkCheckSource Overview</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>C++ Source Checker</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>mkCheckSource Overview</h3>
+      <em>Testing source code in the CAA V5 environment</em></td>
+  </tr>
+  <tr>
+    <td class="tech" colspan="2">Technical Article</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>C++ Source Checker contributes to enhance the global quality objectives
+      of CAA V5 application. Operating at the source stage in the application
+      development cycle, early checking against C++ coding rules will ensure
+      better stability and reduce defect. As for other RADE products, it
+      operates on both NT and UNIX platform with the same characteristics.
+      <ul>
+        <li><a href="#Why use"><b>Why should you use CSC ?</b></a>
+          <ul>
+            <li><a href="#What">What is a static controller</a></li>
+            <li><a href="#Positionning">Positioning CSC in development process</a>
+              <ul>
+                <li><a href="#Development Process">The development process</a></li>
+                <li><a href="#Benefits">Benefits of using CSC</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="#Checked rules"><b>Checked Rules</b></a>
+          <ul>
+            <li><a href="#AddRef">AddRef / Release rules</a></li>
+            <li><a href="#LifeCycle">Pointer LifeCycle rules</a></li>
+            <li><a href="#ForbiddenConstructions">Forbidden constructions rules</a></li>
+            <li><a href="#Callbacks">Callbacks rules</a></li>
+            <li><a href="#Exceptions">Exceptions rules</a></li>
+            <li><a href="#C++">C++ rules</a></li>
+          </ul>
+        </li>
+        <li><a href="#Architecture"><b>Architecture in brief</b></a></li>
+        <li><a href="#How To Use"><b>How to use</b></a></li>
+        <li><a href="#InShort"><b>In Short</b></a></li>
+        <li><a href="#References"><b>References</b></a></li>
+      </ul>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Why use"></a>Why should you use CSC ?</h3>
+<h4><a name="What"></a>What is a static controller</h4>
+<p>CSC (C++ Source Checker) is a C++ static controller.</p>
+<p>A static controller is an application which analyzes a program and tries to
+discover potential defects or logical errors without executing the program.
+Opposite to a dynamic control occurring while running the program (like mkodt for example
+), CSC works on C++ source code. The analysis part is similar to the
+front part of a compiler, therefore CSC includes its own C++ parser.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Positionning"></a>Positioning CSC in the development process</h4>
+<p><a name="Development Process"></a><b>The development process</b></p>
+<p>A part of the development process of an application can be summarized by the
+following chart:</p>
+<p align="center"><img border="0" src="images/CAACscTechArticles_Overview_DevProcess.gif" width="172" height="230"></p>
+<p>A static controller should be used after compiling the program. It is
+interesting to notice that compilers themselves contain static controls (type
+checking, for example).</p>
+<p><a name="Benefits"></a><b>Benefits of using CSC</b></p>
+<p>After compiling the program, running CSC can detect corrupting errors before
+dynamic tests. This insures a better way of programming, reducing development
+and debug time.</p>
+<p>Most of the hits detected by CSC can not be detected by any other tool,
+except by a manual code review. CSC does quickly and automatically this job.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Checked rules"></a>Checked Rules</h3>
+<p><a name="AddRef"></a><b>AddRef / Release rules</b></p>
+<p>A set of rules are provided that help debugging easily and quickly Object
+Modeler (directly or indirectly implied by QueryInterface) memory leaks within
+tested code. Debugging memory leaks can be very time consuming, as CAA and COM
+architecture is very complex. This automatic detection addresses a major need
+for large application projects where pieces of code are re-used by different
+developers. As they don't always know when the memory reservation has been done,
+they may not (or forget to) Release it, which leads to potential memory crashes
+during the execution of the application.[<a href="#References">1</a>]</p>
+<p><a name="LifeCycle"></a><b>Pointer LifeCycle rules</b></p>
+<p>Another aspect when checking sources is the ability to analyze discrepancies
+usage of C++ null pointers. Checking these rules ensures a better control on the
+number of core dump occurring during the execution of the application.[<a href="#References">2</a>]
+[<a href="#References">3</a>]</p>
+<p><a name="ForbiddenConstructions"></a><b>Forbidden constructions rules</b></p>
+<p>Some constructions, due to migrations, are deprecated, and others, due to
+specific Object Modeler rules, are forbidden. These rules consist in lists of
+prohibited identifiers, calls of methods, uses of classes or interfaces ...[<a href="#References">4</a>]</p>
+<p><a name="Callbacks"></a><b>Callbacks rules</b></p>
+<p>Using Callbacks in CAA implies using function pointers with a cast. These
+casts may be dangerous cause the compiler does not check if the function pointer
+meets the specification required by the soft. CSC checks the signature of the
+function passed to the callback method in order to prevent runtime crashes.[<a href="#References">5</a>]</p>
+<p><a name="Exceptions"></a><b>Exceptions rules</b></p>
+<p>Some methods provided by CAA can, depending on the context, throw an
+exception. CSC reports the usage of these methods if the exception is not
+handled by the user code, thus preventing a potential application crash at
+runtime. This check is close to the &quot;exception not caught&quot; compilation
+error generated by any java compiler.[<a href="#References">6</a>]</p>
+<p><a name="C++"></a><b>C++ rules</b></p>
+<p>Some basic C++ programming rules are checked by CSC, like a correct usage of
+allocation/de-allocation routines.[<a href="#References">7</a>]</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Architecture"></a>Architecture in brief</h3>
+<p>CSC provides its own C++ source parser. It ensures that sources are well
+checked against the provided rules. The parser acts as a front task compiler, it
+generates the syntax tree of the source, creates the symbol table [<a href="#References">8</a>].
+Multiple sources and frameworks checking can be handled across different
+workspaces, thus taking into account potential external prerequisite frameworks.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="How To Use"></a>How to use</h3>
+<p>CSC works only on CAA File Trees (CAA source files are managed and delivered
+in components whose structure respects a particular organization). Though
+compilation step is not required, it is strongly recommended. Indeed, CSC works
+as a front task compiler, but without reporting compilation errors. The C++
+parser will not run accurately if the source contains build errors ; no error or
+message indicating that the source has not been correctly analyzed will be
+reported.</p>
+<p>C++ Source Checker provides a command line access. An integration is also
+available in C++ interactive dashboard. Command line usage is of the form:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>mkCheckSource -f framework_to_analyze -html output_directory</pre>
+    </td>
+  </tr>
+</table>
+<p>Parse of C++ code can operate from the workspace to be analyzed and a
+provided pattern matching list of frameworks inside this workspace. Developers
+can also start the parse providing only a pattern matching list of sources to be
+analyzed [<a href="#References">9</a>].</p>
+<p>Only predefined rules are coded in the tool. These rules are either native
+C++ coding rules, or CAA coding rules. No open API is available for user coding
+rules.</p>
+<p>CSC tool works with XML setting files. Default setting files are provided.
+Users can define their own setting files and append these setting files to
+delivered ones or replace delivered setting files by their own setting files [<a href="#References">10</a>].</p>
+<p>CSC provides a full HTML report with hyperlink to defaulter C++ source, ready
+to be exploited. It includes full features hyperlink that allow a deep analysis
+from framework to responsible C++ source line. Detected errors are highlighted
+at all level from framework to module to C++ source line and word. This ensures
+an easy and reliable analysis of the checked code that permits a fast
+correction.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+
+<h3><a name="InShort"></a>In Short</h3>
+<p>Different C++ rules are checked against the source code. Thanks to these
+checks, time spent to debug applications is drastically reduced, and quality of
+the code is improved. Developers are provided with a number of rules that help
+them reduce memory inherent bugs in domain such as application memory
+management, call back mechanism usage, exception handling and C++ programming
+rules. These sensitive checks ensure a better control of application quality and
+globally decrease the number of bugs related to memory corruption. Another
+aspect when checking sources is the ability to analyze discrepancies uses of C++
+null pointers. This check ensures a better control on the number of core dump
+occurring during the execution of the application. The last aspect would be the
+detection of migration problems.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="CAACscCheck_AddRefRelease.htm">AddRef Release Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td><a href="CAACscCheck_NullPointers1.htm">Null Pointers Part 1 Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[3]</td>
+    <td><a href="CAACscCheck_NullPointers2.htm">Null Pointers Part 2 Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[4]</td>
+    <td><a href="CAACscCheck_ForbiddenConstructions.htm">Forbidden constructions
+      Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAACscCheck_Callback.htm">Callbacks Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[6]</td>
+    <td><a href="CAACscCheck_Exception.htm">Exception Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[7]</td>
+    <td><a href="CAACscCheck_Cpp.htm">C++ Checks</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[8]</td>
+    <td><a href="CAACscInsideCppParser.htm">Inside the Parser</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[9]</td>
+    <td><a href="../CAACscQuickRefs/CAACscQuickRef.htm">Quick Ref</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[10]</td>
+    <td><a href="CAACscSettingFile.htm">Setting Files</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------------------------------------------------->
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Apr 2001]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

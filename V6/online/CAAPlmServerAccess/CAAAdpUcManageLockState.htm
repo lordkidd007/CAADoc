@@ -1,0 +1,531 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Managing PLM Object Lock State</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing PLM Object Lock State</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article discusses the <code><b>CAAAdpManageLockState</b></code> use
+      case.&nbsp;
+      <p>The objective of this Use Case is to demonstrate the steps involved in 
+		managing the Lock state of a PLM Object. This includes displaying the 
+		current lock state and performing a lock/unlock operation on an input 
+		PLM Object using the <code><b>CATAdpLockServices</b></code> class. It 
+		further illustrates the significance/relevance of locking a PLM Object by attempting to modify its attributes, Version it etc with 
+		various User log ins.<p>Though the input Component is a PLM Reference 
+		the observations here are equally valid for any other type of PLM 
+		Object.</p>
+		<ul>
+        <li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+        <li><a href="#UseCase">The CAAAdpManageLockState Use Case</a>
+          <ul>
+            <li><a href="#What">What does the CAAAdpManageLockState<b> </b>do</a></li>
+            <li><a href="#How">How to launch CAAAdpManageLockState</a></li>
+            <li><a href="#Where">Where to find the CAAAdpManageLockState code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case primarily teaches</p>
+<ul>
+	<li>Manage/Display the Lock State of a PLM Object (Reference) with the
+	<code><b>CATAdpLockServices</b></code> class</li>
+</ul>
+<p>User also understands the relevance/significance of locking PLM Objects, 
+particularly the facts:</p>
+<ul>
+	<li>A User cannot modify attributes, Version or define/evolve a Maturity 
+	State for a PLM Object locked by another user. An attempt 
+	to do this results in the failure of the final Save operation</li>
+	<li>The User who locks a PLM Object is the only User who has the 
+	privilege to Unlock it. Hence an Unlock operation by another User on this 
+	PLM Object is bound to fail</li>
+	<li>Moreover a PLM Object cannot be locked twice. Thus a PLM Object 
+	already locked in the database cannot be locked again either by the User who 
+	locked it initially or by any other User</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="UseCase"></a>The CAAAdpManageLockState Use Case</h2>
+<p> <code><b>CAAAdpManageLockState</b></code> is a use case of the <code><b> CAAPLMClientAdapter.edu</b></code>
+framework that
+illustrates the <code><b>CATPLMIntegrationAccess</b></code> framework 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAAAdpManageLockState Do</h3>
+
+<p>The Use Case, based on user inputs does either of the following</p>
+<ul>
+	<li>displays the Lock State of an input PLM Object. If it is locked, it 
+	displays the User who locked it</li>
+	<li>Lock the input Component</li>
+	<li>Unlock the input Component</li>
+</ul>
+<p>In conjunction with the other Use Cases, the current Use Case illustrates the 
+significance of locking PLM Objects, through a step-by-step scenario detailed 
+below</p>
+<ul>
+	<li>Create a Product Model, having logged in as <code><b>User1</b></code>. 
+	The model exists in an unlocked state to begin with [<a href="#References">3</a>]</li>
+	<li>Modify attributes of this model with any User. It succeeds since 
+	component is in an unlocked state. Thus, for eg. the <code><b>V_description</b></code> 
+	attribute of the input Component can be modified by any user through the
+	<code><b>CAAPstModifyingProperties</b></code>&nbsp; Use Case [<a href="#References">4</a>] 
+	launch</li>
+	<li>Lock the input Component, having logged in as <code><b>User1</b></code>. 
+	With the input component locked, the Use Case proceeds to demonstrate<ul>
+		<li>Failure to lock the Component again by <code><b>User1</b></code> or 
+		for that matter, any other User</li>
+		<li>Failure to modify the attributes of this Component by another User. 
+		An attempt by <code><b>User2</b></code> to modify the <code><b>
+		V_description</b></code> attribute by launching the <code><b>
+		CAAPstModifyingProperties</b></code> Use Case [<a href="#References">4</a>] 
+		fails</li>
+		<li>Success in modifying attributes of this Component by <code><b>User1</b></code> 
+		[<a href="#References">4</a>]. An attempt by <code><b>User1</b></code> 
+		to modify the <code><b>V_description</b></code> attribute by launching 
+		the <code><b>CAAPstModifyingProperties</b></code> Use Case [<a href="#References">4</a>] 
+		works fine.</li>
+		<li>Failure to Unlock the locked Component by another User</li>
+		<li>Failure to Version the locked Component by another User. An attempt 
+		by <code><b>User2</b></code> to create a new Version of the Input 
+		Component by invoking the <code><b>CAAAdpVersioning</b></code> Use Case 
+		[<a href="#References">5</a>] results in a failure.</li>
+		<li>Success in unlocking the locked Component by <code><b>User1</b></code>, 
+		the user who had initially locked it</li>
+		<li>Since component is in an Unlocked state, any User can now modify its 
+		attributes. Thus the <code><b>V_description</b></code> attribute of the 
+		input model can be easily modified by User2 through a <code><b>
+		CAAPstModifyingProperties</b></code> Use Case [<a href="#References">4</a>] 
+		launch.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="How"></a>How to Launch <strong><a href="#UseCase"> CAAAdpManageLockState</a></strong><strong>&nbsp;</strong>
+</h3>
+<p>To launch <code><b>CAAAdpManageLockState</b></code> , you will need to set up the build time
+environment, then compile <code><b>CAAAdpManageLockState</b></code> along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p><code><b> <a>mkrun -c &quot;</a><i>CAAAdpManageLockState</i></b></code><i>
+</i><a><code><b><i>Repository Server User Password SecurityCtx PLMType
+Lock/Unlock/Display AttrName
+AttrValue [Attr Name] [Attr Value] ...</i>&quot;</b></code></a> </p>
+<p>where:</p>
+
+<table class="border1"  id="table13" >
+  <tr>
+    <th><b>Repository</b></th>
+     <td><script type="text/javascript">insertRepository();</script></td>
+  </tr>
+  <tr>
+     <th><b>Server</b></th>
+    <td>The name and port of the server as <i>name</i>:<i>port_number</i></td>
+  </tr>
+  <tr>
+    <th ><b>User</b></th>
+    <td>The user name</td>
+  </tr>
+  <tr>
+    <th ><b>Password</b></th>
+    <td >The user password to authenticate the user</td>
+  </tr>
+  <tr>
+
+    <th><b>SecurityCtx</b></th>
+    <td>a string representing the security context (Role.Organization.Project). 
+    Choose Role as Designer</td>
+  </tr>
+	<tr>
+  <th> PLMType</th>
+		<td>A Stiring Representing PLM Type </td>
+	</tr>
+	<tr>
+		<th> <b>Lock/Unlock/Display</b><p>&nbsp;</th>
+		<td>This argument can be :<p>Lock/Unlock : to lock/unlock an Input PLM 
+		Object
+        </p>
+        <p>Display : only to display the Current Lock State of an Input PLM 
+		Object</td>
+
+  </tr>
+ 	<tr>
+  <th> <b>AttrName&nbsp;</b></th>
+		<td>Represents an Attribute Name to define input search
+      criteria for PLM Reference</td>
+	</tr>
+	<tr>
+		<th> <b>AttrValue</b></th>
+		<td>Represents an Attribute Value to define input search
+      criteria for PLM Reference</td>
+
+  </tr>	<tr>
+  <th> <b>[AttrName]</b></th>
+		<td>Represents any more Attribute Names to define input search criteria for
+      PLM Reference</td>
+	</tr>
+	<tr>
+		<th> <b>[AttrValue]&nbsp;</b></th>
+		<td>Represents any more Attribute Values to define input search criteria for
+      PLM Reference</td>
+  </tr>
+</table>
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where"></a>Where to Find the CAAAdpManageLockState&nbsp; Code</h3>
+<p>The <code><b>CAAAdpManageLockState</b></code> use case is located in the <code><b>CAAAdpManageLockState</b></code><a><code><b>.m</b></code></a> module of the
+<a><code><b>CAAPLMClientAdapter</b><b>.edu</b></code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\</code><code>CAAPLMClientAdapter</code>.<code>edu</code><code>\CAAAdpManageLockState.m\</code></td>
+  </tr>
+</table>
+<p>where <code><a><b>InstallRootDirectory</b></a></code>  [<a href="#References">1</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code><b>CAAAdpManageLockState</b></code> :</p>
+<ol>
+  <li><a href="#Prolog">Prolog</a></li>
+  <li><a href="#Retrieve the Identificator of the PLM Reference">Retrieve the 
+	Identifier 
+	in the Database for the Input Reference</a></li>
+  <li><a href="#Retrieve and Display the current state of the Input PLM Component">Retrieve and Display the 
+	Current State Info of the Input PLM 
+	Reference</a></li>
+  <li><a href="#Change the state of the Input Component as per the operation requested">Change the state of the Input Component</a></li>
+  <li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prolog"></a>Prolog&nbsp;</h3>
+<p>The <code><b>CAAAdpManageLockState</b></code> use case begins by creating a session
+and connecting to the Input Repository.&nbsp; This,
+being the most fundamental prerequisite for all batch use cases, it is the first
+step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with the Reviewer Role
+(<font color="#FF0000">since we are not modifying PLM data but only retrieving it from the database</font>). There are other parameters as well,
+details of which can be found in the&nbsp; &quot;<b>Creating a Basic PLM Batch</b>&quot;
+use case article [<a href="#References">2</a>].
+This article primarily deals with Opening and Closing a PLM session.</p><script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Retrieve the Identificator of the PLM Reference"></a>Retrieve the Identifier 
+in the Database for the Input Reference</h3>
+<p>The <code><b>lock</b></code>/<code><b>unlock</b></code> on the <code><b>PLM</b></code>
+<code><b>Reference</b></code> in the steps ahead, takes the <code><b>Identifier</b></code> of the 
+<code><b>Reference</b></code> as an input. An <code><b>Identifier</b></code> is a key (session 
+object) that uniquely identifies a <code><b>PLM</b></code> <code><b>Object</b></code> 
+in the database. [<a href="#References">6</a>] [<a href="#References">7</a>]</p>
+<p>To retrieve the <code><b>Identifier</b></code>, we begin by seeking the 
+PLM type.&nbsp; 
+Among the <code><b>PLM</b></code> <code><b>Objects</b></code> of this <code>
+<b>PLM</b></code> <code><b>type</b></code> in the database we query for the 
+component with the Attribute Set object built with  
+attribute values specified by the user in the input [<a href="#References">9]</a>. 
+The Query APIs finally return the <code><b>Identifier</b></code> in the Database of the input 
+<code><b>PLM 
+Reference</b></code> [<a href="#References">7</a>] [<a href="#References">9]</a></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Retrieve and Display the current state of the Input PLM Component"></a>Retrieve and
+Display the Current State Info of the Input PLM Reference</h3>
+<p>Having retrieved the <code><b>Identifier</b></code> of the input <code><b>
+PLM</b></code> <code><b>Reference</b></code>, the next step is to seek its <code>
+<b>Lock</b></code> <code><b>Information</b></code>. </p>
+<p>The <code><b>Lock Information</b></code> includes its <code><b>Lock</b></code>
+<code><b>State</b></code> (<code><b>Lock/Unlock</b></code>), and if locked, it 
+further outputs if the <code><b>PLM</b></code> <code><b>Reference</b></code> is 
+locked by the user currently logged in or by another user.</p>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre><b>     	CATLISTP(CATIAdpPLMIdentificator)</b> ListComp ;
+        ListComp.<b>Append</b>(pIPLMIdentifierOnReference);
+         
+<b>      	CATLISTP(CATAdpLockInformation)</b> ListLockState ;
+     	hr = <b>CATAdpLockServices::IsLocked</b>(ListComp ,ListLockState );
+     	
+     	<b>CATAdpLockInformation * LockInfoOnComp</b> = ListLockState[1];
+</pre>
+    </td>
+  </tr>
+</table>
+<p>The pointer to the <code><b>Identifier</b></code> of the input <code><b>
+PLM</b></code> <code><b>Reference</b></code> namely. <code><b>
+pIPLMIdentifierOnReference </b></code>was retrieved in an earlier step. The
+<code><b>CATAdpLockServices</b></code>::<code><b>IsLocked</b></code> API returns 
+the Lock Information of the input <code><b>PLM</b></code> <code><b>Object</b></code> 
+identified through its <code><b>Identifier</b></code>.</p>
+<p>Typically, the Lock Information of a set of <code><b>PLM</b></code> <code><b>
+Objects</b></code> are sought by including their <code><b>Identifiers</b></code> 
+in a&nbsp; list passed to the <code><b>CATAdpLockServices::IsLocked</b></code> 
+API. The return is thus a list of <code><b>CATAdpLockInformation</b></code> 
+objects, which contain the <code><b>Lock information </b></code>of the <code><b>
+PLM</b></code> <code><b>Objects</b></code> in the input list. There exists a 
+one-to-one mapping between the list containing the <code><b>PLM</b></code> <code>
+<b>Objects</b></code> and the list of <code><b>Lock</b></code> <code><b>
+Information</b></code> objects returned.</p>
+<p>The next step is to extract the most relevant data from the <code><b>Lock</b></code>
+<code><b>Information</b></code> object. This would be the <code><b>Lock State</b></code> 
+and if locked, the User who has locked the <code><b>PLM</b></code> <code><b>
+Object</b></code>.</p>
+
+<table class="code" width="912" id="table3">
+  <tr>
+    <td width="904">
+      <pre>     	<b>CATAdpLockInformation::LockState</b> LockStateonComp;
+     	hr = LockInfoOnComp-&gt;<b>GetLockState</b>(LockStateonComp);
+	switch (<b>LockStateonComp</b>)
+	{
+		case <b>CATAdpLockInformation::NotLocked</b>:
+		...
+      		break;
+</pre>
+		<pre>	     	<b>case CATAdpLockInformation::LockedByConnectedUser:</b>
+		...
+      		break;
+</pre>
+		<pre>	     	<b>case CATAdpLockInformation::LockedByAnotherUser:</b>
+     		{
+     			CATUnicodeString oLockedByUser;
+	     		LockInfoOnComp-&gt;<b>GetLockUser</b>(oLockedByUser);
+	     	}
+	     	break;
+...
+</pre>
+    </td>
+  </tr>
+</table>
+<p>The Lock Information we retrieve from the <code><b>CATAdpLockInformation</b></code> 
+object are the</p>
+<ul>
+	<li><code><b>Lock State</b></code>. The possibilities are:<ul>
+		<li>Not Locked</li>
+		<li>Locked by User currently Logged in Session</li>
+		<li>Locked by another User</li>
+	</ul>
+	</li>
+	<li>If locked by a User other than the one who has currently logged in, the 
+	identity of the other User</li>
+</ul>
+<p>There is a possibility that the
+<code><b>CATAdpLockServices</b></code>::<code><b>IsLocked </b></code>API might 
+fail. In this case the <code><b>CATAdpLockInformation</b></code> object also 
+contains the precise information of the error which caused this failure. This 
+error is output as a message for the user to identify it and take corrective 
+action.</p>
+
+<table class="code" width="912" id="table4">
+  <tr>
+    <td width="904">
+      <pre>     	<b>CATAdpLockInformation::LockState</b> LockStateonComp;
+     	hr = LockInfoOnComp-&gt;<b>GetLockState</b>(LockStateonComp);
+	switch (<b>LockStateonComp</b>)
+	{
+		case <b>CATAdpLockInformation::LockAnalyzeFailure</b>:
+		{
+			<b>CATError *oLockAnalysisError</b> = NULL;
+			hr = LockInfoOnComp-&gt;<b>GetLockError</b>(oLockAnalysisError);
+
+
+			<b>CATUnicodeString ErrMsg</b> = oLockAnalysisError-&gt;<b>GetNLSMessage</b>();
+			cout &lt;&lt;ErrMsg.ConvertToChar() &lt;&lt;endl;
+			return 1;
+		}
+
+		break; 
+</pre>
+    </td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Change the state of the Input Component as per the operation requested"></a>Change the 
+State of the Input Component</h3>
+<p>The input PLM Object can either be locked or unlocked. Based on the user 
+choice, we perform either of these operations.</p>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre><b>	CATUnicodeString CompState </b>= iArgv[7];
+	if (<b>CompState == &quot;Lock&quot;</b>)
+	{
+		hr =<b> CATAdpLockServices::Lock</b>(ListComp);
+	} else if (<b>CompState == &quot;Unlock&quot;</b>)
+	{
+		 hr =<b> CATAdpLockServices::Unlock</b>(ListComp);
+	}<b>
+</b></pre>
+    </td>
+  </tr>
+</table>
+<p align="left">A few observations which are significant here are</p>
+<ul>
+	<li>
+	<p align="left">Modifying attributes, performing short-transaction 
+	operations etc is not allowed after a <code><b>PLM</b></code> <code><b>
+	Object</b></code> is locked</p></li>
+	<li><code><b>CATAdpLockServices::Lock</b></code> fails if the same Component 
+	is locked twice. The User could be the one who initially locked it or any 
+	other User</li>
+	<li>
+	<p align="left"><code><b>CATAdpLockServices::Unlock</b></code> fails if a 
+	User other than the one who locked a <code><b>Component</b></code>, attempts 
+	to Unlock it</p></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code><b>CAAAdpManageLockState</b></code> use case ends by simply closing the PLM
+session. Since all use cases&nbsp; necessarily conclude by closing the PLM
+session, we have a dedicated article on this topic namely &quot;<b>Creating a
+Basic PLM Batch</b>&quot; [<a href="#References">2</a>].&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="InShort"></a>In Short</h2>
+
+<p>The Use Case primarily illustrates the capabilities of the <code><b>CATAdpLockServices</b></code>&nbsp; 
+Class to retrieve the current Lock State of an input <code><b>PLM</b></code><code><b> 
+Object</b></code>. It also further <code><b>Locks</b></code>/<code><b>Unlocks</b></code> 
+the Component based on the User choice. </p>
+<p>In conjunction with the other Use Cases, this Use Case serves to illustrate a 
+few relevant features of the lock-unlock mechanism, which are</p>
+<ul>
+	<li><code><b>PLM</b></code> <code><b>Objects</b></code> once locked by a 
+	User cannot be locked again by any User</li>
+	<li>Modifying Attributes, Versioning, defining Maturity States etc on a 
+	locked Component is not allowed</li>
+	<li>Unlock fails if a User other than the one who locked the Component, 
+	attempts to unlock it</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="References"></a>References</h2>
+
+<table>
+    <tr>
+    <td valign="top">[1]</td>
+    <td>
+       <a href="../CAADocUseCases/CAADocRunSample.htm">
+       Building and Launching a CAA Use Case</a> </td>
+    </tr>
+
+    <tr>
+    <td valign="top">[2]</td>
+    <td>
+    <a href="CAAAdpUcBasicBatch.htm">Creating
+       a Basic PLM Batch</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[3]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstUcCreationStructureProductModel.htm')">Creating a Product Structure Model</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[4]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstUcModifyingProperties.htm')">Modifying Product Properties</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[5]</td>
+    <td>
+    <a href="CAAAdpUcVersioning.htm">Versioning PLM Object</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[6]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAACor2TaIdentificationPLMComp.htm')">
+	PLM Object Identification and Comparision</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[7]</td>
+    <td>
+		<a href="CAAPlmTaCATIAdpPLMIdentificator.htm">Understanding PLM Object Identification</a></td>
+    </tr>
+
+    <tr>
+    <td valign="top">[8]</td>
+    <td>
+    <a href="CAAAdpUcQueryOpen.htm">Querying, Expanding and Opening PLM Object</a></td>
+    </tr>
+
+</table>
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top" height="14">Version: <strong>1</strong>      [Dec 2006]</td>
+    <td valign="top" height="14">Document created</td>
+  </tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

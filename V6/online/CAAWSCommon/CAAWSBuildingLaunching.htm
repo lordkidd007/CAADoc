@@ -1,0 +1,346 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Building and Launching a Web Service Use Case</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Building and Launching a Web Service Use Case</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>CAA Web Service use cases demonstrate how write client programs to consume 
+		CAA Web service. They are written in C# and rely on the .NET 3.0 web service 
+		client library. This article gives you information about the supported operating 
+		systems for these use cases, and shows you how to set up, build and launch 
+		a use case. These tasks can be done using either a V6 tools (Mkmk) or third 
+		party tools (Microsoft Visual Studio).</p>
+		<ul>
+			<li><a href="#OS">The Operating Systems</a></li>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#Binding">Obtaining the C# Client Binding</a>
+			<ul>
+				<li><a href="#Proxy">Using the Generated C# Proxy</a></li>
+				<li><a href="#Configuration">Using the Generated Configuration File</a></li>
+			</ul>
+			</li>
+			<li><a href="#Build">Building The Use Case</a>
+			<ul>
+				<li><a href="#BuildMkmk">Step-by-Step Using mkmk</a></li>
+				<li><a href="#BuildVs">Step-by-Step Using Visual Studio 2005</a></li>
+			</ul>
+			</li>
+			<li><a href="#Launch">Launching the Use Case</a>
+			<ul>
+				<li><a href="#LaunchMkmk">Step-by-Step Using mkmk</a></li>
+				<li><a href="#LaunchVs">Step-by-Step Using Visual Studio 2005</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="OS"></a>The Operating Systems</h2>
+<p>The operating systems applications developed on top of Dassault Syst&#232;mes&#39; solutions 
+and products can use are:</p>
+<ul>
+	<li>Windows 32-bit (Windows XP Professional).</li>
+	<li>Windows 64-bit (Windows XP Professional x64 Edition).</li>
+</ul>
+<p>The folders that contain operating system specific files are named according 
+to the operating system they relate to using the following names:</p>
+<table class="fill">
+	<tr>
+		<th>Operating Systems</th>
+		<th>Folder Names</th>
+	</tr>
+	<tr>
+		<td>Windows 32-bit</td>
+		<td>intel_a</td>
+	</tr>
+	<tr>
+		<td>Windows 64-bit</td>
+		<td>win_b64</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This article is intended to show you how to set up a build time environment, 
+by copying the education frameworks containing the use cases in a workspace root 
+folder of your own, get the prerequisite frameworks of these education frameworks, 
+and build a use case along with its prerequisites. Then, it shows how to set up 
+a run time environment, and finally launch the use case.</p>
+<p>The following folder names or acronyms are used in this article.</p>
+<table class="fill">
+	<colgroup valign="top" span="1">
+	</colgroup>
+	<tr>
+		<th>Folder Names or Acronyms</th>
+		<th>Meanings</th>
+	</tr>
+	<tr>
+		<td><code>InstallRootFolder</code></td>
+		<td>The pathname of the folder into which the Dassault Syst&#232;mes&#39; solutions 
+		and products run time and API CD-ROMs were unloaded</td>
+	</tr>
+	<tr>
+		<td><code>ToolsRootFolder</code></td>
+		<td>The pathname of the folder into which the Native Apps Development Tools CD-ROM was unloaded</td>
+	</tr>
+	<tr>
+		<td><code>MyRootFolder</code></td>
+		<td>The pathname of the root folder where you can copy and build the use 
+		case</td>
+	</tr>
+	<tr>
+		<td><code>TCK</code></td>
+		<td>The Tool Configuration Key, such as V5R1x_B205</td>
+	</tr>
+	<tr>
+		<td><code>CAAFramework.edu</code></td>
+		<td>The education framework that contains the use case module</td>
+	</tr>
+	<tr>
+		<td><code>CAAUseCase.m</code></td>
+		<td>The use case module, or one of the modules that make up the use case</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Binding"></a>Obtaining the C# Client Binding</h2>
+<p>CAA use cases always contain the same three elements:</p>
+<dl>
+	<dt>A main C# program</dt>
+	<dd>The program sends requests to the web service and processes the responses 
+	it gets from this web service.</dd>
+	<dt>A C# proxy file (generated)</dt>
+	<dd>The C# proxy is in charge of the actual communications, transforming the 
+	requests into an outgoing SOAP messages and transforming incoming SOAP messages 
+	into responses.</dd>
+	<dt>A configuration file (generated)</dt>
+	<dd>The configuration enables the tuning of the communication parameters (protocols 
+	spoken, buffer sizes, etc.).</dd>
+</dl>
+<p>The C# proxy and the configuration file are generated from the web service definition 
+files (WSDL and XSD) using the .NET 3.0 <code>svcutil.exe</code> tool (See
+<a href="#References">[2]</a>). To get you started quickly, a pre-generated version 
+of these files is made available to you with each use case. However, as you gain 
+more experience in web services, you may want to regenerate these files yourself, 
+for a variety of reasons (to customize the data model, to change the namespace used 
+at generation time, to take advantage of a more recent version of .NET, etc.).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Proxy"></a>Using the Generated C# Proxy</h3>
+<p>If want to generate your own C# proxy for the use case, please follow the procedure 
+detailed in <a href="#References">[1]</a>.</p>
+<p>If you want to use the pre-generated C# proxy, please refer to the use case documentation 
+section which describes where to find this proxy class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Configuration"></a>Using the Generated Configuration File</h3>
+<p>If want to generate your own configuration file, please follow the procedure 
+detailed in <a href="#References">[1]</a>.</p>
+<p>If you want to use the pre-generated configuration file, please refer to the 
+use case documentation section which describes where to find this configuration 
+file.</p>
+<p>Note that the configuration file uses the standard .NET infrastructure for configurations 
+files. For a use case executable named <code>CAAModule.exe</code>, the .NET framework 
+will first look for configuration in a file named <code>CAAModule.exe.config</code>, 
+then into global .NET configuration files. Depending on the build tool used (Mkmk 
+or Visual Studio 2005), the way to reference the config file in order to obtain 
+a <code>CAAModule.exe.config</code> once the project is built will vary. This is 
+why each CAA Use Case delivers the configuration file twice, once for each kind 
+of build tool.</p>
+<ul>
+	<li>Visual Studio expects the configuration file to be named <code>App.config</code> 
+	and will take care of renaming it to <code>CAAModule.exe.config</code> during 
+	build.</li>
+	<li>Mmkmk does not rename resources. It will simply copy the <code>CAAModule.exe.config</code> 
+	from the CAA framework <code>CNext.specifics_Windows_NT</code> data module into 
+	the runtime view.</li>
+</ul>
+<p>Depending on your choice of build tool, please choose the appropriately named 
+configuration file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Build"></a>Building The Use Case</h2>
+<p>This section describes how to build a use case. You can use one of two build 
+tools to build the use case, either mkmk or Visual Studio 2005.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="BuildMkmk"></a>Step-by-Step Using mkmk</h3>
+<p>To build and launch a use case, first set up the build time environment by copying 
+the education frameworks containing the use cases in a workspace root folder of 
+your own, and build the use case associated module(s) along with their prerequisites 
+using the Multi-Workspace Application Builder mkmk. Then set up the run time environment, 
+and launch the use case. Assume the load module is CAAUseCase.m. Open a Command 
+Prompt (DOS window) and:</p>
+<ul>
+	<li>Copy the <strong>InstallRootFolder\CAADoc\CAA*.edu</strong> frameworks in your workspace 
+	root folder <strong>MyRootFolder</strong></li>
+	<li>Set up the build time environment
+	<pre class="code"><strong>ToolsRootFolder</strong>\intel_a\code\command\tck_init
+tck_profile <strong>TCK
+</strong>cd <strong>MyRootFolder\CAAFramework.edu
+</strong>mkCopyPreq -p <strong>InstallRootFolder\CAADoc</strong>
+mkGetPreq -p <strong>InstallRootFolder</strong></pre>
+	<p>To know which <code><strong>TCK</strong></code> you can use, type <code>tck_list</code>, 
+	and choose the level that matches your installation among those available.</p>
+	<p>If you want to build and run a given use case, or a subset of the supplied 
+	use cases, copy only the frameworks that contain these use cases. Since some 
+	use cases request other use cases from other frameworks, run <code>mkCopyPreq</code> 
+	before running <code>mkGetPreq</code>. This will retrieve all the prerequisite 
+	frameworks of the use case frameworks that you have copied.</p>
+	</li>
+	<li>Build the modules
+	<ul>
+		<li>If there is only one module in the use case framework
+		<pre class="code">mkmk -u <strong>CAAUseCase.m</strong></pre>
+		</li>
+		<li>If there are several modules, build them all at a time
+		<pre class="code">mkmk -au</pre>
+		</li>
+		<li>If there are several frameworks, build them all at a time
+		<pre class="code">cd ..
+mkmk -au</pre>
+		</li>
+	</ul>
+	</li>
+	<li>Set up the run time environment
+	<pre class="code">mkCreateRuntimeView</pre>
+	</li>
+</ul>
+<p><strong>Note:</strong> CAA Web Service use cases are C# modules. Their Imakefile.mk contain 
+at least the following two lines:</p>
+<pre class="code">BUILT_OBJECT_TYPE=CSHARP EXE
+LOCAL_CSHARP_FLAGS = /r:System.Runtime.Serialization.dll /r:System.ServiceModel.dll 
+  /lib:&quot;${MkmkMSVJSHARPDIR}\..\v3.0\Windows Communication Foundation&quot;
+</pre>
+<p>The first line instructs Mkmk to build a C# executable module. The second line 
+instructs Mkmk to link with the .NET 3.0 web service libraries (<code>System.Runtime.Serialization.dll</code> 
+and <code>System.ServiceModel.dll</code>) which are located in the <code>Windows 
+Communication Foundation</code> of the .NET 3.0 installation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="BuildVs"></a>Step-by-Step Using Visual Studio 2005</h3>
+<p>To build a use case using Visual Studio 2005, you will need to create a new Visual 
+Studio project, then import the source code and configuration file from the use 
+case modules, then reference the .NET 3.0 web service libraries.</p>
+<ul>
+	<li>Open Visual Studio 2005 (<strong>Start &gt; All Programs &gt; Microsoft Visual Studio 
+	2005 &gt; Microsoft Visual Studio 2005</strong>)</li>
+	<li>Create a new project (<strong>File</strong> menu / <strong>New...</strong> /<strong> Project</strong>)</li>
+	<li>Choose a <strong>Visual C# &gt; Console Application</strong> Project. Name the project 
+	after the use case module (<code>CAAUseCase</code>)
+	<p><img src="images/CAAWSBuildingLaunching_VsNewProject.png" alt="New console application"/></p>
+	</li>
+	<li>Visual Studio 2005 generates a skeleton C# main class which is not needed. 
+	Remove it (<strong>Program.cs &gt; Delete </strong>).</li>
+	<li>Import all the files provided by the use case (C# main program, C# proxy 
+	files, configuration file). To do this, select <strong>CAAUseCase &gt; Add &gt; Existing 
+	Item...</strong>. In the <strong>Files of type</strong> selection box, select <strong>All files</strong>. 
+	Navigate to the module making up the use case and select its files (<code>*.cs</code> 
+	and <code>App.config</code> files). If the use case contains several modules, 
+	repeat the operation for each module.
+	<p><img src="images/CAAWSBuildingLaunching_VsAddItem.png" alt="Add Item"/></p>
+	</li>
+	<li>You need to add a reference to the .NET 3.0 libraries on which the generated 
+	code relies. This is done from the Solution Explorer panel. Select <strong>References 
+	&gt; Add reference &gt; .NET</strong> and select the <code>System.Runtime.Serialization.dll</code> 
+	and <code>System.ServiceModel.dll</code> from you .NET 3.0 installation.
+	<p><img src="images/CAAWSBuildingLaunching_VsAddReference.png" alt="Add Reference"/></p>
+	</li>
+	<li>Finally, build the use case by selecting the <strong>Build &gt; Build <code>CAAUseCase</code></strong> 
+	menu item.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Launch"></a>Launching The Use Case</h2>
+<p>This section describes how to launch a use case. Depending on the choice you 
+have made of a build tool in the previous section (mkmk or Visual Studio 2005), 
+use the matching launch procedure described in the following paragraph.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="LaunchMkmk"></a>Step-by-Step Using mkmk</h3>
+<p>The mkmk build step described in the previous section generates the following 
+two files in the operating system folder of your workspace, under the <code>code/clr</code> 
+directory. Note that the generated executable is not in your <code>PATH</code>, 
+so you must either <code>cd</code> to this directory before launching an executable, 
+or use the full path of the executable.</p>
+<ul>
+	<li><code>CAAModule.exe</code></li>
+	<li><code>CAAModule.exe.config</code>.</li>
+</ul>
+<p>To run the executable, type its full path in the command prompt, followed by 
+the use case specific arguments described in the use case documentation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="LaunchVs"></a>Step-by-Step Using Visual Studio 2005</h3>
+<p>To launch a use case using Visual Studio 2005, you set its arguments, then execute 
+the use case.</p>
+<ul>
+	<li>To specify the use case arguments, go to <strong>Solution CAAUseCase &gt; CAAUseCase 
+	&gt; Properties</strong>. In the project properties, select the <strong>Debug</strong> pane. In 
+	the <strong>Command line arguments</strong> field, enter the use case arguments, as described 
+	in the use case documentation.
+	<p><img src="images/CAAWSBuildingLaunching_VsSetArguments.png" alt="Set arguments"/></p>
+	</li>
+	<li>To run the use case, select the <strong>Debug &gt; Start without debugging</strong> menu 
+	item.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case describes how to set up a build time and run time environment using 
+mkmk or Visual Studio 2005 in order to compile and launch the Web services use cases 
+that rely on .NET 3.0.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAWSGenerateClientBinding.htm">Generating a C# Client Binding</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAWSWSDLDefinitions.htm">Web Services and WSDL Definitions</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>History</h2>
+<table>
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

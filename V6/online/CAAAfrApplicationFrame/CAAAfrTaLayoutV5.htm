@@ -1,0 +1,795 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding the Wintop Frame Layout</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding the Wintop Frame Layout</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows the layout of the V6 interactive application and the objects 
+		involved in this layout. To take full advantage of this article, it's 
+		recommended to have read the &quot;Wintop 
+		Frame Overview&quot; article [<a href="#References">1</a>] that gives a global view of 
+		the V6 interactive application.</p>
+		<ul>
+			<li><a href="#Layout">The Interactive Application Layout</a>
+				<ul>
+				     <li><a href="#CATApplicationDocument">The CATApplicationDocument 
+						class</a></li>
+					<li><a href="#CATApplicationFrame">The CATApplicationFrame 
+						Class</a></li>
+					<li><a href="#CATFrmEditor">The CATFrmEditor Class</a></li>
+					<li><a href="#CATFrmLayout">The CATFrmLayout Class</a></li>
+				</ul>
+			</li>
+			<li><a href="#ModelWindow">The Model Tab</a>
+				<ul>
+					<li><a href="#Contents">The Contents of a Tab</a></li>
+					<li><a href="#Default">The Default Tab</a></li>
+					<li><a href="#NewWindowType">Defining a New Tab 
+						Type</a></li>
+					<li><a href="#WindowCreationInterface">Defining 
+						a Tab Creation Interface</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Layout"></a>The Interactive Application Layout</h2>
+<p>This section presents all the C++ objects which are involved in the layout of 
+the V6 interactive application. You can refer to the article &quot;How to Design Your 
+Interactive Application&quot; [<a href="#References">2</a>] 
+for more information on how to create your interactive application.</p>
+
+<p>Note : Since the introduction of the new IFWE Compass UI based on the 3DEXPERIENCE platform, model windows are 
+visualized as tabs.
+Therefore, we will talk about &quot;model tabs&quot;, whereas interface and method names 
+haven't changed and continue to use the word &quot;window&quot;. A model tab is the 
+equivalent of a model window.</p>
+
+<h3><a name="CATApplicationDocument"></a>The CATApplicationDocument</h3>
+<p>The application layout is provided by the non-exposed <em>CATApplicationDocument</em> 
+class.</p>
+
+
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: The Interactive Application Layout</caption>
+	<tr>
+		<td>
+		<p><img alt="" src="images/CAAAfrLayout1.png" width="680" height="558"/></p>
+</td>
+	</tr>
+</table>
+<p>The layout contains many objects among which the main ones are:</p>
+<table class="fill">
+	<tr>
+		<th>Object</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>Action bar</td>
+		<td>You create commands in the action bar through apps [<a href="#References">3</a>] 
+		and add-ins [<a href="#References">4</a>].</td>
+	</tr>
+	<tr>
+		<td>Status bar</td>
+		<td>It is a <em>
+		<a href="../CAADlgDialog/CAADlgQrCATDlgStatusBar.htm">CATDlgStatusBar</a></em> 
+		class instance. The message displayed inside is either the active command 
+		name or an information driven by the current command.</td>
+	</tr>
+	<tr>
+		<td>Power input</td>
+		<td>It is a non-exposed dialog object class included in the status bar. 
+		This tool, depending on the configuration level, may be unavailable.</td>
+	</tr>
+	<tr>
+		<td>Model tab</td>
+		<td>Each tab is an instance of a class deriving from the <em>
+		<a href="#ModelWindow">CATFrmWindow</a></em> class.In the picture above, 
+		the active model tab is a Product Representation , for which the default 
+		tab is a <em>CATFrmGraphAnd3DWindow</em> 
+		(AfrNavigator framework)</td>
+	</tr>
+	<tr>
+		<td>Dialog Box</td>
+		<td>It is a <em>
+		<a href="../CAADlgDialog/CAADlgQrCATDlgDialog.htm">CATDlgDialog</a></em> 
+		class instance. It can be a simple command [<a href="#References">7</a>] 
+		or an object driven by a state command [<a href="#References">5</a>].
+		</td>
+	</tr>
+	<tr>
+		<td>Decorator</td>
+		<td>This object is an invisible dialog object which contains all the 
+		dialog objects related to the model: all its tabs and all its dialog 
+		boxes. Thanks to this object, it is possible to hide/deactivate all the 
+		dialog objects when the model tab loses the focus.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATApplicationFrame"></a>The CATApplicationFrame class</h3>
+<p>This <em>CATApplicationDocument</em> class instance is built by the <em>
+<strong>CATApplicationFrame</strong></em> class instance.</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig.2: The Interactive Application UML Diagram</caption>
+	<tr>
+		<td>
+		<img alt="The Interactive Application UML Diagram" height="136" src="images/CAAAfrLayout2.jpg" width="611"/></td>
+	</tr>
+</table>
+<p>This UML diagram shows that:</p>
+<ul>
+	<li>The <em>CATApplicationDocument</em> deriving from the <em>CATDlgDocument</em> 
+		class is created by the non-exposed <em>l_CATApplicationFrame</em> class.</li>
+	<li>The <em>l_CATApplicationFrame</em> class instance is a CATCmdWorkshop. 
+	It's the <strong>General</strong> app, the one containing the commands that 
+	are always available,&nbsp; whatever the active model: Copy/Paste, 
+	Undo/Redo, etc....</li>
+	<li>The <em>CATApplicationFrame</em> instance is created in the <code>BeginApplication</code> 
+		method of the interactive application [<a href="#References">2</a>] </li>
+</ul>
+<p>The main methods of the <em>CATApplicationFrame</em> class are:</p>
+<table class="fill">
+	<tr>
+		<td><code>GetFrame</code> </td>
+		<td>This static method returns the unique instance of this class.</td>
+	</tr>
+	<tr>
+		<td><code>SetMessage</code></td>
+		<td>To set a message in the status bar.</td>
+	</tr>
+	<tr>
+		<td><code>GetMainWindow</code></td>
+		<td>This method returns:
+		<ul>
+			<li>The <em>CATApplicationDocument</em> class instance if no model is 
+				open</li>
+			<li>Otherwise, the decorator associated to the current model (editor)</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<p>This class is generally used to retrieve the current <a name="decorator">decorator</a> 
+in order to be set as the dialog parent of a dialog box [<a href="#References">6</a>]:</p>
+<pre class="code">...
+CATApplicationFrame * <strong>pFrame</strong> = CATApplicationFrame::<strong>GetFrame</strong>();
+if ( NULL != pFrame ) 
+{
+   CATDialog * <strong>pParent</strong> = pFrame-&gt;<strong>GetMainWindow</strong>();
+   CATMyDialogBox * pMyDialogBox = new MyDialogBox(<strong>pParent</strong>,...);
+}
+...</pre>
+<p><code>MyDialogBox</code> will be automatically hidden when the editor will be 
+deactivated. Therefore if you need a dialog box always visible, and independent 
+of the life of the model, its parent must be the <em>CATApplicationDocument</em> 
+class instance returned by the <code>GetApplicationDocument</code> method. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATFrmEditor"></a>The CATFrmEditor Class</h3>
+<p>The C++ objects involved in the Model View Controller paradigm are:</p>
+<ul>
+	<li>M = a Model</li>
+	<li>V = a <em>CATFrmWindow</em> <em></em>(tab)</li>
+	<li>C = a <em>CATFrmEditor</em> <em></em>(editor)</li>
+</ul>
+<table>
+	<caption><a name="Fig.3"></a>Fig.3: The MVC Paradigm</caption>
+	<tr>
+		<td>
+		<img alt="The MVC Paradigm" height="339" src="images/CAAAfrLayout3.jpg" width="407"/></td>
+	</tr>
+</table>
+<p>This diagram shows several things:</p>
+<ol>
+	<li>The <strong>editor</strong> is a <strong><em>CATCommand</em></strong>.
+		<ul>
+			<li>It creates an invisible object, the <strong>decorator</strong> (See 
+				the <a href="#Fig.1">Fig.1</a> ). This decorator is the dialog 
+			parent of each tab which displays the model. It must be also the dialog 
+				parent of all dialog boxes which are used as commands or associated 
+				with a state command.</li>
+			<li>It creates a <em>CATCommandSelector</em> instance. Refer to the 
+				article about the command for more information on the role of this 
+				object [<a href="#References">5</a>].</li>
+		</ul>
+	</li>
+	<li>The <em>CATFrmEditor</em> class does not contain the list of the tabs associated with the model. This list is managed by the
+		<em><a href="#CATFrmLayout">CATFrmLayout</a></em> class. The next 
+		section explains the role of this unique class instance and how to retrieve 
+		the list of tabs created for a model.</li>
+</ol>
+<p>The methods of the <em>CATFrmEditor</em> class, those in relationship with the 
+layout, are:</p>
+<table class="fill">
+	<tr>
+		<td><code>GetCurrentEditor</code></td>
+		<td>This static method returns the current editor. This method must be used 
+		only in a command class constructor. In the state command case, you ought 
+		to prefer the CATStateCommand#<code>GetEditor</code> method. This method 
+		is available everywhere in the state command.</td>
+	</tr>
+	<tr>
+		<td><code>GetWindowCount</code></td>
+		<td>Returns the count of <em>CATFrmWindow</em> associated with this editor.</td>
+	</tr>
+	<tr>
+		<td><code>GetCommandSelector</code></td>
+		<td>Returns the command selector dedicated to the editor.</td>
+	</tr>
+</table>
+<p>The <em>CATFrmEditor</em> class has other roles mentioned below but not detailed 
+in this documentation:</p>
+<ul>
+	<li>Managing the UI active object</li>
+	<li>Managing the sets of objects like : PSO,HSO,SDO,CSO [<a href="#References">1</a>]
+	</li>
+	<li>Managing the Interactive Set of Objects [<a href="#References">15</a>]</li>
+	<li>Controlling the send/receive command tree through its <em>CATCommandSelector</em> 
+		instance [<a href="#References">5</a>]</li>
+	<li>Managing the command header list [<a href="#References">13</a>]</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATFrmLayout"></a>The CATFrmLayout Class</h3>
+<p>This class manages all the created tabs. It enables you to:</p>
+<ul>
+	<li><a href="#CATFrmLayout1">
+		Identify all the tabs associated with a model</a></li>
+	<li><a href="#CATFrmLayout2">
+		Receive the events sent by the editors</a></li>
+	<li><a href="#CATFrmLayout3">Manage the current tab</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>
+<a name="CATFrmLayout1">
+</a>This class enables you to find all the tabs opened for a model:</h4>
+<pre class="code">...
+CATFrmLayout * <strong>pLayout</strong> = CATFrmLayout::<strong>GetCurrentLayout</strong>();
+if ( NULL != pLayout ) 
+{
+   CATLISTP(CATFrmWindow) WindowList ;
+   WindowList = pLayout -&gt;<strong>GetWindowList</strong>();
+   for ( int = i ; i &lt;= WindowList.Size() ; i++ )
+   {
+        <strong>CATFrmWindow</strong> * pCurrentWind = WindowList[i] ;
+        if ( NULL != pCurrentWind )
+        {
+           <strong>CATFrmEditor</strong> * pEditor = pCurrentWind-&gt;<strong>GetEditor</strong>(); 
+           if 
+               ( pOurEditor == pEditor )
+               {
+                  // pCurrentWind is a tab for our model 
+               }
+...</pre>
+<p>There is only one instance of this class during a session. The <code>GetCurrentLayout</code> 
+method retrieves this unique instance. The <code>GetWindowList</code> methods 
+returns all the tabs of the session. To select only those dedicated to a model, you should 
+retrieve the editor dedicated to the tab. This information is kept by the tab.
+<a href="#Fig.3">Fig.3</a></p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="CATFrmLayout2"></a>
+Receiving the Events Sent by the Editors</h4>
+<p>Each editor, a <em>CATFrmEditor</em> class instance, sends an event when it 
+is closing or when its UI-active object is changing. If you are interested in receiving 
+this information, you should be aware that the <em>CATFrmLayout</em> class is the &quot;sender&quot; 
+and not the editor itself. In your code you set the following callback:</p>
+<pre class="code">...
+   ::AddCallback(this,
+                 CATFrmLayout::<strong>GetCurrentLayout</strong>(),
+                 CATFrmEditor::EDITOR_CLOSE_ENDED(),
+                 (CATSubscriberMethod)&amp;Class::MethodCB,
+                 NULL);
+...</pre>
+<p>Where:</p>
+<table>
+	<tr>
+		<td><code>this</code></td>
+		<td>The subscriber.</td>
+	</tr>
+	<tr>
+		<td><code>CATFrmLayout::GetCurrentLayout</code></td>
+		<td>The unique <em>CATFrmLayout</em> class instance is the event publisher.</td>
+	</tr>
+	<tr>
+		<td><code>CATFrmEditor::EDITOR_CLOSE_ENDED()</code></td>
+		<td>The published event. You also have <code>CATFrmEditor::UIACTIVEOBJECT_CHANGED()</code></td>
+	</tr>
+	<tr>
+		<td><code>Class::MethodCB</code></td>
+		<td>The method called when the event is sent. As usual, the class must be 
+		the class name of this.</td>
+	</tr>
+</table>
+<p>When the editor is not the publisher, you should test in the callback method 
+that the editor which sent the event is at the origin of the event.</p>
+<pre class="code">...
+void Class::MethodCB(CATCallbackEvent  iEvent, void            * iFrom,
+                     CATNotification * iNotification,CATSubscriberData iClientData,
+                     CATCallback       iCallBack )     
+{
+  if ( _pMyEditor == iFrom )
+   {
+    ...
+   }
+}
+...</pre>
+<p>Where:</p>
+<table>
+	<tr>
+		<td><code>_pMyEditor</code></td>
+		<td>A data member of the class</td>
+	</tr>
+	<tr>
+		<td><code>iEvent</code></td>
+		<td>It is the published event (<code>CATFrmEditor::EDITOR_CLOSE_ENDED</code> 
+		or <code>CATFrmEditor::UIACTIVEOBJECT_CHANGED)</code></td>
+	</tr>
+	<tr>
+		<td><code>iFrom</code></td>
+		<td>The <em>CATFrmEditor</em> class pointer concerned by the event</td>
+	</tr>
+	<tr>
+		<td><code>iNotification</code></td>
+		<td>This pointer is always NULL .</td>
+	</tr>
+	<tr>
+		<td><code>iClientData</code></td>
+		<td>The fifth data of the <code>AddCallback</code> global function</td>
+	</tr>
+	<tr>
+		<td><code>iCallBack</code></td>
+		<td>The callback identifier</td>
+	</tr>
+</table>
+<p>Refer to use case [<a href="#References">7</a>] for a sample.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="CATFrmLayout3"></a>Managing the Current Tab</h4>
+<p>The <em>CATFrmLayout</em> class enables you to activate a new tab. This method 
+is <code>SetCurrentWindow</code>. You can use it to display in the foreground the 
+current model tab or to change of the current model. However, bear in mind that 
+using this method has the same effect as clicking on the tab: a new editor may 
+be activated and your command may be deleted.</p>
+<p>Here is an action method of a state command of a Product Representation app.</p>
+<pre class="code">...
+CATBoolean MyStateClass::MyActionMethod(void *iPointIndice)
+{
+ ...
+ CATFrmWindow * pWindowProduct = ...
+ CATFrmLayout *pLayout = CATFrmLayout::<strong>GetCurrentLayout</strong>();
+ pLayout-&gt;<strong>SetCurrentWindow</strong>(pWindowProduct );
+ ...
+}
+...</pre>
+<p>In this action method <code>pWindowProduct</code> is a pointer on a Product 
+tab. 
+Thanks to the <code>SetCurrentWindow</code>method, this model will be activated. 
+But the current command, <code>MyStateClass</code>, will be deleted if it is a shared 
+or exclusive command [<a href="#References">5</a>]. Nevertheless, you can interact 
+until the action method is over (<code>MyActionMethod</code>). </p>
+<p>To summarize, the methods of the <em>CATFrmLayout</em> class are:</p>
+<table>
+	<tr>
+		<td><code>GetCurrentLayout</code></td>
+		<td>This static method returns the unique instance of this class.</td>
+	</tr>
+	<tr>
+		<td><code>SetCurrentWindow</code></td>
+		<td>This method enables you to give the focus to a tab. This method is 
+		useful when the tab has just been created. See the &quot;<a href="#Default">The 
+		Default Tab</a>&quot; section.</td>
+	</tr>
+	<tr>
+		<td><code>GetCurrentWindow</code></td>
+		<td>This method returns the tab which has the focus.</td>
+	</tr>
+	<tr>
+		<td><code>GetWindowList</code></td>
+		<td>This method returns all the tabs created in the frame. </td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ModelWindow"></a>The Model Tab</h2>
+<p>A model tab allows you to visualize the model content, either entirely or 
+partly. It must be a class deriving from the <em>CATFrmWindow</em> class. All the 
+tabs have the following inheritance tree:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="The Model Window" height="345" src="images/CAAAfrLayout4.jpg" width="184"/></td>
+	</tr>
+</table>
+<p>This section explains the <a href="#Contents">contents of a tab</a>, 
+how the <a href="#Default">default tab</a> is created and how to create 
+your <a href="#NewWindowType">own tab</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Contents"></a>The Contents of a Tab</h3>
+<p>A tab is a <em>CATDlgDialog</em> class and as such, it can contain any dialog 
+object susceptible to be included by this class [<a href="#References">6</a>]. But 
+in most cases it contains <em>CATViewer</em> (Visualization framework) instances. 
+You have to respect only one rule: all the dialog objects must be inside a frame 
+created by the <em>CATFrmWindow</em> class:</p>
+<p>
+<img alt="The Contents of a Window" height="304" src="images/CAAAfrLayout5.jpg" width="390"/></p>
+<p>This frame is an invisible frame that you retrieve with the <code>GetViewerFrame</code> 
+method. Inside this frame the objects must be arranged with the tabulation layout 
+[<a href="#References">8</a>]. To take full advantage of the grid layout [<a href="#References">9</a>], 
+you can create an intermediary frame with the <em>CATDlgGridLayout</em> style.</p>
+<p>Here is an example :</p>
+<p>
+<img alt="The Contents of a Window" height="357" src="images/CAAAfrLayout6.jpg" width="559"/></p>
+<p>Refer to the &quot;Creating a Model's Tab -2&quot; use case [<a href="#References">10</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><strong><a name="Default"></a>The Default </strong>Tab</h3>
+<p>When the model is opened, it is displayed in its default tab. You can create 
+other types of tabs for a given model. Refer to the &quot;Creating a Model's Tab 
+- Part 2&quot; use case [<a href="#References">10</a>] and &quot;Creating a Model's 
+Tab - Part 1&quot; use case [<a href="#References">11</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="NewWindowType"></a>Defining a New Tab Type</h3>
+<p>A default model tab is provided by the application. However, you can visualize 
+it in a different way by creating a new tab type for the model. The article [<a href="#References">11</a>] 
+gives you a concrete sample.</p>
+<p>The class defining the new tab type must have at least five methods:</p>
+<ul>
+	<li><a href="#NewWindowType1">Constructor/Destructor</a></li>
+	<li><a href="#NewWindowType2">Build</a></li>
+	<li><a href="#NewWindowType3">DeleteWindow</a></li>
+</ul>
+<p>Depending on your tab, other methods may be available. For example, you can 
+have a method which returns the list of viewers if the tab is multi-viewer [<a href="#References">10</a>].</p>
+<h4><a name="NewWindowType1"></a>Constructor/Destructor</h4>
+<p>As usual the constructor of a dialog box is simple:</p>
+<pre class="code">MyWindow :: MyWindow ( const CATString &amp;iName, CATFrmEditor * iEditor )
+                   : <strong>CATFrmWindow</strong>(iName,iEditor):_pViewer(NULL),
+                                                 _pRootObjectPath(NULL)
+
+{}</pre>
+<p>In the constructor the data members which are pointers are set to NULL. Generally, 
+these data members correspond to the viewer(s) and the path of the objects to be 
+visualized.</p>
+<p>In the destructor the data member which are pointers are set to NULL. You do 
+not need to delete the viewers since they are automatically deleted.</p>
+<h4><a name="NewWindowType2"></a>Build</h4>
+<p>The <code>Build</code> method, as usual for a Dialog class, <strong>creates</strong> 
+and <strong>arranges</strong> the dialog objects (<strong>viewers</strong>). The &quot;<a href="#Contents">Contents 
+of a Tab</a>&quot; section can help you to carry out this part. The second role 
+of this method is to <strong>manage the interactivity</strong> for the objects to 
+visualize. </p>
+<p>There are two kinds of objects to visualize:</p>
+<ol>
+	<li>The elements of the model. In this case, the interactivity is managed by 
+		the <em>CATVisManager</em> [<a href="#References">14</a>].</li>
+	<li>The temporary components (objects). Their interactivity is managed by the
+		<em>CATISO</em>.</li>
+</ol>
+<p>In both cases, the main goal is to attach the objects to be visualized to the
+<em>CATCommand</em> tree. Actually it is the manipulator attached to the graphic 
+representation of the objects. The following diagram illustrates this:</p>
+<table>
+	<caption><a name="Fig.4"></a>Fig.4: The CATCommand Tree</caption>
+	<tr>
+		<td>
+		<img alt="The CATCommand tree" height="464" src="images/CAAAfrLayout10.jpg" width="558"/></td>
+	</tr>
+</table>
+<p>The code in the <code>Build</code> method is the following:</p>
+<p><strong>For the elements of the model:</strong></p>
+<pre class="code">...
+list&lt;IID&gt; <strong>ListIVisu</strong>;
+IID visu = IID_CAT3DGeoVisu;
+ListIVisu.fastadd(&amp;visu);
+
+CATVisManager * pVisuManager = <strong>CATVisManager::GetVisManager</strong>();
+CATCommandSelector *pCommandSelector = pEditor-&gt;GetCommandSelector();
+
+pVisuManager-&gt;<strong>AttachTo</strong>(_pRootObjectPath,pViewPoint,ListIVisu,pCommandSelector);
+...</pre>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<td><code>pVisuManager</code></td>
+		<td>It is a pointer to the unique <em>CATVisManager</em> class instance.</td>
+	</tr>
+	<tr>
+		<td><code>pEditor</code></td>
+		<td>The <em>CATFrmEditor</em> class instance of the tab</td>
+	</tr>
+	<tr>
+		<td><code>_pRootObjectPath</code></td>
+		<td>It is a <em>CATPathElement</em> of the root model. It is a data member 
+		used to keep a handle on the model.</td>
+	</tr>
+	<tr>
+		<td><code>pViewPoint</code></td>
+		<td>One viewpoint of the viewer, the main 3D, the main2D or another viewpoint.</td>
+	</tr>
+	<tr>
+		<td><code>ListIVisu</code></td>
+		<td>A list of CATIVisu IID.</td>
+	</tr>
+</table>
+<p>This <code>AttachTo</code> method must be called as many times as the root model 
+is in a viewpoint.</p>
+<p><strong>For the temporary elements of the CATISO:</strong></p>
+<pre class="code">...
+CATISO * pISO = pEditor-&gt;<strong>GetISO</strong>()  ;  
+pISO-&gt;<strong>AddViewer</strong>(_pViewer);
+...</pre>
+<p>The <code>AddViewer</code> method must be called as many times as there are viewers 
+in the tab.</p>
+<p>The last operation in the <code>Build</code> method is to declare the PSO [<a href="#References">1</a>] 
+and HSO [<a href="#References">1</a>] to the <em>CATVisManager</em>.</p>
+<pre class="code">...
+CATPSO * pPSO = pEditor-&gt;<strong>GetPSO</strong>() ;   
+pVisuManager-&gt;<strong>AttachPSOTo</strong>( pPSO,pViewPoint);
+
+CATHSO * pHSO = pEditor-&gt;<strong>GetHSO</strong>() ; 
+pVisuManager-&gt;<strong>AttachHSOTo</strong>( pHSO,pViewPoint);
+...</pre>
+<p>These <code>AttachPSOTo</code> and <code>AttachHSOTo</code> methods must be called 
+as many time the root model is seen by a viewpoint.</p>
+<p>The <code>Build</code> method is now complete.</p>
+<h4><a name="NewWindowType3"></a>DeleteTab</h4>
+<p>This method is called when the end-user closes the model or when the tab is 
+closed.</p>
+<pre class="code">...
+void NewWindow :: DeleteWindow()
+{     
+   // ISO management
+      CATISO * pISO = NULL ;
+      pISO = GetEditor()-&gt;<strong>GetISO</strong>();
+      if  (NULL != pISO)   pISO-&gt;<strong>RemoveViewer</strong>(_pViewer);
+ 
+   // Root Model management
+      CATVisManager * pVisuManager = CATVisManager::<strong>GetVisManager</strong>();
+      CATViewpoint  * pViewPoint = NULL ;
+            
+      pViewPoint = (CATViewpoint*) &amp;(_pViewer-&gt;<strong>GetMain3DViewpoint</strong>());
+      pVisuManager-&gt;<strong>DetachFrom</strong>(_pRootObjectPath,pViewPoint);
+      
+   // PSO/HSO management
+      pVisuManager-&gt;<strong>DetachPSOFrom</strong>(pViewPoint);
+      pVisuManager-&gt;<strong>DetachHSOFrom</strong>(pViewPoint);
+
+   // Mandatory call
+      <strong>CATFrmWindow::DeleteWindow();</strong>
+}
+...</pre>
+<p>This method is the opposite of the <code>Build</code> method. The temporary objects 
+of the ISO and the object of the model are &quot;detached&quot; from the CATCommand 
+tree <a href="#Fig.4">Fig.4</a>.</p>
+<ul>
+	<li>The <em>CATISO</em> class, through the <code>RemoveViewer</code> method, 
+		detaches the main viewpoint. It is the main 2D viewpoint for a 2D Viewer 
+		and the main 3D viewpoint for a 3D viewer.</li>
+	<li>The <em>CATVisManager</em>, through the <code>DetachFrom</code> method, 
+		detaches the viewpoint.</li>
+</ul>
+<p>You should also detach the PSO and the HSO from the <em>CATVisManager</em>.</p>
+<p>At the end of the <code>DeleteWindow</code> method, do not forget to call the 
+parent method. It is important to finish the tab deletion.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="WindowCreationInterface"></a>Defining a Tab Creation 
+Interface</h4>
+<p>To create instances of the new tab type, you can use the constructor class 
+(new). But it can be useful to create an interface, implemented by the model, to 
+provide a creation method. This last methodology avoids linking the framework which 
+creates the tab to the one which uses it.</p>
+<p>The source file of the interface implementation must contain:</p>
+<pre class="code">...
+#include &quot;TIE_MyInterface.h&quot;              
+TIE_MyInterface(CAAEMyInterface); 
+
+CATImplementClass(CAAEMyInterface, DataExtension, CATBaseUnknown, <strong>XXX</strong>);
+...</pre>
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>MyInterface</code></td>
+		<td>The name of the new interface [<a href="#References">12</a>]</td>
+	</tr>
+	<tr>
+		<td><code>CAAEMyInterface</code></td>
+		<td>The class which implements <code>MyInterface</code></td>
+	</tr>
+	<tr>
+		<td><strong><code>XXX</code></strong></td>
+		<td>The suffix of the model ( <code>CATProduct</code> for a Product for 
+		example)</td>
+	</tr>
+</table>
+<p>This interface must have at least one method which creates an instance of the 
+new tab. In general, this method contains two parts:</p>
+<pre class="code">...
+HRESULT <code>CAAEMyInterface</code>::CreateWindow()  
+{
+   <a href="#WindowCreationInterface1">1/ Creating the new tab</a>
+   <a href="#WindowCreationInterface3">2/ Declaring the tab as current</a>
+}
+...</pre>
+<ul>
+	<li><a name="WindowCreationInterface1"></a>Creating the new tab
+		<pre class="code">...
+      CATFrmEditor * pEditor = <strong>CATFrmEditor::GetCurrentEditor</strong>();
+      CATString WindowBaseName =&quot;xxx&quot;;
+      MyWindow * pWindow = new <strong>MyWindow</strong>(WindowBaseName,pEditor);
+      pWindow -&gt;<strong>Build</strong>()
+...</pre>
+		<p>We are inside a data extension of the model. The <code><em>CATFrmEditor::GetCurrentEditor</em></code> 
+		enables you to retrieve the editor which manages this model.</p>
+	</li>
+	
+	<li><a name="WindowCreationInterface3"></a>Declaring the tab as current
+		<p>The <code>SetCurrentWindow</code> method enables you to give the focus 
+		to the new tab.</p>
+		<pre class="code">...
+      CATFrmLayout *currentLayout = CATFrmLayout::<strong>GetCurrentLayout</strong>();
+      currentLayout-&gt;<strong>SetCurrentWindow</strong>(pWindow)
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article enables you to understand the role of the main objects defining 
+or managing the interactive application.</p>
+<ul>
+	<li><em>CATApplicationFrame</em>
+		<p>This class has only one instance during the session. You essentially 
+		use it to retrieve the dialog parent of your dialog box.</p>
+	</li>
+	<li><em>CATFrmLayout</em>
+		<p>This class has only one instance during the session. Its role is to manage 
+		all the model tabs. You use it to retrieve tabs and to define the 
+		current one.</p>
+	</li>
+	<li><em>CATFrmEditor</em>
+		<p>This class controls the visualization and the interactivity of the model. 
+		It is the C, in the MVC paradigm, where M is the model and V the tab.</p>
+	</li>
+	<li><em>CATFrmWindow</em>
+		<p>It is the base class of all the classes defining a tab to display 
+		a model. </p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrTaOverview.htm">Wintop Frame Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADlgDialog/CAADlgTaInteractiveApplication.htm">
+		How to Design Your Interactive Application</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAfrUcSampleWorkbench.htm">Creating an App</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAAfrUcSampleAddin.htm">Creating an Add-in</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAAfrTaCommandModel.htm">Understanding the Wintop Frame Command 
+		Model</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="../CAADlgDialog/CAADlgTaCreatingDialogs.htm">How 
+		to Create Dialog Objects</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegUcSampleDialogOnly.htm">
+		Creating a Command that Consists in a Dialog Box</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="../CAADlgDialog/CAADlgTaTabLayout.htm">How to Arrange 
+		Dialog Objects Using Tabulations</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="../CAADlgDialog/CAADlgTaGridLayout.htm">How to Arrange 
+		Dialog Objects Using a Grid</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="CAAAfrUcSampleCustomWindow2.htm">Creating a Model's Tab 
+		- Part 2</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAAAfrUcSampleCustomWindow1.htm">Creating a Model's Tab 
+		- Part 1</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingInterfaces.htm">
+		Creating Interfaces</a></td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="CAAAfrTaCommandHeaders.htm">Understanding the Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td>
+		<a href="../CAAVisVisualization/CAAVisUcSampleVisManager.htm">
+		Using the Visualization Manager</a></td>
+	</tr>
+	<tr>
+		<td>[15]</td>
+		<td><a href="../CAAVisVisualization/CAAVisTaISO.htm">Interactive 
+		Set of Objects</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Fev 2003]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2006]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Jan 2014]</td>
+		<td>Document updated</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

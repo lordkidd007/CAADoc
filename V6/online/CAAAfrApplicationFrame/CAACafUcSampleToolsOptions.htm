@@ -1,0 +1,1340 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating a Property Page for App Preferences</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1" style="height: 32px">
+		<h1><a name="Top"></a>Creating an App Preferences Tab</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case is intended to show how to create persistent preferences for a given 
+app 
+[<a href="#References">1</a>]. It is important to refer to the technical article 
+&quot;How to Add an App 
+Preferences Tab&quot; [<a href="#References">2</a>] before reading this article.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAACafEltToolsOptions Case</a>
+				<ul>
+					<li><a href="#What">What Does CAACafEltToolsOptions Do</a></li>
+					<li><a href="#How">How to Launch CAACafEltToolsOptions</a></li>
+					<li><a href="#Where">Where to Find the CAACafEltToolsOptions 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case shows how to add a preferences tab for a given app 
+		displayed in the Preferences command dialog box.</p>
+<p>Each preferences tab contains preferences managed as attributes [<a href="#References">3</a>] 
+which are stored on disk in a setting file and in memory thanks to a <em>CATSysSettingRepositoty</em> 
+class instance. The Preferences command, such as other commands, must not 
+directly handle the setting repository but it's controller [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAACafEltToolsOptions Use Case</h2>
+<p>CAACafEltToolsOptions is a use case of the CAACATIAApplicationFrm.edu framework 
+that illustrates the CATIAApplicationFrame framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAACafEltToolsOptions Do</h3>
+<p>CAACafEltToolsOptions creates the <kbd>Elements</kbd> preferences tab that contains five 
+sections: 
+<kbd>Identifier</kbd>, <kbd>Max Points/Curve</kbd>, <kbd>Implicit Points</kbd>, <kbd>Elements Color</kbd> and <kbd>Elements selection</kbd>. 
+This tab is associated with the <kbd>CAA: Create Geom</kbd> 
+app, located in the <kbd>Infrastructure</kbd> sub-menu of Preferences dialog box. </p>
+<p>The dialog box is as follows:</p>
+<p>
+<img alt="" src="images/CAACafToolsOptions2bis.jpg" width="745" height="567"/></p>
+<p>The left part of the dialog box is dedicated to app's selection in a tree. 
+The right part displays the preferences tabs for the selected app. It is automatically 
+generated at run time using the available apps. For the <kbd>CAA: 
+Create Geom</kbd> app, there is just one tab named &quot;Elements&quot;. 
+It includes five frames:</p>
+<ol>
+	<li>The &quot;Identifier&quot; frame manages the visibility of the identifiers of the 
+	elements for which the app supplies creation commands. It manages 
+		the identifier prefix which can be set thanks to an input box. The element 
+		identifiers can be permanently:
+		<ul>
+			<li>Hidden</li>
+			<li>Shown</li>
+			<li>Shown only when elements are preselected, that is, when the mouse 
+				is located above them.<br />
+				This property can be set thanks to three radio buttons.</li>
+		</ul>
+	</li>
+	<li>The &quot;Max Points/Curve&quot; frame manages the maximum number of points 
+		in a curve. This property can be set thanks to a slider whose value can 
+		range from 2 to 100</li>
+	<li>The &quot;Implicit Points&quot; frame manages whether implicit points should 
+		be shown or hidden. This property can be set thanks to two radio buttons.</li>
+	<li>The &quot;Elements Color&quot; frame manages the color of the geometrical 
+		elements. This property can be set thanks to a combo box.</li>
+	<li>The &quot;Elements selection&quot; frame manages the list of elements taken 
+		into account by the dump.This property can be set thanks to a list.</li>
+</ol>
+<p>These five options are saved in a setting file named <code>CAACafGeometryEltSetting.CATSetting</code> 
+and managed by the <strong>generic <strong>setting controller</strong></strong>. 
+This controller is a component named <code>CAACafGeometryEltSettingCtrl</code> . 
+This component implements the following interfaces:</p>
+<ul>
+	<li><em>CATIIniSettingManagment</em><br />
+		This interface, defined in the InteractiveInterfaces Framework, manages 
+		general methods of the setting repository: Commit, Save, etc.</li>
+	<li><em>CAAICafGeometryEltSettingAtt</em><br />
+		This interface, dedicated to the current setting file, allows each application 
+		to get and set setting attributes without knowing the internal storage.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAACafEltToolsOptions</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+the &quot;<a href="../CAAAfrApplicationFrame/CAAAfrUcCAAGeometryOverview.htm">The 
+CAAGeometry Sample</a>&quot; use case for a detailed description of how this use 
+case should be launched.</p>
+<p>But just before launching the execution, edit the CAACATIAApplicationFrm.edu.dico 
+interface dictionary file located in the dictionary directory of the CAACATIAApplicationFrm.edu 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAACATIAApplicationFrm.edu\CNext\code\dictionary\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">4</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>In this file, remove the &quot;<strong>#</strong>&quot; character before the 
+two following lines, and then run mkCreateRuntimeView.</p>
+<pre class="code"><strong># CAACafElementPropertyPageEdt CATIUserSettings libCAACafEltToolsOptions
+# CAACafViewPropertyPageEdt    CATIUserSettings libCAACafViewToolsOptions</strong></pre>
+<p>The second line deals with the View preferences tab created by the non-described 
+CAACafViewToolsOptions use case located in the CAACafViewToolsOptions.m module.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module 
+name on the command line, but type 3DEXPERIENCE instead. When the application is ready, do the 
+following:</p>
+<ul>
+	<li>in the Me Services menu, click on <kbd>Preferences</kbd></li>
+	<li>In the list of apps displayed in <kbd>Infrastructure</kbd> sub-menu, click 
+	on <kbd>CAA: Create 
+	Geom</kbd></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAACafEltToolsOptions Code</h3>
+<p>The CAACafEltToolsOptions use case is made of classes and interfaces located 
+in the CAACafEltToolsOptions.m module and in the ProtectedInterfaces directory of 
+the CAACATIAApplicationFrm.edu framework:</p>
+<table>
+	<tr>
+		<td>Windows</td>
+		<td><code>InstallRootDirectory\CAACATIAApplicationFrm.edu\CAACafEltToolsOptions.m\</code></td>
+	</tr>
+	<tr>
+		<td>Unix</td>
+		<td><code>InstallRootDirectory/CAACATIAApplicationFrm.edu/CAACafEltToolsOptions.m/</code></td>
+	</tr>
+</table>
+<p>where <code>InstallRootDirectory</code> is the directory where the CAA CD-ROM 
+is installed.</p>
+<p>These classes and interfaces are:</p>
+<table>
+	<tr>
+		<td><em>CAACafElementPropertyPageEdt</em></td>
+		<td>Preferences tab editor class</td>
+	</tr>
+	<tr>
+		<td><em>CAACafElementPropertyPageEdtFactory</em></td>
+		<td>Factory class for the preferences tab editor class</td>
+	</tr>
+	<tr>
+		<td><em>CAAICafElementPropertyPageEdtFactory</em></td>
+		<td>Factory interface implemented by <em>CAACafElementPropertyPageEdtFactory</em></td>
+	</tr>
+	<tr>
+		<td><em>TIE_CAAICafElementPropertyPageEdtFactory</em></td>
+		<td>TIE class for the factory interface</td>
+	</tr>
+	<tr>
+		<td><em>CAACafElementPropertyPageDlg</em></td>
+		<td>Dialog box class associated with the preferences tab</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To create a preferences tab, there are seven main steps:</p>
+<ol>
+	<li><a href="#Step1">Creating the Preferences Tab Editor Factory Interface</a></li>
+	<li><a href="#Step2">Creating the Preferences Tab Editor Factory</a></li>
+	<li><a href="#Step3">Creating the Preferences Tab Editor</a></li>
+	<li><a href="#Step4">Setting the Resources for the Preferences Tab Editor</a></li>
+	<li><a href="#Step5">Creating the Preferences Tab Dialog</a></li>
+	<li><a href="#XMLSettingFile">Creating the XML Setting File.</a></li>
+	<li><a href="#NLS">Setting the Resources for the Preferences Tab Dialog</a> </li>
+	<li><a href="#Step6">Testing in Administrator Mode</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the Preferences Tab Editor Factory Interface</h3>
+<p>This factory interface is named <em>CAAICafElementPropertyPageEdtFactory</em>. 
+To create this interface, create:</p>
+<ol>
+	<li>The header file</li>
+	<li>The source file</li>
+	<li>The TIE tsrc file.</li>
+</ol>
+<p>This is shown below.</p>
+<ol>
+	<li><strong>Header file</strong>: CAAICafElementPropertyPageEdtFactory.h is 
+		as follows<br />
+		<pre class="code">#include &lt;CATIGenericFactory.h&gt;
+
+extern IID <strong>IID_CAAICafElementPropertyPageEdtFactory</strong>;
+
+class CAAICafElementPropertyPageEdtFactory : public <strong>CATIGenericFactory</strong>
+{
+  <strong>CATDeclareInterface</strong>;
+  public :
+};</pre>
+		<p>A factory interface is an interface, that is, an abstract class that 
+		derives from <em>CATIGenericFactory</em>. Like any interface, it has an 
+		IID declared as <code>IID_</code> followed by the interface name, and includes 
+		the <code>CATDeclareInterface</code> macro that declares that this abstract 
+		class is an interface. No additional method than those of <em>CATIGenericFactory</em> 
+		is necessary. Don't forget the <code>public</code> keyword required by the 
+		TIE compiler.</p>
+	</li>
+	<li><strong>Source file</strong>: CAAICafElementPropertyPageEdtFactory.cpp is 
+		as follows.
+		<pre class="code">#include &quot;CAAICafElementPropertyPageEdtFactory.h&quot;
+
+IID IID_CAAICafElementPropertyPageEdtFactory = <strong>{
+    0x4ee83c16,
+    0xd55d,
+    0x11d3,
+    {0xb7, 0xf5, 0x00, 0x08, 0xc7, 0x4f, 0xe8, 0xdd}
+  };</strong>
+
+<strong>CATImplementInterface</strong>(CAAICafElementPropertyPageEdtFactory, CATIGenericFactory);</pre>
+		<p>This file includes a GUID [<a href="#References">5</a>], shown in bold 
+		typeface. The <code>CATDeclareInterface</code> in the header file and the
+		<code>CATImplementInterface</code> macros make an interface from this C++ 
+		class. <code>CATImplementInterface</code> states that <em>CAAICafElementPropertyPageEdtFactory</em> 
+		OM-derives [<a href="#References">6</a>] from <em>CATIGenericFactory</em>.</p>
+	</li>
+	<li><strong>TIE file</strong>: to enable components to implement this interface, 
+		create a file named TIE_CAAICafElementPropertyPageEdtFactory.tsrc in the 
+		src directory, and containing:
+		<pre class="code">#include &quot;CAAICafElementPropertyPageEdtFactory.h&quot;</pre>
+		<p>The Multi-Workspace Application Builder (mkmk) will generate the TIE 
+		for this interface, that is the TIE_CAAICafElementPropertyPageEdtFactory.h 
+		file for you in the ProtectedGenerated directory.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating the Preferences Tab Editor Factory</h3>
+<p>Macros help to create the class. These macros create a class whose name is 
+made of the preferences tab editor class name to which the string Factory is appended. 
+This is the reason why the header file is named CAACafElementPropertyPageEdtFactory.h 
+and the source file is named CAACafElementPropertyPageEdtFactory.cpp.</p>
+<p>To create this class, create:</p>
+<ol>
+	<li>The header file, using the <code>CAT_EDITOR_DECLARE_FACTORY</code> macro</li>
+	<li>The source file, using the <code>CAT_EDITOR_DEFINE_FACTORY2</code> macro</li>
+	<li>Update the interface dictionary and the factory dictionary.</li>
+</ol>
+<ol>
+	<li><strong>Header file</strong>: CAACafElementPropertyPageEdtFactory.h is as 
+		follows.
+		<pre class="code">#include &lt;CATEditorFactory.h&gt;
+#include &lt;CAACafElementPropertyPageEdt.h&gt;
+
+#define ExportedBy<strong>NOTHING</strong>
+
+<strong>CAT_EDITOR_DECLARE_FACTORY</strong>(<strong>NOTHING</strong>,
+                           CAACafElementPropertyPageEdt,
+                           CAACafElementPropertyPageEdt);</pre>
+		<p>The <code>CAT_EDITOR_DECLARE_FACTORY</code> macro creates the factory 
+		class header file contents. It is important to set the same string wherever
+		<code><strong>NOTHING</strong></code> is used in this example. <code>ExportedByNOTHING</code> 
+		sets a non existing shared library or DLL to the class. Setting a valid 
+		one is useless, since the created class in an extension of <em>CATUserSettingManager</em>, 
+		and its instantiation is made when <em>CATUserSettingManager</em> is asked 
+		for a pointer to <em>CAAICafElementPropertyPageEdtFactory</em>. In this 
+		case, the shared library or DLL is known using the interface dictionary. 
+		The second parameter is the name of the preferences tab editor class. This 
+		name is used to create the factory class name by appending <em>Factory</em>, 
+		that is, <em>CAACafElementPropertyPageEdtFactory</em> in this example. 
+		The third parameter is a type assigned to the class to create what could be 
+		retrieved using the <code>CATIGenericFactory::Support</code> method, but 
+		that is unused here, and simply set as the preferences tab editor class name.</p>
+	</li>
+	<li><strong>Source file</strong>: CAACafElementPropertyPageEdtFactory.cpp is 
+		as follows.<br />
+		<pre class="code">#include &lt;CAACafElementPropertyPageEdtFactory.h&gt;
+
+<strong>CAT_EDITOR_DEFINE_FACTORY2</strong>(CAACafElementPropertyPageEdt,
+                           CAACafElementPropertyPageEdt);
+
+#include &lt;TIE_CAAICafElementPropertyPageEdtFactory.h&gt;
+<strong>TIE_CAAICafElementPropertyPageEdtFactory</strong>(CAACafElementPropertyPageEdtFactory);</pre>
+		<p>The <code>CAT_EDITOR_DEFINE_FACTORY2</code> macro creates the 
+		preferences tab editor factory implementation class contents as a data extension of 
+		the <em>CATUserSettingManager</em> component. <em>CATUserSettingManager</em> 
+		manages all the preferences tab editor factories for Preferences command. Then the 
+		TIE macro declares that this extension class implements the <em>CAAICafElementPropertyPageEdtFactory</em> 
+		interface.</p>
+	</li>
+	<li><strong>Dictionary files</strong>: you should now update
+		<ul>
+			<li>The <em>interface dictionary</em>, that is, a file whose name is 
+				the framework name suffixed by dico, such as CAACATIAApplicationFrm.edu.dico. 
+				You should create or update it in the framework CNext/code/dictionary 
+				directory. The interface dictionary contains the following declaration 
+				to state that the <em>CATUserSettingsManager</em> component implements 
+				the <em>CAAICafElementPropertyPageEdtFactory</em> interface, by 
+				means of the extension class created by the macros, whose code is 
+				located in the libCAACafEltToolsOptions shared library or DLL:<br />
+				<pre class="code">CATUserSettingsManager CAAICafElementPropertyPageEdtFactory libCAACafEltToolsOptions</pre>
+			</li>
+			<li>The <em>factory dictionary</em>, that is, a file whose name is the 
+				framework name suffixed by fact, such as CAACATIAApplicationFrm.edu.fact. 
+				You should create or update it in the framework CNext/code/dictionary 
+				directory. The factory dictionary contains the following declaration 
+				to state that the <em>CAAICafElementPropertyPageEdtFactory</em> 
+				interface is an interface to a factory whose implementation creates 
+				an <em>CAACafElementPropertyPageEdt</em> class instance:<br />
+				<pre class="code">CAACafElementPropertyPageEdt   CAAICafElementPropertyPageEdtFactory</pre>
+			</li>
+		</ul>
+		<p>At run time, the pathname of the directory that contains these files 
+		is concatenated in the CATDictionaryPath environment variable.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Creating the Preferences Tab Editor</h3>
+<p>You'll now create the class for the preferences tab editor. This class should implement 
+the <em>CATIUserSettings</em> interface, derive from the <em>CATEditor</em> class, 
+and override methods that are either pure virtual or empty in their <em>CATEditor</em> 
+implementation. You should provide their body to make them play the following roles.</p>
+<table>
+	<tr>
+		<td><code>BuildEditor</code></td>
+		<td>Instantiates the associated dialog class</td>
+	</tr>
+	<tr>
+		<td><code>SetUserSettingValue</code></td>
+		<td>Sets the values in the preferences tab from the setting controller</td>
+	</tr>
+	<tr>
+		<td><code>ResetUserSettingValue</code></td>
+		<td>Restores the values set by the administrator, or if any, restores the 
+		default values set in the code</td>
+	</tr>
+	<tr>
+		<td><code>CancelModification</code></td>
+		<td>Cancels the modifications made to values in the preferences tab and restore 
+		the previous ones</td>
+	</tr>
+	<tr>
+		<td><code>CommitModification</code></td>
+		<td>Saves the modifications in the setting file.</td>
+	</tr>
+</table>
+<p>The preferences tab editor class header file is shown below.</p>
+<pre class="code">#ifndef CAACafElementPropertyPageEdt_H
+#define CAACafElementPropertyPageEdt_H
+
+// CATIAApplicationFrame framework
+#include &quot;CATEditor.h&quot;                // Needed to derive from CATEditor
+
+// Local framework
+class CAACafElementPropertyPageDlg;   // Preferences tab dialog  
+
+// System framework
+class CATSettingRepository;
+
+class CAACafElementPropertyPageEdt : public CATEditor
+{
+  CATDeclareClass;
+
+  public :
+
+    CAACafElementPropertyPageEdt();
+    virtual ~CAACafElementPropertyPageEdt();
+
+    void             BuildEditor           (CATEditorPage * iTabPage);
+    void             SetUserSettingsValue  (CATSettingRepository * iUselessFileRep);
+    void             ResetUserSettingsValue();
+    void             CancelModification    (CATSettingRepository * iUselessFileRep);
+    void             CommitModification    (CATSettingRepository * iUselessFileRep);
+
+ private:
+
+   CAACafElementPropertyPageEdt(const CAACafElementPropertyPageEdt &amp;iObjectToCopy);
+   CAACafElementPropertyPageEdt &amp; operator = (const CAACafElementPropertyPageEdt &amp;iObjectToCopy);
+
+  private : 
+
+    CAACafElementPropertyPageDlg  *  _pDialogPage;
+
+};
+#endif</pre>
+<p>The <em>CAACafElementProperetyPageEdt</em> class C++ derives from <em>CATEditor</em>. 
+The <code>CATDeclareClass</code> macro declares that the class <em>CAACafElementProperetyPageEdt</em> 
+belongs to a component. Note that the copy constructor and the assignment operator 
+are set as private, and are not implemented in the source file. This prevents the 
+compiler from creating them as public without you know. We'll examine the implementation 
+of each method individually.</p>
+<p>_pDialogPage is the pointer to preferences tab dialog created in the <code>BuildEditor</code> 
+method.</p>
+<p>The preferences tab editor class source file is shown below.</p>
+<ul>
+	<li>The beginning of the CAACafElementPropertyPageEdt.cpp file is as follows:
+		<pre class="code">// Local Framework
+#include &quot;CAACafElementPropertyPageEdt.h&quot;
+#include &quot;CAACafElementPropertyPageDlg.h&quot;
+
+...
+#include &quot;CATIASettingRepositoryFactory.h&quot; 
+#include &quot;CATIASettingRepository.h&quot;
+...
+#include &lt;TIE_CATIUserSettings.h&gt;
+TIE_CATIUserSettings(CAACafElementPropertyPageEdt);
+
+CATImplementClass(CAACafElementPropertyPageEdt,
+                  Implementation,
+                  CATBaseUnknown,
+                  CATNull);
+...</pre>
+		<p>The <em>CAACafElementPropertyPageEdt</em> class states that it implements 
+		the <em>CATIUserSttings</em> interface thanks to the <code>TIE_CATIUserSettings</code> 
+		macro. The <code>CATImplementClass</code> macro declares that the <em>CAACafElementPropertyPageEdt</em> 
+		class is an implementation, that is a component main class, thanks to the
+		<code>Implementation</code> keyword, and that it OM-derives from CATBaseUnknown. 
+		The fourth parameter must always be set to <em>CATNull</em>, makes no sense, 
+		and is unused for implementations.</p>
+		<p>Update the interface dictionary, that is a file named, for example, CAACATIAApplicationFrm.edu.dico, 
+		whose directory's pathname is concatenated at run time in the CATDictionaryPath 
+		environment variable, and containing the following declaration to state 
+		that the <em>CAACafElementPropertyPageEdt</em> class implements the <em>
+		CATIUserSettings</em> interface, and whose code is located in the libCAACafEltToolsOptions 
+		shared library or DLL. The update is shown in bold typeface:</p>
+		<pre class="code">CATUserSettingsManager CAAICafElementPropertyPageEdtFactory libCAACafEltToolsOptions
+<strong>CAACafElementPropertyPageEdt   CATIUserSettings        libCAACafEltToolsOptions</strong></pre>
+	</li>
+	<li>The <strong>constructor</strong> is as follows:
+		<pre class="code">...
+CAACafElementPropertyPageEdt::CAACafElementPropertyPageEdt()
+                            : CATEditor(), _pDialogPage(NULL)
+{
+}
+...</pre>
+	</li>
+	<li>The <code><strong>destructor</strong></code> simply resets the dialog 
+	tab 
+		pointer to <code>NULL</code>.<br />
+		<pre class="code">...
+CAACafElementPropertyPageEdt::~CAACafElementPropertyPageEdt()
+{
+  _pDialogPage = NULL; 
+}
+...</pre>
+	</li>
+	<li><strong>BuildEditor</strong> instantiates and builds the dialog object for 
+		the preferences tab.
+		<pre class="code">...
+void CAACafElementPropertyPageEdt::BuildEditor(CATEditorPage * iDlgPageFather)
+{
+  if ( NULL != iDlgPageFather)
+  {
+    _pDialogPage = new CAACafElementPropertyPageDlg(iDlgPageFather);
+    if ( NULL != _pDialogPage )
+    { 
+      _pDialogPage-&gt;Build();
+    }
+       iDlgPageFather-&gt;SetPageModification(Yes);
+  }
+}
+...</pre>
+		<p>This dialog object is described in <a href="#Step4">Creating the 
+		Preferences Tab Dialog</a>.</p>
+	</li>
+	<li><code><strong>SetUserSettingsValue</strong></code> requests the dialog object 
+		to set the values of the displayed parameters.
+		<pre class="code">...
+void CAACafElementPropertyPageEdt::SetUserSettingsValue(CATSettingRepository * iUselessFileRep)
+{
+  if ( NULL != _pDialogPage )
+  { 
+    _pDialogPage-&gt;<strong>ValueSettings</strong>();
+  }
+}
+...</pre>
+		<p>The <code><a href="#ValueSettings">ValueSettings</a></code> method of 
+		the dialog class reads the setting attribute values from the setting controller 
+		to set those of the controls that represent the setting attributes in the 
+		preferences tab.</p>
+	</li>
+	<li><code><strong>ResetUserSettingsValue</strong></code> resets the values to 
+		the default ones.
+		<pre class="code">...
+void CAACafElementPropertyPageEdt::ResetUserSettingsValue()
+{
+  CATIASettingRepository * pSetting = NULL; 
+  if ( SUCCEEDED( CATSysInstantiateSettingRepository( &quot;CAACafGeometryElt&quot;, &amp; pSetting ) ) ) 
+  { 
+    pSetting-&gt;ResetToAdminValues( ); 
+    pSetting-&gt;Release(); 
+    pSetting = NULL; 
+  }
+}
+...</pre>
+		<p>This method is called whenever the end user clicks Reset, if the tab is part of the reset scope. The <code>ResetToAdminValues</code> method 
+		uses the setting values from the file that an administrator could have set 
+		up. The <code>SetUserSettingsValue</code> method is called just after to 
+		update the displayed values.</p>
+	</li>
+	<li><code><strong>CancelModification</strong></code> is called whenever the 
+		end user clicks Cancel to cancel the modifications brought to the parameter 
+		values.
+		<pre class="code">...
+void CAACafElementPropertyPageEdt::CancelModification(CATSettingRepository * iUselessFileRep)
+{
+  HRESULT hr = E_FAIL; 
+  CATIASettingRepository * pJournSetting = NULL; 
+
+  if ( SUCCEEDED( CATSysInstantiateSettingRepository( &quot;CAACafGeometryElt&quot;, &amp; pJournSetting ) ) ) 
+  { 
+    hr = pJournSetting-&gt;Rollback(); 
+    if ( SUCCEEDED(hr)) 
+    { 
+      pJournSetting-&gt;Commit(); 
+    } 
+    pJournSetting-&gt;Release(); 
+    pJournSetting = NULL; 
+  }
+}
+...</pre>
+		<p>The setting repository object is used to restore the previous values 
+		saved, and is saved again to manage a possible future cancel, since the
+		<code>Rollback</code> method deletes the saved setting object.</p>
+	</li>
+	<li><code><strong>CommitModification</strong></code> is called whenever the 
+		end user clicks OK to save the modified values from the setting repository 
+		to the setting file.
+		<pre class="code">...
+void CAACafElementPropertyPageEdt::CommitModification(CATSettingRepository * iUselessFileRep)
+{
+  CATIASettingRepository * pSetting = NULL; 
+  
+  if ( SUCCEEDED( CATSysInstantiateSettingRepository( &quot;CAACafGeometryElt&quot;, &amp; pSetting ) ) ) 
+  { 
+    pSetting-&gt;Release(); 
+    pSetting = NULL; 
+  }
+}
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Setting the Resources for the Preferences Tab Editor</h3>
+<p>The resources for the preferences tab editor are its title and where the tab 
+is located.</p>
+<p>The title of the preferences tab, is in the <strong>CAACafElementPropertyPageEdt.CATNls</strong> 
+file in the CNext\resources\msgcatalog directory of the CAACATIAApplicationFrm.edu 
+framework.</p>
+<pre class="code"><strong>TabPage</strong>.Title = &quot;Elements&quot; ;</pre>
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>TabPage</code></td>
+		<td>A required keyword for preferences tabs</td>
+	</tr>
+	<tr>
+		<td><code>Title</code></td>
+		<td>The keyword for titles</td>
+	</tr>
+</table>
+<p>The preferences tab is associated with the&nbsp; &quot;CAA : Create Geom&quot; app of the 
+&quot;Infrastructure&quot; category. This information is set in the <strong>
+CAACafElementPropertyPageEdt.CATRsc</strong> file in the CNext\resources\msgcatalog 
+directory of the CAACATIAApplicationFrm.edu framework.</p>
+<pre class="code">TabPage.SolutionName = &quot;Infrastructure&quot; ;
+TabPage.WorkbenchName = &quot;CAAAfrGeoCreationWkb&quot; ;</pre>
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>TabPage</code></td>
+		<td>A required keyword for preferences tab</td>
+	</tr>
+	<tr>
+		<td><code>SolutionName</code></td>
+		<td>The category of your app. This name is defined in the CATRsc file of your 
+		app with 
+		the keyword <code>Category</code>.</td>
+	</tr>
+	<tr>
+		<td><code>WorkbenchName</code></td>
+		<td>The identifier of your app, set using the <code>NewAccess</code> 
+		macro in the <code>CreateWorkbench</code> method [<a href="#References">1</a>]</td>
+	</tr>
+</table>
+<p>In this same resource file you retrieve the URL for the contextual help:</p>
+<pre class="code">TabPage.<strong>LongHelpId</strong> = &quot;ToolsOptions.Infrastructure.CAAGeometricalCreation.Elements&quot;;</pre>
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>TabPage</code></td>
+		<td>A required keyword for peferences tabs</td>
+	</tr>
+	<tr>
+		<td>LongHelpId</td>
+		<td>A required keyword for URL</td>
+	</tr>
+	<tr>
+		<td>ToolsOptions</td>
+		<td>A mandatory string</td>
+	</tr>
+	<tr>
+		<td>Infrastructure</td>
+		<td>The name of the category</td>
+	</tr>
+	<tr>
+		<td>CAAGeometricalCreation</td>
+		<td>The identifier of your app, set using the <code>NewAccess</code> 
+		macro in the <code>CreateWorkbench</code> method [<a href="#References">1</a>]</td>
+	</tr>
+	<tr>
+		<td>Elements</td>
+		<td>English name of the preferences tab</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Creating the Preferences Tab Dialog</h3>
+<p>This dialog class represents the contents of the preferences tab, that is, the 
+right part of the dialog box. The header file is as follows.</p>
+<pre class="code">#ifndef CAACafElementPropertyPageDlg_H
+#define CAACafElementPropertyPageDlg_H
+
+#include &quot;CATDlgFrame.h&quot;          // Needed to derive from CATDlgFrame
+
+// Dialog Framework
+class CATDlgRadioButton;
+class CATDlgSlider;
+
+// System Framework
+class CAACafElementPropertyPageCtl;
+
+class CAACafElementPropertyPageDlg : public <strong>CATDlgFrame</strong>
+{
+  public :
+    DeclareResource(CAACafElementPropertyPageDlg, CATDlgFrame);
+
+    CAACafElementPropertyPageDlg(CATDialog * ipParent);
+    virtual ~CAACafElementPropertyPageDlg();
+
+    void <strong>Build</strong>();
+    void <strong>ValueSettings</strong>();
+
+  private :
+    CAACafElementPropertyPageDlg ();
+    CAACafElementPropertyPageDlg(const CAACafElementPropertyPageDlg &amp;iObjectToCopy);
+    CAACafElementPropertyPageDlg &amp; operator = (const CAACafElementPropertyPageDlg &amp;iObjectToCopy);
+      
+    void <strong>IdHideCB</strong>            (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData);
+    void IdShowCB            (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData);
+    void IdPreSelectShowCB   (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData); 
+    void IdentPrefixCB       (CATCommand         * iPublishingCommand, 
+                              CATNotification    * iNotification, 
+                              CATCommandClientData iUsefulData);                              
+    void MaxPointCB          (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData);
+                              
+    void ImplPointHideCB     (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData);
+    void ImplPointShowCB     (CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData);
+    void ColorChgCB          (CATCommand         * iPublishingCommand, 
+                              CATNotification    * iNotification, 
+                              CATCommandClientData iUsefulData); 
+    void OnEltListActivated  (CATCommand         * iSendingCommand, 
+                              CATNotification    * iSentNotification, 
+                              CATCommandClientData iUsefulData); 
+    void OnEltListColActivated (CATCommand       * iSendingCommand, 
+                                CATNotification  * iSentNotification, 
+                                CATCommandClientData iUsefulData);    
+  private :
+    CATDlgRadioButton    * _pIdHide;
+    CATDlgRadioButton    * _pIdShow;
+    CATDlgRadioButton    * _pIdPreSelectShow;
+    
+    CATDlgRadioButton    * _pImplPointShow;
+    CATDlgRadioButton    * _pImplPointHide;    
+    
+    CATDlgSlider         * _pMaxPoint;
+    CATComboColor        * _pElementsColor; 
+    CATDlgMultiList      * _pEltList; 
+    CATDlgEditor         * _pIdentPrefix; 
+    CATDlgLabel          * _pIdPreLabel;
+    
+    CAAICafGeometryEltSettingAtt * _pISettingAttForCtrl;
+
+    CATUnicodeString _usYes; 
+    CATUnicodeString _usNo;
+};</pre>
+<p>A preferences tab dialog must derive from <em>CATDlgFrame</em>. The <code>DeclareResource</code> 
+macro declares that the messages and resources are to be searched for in the CAACafElementPropertyPageDlg.CATNls 
+and CAACafElementPropertyPageDlg.CATRsc files respectively. These files are delivered 
+in the CNext\resources\msgcatalog directory of CAACATIAApplicationFrm.edu framework. 
+The class has a constructor with a single argument to get its parent, and a destructor. 
+The constructor only initializes the data members, while the <code>Build</code> 
+method creates and arranges the controls, and sets the callbacks onto these controls. 
+The <code>ValueSettings</code> method reads the setting attribute values to set 
+those of the controls that represent the setting attributes in the preferences 
+tab. 
+A default constructor and a copy constructor are set as private, and are not implemented 
+in the source file. This prevents the compiler from creating them as public without 
+you know.</p>
+<p>The controls declared as data member are used in callback methods: radio buttons, 
+slider.</p>
+<p>_pISettingAttForCtrlis a pointer of the <em>CAAICafGeometryEltSettingAtt</em> 
+interface. In the constructor class, the pointer is initialized and in <code>ValueSettings</code> 
+and in all the callback methods it is used. This interface reads/writes the attributes 
+values on the setting repository encapsulated by the setting controller.</p>
+<p>We'll examine each method or group of methods individually.</p>
+<ul>
+	<li>The <strong>constructor</strong>
+		<pre class="code">// Local Framework
+#include &quot;CAACafElementPropertyPageDlg.h&quot;
+#include &quot;CAAICafGeometryEltSettingAtt.h&quot;
+
+// Dialog Framework
+#include &quot;CATDlgInclude.h&quot;
+#include &quot;CATDlgGridConstraints.h&quot;
+#include &quot;CATDlgLock.h&quot;
+
+// System Framework 
+#include &quot;CATSettingInfo.h&quot;
+
+// CATIAApplicationFrame Framework 
+#include &quot;CATDlgToolsOptionsFrame.h&quot;
+
+CAACafElementPropertyPageDlg::CAACafElementPropertyPageDlg(CATDialog * parent)
+                            : <strong>CATDlgFrame</strong>(parent, &quot;GeometryElementTO&quot;,
+                              CATDlgFraNoFrame|CATDlgGridLayout),
+                              _pIdHide(NULL), _pIdShow(NULL), _pIdPreSelectShow(NULL),
+                              _pImplPointShow(NULL),_pImplPointHide(NULL),
+                              _pMaxPoint(NULL)),_pElementsColor(NULL),_pEltList(NULL)
+{
+  _pISettingAttForCtrl = NULL;
+  _pISettingAttForCtrl = new CAACafElementPropertyPageCtl;}
+...</pre>
+		<p>All the data member are initialized. The <code>Get<strong>CAACafGeometryElt</strong>SettingCtrl
+		</code>global function retrieves interface pointers on the <code>CAACafGeometryElt
+		</code>setting file. The first argument is the IID of the interface to retrieve.</p>
+	</li>
+	<li>The <strong>destructor</strong> sets the control data member pointers to
+		<code>NULL</code> since any dialog object is automatically deleted and releases 
+		the pointer on the <em>CAAICafGeometryEltSettingAtt</em> interface.
+		<pre class="code">...
+CAACafElementPropertyPageDlg::~CAACafElementPropertyPageDlg()
+{
+  _pIdHide = NULL ; 
+  _pIdShow =NULL ; 
+  _pIdPreSelectShow = NULL ; 
+  _pIdPreLabel = NULL; 
+  _pIdentPrefix = NULL; 
+  _pImplPointShow = NULL ; 
+  _pImplPointHide =NULL ; 
+  _pMaxPoint = NULL ; 
+  _pElementsColor = NULL; 
+  _pEltList = NULL;
+
+  if ( NULL != _pISettingAttForCtrl )
+  {
+    _pISettingAttForCtrl = NULL ;
+  }
+}
+...</pre>
+	</li>
+	<li><code><strong>Build</strong></code> does all the job of creating the controls, 
+		arranging them in independent frame, and setting the callbacks to react 
+		to the expected events.
+		<pre class="code">...
+void CAACafElementPropertyPageDlg::Build()
+{
+  if ( NULL == pISettingAttForCtrl )
+  {
+     return ;
+  }
+    
+  // Frame 1
+  See <a href="#First">first frame </a>
+  
+  // Frame 2
+  See <a href="#Second">second frame </a>   
+        
+  // Frame 3
+  See <a href="#Third">third frame</a>     
+
+  // Frame 4
+  See <a href="#Fourth">fourth frame</a> 
+
+  // Frame 5
+  See <a href="#Last">fifth and last frame</a> 
+}
+...  </pre>
+		<p>Each frame is an instance of the <em>CATDlgToolsOptionsFrame</em> class. 
+		Its style is defined by the last argument of hte class constructor.</p>
+		<p><a name="First"></a><strong>The first frame is as follows:</strong></p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptions4.jpg" width="164" height="127"/></td>
+				<td>The frame &quot;Identifier&quot; contains three radio buttons 
+				and an input box without an icon in front of it.</td>
+			</tr>
+		</table>
+		<pre class="code">  ...
+
+  CATString    TOFrameId1      = &quot;Identifier&quot; ;
+  CATString    IconName1      = &quot;&quot; ;
+  CATDlgStyle  TOFrameStyle1   = <strong>CATDlgToolsOptionsInvisibleIcon </strong>;
+  
+  CATDlgToolsOptionsFrame * pToolsOptionsFrame1 = NULL ;
+  pToolsOptionsFrame1 = new <strong>CATDlgToolsOptionsFrame</strong>(this,
+                                                    TOFrameId1,
+                                                    IconName1,
+                                                    TOFrameStyle1);
+  
+  pToolsOptionsFrame1-&gt;SetGridConstraints(0,0,1,1,CATGRID_TOP);
+
+  CATDlgFrame * pIdentifierFrame = NULL ;
+  pIdentifierFrame = pToolsOptionsFrame1-&gt;GetOptionsFrame();
+
+  ...</pre>
+		<p>For the first frame, the style is <code>CATDlgToolsOptionsInvisibleIcon</code> 
+		It means that in the current preferences tab, some frames have icons, so this 
+		style enables to save the global layout.</p>
+		<p>The <code>pToolsOptionsFrame1</code> frame contains itself a frame, returned 
+		by the <code>GetOptionsFrame</code> method, which will be the parent of 
+		all the dialog object for the second frame. pIdentifierFrame is the parent 
+		frame of the following dialog objects: three radio buttons, an input box 
+		and two locks.</p>
+		<pre class="code">  ...
+     // Lock sets at the top of the three radio buttons
+     CATSettingInfo InfoForLockForId ;
+     _pISettingAttForCtrl-&gt;<strong>GetInfoIdentifierVisibility</strong>(&amp;InfoForLockForId);    
+           
+     CATDlgLock * pIdentifierLock = NULL ;
+     pIdentifierLock = new <strong>CATDlgLock</strong>(pIdentifierFrame,&quot;IdentifierLock&quot;,InfoForLock);
+     pIdentifierLock-&gt;SetGridConstraints(0,0,1,3,CATGRID_LEFT);
+
+     // 3 Radio buttons 
+     _pIdHide   = new CATDlgRadioButton(pIdentifierFrame, &quot;IdHide&quot;);
+     _pIdHide-&gt;SetGridConstraints(0,1,1,1,CATGRID_LEFT);
+     pIdentifierLock-&gt;<strong>AddAssociatedDialog</strong>(_pIdHide);
+
+     _pIdShow  = new CATDlgRadioButton(pIdentifierFrame, &quot;IdShow&quot;);
+     _pIdShow-&gt;SetGridConstraints(1,1,1,1,CATGRID_LEFT);
+     pIdentifierLock-&gt;<strong>AddAssociatedDialog</strong>(_pIdShow);
+
+     _pIdPreSelectShow = new CATDlgRadioButton(pIdentifierFrame, &quot;IdPreSelectShow&quot;);
+     _pIdPreSelectShow-&gt;SetGridConstraints(2,1,1,1,CATGRID_LEFT);
+     pIdentifierLock-&gt;<strong>AddAssociatedDialog</strong>(_pIdPreSelectShow);
+  ...</pre>
+		<p>In the setting repository there is an <em>CATSettingInfo</em> class instance 
+		for each attribute. The <code>GetInfoIdentifierVisibility</code> method 
+		of the setting controller, retrieves it and passes it to the <em>CATDlgLock</em> 
+		dialog object.</p>
+		<p>After the radio button creation, you can associate the lock to each dialog 
+		object concerned by this lock.</p>
+		<p>The callbacks are set as usually for dialogs.</p>
+		<pre class="code">  ...
+  AddAnalyseNotificationCB(_pIdHide,
+                           _pIdHide-&gt;GetRadBModifyNotification(),
+                           (CATCommandMethod)&amp;CAACafElementPropertyPageDlg::IdHideCB,
+                           NULL);
+
+  AddAnalyseNotificationCB(_pIdShow,
+                           _pIdShow-&gt;GetRadBModifyNotification(),
+                           (CATCommandMethod)&amp;CAACafElementPropertyPageDlg::IdShowCB,
+                           NULL);
+
+  AddAnalyseNotificationCB(_pIdPreSelectShow,
+                           _pIdPreSelectShow-&gt;GetRadBModifyNotification(),
+                           (CATCommandMethod)&amp;CAACafElementPropertyPageDlg::IdPreSelectShowCB,
+                           NULL);
+  ...
+}
+...</pre>
+		<p><a name="Second"></a><strong>The second frame is as follows.</strong></p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptions5.jpg" width="156" height="59"/></td>
+				<td>The frame &quot;Max Points/Curve&quot; contains a slider with 
+				an icon in front of it.</td>
+			</tr>
+		</table>
+		<pre class="code">  ...  
+  CATString    TOFrameId2      = &quot;MaxPointCurve&quot;;
+  <strong>CATString    IconName2       = &quot;I_CAAToolsOptionsEltMaxPointCurve&quot;;</strong>
+  <strong>CATDlgStyle  TOFrameStyle2   = NULL;</strong> 
+  
+  CATDlgToolsOptionsFrame * pToolsOptionsFrame2 = NULL;
+  pToolsOptionsFrame2 = new <strong>CATDlgToolsOptionsFrame</strong>(this,TOFrameId2,
+                                                    <strong>IconName2</strong>,
+                                                    <strong>TOFrameStyle2</strong>);
+  
+  pToolsOptionsFrame2-&gt;SetGridConstraints(1,0,1,1,CATGRID_TOP);
+  
+  CATDlgFrame             * pMaxPointCurveFrame = NULL;
+  pMaxPointCurveFrame = pToolsOptionsFrame2-&gt;<strong>GetOptionsFrame</strong>();
+  ...</pre>
+		<p>Since having an icon and a frame companion below is the standard style 
+		for a frame in a preferences tab, this style is the default and set to
+		<code><strong>NULL</strong></code>.</p>
+		<p>The icon name is passed as a <em>CATString</em> instance. The icon name 
+		is not retrieved from a resource file as it is usually the case for a dialog. 
+		The string passed corresponds to the icon bmp image file name without the 
+		bmp extension (I_CAAToolsOptionsEltMaxPointCurve.bmp)<strong> </strong>located 
+		in the CNext\resources\graphic\icons\normal directory of the CAACATIAApplicationFrm.edu 
+		framework.</p>
+		<p>The <code>pToolsOptionsFrame2</code> frame <code></code>contains itself 
+		a frame, returned by the <code>GetOptionsFrame</code> method, which will 
+		be the parent of all the dialog object for the second frame. <code>pMaxPointCurveFrame</code> 
+		is the parent frame of the following dialog object: a slider and a lock.</p>
+		<pre class="code">  ...
+  // Lock sets before the slider  
+   CATSettingInfo * pInfoList = NULL ;
+   int nbInfo = 0;
+  _pISettingAttForCtrl-&gt;<strong>GetInfoMaxPointCurve</strong>(&amp;pInfoList,&amp;nbInfo);
+  
+  CATDlgLock * pMaxPointLock = NULL ;
+  pMaxPointLock = new <strong>CATDlgLock</strong>(pMaxPointCurveFrame,&quot;MaxPointLock&quot;,pInfoList,nbInfo);
+  pMaxPointLock-&gt;SetGridConstraints(0,0,1,1,CATGRID_LEFT);
+
+  <strong>delete</strong> [] pInfoList ;
+  pInfoList = NULL ;
+  
+  // Slider 
+  _pMaxPoint = new CATDlgSlider(pMaxPointCurveFrame, &quot;MaxPoint&quot;);
+  _pMaxPoint-&gt;SetRange(2, 100, 100);
+  _pMaxPoint-&gt;SetGridConstraints(0,1,1,1,CATGRID_CENTER);</pre>
+		<pre>  // Associate the lock to one dialog object, the slider
+  _pMaxPointLock-&gt;<strong>AddAssociatedDialog</strong>(_pMaxPoint);
+  ...</pre>
+		<p>The <code>GetInfoMaxPointCurve</code> method of the setting controller, 
+		retrieves a list of <em>CATSettingInfo. </em>You pass it to the <em>CATDlgLock</em> 
+		dialog object and after you can delete the list created in the <code>GetInfoMaxPointCurve</code> 
+		method.</p>
+		<p>After the slider creation, you can associate the lock to each dialog 
+		object concerned by this lock.</p>
+		<p>The callbacks are set as usually for dialogs.</p>
+		<pre class="code">  ...
+  AddAnalyseNotificationCB(_pMaxPoint,
+                      _pMaxPoint-&gt;GetSliderModifyNotification(),
+                      (CATCommandMethod)&amp;CAACafElementPropertyPageDlg::MaxPointCB,
+                      NULL);
+  ...
+}
+...</pre>
+		<p>The callback methods access and modify the setting attribute values in 
+		the setting repository in using the setting controller.</p>
+		<p><a name="Third"></a><strong>The third frame is as follows:</strong></p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptions6.jpg" width="162" height="52"/></td>
+				<td>The frame &quot;Implicit Points&quot; contains two radio button 
+				with an icon in front of it.</td>
+			</tr>
+		</table>
+		<pre class="code">  ...  
+  CATString    TOFrameId3      = &quot;ImplicitePoint&quot; ;
+  CATString    IconName3       = &quot;I_CAAToolsOptionsEltImplicitePoint&quot; ;
+  CATDlgStyle  <strong>TOFrameStyle3</strong>   = <strong>NULL</strong> ; 
+  
+  CATDlgToolsOptionsFrame * pToolsOptionsFrame3 = NULL ;
+  pToolsOptionsFrame3 = new CATDlgToolsOptionsFrame(this,
+                                                    TOFrameId3,
+                                                    IconName3,
+                                                    <strong>TOFrameStyle3</strong>);
+  ...</pre>
+		<p>The frame is not completely described since it is identical to the second 
+		frame.</p>
+		<p><a name="Fourth"></a><strong>The fourth frame is as follows.</strong></p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptions7.jpg" width="198" height="51"/></td>
+				<td>The frame &quot;Elements Color&quot; contains a color combo 
+				box with an icon in front of it.</td>
+			</tr>
+		</table>
+		<pre class="code">  ...  
+
+  CATString TOFrameId4 = &quot;ElementsColor&quot; ; 
+  <strong>CATString IconName4 = &quot;I_CAAToolsOptionsEltColor&quot; ;</strong>  
+  <strong>CATDlgStyle TOFrameStyle4 = NULL;</strong> 
+  
+  CATDlgToolsOptionsFrame * pToolsOptionsFrame4 = NULL;
+  pToolsOptionsFrame4 = new <strong>CATDlgToolsOptionsFrame</strong>(this,TOFrameId4,
+                                                    <strong>IconName4</strong>,
+                                                    <strong>TOFrameStyle4</strong>);
+  
+  pToolsOptionsFrame4-&gt;SetGridConstraints(3,0,1,1,CATGRID_TOP);
+  
+  CATDlgFrame * pColorComboFrame = NULL ; 
+  pColorComboFrame = pToolsOptionsFrame4-&gt;GetOptionsFrame();
+  ...</pre>
+		<p>Since having an icon and a frame companion below is the standard style 
+		for a frame in a preferences tab, this style is the default and set to
+		<code><strong>NULL</strong></code>.</p>
+		<p>The frame is not completely described since it is identical to the second 
+		frame.</p>
+		<p><a name="Last"></a><strong>The fifth and last frame is as follows</strong>.</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptions8.jpg" width="245" height="153"/></td>
+				<td>The frame &quot;Elements selection&quot; contains a list with 
+				an icon in front of it.</td>
+			</tr>
+		</table>
+		<pre class="code">  ...  
+  CATString    TOFrameId5      = &quot;ImplicitePoint&quot; ;
+  CATString    IconName5       = &quot;I_CAAToolsOptionsEltImplicitePoint&quot; ;
+  CATDlgStyle  <strong>TOFrameStyle5</strong>   = <strong>CATDlgToolsOptionsBottomFrame</strong> ; 
+  
+  CATDlgToolsOptionsFrame * pToolsOptionsFrame5 = NULL ;
+  pToolsOptionsFrame5 = new CATDlgToolsOptionsFrame(this,
+                                                    TOFrameId5,
+                                                    IconName5,
+                                                    <strong>TOFrameStyle5</strong>);
+  ...</pre>
+		<p>This frame is the last, so the <code>CATDlgToolsOptionsBottomFrame</code> 
+		style must be mixed with an another possible style. Here NULL | <code>CATDlgToolsOptionsBottomFrame</code> 
+		= <code>CATDlgToolsOptionsBottomFrame</code> . This style avoids to 
+		construct an invisible separator at the end of the tab.</p>
+		<p>The frame is not completely described since it is identical to the second 
+		frame.</p>
+	</li>
+	<li><code><a name="ValueSettings"></a><strong>ValueSettings</strong> </code>
+		sets the values of the displayed parameters from the settings attribute 
+		values.
+		<pre class="code">...
+void CAACafElementPropertyPageDlg::ValueSettings()
+{
+  CATString ident; 
+  CATUnicodeString cusIP = &quot;&quot;; 
+  HRESULT hr; 
+  
+  if ( NULL != _pISettingAttForCtrl ) 
+  { 
+    _pISettingAttForCtrl-&gt;<strong>GetIdentifierVisibility</strong>(ident); 
+    
+    if (ident == &quot;IdHide&quot;)               _pIdHide-&gt;SetState(CATDlgCheck, 0); 
+    else if (ident == &quot;IdShow&quot;)          _pIdShow-&gt;SetState(CATDlgCheck, 0); 
+    else if (ident == &quot;IdPreSelectShow&quot;) _pIdPreSelectShow-&gt;SetState(CATDlgCheck, 0); 
+
+    _pISettingAttForCtrl-&gt;<strong>GetIdentPrefix</strong> ( cusIP ); 
+    
+    if ( NULL != _pIdentPrefix )         _pIdentPrefix-&gt;SetText(cusIP); 
+
+    int maxpoint; 
+    _pISettingAttForCtrl-&gt;<strong>GetMaxPointCurve</strong>(maxpoint); 
+
+    float maxpointf = maxpoint ; 
+    _pMaxPoint-&gt;SetCurrentValue(maxpointf, 0); 
+
+    CATString implpoint; 
+    _pISettingAttForCtrl-&gt;<strong>GetImplPointVisibility</strong>(implpoint); 
+    
+    if (implpoint == &quot;ImplPointHide&quot;)      _pImplPointHide-&gt;SetState(CATDlgCheck, 0); 
+    else if (implpoint == &quot;ImplPointShow&quot;) _pImplPointShow-&gt;SetState(CATDlgCheck, 0); 
+
+    unsigned int Red, Green, Blue; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetElementColor</strong>(Red , Green , Blue); 
+    
+    if (SUCCEEDED(hr)) _pElementsColor-&gt;SetSelectedColor(Red , Green , Blue); 
+    
+    int index = 0; 
+    CATBoolean isEltListPoint = FALSE; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetEltListPoint</strong>(isEltListPoint); 
+    
+    if (SUCCEEDED(hr)) _pEltList-&gt;SetColumnItem( 1, (isEltListPoint?_usYes:_usNo), 
+                                                 index, CATDlgDataModify ); 
+    
+    index = 1; 
+    CATBoolean isEltListLine = FALSE; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetEltListLine</strong>(isEltListLine); 
+
+    if (SUCCEEDED(hr)) _pEltList-&gt;SetColumnItem( 1, (isEltListLine?_usYes:_usNo), 
+                                                 index, CATDlgDataModify ); 
+
+    index = 2; 
+    CATBoolean isEltListPlane = FALSE; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetEltListPlane</strong>(isEltListPlane); 
+
+    if (SUCCEEDED(hr)) _pEltList-&gt;SetColumnItem( 1, (isEltListPlane?_usYes:_usNo), 
+    index, CATDlgDataModify ); 
+
+    index = 3; 
+    CATBoolean isEltListCircle = FALSE; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetEltListCircle</strong>(isEltListCircle); 
+
+    if (SUCCEEDED(hr)) _pEltList-&gt;SetColumnItem( 1, (isEltListCircle?_usYes:_usNo), 
+                                                 index, CATDlgDataModify ); 
+
+    index = 4; 
+    CATBoolean isEltListEllipse = FALSE; 
+    hr = _pISettingAttForCtrl-&gt;<strong>GetEltListEllipse</strong>(isEltListEllipse); 
+    if (SUCCEEDED(hr)) _pEltList-&gt;SetColumnItem( 1, (isEltListEllipse?_usYes:_usNo), 
+                                                 index, CATDlgDataModify ); 
+}
+}
+...</pre>
+		<p>It values the dialog object in using methods that use the generic controller 
+		in <em>CAACafElementPropertyPageCtl</em> .</p>
+	</li>
+	<li><code><strong>IdHideCB</strong></code> is one of the callbacks that modify 
+		the setting attribute values when a control is activated.
+		<pre class="code">...
+void CAACafElementPropertyPageDlg::IdHideCB(
+                              CATCommand         * iPublishingCommand,
+                              CATNotification    * iNotification,
+                              CATCommandClientData iUsefulData)
+{
+  if (_pIdHide-&gt;GetState() == CATDlgCheck)
+  {
+     _pISettingAttForCtrl-&gt;<strong>SetIdentifierVisibility</strong>(&quot;IdHide&quot;);
+  }
+...</pre>
+		<p>If the Hide radio button is ckecked, the Identifier setting attribute 
+		value is set to IdHide using the <code>SetIdentifierVisibility</code><strong>
+		</strong>method. The other callback methods that access the setting attribute 
+		values are very similar and are not shown here.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="XMLSettingFile"></a>Creating the XML Setting File</h3>
+<p>Create the XML CAACafGeometryElt.xml setting file in the CNext\resources\SettingsMetadata 
+folder. This file represents the setting repository and describes each setting attribute.</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; 
+&lt;st:repository xsi:schemaLocation=&quot;urn:com:dassault_systemes:settings settings.xsd&quot; 
+    xmlns:st=&quot;urn:com:dassault_systemes:settings&quot; 
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt; 
+&lt;st:Description name=&quot;CAACafGeometryElt&quot; PrimaryTabpage=&quot;/Infrastructure/Elements&quot;&gt; 
+   &lt;st:role&gt;Setting to handle CAA model parameters&lt;/st:role&gt; 
+   &lt;st:RepositoryFile&gt;CAACafGeometryElt&lt;/st:RepositoryFile&gt; 
+   &lt;st:version&gt;1&lt;/st:version&gt; 
+   &lt;st:compatibility&gt; 
+       &lt;st:FullCompatibilityfromLevel&gt;1&lt;/st:FullCompatibilityfromLevel&gt; 
+       &lt;st:UpwardCompatibilityfromLevel&gt;1&lt;/st:UpwardCompatibilityfromLevel&gt; 
+   &lt;/st:compatibility&gt; 
+&lt;/st:Description&gt; 
+&lt;st:attributes&gt; 
+   &lt;st:attribute Name=&quot;Identifier&quot;&gt; 
+      &lt;st:role visibility=&quot;Exposed&quot;&gt;Parameter to set the Identifier visibility&lt;/st:role&gt; 
+      &lt;st:string Unicode=&quot;false&quot;&gt; 
+         &lt;st:enum&gt; 
+            &lt;st:role&gt;The Identifier is Hidden&lt;/st:role&gt; 
+            &lt;st:value&gt;IdHide&lt;/st:value&gt; 
+            &lt;st:role&gt;The Identifier is Shown&lt;/st:role&gt; 
+            &lt;st:value&gt;IdShow&lt;/st:value&gt; 
+            &lt;st:role&gt;The Identifier is Preselected Show&lt;/st:role&gt; 
+            &lt;st:value&gt;IdPreSelectShow&lt;/st:value&gt; 
+         &lt;/st:enum&gt; 
+         &lt;st:default&gt; 
+            &lt;st:value&gt;IdHide&lt;/st:value&gt; 
+         &lt;/st:default&gt; 
+      &lt;/st:string&gt; 
+   &lt;/st:attribute&gt;
+... 
+&lt;/st:attributes&gt; 
+&lt;/st:repository&gt;</pre>
+<p>Setting attributes are described by the tag &lt;st:attributes&gt;. For more informations 
+on the xml setting file reports to [<a href="#References">7</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="NLS"></a>Setting the Resources for the Preferences Tab Dialog</h3>
+<p>In the CAACafElementPropertyPageDlg.CATNls, defined in the 
+CNext/resources/msgcatalog, you set the NLS for each dialog object created in 
+the preferences tab dialog.</p>
+<ul>
+	<li>The title of the frame
+		<pre class="code">IdFrame.HeaderFrame.Global.Title =&quot;xxx&quot;;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td>IdFrame</td>
+				<td>Identifier of the frame, the second argument of the <em>CATDlgToolsOptionsFrame</em> 
+				method</td>
+			</tr>
+			<tr>
+				<td>HeaderFrame.Global.Title</td>
+				<td>A required keyword</td>
+			</tr>
+		</table>
+		<pre class="code"><strong>Identifier.</strong>HeaderFrame.Global.Title<strong>    = &quot;</strong>Identifier<strong>&quot;;
+MaxPointCurve</strong>.HeaderFrame.Global.Title = &quot;Max Points/Curve&quot;;</pre>
+	</li>
+	<li>For each object inside a frame
+		<pre class="code">IdFrame.IconAndOptionsFrame.OptionsFrame.IdWidget.Title = &quot;xxx&quot;;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td>IdFrame</td>
+				<td>Identifier of the frame, the second argument of the <em>CATDlgToolsOptionsFrame</em> 
+				method</td>
+			</tr>
+			<tr>
+				<td>IconAndOptionsFrame.OptionsFrame</td>
+				<td>A required keyword</td>
+			</tr>
+			<tr>
+				<td>IdWidget</td>
+				<td>Identifier of the dialog object inside de frame</td>
+			</tr>
+			<tr>
+				<td>Title</td>
+				<td>A required keyword</td>
+			</tr>
+		</table>
+		<pre class="code"><strong>Identifier</strong>.IconAndOptionsFrame.OptionsFrame.<strong>IdHide</strong>.Title    = &quot;Hide&quot;;<strong>
+</strong><strong>Identifier</strong>.IconAndOptionsFrame.OptionsFrame.<strong>IdShow</strong>.Title    = &quot;Show&quot;;
+<strong>Identifier</strong>.IconAndOptionsFrame.OptionsFrame.<strong>PreSelectShow</strong>.Title = &quot;Preselect Show&quot;;</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Testing in Administrator Mode</h3>
+<p>To test your new preferences tab, you must run it using the administrator mode. 
+This mode can be accessed by setting the CATReferenceSettingPath environment variable. 
+First test the case where you are an administrator in passing the <code>-admin</code> 
+parameter to the 3DEXPERIENCE command and next when you benefit of the administrator files 
+in relaunching 3DEXPERIENCE without argument.</p>
+<pre class="code">mkrun -c &quot;cmd&quot;
+set CATReferenceSettingPath=MySettingPath
+3DEXPERIENCE -admin
+$ 3DEXPERIENCE</pre>
+<p>where <code>MySettingPath</code> is the pathname of your setting file directory. 
+Caution: <code>MySettingPath</code> must already exist.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Creating a preferences tab for the Preferences command implies to create a preferences 
+tab editor factory, a preferences tab editor class instantiated by this factory, 
+to supply a preferences tab dialog class gathering the controls to access the parameters 
+and values you let the end user access and modify, and to supply a XML setting file 
+representing the setting repository.</p>
+<p>The preferences tab uses the generic setting controller that manages the access 
+to the setting repositories and files to read and save these parameters and values.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrUcSampleWorkbench.htm">Creating an App</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAACafTaToolsOptions.htm">How to Add an App Preferences Tab</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidSettingUnderstanding.htm">
+		Understanding Setting Repositories and Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysQrOMGUID.htm">
+		About Globally Unique Identifiers</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMInheritance.htm">
+		Object Modeler Inheritances</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocSettingXML.htm">
+		Settings Creation Guidelines</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jul 2007]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Feb 2014]</td>
+		<td>Migration to 3DEXPERIENCE platform </td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

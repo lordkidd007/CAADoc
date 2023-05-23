@@ -1,0 +1,370 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>PLM Publication</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Publication</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article gives an overview of the PLM Publication object in the Product 
+		Modeler. You will learn, in this article, how to create a Publication 
+		and its usage in the Product Modeler.</p>
+		<ul>
+			<li><a href="#Publication">What is a Publication</a>
+				<ul>
+					<li><a href="#Definition">Definition</a></li>
+					<li><a href="#Icons">VPM Editor Icons</a></li>
+					<li><a href="#UsePort">Why Using a Publication?</a></li>
+					<li><a href="#PortonRep">Significance of Port 
+						On Rep</a></li>
+					<li><a href="#Limitations">Limitations of Port On Rep</a></li>
+				</ul>
+			</li>
+			<li><a href="#Working">CATIPrdPublication &amp; CATIPrdPublications</a><ul>
+				<li><a href="#Creating">Creating a Publication</a>
+				</li>
+				<li><a href="#Listing">
+					Listing Publications</a></li>
+				<li><a href="#Removing">Removing a Publication</a></li>
+				<li><a href="#Retrieving">
+					Retrieving Read-Only Information of a Publication</a></li>
+				<li><a href="#Managing">Managing Pointed Object</a></li>
+				</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Publication"></a>What is a Publication?</h2>
+<p>Inside the Product Modeler, a Publication is a PLM Port [<a href="#References">1</a>] 
+which publishes an object belonging to a Product structure. A Publication 
+is an object accessible to the end user, and therefore, can be used as a target 
+for relationships.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Definition"></a>Definition</h3>
+<p>The Publication is characterized by two mandatory inputs and an optional 
+one:</p>
+<ul>
+	<li>A <strong>name</strong> (mandatory).</li>
+</ul>
+<p>The name must be unique among the Publications attached to the same Product Reference 
+or Representation Reference (Rep Ref). This name is the <code>V_FunctionalName</code> 
+attribute value. Once the Publication is created the name cannot change.</p>
+<ul>
+	<li>A <strong>owner</strong> (mandatory)</li>
+</ul>
+<p>It is the <strong>Product Reference</strong> that aggregates the Publication.</p>
+<ul>
+	<li>The <strong>Published</strong> or <strong>Pointed</strong> Object (optional).</li>
+</ul>
+<p>It is an object whose the target can be nothing, a geometry, a knowledge parameter, 
+another publication, another PLM Product Component. The published object, also term 
+as Pointed Object, is managed by a special class, the <em>CATOmbObjectInContext</em> 
+class. The article [<a href="#References">2</a>] introducing the link concept gives 
+you some key information on this class, and its role.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Icons"></a>VPM Editor Icons</h3>
+<table>
+	<caption><a name="fig3"></a>Fig 1 VPM Editor Representation</caption>
+	<tr>
+		<td>
+		<img alt="VPM Editor Representation" height="352" src="images\CAAPstPortVPMModel.jpg" width="241"/></td>
+	</tr>
+</table>
+<p>Each kind of Publication has a specific symbol, as shown in the following figure.</p>
+<table class="fill">
+	<tr>
+		<th>Published Object</th>
+		<th>Icon</th>
+	</tr>
+	<tr>
+		<td>Empty</td>
+		<td><img alt="Empty" height="28" src="images/CAAPstPublication_Empty.jpg" width="31"/></td>
+	</tr>
+	<tr>
+		<td>Publication</td>
+		<td><img alt="Publication" height="29" src="images/CAAPstPublication_Pub.jpg" width="30"/></td>
+	</tr>
+	<tr>
+		<td>Otherwise</td>
+		<td><img alt="Otherwise" height="26" src="images/CAAPstPublication_Otherwise.jpg" width="29"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UsePort"></a>Why Using a Publication?</h3>
+<p>A Publication, in a Product Modeler, isolates the published object from the Publication's 
+pointing object. As a consequence, in case of deletion or modification of 
+the published object, there is no need to reroute the pointing object. Without 
+the use of Publications, all pointing relations will have to be re-routed one by 
+one. With a Publication isolating the pointing objects from the target pointed, 
+only one re-route, on the Publication, will be necessary.</p>
+<ol>
+<li>First step : 
+Without the use of a Publication between the pointing object and the pointed one, 
+all pointing objects link to the target. With a Publication, the pointed objects 
+link to the Publication and the Publication has a unique link to the target:
+<p><img alt="" height="220" src="images\CAAPstPortGlobal1.jpg" width="630"/></p>
+</li>
+	<li>
+			Second step : In this scenario, objects point to a geometry inside 
+			the Rep. In case of a <strong>replace</strong> by a different version, 
+			all links are broken.
+		<p><img alt="" height="186" src="images\CAAPstPortGlobal2.jpg" width="600"/></p>
+	</li>
+	<li>			Third step : The use needs to manually re-route the broken links to 
+			the Rep from the new version. With the use of a Publication, only the 
+			link between the Publication and the target is broken and need to be 
+			re-rerouted. Without the use of Publications, user needs to do the re-route 
+			operation on all links from the pointing objects to the target.
+		<p><img alt="" height="176" src="images\CAAPstPortGlobal3.jpg" width="600"/></p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PortonRep"></a>Signficance of Port On Rep</h3>
+<p>There are two significances of Port on Rep listed below:</p>
+<ul>
+	<li>Automatic rerouting of links while replacing a Representation in a Contextual 
+		Design.</li>
+	<li>False Impacts Management at Source.</li>
+</ul>
+<p>We detail these significances now.</p>
+<p><strong>Automatic rerouting of links while replacing a Representation in a Contextual 
+Design</strong></p>
+<p>can be best understood with the scenario which involves replacing a Representation 
+used in a Contextual Design. In this scenario, we want to replace a Skeleton Rep 
+by another one. Design is built on this Skeleton Rep through contextual links.</p>
+<p>We can see different cases depending on the pattern chosen for the Contextual 
+Design:</p>
+<p><strong>Case 1</strong>: Contextual Link directly set on RepSkeleton</p>
+<p><img alt="Contextual Link" src="images/CAAPstPortGlobal4.jpg"/></p>
+<p>In this case, if a different RepSkeleton is used to replace the existing one, 
+the contextual link will not be rerouted. User has to explicitely select the new 
+RepSkeleton at reroute.</p>
+<p><strong>Case 2</strong>: Contextual Link pointing to a Port under the Product</p>
+<p><img alt="Contextual Link" src="images/CAAPstPortGlobal5.jpg"/></p>
+<p>In this case, this is the Relation &quot;Publish&quot; of Port which is broken. 
+It needs anyway a physical reroute to be able to reroute on Skeleton2, as no link 
+exists between the two Representations. BUT, it also means that data of RepSkeleton 
+are exposed at Product1 level, even if they were to be used only for internal purposes: 
+it &quot;<strong>pollutes</strong>&quot; the exposition of Product1.</p>
+<p><strong>Case 3</strong>: Contextual Links built on Ports on RepSkeleton</p>
+<p><img alt="Contextual Links" src="images/CAAPstPortGlobal6.jpg"/></p>
+<p>In this case, no exposition is done on Product1. Rep2 references the Port of 
+RepSkeleton. Replace breaks the relation, but it keeps Logical Id on IR2. Then, 
+a Functional Reroute is possible on Port of Skeleton2 if the two Ports have same 
+name. Well on each PLM Object you should know that there is a logical ID and a physical 
+ID. The Logical ID is used for reroute and is kept during replace operation.</p>
+<p><strong>False Impacts management at Source</strong></p>
+<p>When creating a Relation on a Representation, for example to reference a 3D Point, 
+you get a Synchronization status, visible in Impact Graph. This status may be (basically): 
+Synchro, NotSynchro, Broken. 
+In case someone modifies the Pointed Representation, the Relation will be at state 
+NotSynchro, even if the specific point you reference has not changed. This is called 
+a False Impact, which is due to the fact that Relations reference only PLM Components, 
+and not what is inside. If you load the Pointed Representation in session, the link 
+associated to this relation will be able of course to tell if the point has really 
+changed or not, but user has to perform an action to be able to manage that.</p>
+<p>Using Ports on Representation should improve the treatment of False Impacts by 
+increasing the granularity of pointing. The objective is to always have the status 
+as &quot;<strong>Synchronized</strong>&quot; for Pointing Relation, meaning no update 
+required, if no modification has been performed on the pointed object of the Port, 
+and at the same time, to always have the status of Port as &quot;<strong>Asynchronized</strong>&quot;, 
+in other words, needing an update, if the pointed object is modified.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Limitations"></a>Limitations of Port On Rep: Concurrent Engineering 
+Scenario</h3>
+<p>We have a concurrent engineering scenario as depicted in the Fig. that follows.</p>
+<p><img alt="Concurrent Engineering" src="images/CAAPstPortGlobal7.jpg"/></p>
+<p>User A and User B are opening the same Representation Reference.</p>
+<p>User A is adding a port under the Representation Reference. The Representation 
+Reference is not modified.</p>
+<p>User A is saving the Port.</p>
+<p>User B is modifying the geometry pointed by the Port of User A inside the Representation 
+Reference.</p>
+<p>User B is saving the modified Representation Reference.</p>
+<p>The saved Port is not pointing the right geometry.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Working"></a>CATIPrdPublication and CATIPrdPublications</h2>
+<p>There are the two interfaces to manage publication in the Product modeler.</p>
+<ul>
+	<li><em>CATIPrdPublications</em>, implemented by Product Reference and Rep Ref, 
+		enables you to add, list and remove publication.</li>
+	<li><em>CATIPrdPublication</em>, implemented by the Publication itself enables 
+		you to retrieve the owner and the name, Get/Set the pointed object.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Creating"></a>Creating a Publication</h3>
+<pre class="code">
+<strong>CATIPrdPublications</strong>* piPublications_Root = NULL;
+rc = <strong>pProductReference-&gt;QueryInterface</strong>(<strong>IID_CATIPrdPublications</strong>,(void**)&amp;pPublications);  
+CATIPrdPublication_var oIPublication;
+CATUnicodeString PubName =...;
+CATOmbObjectInContext *pObjectInContext= .... ;
+CATIAdpPLMEnvironment * pEnv = NULL ;
+
+CATListValCATICkeParm_var ListAttrWithName;
+<strong>CATICkeParmFactory_var spCkeParmFactory  =</strong>  <strong>CATCkeGlobalFunctions::GetVolatileFactory</strong>(); 
+if ( NULL_var != spCkeParmFactory )
+{
+  CATICkeParm_var spParm;    
+  spParm = <strong>spCkeParmFactory-&gt;CreateString</strong>("<strong>V_FunctionalName</strong>", PubName );  
+  ListAttrWithName.Append(spParm);
+}
+rc = <strong>piPublications_Root-&gt;AddPrdPublication</strong>(pEnv,ListAttrWithName,pObjectInContext,oIPublication);
+...
+</pre>
+<p><code>piPublications_Root</code> is a <em>CATIPrdPublications</em> interface pointer 
+on the Product Reference which will be the owner of the new publication (a PLM Port 
+internally).</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Listing"></a>Retrieving Publications</h3>
+<p>The <em>CATIPrdPublications</em> interface enables you to retrieve the publications 
+aggregating by a PLM product Reference. For your information, a PLM Product Reference 
+can aggregate PLM Ports which are not publication at all, but this interface filters 
+them.</p>
+<p>You can retrieve all the publications of a Product Reference, through an iterator, 
+or one specific by its name.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Removing"></a>Removing a Publication</h3>
+<p>Publications can also be removed from a collection by <em>CATIPLMPublications</em> 
+'s methods: <code>Remove</code>, <code>RemoveByName</code> and <code>RemoveAll</code>. 
+When a Publication is deleted, of course, there is no impact on the target.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving"></a>Retrieving Read-Only 
+Information of a Publication</h3>
+<p>Now we are using the <em>CATIPrdPublication</em> interface, an interface implemented 
+by any Publication of product.</p>
+<p>There are only two read-only information that you can retrieve from a Publication: 
+its <strong>owner</strong> ( the Product Reference aggregating it), and its <strong>name</strong>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Managing"></a>Managing Pointed Object</h3>
+<p>The pointed object is the published object. This pointed object is handled by 
+the class <em>CATOmbObjectInContext</em>.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Setting the Pointed Object</h4>
+<p>Either you have no pointed object on your publication, or you want to change 
+it, there is only one API, the <code>SetPointed</code> method of <em>CATIPrdPublication</em>.</p>
+<pre class="code">...
+CATIPrdPublication *piPublication = .... ;
+CATOmbObjectInContext * pPointedObject = ...;
+<strong>piPublication-&gt;</strong><strong>SetPointed</strong>(pPointedObject);
+...</pre>
+<h4>Retrieving the Pointed Object</h4>
+<p>The method to retrieve the pointed object is the <code>GetPointed</code> 
+method of <em>CATIPrdPublication</em>. This method is interesting for two reasons</p>
+<ul>
+	<li>It contains a boolean, to specify if the result of the method is the direct 
+		pointed object, or the final , the one resulting once all publications are 
+		unfolded.
+	<p><strong>Example</strong>: a Publication A points to a publication B pointing itself a geometry. 
+	The unfold result for A is the geometry.</p>
+</li>
+	<li>It returns an HRESULT to analyze the link.
+		<pre class="code">...
+CATIPrdPublication *piPublication = .... ;
+CATOmbObjectInContext * pPointedObject = NULL ;
+HRESULT rc = <strong>piPublication-&gt;</strong><strong>GetPointed</strong>(pPointedObject);
+if ( rc = S_OK )
+{
+    // The pPointedObject is valid and contains somethings
+}else if ( rc == S_FALSE )
+{
+     // The pPointedObject is null because, no pointed object has been valuated
+}else if ( rc= E_FAIL )
+{
+   // you can analyze why no result has been returned
+   <strong>CATOmbLinkStatusServices::LinkResolutionStatus MyLinkStatus</strong>;
+   <strong>CATOmbLinkStatusServices::GetLinkStatusFromRc</strong>(rc,MyLinkStatus );
+}
+...</pre>
+	<p>The article [<a href="#References">2</a>] describes the possible link's resolution 
+	error.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article describes the Publication object and the interfacesto 
+create, manage and modify it.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPstTaPublication.htm">PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAOmbModelingProtocol/CAAOmbTaVirtualObject.htm">
+		Understanding Link Information</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllPLMComponentCreation.htm">
+		PLM Component Creation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [October 2006]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Novembre 2010]</td>
+		<td>Document updated to introduce new api of creation</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>4</strong> [March 2011]</td>
+		<td>Document updated with Port on Rep concept intro</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

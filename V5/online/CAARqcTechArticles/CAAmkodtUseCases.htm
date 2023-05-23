@@ -1,0 +1,825 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Using mkodt</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="TOP">
+      <h1>RADE</h1>
+    </td>
+    <td valign="TOP">
+      <h2>C++ Unit Test Manager</h2>
+    </td>
+    <td align="RIGHT" valign="TOP" rowspan="2">
+      <h3><a name="Top"></a>Using mkodt</h3>
+      <i>Creating and running test objects</i></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="tech">Technical Article</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      This article shows how to create and run test objects, and how to use the
+      commands and their options.&nbsp;
+      <ul>
+        <li><b><a href="#SetOdtParam">Using SetOdtParam</a></b>&nbsp;</li>
+        <ul>
+          <li><a href="#OS">Selecting the Operating System to Replay a Test
+            Object</a></li>
+          <li><a href="#max_time">Modifying the Maximum Replay Time of a Test
+            Object</a></li>
+        </ul>
+        <li><b><a href="#WhichDir">Using WhichDir</a></b></li>
+        <li><b><a href="#ODTInit">Using ODTInit</a></b></li>
+        <li><b><a href="#mkodt options">Using mkodt Options</a></b>&nbsp;</li>
+        <ul>
+          <li><a href="#basic options">Using Basic Options</a></li>
+          <li><a href="#concatenation">Using Concatenation Options (-p and -r)</a></li>
+			<li><a href="#info module loading"><font size="3">Informations/best 
+			practices about the modules/libraries loading</font>&nbsp; </a></li>
+			<li><a href="#option -NOMaxTime">Using -NOMaxTime Options</a></li>
+			<li><a href="#Using a debugger">Using a Debugger</a>
+			<a href="#Debugging_on_Windows_:_">(debug on Windows)</a></li>
+			<li><a href="#Change the output directory">Changing the Output
+            Directory</a></li>
+			<li><a href="#others options : -q, -X, -l, -L">Using Others Options:
+            -q, -X, -html, -xml, -l, -L</a></li>
+        </ul>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="SetOdtParam"></a>Using SetOdtParam</h3>
+SetOdtParam enables you to select the operating systems with which you want the
+test object to be replayed, and to set the maximum replay time
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="OS"></a>Selecting the Operating System to Replay a Test Object</h4>
+By default, a test object is replayed with any operating systems available on
+your site. If you don't want to replay a test object with a given operating
+system, use:
+<pre>SetOdtParam Replay_xxx=NO</pre>
+where <tt>xxx</tt> can have the following values: <tt>AIX</tt>, <tt>SunOS</tt>,
+<tt>HP-UX</tt>, <tt>Unix</tt>, <tt>Windows_NT</tt>, <tt>aix_a</tt>, <tt>solaris_a</tt>, <tt>hpux_</tt>b, and <tt>intel_a</tt>.
+<p><b>Examples:</b>
+<ul>
+  <li>To prevent a test object to be replayed with intel_a:</li>
+  <li>&nbsp;</li>
+  <table class="code">
+    <tr>
+      <td>
+        <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+        <pre>SetOdtParam Replay_intel_a=NO
+LOAD
+exit $?</pre>
+      </td>
+    </tr>
+  </table>
+  <li>To replay a test object only on AIX:</li>
+  <table class="code">
+    <tr>
+      <td>
+        <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+        <pre>SetOdtParam Replay_Windows_NT=NO
+SetOdtParam Replay_solaris_a=NO
+SetOdtParam Replay_hpux_b=NO
+LOAD
+exit $?</pre>
+      </td>
+    </tr>
+  </table>
+</ul>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="max_time"></a>Modifying the Maximum Replay Time of a Test Object</h4>
+The default replay time of a test object is five minutes. To modify this replay
+time, add to the test object script:
+<pre>SetodtParam max_time=xx</pre>
+where <tt>xx</tt> is the maximum replay time you want to set. It can't exceed 60
+minutes.
+<p><b>Example:</b>
+<p>The following example shows a test object with a maximum replay time of ten
+minutes that will be replayed with Windows only.
+<table class="code">
+  <tr>
+    <td>
+      <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+      <pre>SetOdtParam max_time=10
+SetOdtParam Replay_Unix=NO
+LOAD
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h3><a name="WhichDir"></a>Using WhichDir</h3>
+This command can be used in shell script to find a directory or a file in the
+workspace concatenation using the <tt>ADL_ODT_CONCATENATION</tt> variable.
+<p><b>Example</b>: This test object that doesn't replay with Windows is going to
+find in the workspace concatenation the file <tt>Visualization/Data.d/cubes.cgr</tt>
+and to copy this file in the directory set by the <tt>ADL_ODT_TMP</tt> variable
+with the name <tt>sample.cgr</tt>.<br>
+&nbsp;
+<table class="code">
+  <tr>
+    <td>
+      <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+      <pre>SetOdtParam Replay_Windows_NT=NO&nbsp;
+
+cp $(WhichDir Visualization${ADL_ODT_SLASH}Data.d${ADL_ODT_SLASH}cubes.cgr&nbsp; ${ADL_ODT_TMP}${ADL_ODT_SLASH}sample.cgr
+chmod ugo-w ${ADL_ODT_TMP}${ADL_ODT_SLASH}sample.cgr
+LOAD ${ADL_ODT_TMP}${ADL_ODT_SLASH}sample.cgr
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h3><a name="ODTInit"></a>Using ODTInit</h3>
+The ODTInit command is used to factorize steps od ODTs; Indeed, sometimes, ODTs
+could generate and use the same resources... But each ODT will create his own
+resources during a replay.
+<p>To use this command, the developer&nbsp; must create a shell script named <i>ODTInit_logicname.sh
+</i>in the ADL_ODT_IN directory. This shell will generate resources that will be
+used on this ODT.
+<p><b>Example:</b>
+<ul>
+  <li>In a test framework, some ODTs&nbsp; use the same Part; This Part is
+    created in the ODT in an &quot;initialization step&quot;; For instance, we
+    are going to take 2 ODTs:</li>
+  <ul>
+    <li>ODT1.sh:</li>
+    <table class="code">
+      <tr>
+        <td>
+          <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+          <pre><b>SetOdtParam max_time=30
+OsName=$MkmkOS_NAME
+RC=0
+</b>###########################################
+PROGMF=DRWtstCreatePad
+PROG=CNEXT
+###########################################
+echo Execution de $PROG sur $OsName, at `date` ;
+echo
+###########################################
+$PROGMF $ADL_ODT_TMP &gt; $ADL_ODT_OUT/$PROG
+MODEL=$ADL_ODT_TMP${ADL_ODT_SLASH}${PROGMF}.CATPart
+echo &quot;=&gt; Model = $MODEL&quot;
+ls $MODEL ;
+RC=$?
+if [ $RC != 0 ]
+then
+echo &quot;*********&quot;
+echo &quot;********* $PROG sur $OsName, EXECUTION KO: $MODEL NON TROUVE&quot; $RC
+echo &quot;*********&quot;
+RC=32;
+exit $RC
+fi
+CNEXT $MODEL
+exit $?</pre>
+        </td>
+      </tr>
+    </table>
+    <li>ODT2.sh:</li>
+    <table class="code">
+      <tr>
+        <td>
+          <pre><b>SetOdtParam max_time=30
+SetOdtParam max_time=30
+</b>OsName=$MkmkOS_NAME
+RC=0;
+###########################################
+PROGMF=DRWtstCreatePad
+PROG=CNEXT
+###########################################
+echo Execution de $PROG sur $OsName, at `date` ;
+echo
+###########################################
+$PROGMF $ADL_ODT_TMP &gt; $ADL_ODT_OUT/$PROG
+MODEL=$ADL_ODT_TMP${ADL_ODT_SLASH}${PROGMF}.CATPart
+echo &quot;=&gt; Model = $MODEL&quot;
+ls $MODEL ;
+RC=$?
+if [ $RC != 0 ]
+then
+echo &quot;*********&quot;
+echo &quot;********* $PROG sur $OsName, EXECUTION KO: $MODEL NON TROUVE&quot; $RC
+echo &quot;*********&quot;
+RC=32;
+exit $RC
+fi
+CNEXT $MODEL
+exit $?</pre>
+        </td>
+      </tr>
+    </table>
+    <p>In these two ODTs $PROGMF runs to create a part named <tt>${PROGMF}.CATPart;</tt>;
+    So, this part is created by these 2 ODTs but it's the same part. In a
+    replay, the part is going to be created twice. The purpose of ODTInit is to
+    create this part once in a replay!
+    <p>For that, it's necessary to create a shell in ADL_ODT_IN named
+    ODTInit_DRWCreatePad.sh; this shell will create the part:
+    <p>ODTInit_DRWCreatePadGenUI.sh:<br>
+    &nbsp;
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParamInit max_time=15</pre>
+          <pre>DRWtstCreatePadGenUI $ADL_ODT_TMP &gt; $ADL_ODT_OUT${ADL_ODT_SLASH}CNEXT
+return $?</pre>
+        </td>
+      </tr>
+    </table>
+    <p>The SetOdtParamInit max_time can be used since CXR15. Using this, it's
+    possible to add tim to the ODT that launch the ODTInit command.
+    <p>&nbsp;
+    <p>ODTs are going to be modified:
+    <ul>
+      <li>ODT1.sh:</li>
+      <table class="code">
+        <tr>
+          <td>
+            <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+            <pre>logicname=DRWtstCreatePadGenUI
+#INITIALISATION :
+#################
+ODTInit $logicname&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+SetOdtParam max_time=30
+OsName=$MkmkOS_NAME
+PROG=CNEXT
+RC=0;
+MODEL=$ADL_ODT_TMP${ADL_ODT_SLASH}${PROGMF}.CATPart
+echo &quot;=&gt; Model = $MODEL&quot;
+ls $MODEL ;
+RC=$?
+if [ $RC != 0 ]
+then
+echo &quot;*********&quot;
+echo &quot;********* $PROG sur $OsName, EXECUTION KO: $MODEL NON TROUVE&quot; $RC
+echo &quot;*********&quot;
+RC=32;
+exit $RC
+fi
+CNEXT $MODEL
+exit $?</pre>
+          </td>
+        </tr>
+      </table>
+      <li>ODT2.sh:</li>
+      <table class="code">
+        <tr>
+          <td>
+            <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+            <pre>logicname=DRWtstCreatePadGenUI
+#INITIALISATION :
+#################
+ODTInit $logicname
+#SetOdtParam Replay_Windows_NT=NO
+SetOdtParam max_time=30
+OsName=$MkmkOS_NAME
+RC=0;
+PROG=CNEXT
+MODEL=$ADL_ODT_OUT${ADL_ODT_SLASH}${logicname}${ADL_ODT_SLASH}${logicname}.CATPart
+echo &quot;=&gt; Model = $MODEL&quot;
+NEW=$ADL_ODT_OUT${ADL_ODT_SLASH}${PROG}.CATDrawing
+ls $MODEL ;
+RC=$?
+if [ $RC != 0 ]
+then
+echo &quot;*********&quot;
+echo &quot;********* $PROG sur $OsName, EXECUTION KO: $MODEL NON TROUVE&quot; $RC
+echo &quot;*********&quot;
+RC=32;
+exit $RC
+fi
+CNEXT $MODEL
+exit $?</pre>
+          </td>
+        </tr>
+      </table>
+    </ul>
+  </ul>
+  <li>The ODTInit command will run the ODTInit_DRWRecCreatePadGenUI.sh file if
+    the part had not been already created by another ODT. This command create a
+    directory under ADL_ODT_OUT, named DRWRecCreatePadGenUI to save results of
+    the Init step (a file Result.ODTInit, a file DRWRecCreatePadGenUI.traces and
+    in our example, DRWRecCreatePadGenUI.CATPart).</li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+  <ul>
+    <li>If you run these 2 ODTs with mkodt:</li>
+    <p><b>mkodt -s&nbsp; DRWRecCreateAuxViewPtEdge_PartUpdate
+    DRWRecCreateAuxViewPtEdge_Part</b>
+    <p>&nbsp;
+    <li>The .traces files generated by mkodt contain:</li>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><span style="mso-ansi-language: EN-US">DRWRecCreateAuxViewPtEdge_PartUpdate.traces:&nbsp;</span></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><span style="mso-ansi-language: EN-US"><font color="#ff0000"><b>##
+    ++ RESULT : Init OK.</b></font></span></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><font color="#ff0000"><b>Init
+    TRACES :</b></font></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><i>the ODTInit output</i></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px">&nbsp;</p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><span style="mso-ansi-language: EN-US">DRWRecCreateAuxViewPtEdge_Part.traces:&nbsp;</span></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><span style="mso-ansi-language: EN-US"><font color="#ff0000"><b>##
+    ++ RESULT : Init already OK.</b></font></span></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><font color="#ff0000"><b>Init
+    executed by : </b></font><span style="mso-ansi-language: EN-US"><font color="#ff0000"><b>DRWRecCreateAuxViewPtEdge_PartUpdate</b></font></span></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><font color="#ff0000"><b>Init
+    TRACES :</b></font></p>
+    <p style="MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px"><i>the ODTInit output</i></p>
+    <pre>&nbsp;</pre>
+    <li>If the Init step is KO, the return code of the ODT is 50:</li>
+    <br>
+    &nbsp;
+    <p>&nbsp;<br>
+    &nbsp;<br>
+    &nbsp;<br>
+    &nbsp;<br>
+    &nbsp;
+    <p><img src="images/InitKORC50.gif" border="0" height="244" width="642">
+    <li>If the Init step is KO, each ODT using the same init will have a return
+      code 50.</li>
+    <li>If you want to update your output generated by the Init sequence in a
+      Replay sequence, you have to delete the <i>logicname</i> directory.</li>
+    <li><span style="mso-ansi-language: EN-US"><b>NOTE</b> : </span><font face="Arial" size="2">To
+      be able to get an UUID associated with an ODTInit command (for example,
+      for data creation in an oracle database using ODTInit command), a</font> <font face="Arial" size="2">Unique
+      ID is set since CXR14 level: <b>ADL_INIT_UUID</b>. Using this, you'll be
+      able to point datas (created in a database for example) between ODTs that
+      use the same ODTInit command.&nbsp;</font></li>
+  </ul>
+</ul>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h3><a name="mkodt options"></a>Using mkodt Options</h3>
+<h4><a name="basic options"></a>Using Basic Options</h4>
+These standard options are used to replay ODTs in a local workspace or in an
+official workspace:<br>
+&nbsp;
+<table>
+  <tr>
+    <th>Command Line</th>
+    <th>ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -W MONWS -F MONFW -a ( option -W available on UNIX
+      only)</td>
+    <td width="50%">Replay all ODTs of $HOME/MONWS/MONFW</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d /u/lego/CXR4/BSF -a -S -o /u/users/toto/output</td>
+    <td width="50%">Replay all Switch ODTs of CXR4 and generate Output in
+      /u/users/toto/output directory</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -s DRW*Rec</td>
+    <td width="50%">Replay all ODTs DRW*Rec of the current workspace.</td>
+  </tr>
+</table>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="concatenation"></a>Using Concatenation Options (-p and -r)</h4>
+<table border="1" width="100%">
+  <tr>
+    <th width="50%">Command Line</th>
+    <th width="50%">ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -p
+      e:\steplib\CXR4\LocalWS</td>
+    <td width="50%">$ADL_ODT_CONCATENATION= e:\steplib\CXR4\LocalWS
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -r
+      e:\steplib\CXR4\LocalWS</td>
+    <td width="50%">$ADL_ODT_CONCATENATION=\\renoir\CXR4\BSF
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -r
+      e:\steplib\CXR4\LocalWS -p \\renoir\CXR4rel\BSF</td>
+    <td width="50%">$ADL_ODT_CONCATENATION=\\renoir\CXR4rel\BSF
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+</table>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<p><a name="info module loading"></a><font size="3"><b>Informations/best 
+practices about the modules/libraries loading</b></font>&nbsp; </p>
+<p>The ODT is going to launch an laod module. How is this module found and how 
+are the libraries loaded?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+<ul>
+	<li><b>On windows :</b></li>
+</ul>
+<blockquote>
+	<p>The system is looking for the executable module in the PATH environment 
+	variable. When the module is found, the system launch it. If this module 
+	loads libraries, the system is going to look for these libraries using the 
+	following order :</p>
+	<p>- FIRST : Look for the library in the load module directory.</p>
+	<p>- SECOND : Look for in the system PATH.</p>
+	<p><font color="#FF0000"><b>So, to be able to load a modified library from a 
+	developper workspace in an ODT, this workspace must contain the executable 
+	module.</b></font></p>
+	<p><u>Example :</u></p>
+	<blockquote>
+		<p>MONODT launch the load module MONMOD. This module is linked with 
+		MYLIB.dll</p>
+	</blockquote>
+</blockquote>
+<blockquote>
+	<blockquote>
+		<p>The workspace developper WSDEV has the following concatenation : 
+		WSDEV;WSPROJ;WSBSF</p>
+		<p>The developper modify MYLIB.dll and rebuild it in the workspace WSDEV.</p>
+		<p>During the ODT execution :</p>
+		<table border="1" width="73%" id="table1">
+			<tr>
+				<td width="223">Workspace where MONMOD is found</td>
+				<td width="175">Workspaces where MYLIB can be loaded</td>
+				<td>Workspace where MYLIB is effectively loaded</td>
+			</tr>
+			<tr>
+				<td width="223">WSDEV</td>
+				<td width="175">WSDEV;WSPROJ;WSBSF</td>
+				<td>WSDEV</td>
+			</tr>
+			<tr>
+				<td width="223">WSPROJ</td>
+				<td width="175">WSPROJ;WSBSF</td>
+				<td>WSPROJ</td>
+			</tr>
+			<tr>
+				<td width="223">WSBSF</td>
+				<td width="175">WSBSF</td>
+				<td>WSBSF</td>
+			</tr>
+			<tr>
+				<td width="223">WSDEV</td>
+				<td width="175">WSPROJ;WSBSF</td>
+				<td>WSPROJ</td>
+			</tr>
+			<tr>
+				<td width="223">WSPROJ</td>
+				<td width="175">WSDEV;WSPROJ;WSBSF</td>
+				<td><font color="#FF0000">WSPROJ</font></td>
+			</tr>
+			<tr>
+				<td width="223">WSBSF</td>
+				<td width="175">WSDEV;WSPROJ;WSBSF</td>
+				<td><font color="#FF0000">WSBSF</font></td>
+			</tr>
+		</table>
+	</blockquote>
+	<p>So, to be sure that the loaded library is the developper workspace 
+	library, copy the load module in the developper workspace!</p>
+</blockquote>
+<ul>
+	<li><b>On Unix :</b></li>
+</ul>
+<blockquote>
+	<p>The system is looking for the executable module in the PATH environment 
+	variable. When the module is found, the system launch it. If this module 
+	loads libraries, the system is going to look for these libraries using the 
+	LIBPATH environment variable (LIBPATH on AIX, LD_LIBRARY_PATH on SunOS and 
+	Linux). During the ODT execution, the environment variables PATH and LIBPATH 
+	contain the same concatenaition, so the developper ha nothing to do (no 
+	copy!) to be sure to load the correct library!&nbsp; </p>
+</blockquote>
+<h4><a name="option -NOMaxTime"></a>Using -NOMaxTime Option</h4>
+This option suspend the supervision of max_time ODT:
+<p>Example:
+<p>For the following example:
+<table class="code">
+  <tr>
+    <td>
+      <pre>export ODT_REQUESTED_PRODUCT=&quot;_AL2.slt+;_ME2.slt+&quot;</pre>
+      <pre>SetOdtParam&nbsp; max_time=1
+LOAD
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<ul>
+  <li>mkodt without -NOMaxTime option:</li>
+  <br>
+  &nbsp;
+  <p>&nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;
+  <p><img src="images/KillMaxTime.gif" border="0" width="604" height="251">
+  <p>Elapsed time &gt; max_time; the ODT is killed.
+  <li>mkodt with -NOMaxTime option:</li>
+  <br>
+  &nbsp;
+  <p>&nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;
+  <p><img src="images/NOMaxTime.gif" border="0" width="604" height="263">
+  <p>Elapsed time &gt; max_time defined in the shell (SetOdtParam max_time=1)
+  because -NOMaxTime had been used!!!
+</ul>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Using a debugger"></a>Using a Debugger</h4>
+To debug a load module, you must use the -b and -B options:<br>
+&nbsp;
+<table border="1" width="100%">
+  <tr>
+    <th>Command Line</th>
+    <th>ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d E:\users\toto\MONWS -F FileMenu.tst -s CCPCutRec -o
+      E:\users\toto\output -b CNEXT (intel_a)</td>
+    <td width="50%">The ODT CCPCutRec will be replayed and the load module CNEXT
+      will be debugged with MsDev</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d /u/users/toto -s CCPCutRec -o E:\users\toto\output
+      -b CNEXT -B dbx (aix_a</td>
+    <td width="50%">The ODT CCPCutRec will be replayed and the load module CNEXT
+      will be debugged with dbx</td>
+  </tr>
+</table>
+<ul>
+  <li>Default debugger on the mkodt command is:</li>
+  <ul>
+    <li>Windows: devenv (MicroSoft Visual Studio 7.0)</li>
+    <li>AIX: xldb</li>
+    <li>SUN: Workshop</li>
+    <li>HP-UX: wdb</li>
+  </ul>
+  <li>To change this debugger, use the <b><i>-B DebuggerName</i></b> option;
+    Others available debuggers are:</li>
+  <ul>
+    <li>AIX: dbx</li>
+    <li>SUN: dbx</li>
+  </ul>
+	<li><a name="Debugging_on_Windows_:_"></a>Debugging on Windows: <p>To use MicroSoft 
+	Visual Studio 7.0 (devenv.exe) as debugger, you must know which version of 
+	Visual Studio you use (7.0 or 71) and launch:<ul>
+		<li><b>For VC7.0 :</b> </li>
+	</ul>
+	<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B 
+	devenv</p>
+	<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; or :</p>
+	<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B 
+	devenv -b Module</p>
+	<p>&nbsp;<ul>
+		<li><b>For VC7.1 :</b> </li>
+	</ul>
+	<blockquote>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv71</p>
+		<p>&nbsp;&nbsp;&nbsp; or :</p>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv71 -b Module</p>
+	</blockquote>
+	<p>&nbsp;</p>
+	<p>devenv will be launched with your module to debug.&nbsp; By default, when 
+	you'll execute your module, you will have a window to save your solution. 
+	The solution file will contain your debug environment (opened sources in 
+	VC7, breakpoints,...). This file could be used for another debug with mkodt 
+	to keep your environment. </p>
+	<p>You have 3 possibilities :<ul>
+		<li><i><b>You do not want to save the solution and you do not want to 
+		have this window</b></i> each time you launch mkodt in debug mode, you 
+		have to modify the following setting in VC7 :
+		<p>Click cancel in the Save FIle As window and your module will run.</p>
+		<p>To modify setting to not have the Save File As Windows:</li>
+	</ul>
+	<blockquote>
+		<p>In VC7 window, select Tools-&gt;Options.</p>
+		<p>In the Options window, select Environment-&gt;Projects And Solutions;</p>
+		<p>In the Build and Run section, select Don't save changes to open 
+		documents :</p>
+		<p><img border="0" src="images/CAAVC.gif" width="598" height="375"></p>
+	</blockquote>
+	<blockquote>
+		<p>Saving this setting, you will not have the Save As window launching 
+		your module in debug mode.</p>
+		<p>When you close the VC7 window, the following window will appear :</p>
+		<p><img border="0" src="images/CAAVCSave.gif" width="386" height="283"></p>
+		<p>Select No to not save the solution file.</p>
+	</blockquote>
+	<p>&nbsp;<ul>
+		<li><i><b>You want to save the solution in the default code\bin 
+		directory suggested by VC7 if this directory is not read-only to use it 
+		later launching a new mkodt. </b></i>
+		<p>In the Save As window, click on Save button( do not modify the 
+		solution name). Your solution file will be saved in the code\bin 
+		directory where the module was found. </p>
+		<p>Then you can open source, add breakpoints and debug your module.</p>
+		<p>if you want to load this saved solution launching mkodt, you just 
+		have to launch :</p>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv</p>
+		<p>&nbsp;&nbsp;&nbsp; or :</p>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv -b MyModule</p>
+		<p>If the solution file MyModule.sln is found in the same directory that 
+		MyModule.exe, mkodt will load it by default in VC7 to get your saved 
+		debug environment.</li>
+	</ul>
+	<p>&nbsp;<ul>
+		<li><b><i>You want to save the solution in another directory (not in the 
+		code\bin default suggestion) to be able to load it with mkodt later.</i></b>
+		</li>
+	</ul>
+</ul>
+<blockquote>
+	<blockquote>
+		<p>&nbsp;In the SaveAs&nbsp; window, select the directory&nbsp; (for instance,
+		C:\Temp\MyModule.sln) where 
+		you want to save the solution file. Clikc on the save button. (You can 
+		also modify the solution name)</p>
+		<p>Then you can open source, add breakpoints and debug your module.</p>
+		<p>if you want to load this solution launching mkodt, you must launch :</p>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv=C:\Temp\MyModule.sln</p>
+		<p>&nbsp;&nbsp;&nbsp; or :</p>
+		<p>&nbsp;&nbsp;&nbsp; mkodt -s MyODT -B devenv=C:\Temp\MyModule.sln -b MyModule</p>
+		<p>NOTE : By default, if you give a solution file in the mkodt command 
+		line and if another solution is in the code\bin directory, it will be 
+		the solution of the command line that will be loaded in VC7.</p>
+		<p><b><i><font color="#ff0000">WARNING : If you save a solution file in 
+		the code\bin directory or in another directory, the executable options 
+		given in the ODT are saved.</font></i></b></p>
+		<p><b><i><font color="#ff0000">So, if you want to debug another ODT that 
+		launch the same executable, you must move or remove the solution file to 
+		take in account new options of the executable.</font></i></b></p>
+		<p>&nbsp;</p>
+	</blockquote>
+</blockquote>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Change the output directory"></a>Changing the Output Directory</h4>
+To change the output directory, there are two possibilities:
+<ol>
+  <li>use the -o mkodt's options:</li>
+  <br>
+  &nbsp;
+  <p>&nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;
+  <p><img src="images/OutputOption.gif" border="0" width="654" height="230">
+  <p>Created directories:
+  <p><img src="images/OutputOptionRes.gif" border="0" width="681" height="279">
+  <li>set the ADL_ODT_OUT variable before running mkodt:</li>
+  <br>
+  &nbsp;
+  <p>&nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;<br>
+  &nbsp;
+  <p><img src="images/ADL_ODT_OUT.gif" border="0" width="772" height="317">
+  <p>Created directories:
+  <p><img src="images/ADL_ODT_OUTRes.gif" border="0" width="661" height="252">
+  <p>If ADL_ODT_OUT is not set or if users don't use the -o option, the output
+  directory is: WSROOT/FW.tst/FunctionTests/Output/$OS. If the workspace is
+  read-only, the output will be saved in ADL_ODT_TMP.
+  <p><b><i>Example:</i></b>
+  <p><img src="images/NoOutput.gif" border="0" width="700" height="259">
+  <p>In this example, we replayed ODTs DRW*Rec* in frameworks Drafting*.tst in
+  the CXR4rel level; mkodt found 524 ODTs; Furthermore, there is no option -o in
+  the command line and the ADL_ODT_OUT is not set, so the mkodt ouput's will be
+  sqved in ADL_ODT_TMP\MKODT_save_297. The command had been interrupted by user
+  (^C).
+</ol>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<!---------------------------------comment------------------------------------->
+<h4><a name="others options : -q, -X, -l, -L"></a>Using Other Options: -q, -X,
+-html, -xml, -l, -L</h4>
+These options are used to modify the output of the mkodt command (-q, -X) or to
+give a list of ODT to replay (-L, -l):<br>
+&nbsp;
+<table border="1" width="100%" height="476">
+  <tr>
+    <th width="50%" height="19">Command Line</th>
+    <th width="50%" height="19">ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%" height="38">mkodt -d E:\users\toto\MONWS -a -S -q -o
+      E:\users\toto\output -b CNEXT (intel_a)</td>
+    <td width="50%" height="38">Replay all Switch ODTs of MONWS in quiet mode.</td>
+  </tr>
+  <tr>
+    <td width="50%" height="38">mkodt -d /u/users/toto\MONWS -s CCPCutRec -X -o
+      E:\users\toto\output -b CNEXT -B dbx (aix_a)</td>
+    <td width="50%" height="38">The ODT CCPCutRec will be replayed and its
+      output will be redirected on output screen in real time.</td>
+  </tr>
+  <tr>
+    <td width="50%" height="41">mkodt -d /u/users/toto\MONWS -s CCPCutRec -html
+      -o E:\users\toto\output&nbsp;</td>
+    <td width="50%" height="41">The ODT CCPCutRec will be replayed and an html
+      output will be created in E:\users\toto\output\ToolsData\TestAuto\mkodt\<i>{OS}</i>\mkodt_result.html</td>
+  </tr>
+  <tr>
+    <td>mkodt -d /u/users/toto\MONWS -s CCPCutRec -xml -o
+      E:\users\toto\output&nbsp;</td>
+    <td>The ODT CCPCutRec will be replayed and an xml output will be created in
+      E:\users\toto\output\fw.tst\FunctionTests\Output\{OS}\CCPCutRec.mkodt_result.xml<br>
+      It contains xml data like this :<br>
+      - &lt;REPLAYRESULT&gt;<br>
+      &nbsp; &lt;WS name=&quot;MONWS&quot; /&gt;&nbsp;<br>
+      - &lt;ODTRESULT rc=&quot;0&quot; os=&quot;<i>&lt;OS&gt;</i>&quot;
+      pertinence=&quot;1&quot; rundate=&quot;2004-01-15-11-15-57&quot;
+      elapsedtime=&quot;00:01&quot;&gt;<br>
+      &nbsp; &lt;ODT name=&quot;CCPCutRec&quot; fw=&quot;MyFw.tst&quot;
+      /&gt;&nbsp;<br>
+      &nbsp; &lt;/ODTRESULT&gt;<br>
+      &nbsp; &lt;/REPLAYRESULT&gt;</td>
+  </tr>
+  <tr>
+    <td width="50%" height="152">mkodt -d /u/users/toto\MONWS -L
+      /u/users/toto\MONWS/ FileListODT -X -o E:\users\toto\output -b CNEXT -B
+      dbx (aix_a)
+      <p>or
+      <p>mkodt -d /u/users/toto\MONWS -L FileListODT -X -o E:\users\toto\output
+      -b CNEXT -B dbx (aix_a) (if FileListODT is under the Workspace)</td>
+    <td width="50%" height="152">The file FileListODT contains the ODT list to
+      replay; This file has the following format:
+      <p>FW1 TypeODT ODTName1
+      <p>FW2 TypeODT ODTName2
+      <p>??</td>
+  </tr>
+  <tr>
+    <td width="50%" height="152">mkodt -d /u/users/toto\MONWS -s FileListFWODT
+      -X -o E:\users\toto\output -b CNEXT -B dbx (aix_a)
+      <p>or
+      <p>mkodt -d /u/users/toto\MONWS -s FileListFWODT -X -o
+      E:\users\toto\output -b CNEXT -B dbx (aix_a)</td>
+    <td width="50%" height="152">The file FileListFWODT contain the ODT list to
+      replay; This file has the following format:
+      <p>ODTName1
+      <p>ODTName2
+      <p>...</td>
+  </tr>
+</table>
+<div align="right">
+  [<a href="#Top">Top</a>]
+</div>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="TOP">Version: <b>1</b> [Jan 2000]</td>
+    <td valign="TOP">Document created</td>
+  </tr>
+  <tr>
+    <td align="RIGHT" valign="TOP" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i>
+
+</body>
+
+</html>

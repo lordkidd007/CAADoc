@@ -1,0 +1,374 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding a Catalog Browser Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Understanding a Catalog Browser Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<caption></caption>
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A Catalog can hold tens of thousands of objects that you can instantiate 
+		in your model (Product, Functional, Logical). A Catalog Browser, a command 
+		accessible across all application workbenches enables you to query for a 
+		specific catalog in database, identify and load it in session, browse through 
+		a catalog and finally identify and instantiate a catalog item in your design 
+		context.</p>
+		<p>This article deals with integrating your own command in CATIA which launches 
+		our Catalog Browser, customized to our specific needs, essentially to enhance 
+		the productivity of the CAA user.</p>
+		<p>The article covers</p>
+		<ul>
+			<li><a href="#Nutshell">Catalog, in a Nutshell</a></li>
+			<li><a href="#Functionality">The Catalog Browser Functionality</a></li>
+			<li><a href="#Why">Why Customize a Catalog Browser?</a></li>
+			<li><a href="#How">How to Customizing a Catalog Browser?</a>
+				<ul>
+					<li><a href="#Pointer">How to Retrieve a Catalog Pointer?</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Nutshell"></a>Catalog in a Nutshell</h2>
+<p>Customers need to manage a growing number of standard components like screws, 
+nuts, ball bearings etc. By manage, we imply that these have to be properly categorized 
+and stored in the database, to easily retrieve them with queries built with characteristics 
+as shape, size, color associated with each component. A Catalog is a PLM Entity 
+which provides a coherent means to store and classify so as to effectively manage 
+these standard components in a PLM Database.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Functionality"></a>The Catalog Browser Functionality</h2>
+<p>Now that a Catalog holds tens of thousands of items, it is obvious to provide 
+a &quot;catalog search&quot; capability that enables user to query and load catalog 
+classified objects that they are interested in, in their own design contexts. This 
+capability is provided by a &quot;Catalog Filter&quot; command available in a &quot;Catalog 
+Editor&quot;, an editor which typically handles a Catalog in session.</p>
+<p>It is significant to note here that this &quot;Catalog Filter&quot; capability 
+is restricted to within a Catalog Editor. This catalog search and load functionality 
+is extended across all DS applications by the Catalog Browser command (available 
+as Tools submenu), within the General Workshop. The [<a href="#Fig1">Fig. 1</a>] 
+depicts a Catalog Browser.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Catalog Browser</caption>
+	<tr>
+		<td>
+		<img alt="Catalog Browser" height="229" src="images/CAACLGTaCustomizingCtlgBrowser_Fig1.jpg" width="626"/></td>
+	</tr>
+</table>
+<p>A &quot;<strong>Catalog1090</strong>&quot; has been identified to be browsed 
+through. Its structure is displayed in the browser panel. It consists of a
+<strong>Chapter1170</strong> beneath it.</p>
+<p>This chapter has a set of items in it. Each item inherits from its aggregating 
+chapter, a keyword (attribute), by the name, MyReal. We run a query (<strong>MyReal==60</strong>) 
+on this chapter, and it outputs a list of items which conform to this query criteria. 
+In this case, <strong>Product27348</strong>--- is listed in the Catalog Browser 
+panel.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Why"></a>Why Customize a Catalog Browser?</h2>
+<p>To begin with, let us consider the way a Catalog Browser is used in normal CATIA 
+context.</p>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2: The Standard Catalog Browser Panel</caption>
+	<tr>
+		<td>
+		<img alt="Standard Catalog Browser Panel" height="229" src="images/CAACLGTaCustomizingCtlgBrowser_Fig3.gif" width="626"/></td>
+	</tr>
+</table>
+<p>The &quot;Catalog Browser&quot; dialog panel, as depicted in [<a href="#Fig2">Fig.2</a>] 
+appears. The user has to next update it with the &quot;Catalog for browse&quot; 
+and the Filter to list those classified items within, which meet this query criteria. 
+To identify the Catalog for Browsing, user clicks the &quot;More&quot; button.</p>
+<table>
+	<caption><a name="Fig3"></a>Fig. 3: Catalog Search Panel</caption>
+	<tr>
+		<td>
+		<img alt="Catalog Search Panel" height="315" src="images/CAACLGTaCustomizingCtlgBrowser_Fig4.jpg" width="391"/></td>
+	</tr>
+</table>
+<p>The action associated with the &quot;More&quot; button click, launches the &quot;Search&quot; 
+panel for Catalogs as depicted in [<a href="#Fig3">Fig. 3</a>] above. User inputs 
+his criteria (Catalog*, for eg.) and clicks &quot;Search&quot;. The query is run 
+and a list of Catalogs are listed.</p>
+<table>
+	<caption><a name="Fig4"></a>Fig. 4: Catalog Browser Panel with Output of the 
+	Query Run</caption>
+	<tr>
+		<td>
+		<img alt="Catalog Browser Panel with Output of the Query Run" height="229" src="images/CAACLGTaCustomizingCtlgBrowser_Fig5.jpg" width="626"/></td>
+	</tr>
+</table>
+<p>User selects a Catalog from the list for browse. It eventually gets updated in 
+the &quot;Catalog Browser&quot; panel as depicted in [<a href="#Fig4">Fig. 4</a>] 
+above.</p>
+<p>The next step involves building a Query for searching the Catalog. User clicks &quot;Filter&quot; 
+and the event associated, launches the &quot;Filter Assistance&quot; panel as depicted 
+in [<a href="#Fig5">Fig. 5</a>] below.</p>
+<table>
+	<caption><a name="Fig5"></a>Fig. 5: Filter Panel to Build Query</caption>
+	<tr>
+		<td>
+		<img alt="Filter Panel to Build Query" height="439" src="images/CAACLGTaCustomizingCtlgBrowser_Fig6.jpg" width="457"/></td>
+	</tr>
+</table>
+<p>User can either type the query explicitly or the drop-down combo assists him 
+in selecting the Keyword (diameter) and Operator (= =) to build the query. The diameter 
+value is ofcourse, input by the user. The query thus built (Diameter==65) gets updated 
+in the &quot;Catalog Browser&quot; panel [<a href="#Fig5">Fig. 5</a>] and the list 
+of classified items which conform to that criteria are listed in the panel.</p>
+<p>This brings us to an <strong>important observation</strong>. You'll notice interacting 
+with the Catalog Browser, the standard way, as depicted above, involves quite a 
+few steps, and in a typical industrial scenario for eg. if an end user is seeking 
+frequently from the database, a screw of a specific diameter, then this results 
+in a <strong>huge overhead</strong>. Moreover, when multiple users across an organization, 
+are involved in such interactions. it amounts to an <strong>immense loss in productivity</strong>.</p>
+<p>It is here that we realize the significance of customizing a Catalog Browser. 
+For a standard scenario like this the customization will:</p>
+<ul>
+	<li>Hard code the Catalog.</li>
+	<li>Hard code the filter to a limited extent (since keyword &quot;Diameter&quot; 
+		can be preset).</li>
+	<li>Seek bare minimum inputs from the user (screw diameter value for search).</li>
+</ul>
+<p>In the long run, customizations like these certainly, contribute to an enormous 
+saving in terms of time and efforts for CAA end users.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="How"></a>How to Customize a Catalog Browser?</h2>
+<p>Customizing a Catalog Browser essentially involves loading the &quot;Catalog 
+to Browse&quot; in session, initializing the browser panel with this catalog, and 
+building the query criteria seeking from the user, bare minimum inputs. By &quot;bare 
+minimum&quot; it is implied, that if a user frequently seeks screws of varying diameter 
+values from the catalog, the keyword &quot;diameter&quot; could be hardcoded in 
+our query, while we seek the diameter values at run time from the user.</p>
+<p>The steps involved in this customization are listed below. The CAA Openness is 
+provided by the PLMLibraryInterfaces framework.The detailed implementation occurs 
+in the Use Case [<a href="#References">1</a>].</p>
+<ul>
+	<li><strong>Create a Catalog Browser</strong>: A sample customization code follows:
+		<pre class="code">...
+  CATIPLMComponent* piPLMCompOnCLG = NULL;
+  HRESULT rc = OpenCatalogInSession(piPLMCompOnCLG);
+  ...
+  _pCurntEditor = CATFrmEditor::GetCurrentEditor();
+  ...
+  PLMICLGCatalogBrowserFactory * piCLGBrowsrFactory= NULL;
+  <strong>rc = _pCurntEditor-&gt;QueryInterface(IID_PLMICLGCatalogBrowserFactory, (void**)&amp;piCLGBrowsrFactory);</strong>
+  ...
+  rc = <strong>piCLGBrowsrFactory-&gt;OpenCatalogBrowser</strong>(_piCLGBrowser,piPLMCompOnCLG);</pre>
+		<p>An Editor serves as a factory to create a Catalog Browser. Its PMICLGCatalogBrowserFactory::OpenCatalogBrowser 
+		implementation returns a Catalog Browser. To begin with, a &quot;Catalog 
+		for Browse&quot; is loaded in session. Its one of the input arguments for 
+		the OpenCatalogBrowser call. The Browser is initialized with this Catalog, 
+		to begin with. Its mandatory to load a Catalog in session, to be able to 
+		browse through it.</p>
+	</li>
+	<li><strong>Build a Query</strong>: A sample customization code follows
+		<pre class="code">...
+	PLMICLGCatalogFilter *piCLGFilter =NULL;
+	
+	<strong>PLMCLGPublicCatalogFactoryServices *pCLGFactoryServices= new PLMCLGPublicCatalogFactoryServices;</strong>
+...		
+       <strong>rc = pCLGFactoryServices-&gt;CreateFilterObject(piCLGFilter);</strong>
+...
+	_ListOfKeywords.Append(&quot;Diameter&quot;);
+	_ListOfOperators.Append(&quot;&lt;=&quot;);
+	CATListOfCATUnicodeString _ListOfValues;
+
+	CATUnicodeString strUserInputDiameter =  &quot;10&quot;; 
+	_ListOfValues.Append(strUserInputDiameter);
+         _AndOr_condtn = &quot;1&quot;;	
+         <strong>rc = piCLGFilter-&gt;SetConditions(_ListOfKeywords,_ListOfOperators,
+				    _ListOfValues,	_AndOr_condtn);</strong>
+...
+	PLMICLGCatalogFilter_var  spiCLGFilter(piCLGFilter);
+	<strong>rc =  _piCLGBrowser-&gt;SetFilter(spiCLGFilter) ;</strong>
+...</pre>
+		<ul>
+			<li>To begin with, a factory is retrieved. This factory creates a Catalog 
+				Filter object.</li>
+			<li>The search criteria is built with several conditional expressions 
+				linked by an And/Or condition</li>
+			<li>Each conditional expression consists of an attribute (Keyword), 
+				a relational Operator and an attribute value. A list of each of 
+				those elements, (of equal size) result in a set of conditional expressions. 
+				Examples: Size &gt;= 15, Length &lt;= 30, Color Like &quot;blue&quot;. 
+				Please note the keywords, operators and values are input as a CATUnicodeString 
+				type. Internally though, within the expressions, non-string types 
+				(int, double, the operators) are recognized by their real types.</li>
+		</ul>
+	</li>
+	<li><strong>Display the Browser dialog panel</strong>: The dialog panel is launched. 
+		It has the &quot;Catalog to browse&quot; and the Filter initialized in it. 
+		A sample customization code follows
+		<pre class="code">      HRESULT	 rc = <strong>_piCLGBrowser-&gt;GetBrowserDialog</strong>(_pBrowserDialog);
+...
+      _pBrowserDialog-&gt;SetVisibility(CATDlgShow);	
+<strong>      _pBrowserDialog-&gt;SetFather(this)</strong>;
+      AddAnalyseNotificationCB(_pBrowserDialog,
+			  _pBrowserDialog-&gt;GetDiaCLOSENotification(),
+			 (CATCommandMethod)&amp;CAACLGLaunchCtlgBrowser::OnBrowserDlgClose,
+	           	   NULL);</pre>
+		<p>The Catalog Browser, a CAA Component handled by the PLMICLGCatalogBrowser 
+		Interface manages the browser dialog box, which represents the Catalog Browser 
+		UI. The call to PLMICLGCatalogBrowser::GetBrowserDialog() returns the dialog 
+		box. The call to CATDlgDialog::SetFather() sets our CATCommand as the dialog 
+		box father. All notifications thus sent by the browser dialog panel are 
+		handled by our CATCommand. The user runs the query interactively. The output 
+		is listed in the panel. Typically, in a standard scenario, user selects 
+		an item further handled by the contextual menu command, whose implementation 
+		is governed by the Business Logic of individual applications. For our customization, 
+		the code to handle the selected items, is written in an action method associated 
+		with the Browser panel close event.</p>
+	</li>
+	<li><strong>Retrieve the user selection</strong>: This occurs in the action 
+		method associated with the Browser dialog panel close event.
+		<pre class="code"> 	CATLISTV(CATBaseUnknown_var) listResults;
+...		
+<strong>         rc = _piCLGBrowser-&gt;GetSelectedObjects(listResults);	
+</strong>...</pre>
+		<p>The PLMICLGCatalogBrowser::GetSelectedObjects() retrieves the user selection.</p>
+	</li>
+	<li><strong>Retrieve information of each item</strong>. An item in the output 
+		list could either point to a PLM Entity or a featire (non-PLM Entity). In 
+		either case, it is essentially managed by its PLMICLGBrowserItem implementation. 
+		This Interfaces exposes the services to retrieve generic information associated 
+		with a Catalog item.
+		<pre class="code">  CATBaseUnknown_var spSelected_elem = listResults[i];
+...
+	PLMICLGBrowserItem *piBrowseritem = NULL;
+...				
+  HRESULT rc = <strong>spSelected_elem-&gt;QueryInterface(IID_PLMICLGBrowserItem,(void**)&amp;piBrowseritem)</strong>;
+...
+	CATUnicodeString Elem_name;
+	<strong>piBrowseritem-&gt;GetName</strong>(Elem_name);
+...
+	PLMICLGBrowserPLMItem *piBrowserPLMitem = NULL;
+	rc = <strong>spSelected_elem-&gt;QueryInterface(IID_PLMICLGBrowserPLMItem,(void**)&amp;piBrowserPLMitem)</strong>;
+	CATIAdpPLMIdentificator *piIdentificatorOfPLMComp=NULL;
+	rc = <strong>piBrowserPLMitem-&gt;GetObject</strong>(piIdentificatorOfPLMComp);
+...</pre>
+		<p>The PLMICLGBrowserItem::GetName implementation on a Catalog item, retrieves 
+		its name. A Catalog item could either point to a PLM Entity or a feature 
+		(non-PLM Entity like User Defined Feature, Power Copy). If an item links 
+		to a PLM Entity, then its PLMICLGBrowserPLMItem implementation enables us 
+		retrieve the PLM Identificator of the pointed PLM Entity.</p>
+		<pre class="code">...
+	PLMICLGBrowserPLMItem *piBrowserPLMitem = NULL;
+	rc = <strong>spSelected_elem-&gt;QueryInterface(IID_PLMICLGBrowserPLMItem,(void**)&amp;piBrowserPLMitem)</strong>;
+	CATIAdpPLMIdentificator *piIdentificatorOfPLMComp=NULL;
+	rc = <strong>piBrowserPLMitem-&gt;GetObject</strong>(piIdentificatorOfPLMComp);
+...</pre>
+		<p>The PLMICLGBrowserPLMItem::GetObject implementation on a catalog item, 
+		returns the PLMIdentificator of the PLM Entity, the item points to. The 
+		return is a CATIAdpPLMIdentificator* type. Once a user get access to this 
+		PLM Entity, it is handled thereafter, by the Business Logic of the user 
+		applications. It is significant to note here that all items of a Catalog, 
+		including those which link to a non-PLM entity, as well, implement the PLMICLGBrowserPLMItem. 
+		Thus the QI call for this Interface returns SUCCESS for all cases. For an 
+		item which links to a non-PLM entity type, though, the call to PLMICLGBrowserPLMIter::GetObject() 
+		call fails.</p>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Pointer"></a>How to Retrieve a Catalog Pointer?</h3>
+<p>To query and load any PLM Entity in session, the most essential input is its 
+ADP Type, course in addition to its IdentificationSet attributes.</p>
+<p>A <strong>CATALOG</strong> Modeler specializes the PLM Core and delivers it in 
+the <strong>ENOCLG_LIBRARY</strong> package. This package specializes the
+<strong>PLMCoreReference</strong> as <strong>ENOCLG_LibraryReference</strong>, commonly 
+referred to as the &quot;<strong>Catalog</strong>&quot; class.</p>
+<p>The <strong>ENOCLG_LIBRARY</strong> is further customized and delivered in the
+<strong>ENOCLG_LIBRARY_DS</strong> package. In this customization, the Catalog class 
+is further specialized to <strong>ENOCLG_DS_LibraryReference</strong>, commonly 
+referred to as &quot;<strong>Catalog DS</strong>&quot;. This type is the usable 
+type for our Catalog, an input while we query for it in the underlying PLM Database, 
+in the VPM Environment.</p>
+<p>Also as soon as our Catalog is loaded in session, its inserted within a dedicated 
+BAG, deployed exclusively to handle its lifecycle in session. This ensures that 
+our Catalog remains in session, as long as our application requires access to it.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This Technical Article dealt with the customization of a Catalog Browser.</p>
+<p>Customers need to manage frequently tens of thousands of standard components 
+like screws, nuts, ball bearings etc. A Catalog is a PLM entity which provides a 
+coherent means to classify and store so as to effectively manage these standard 
+components in a PLM Database. A &quot;Catalog Filter&quot; enables us to retrieve 
+these components with queries built with characteristics such as shape, size, color 
+associated with each of them and instantiate them in your design context. But this 
+capability is restricted to the &quot;Catalog Editor&quot;. This capability is extended 
+across all application workbenches (CATIA / DELMIA / SIMULIA) with the &quot;Catalog 
+Browser&quot; command, provided by the General Workshop, in its Tools menu.</p>
+<p>In an industrial scenario, it is common that users across the organization, seek 
+frequently standard components like screws of a varying diameters, by interacting 
+with the Catalog Browser. On customizing the Catalog Browser, the Catalog and the 
+Query could be partly initialized, so that we seek from an end-user only those inputs 
+which are bare minimum (just the diameter value for example). This results in querying 
+the database for components with relative ease, and amounts to a huge increase in 
+productivity especially when multiple users are involved in such interactions more 
+frequently.</p>
+<p>This Customization is possible thanks to the Openness provided by CAA. It is 
+significant to note that this customization is limited to the &quot;Catalog Browser&quot; 
+UI, by accessing the services exposed by the <code>PLMLibraryInterfaces</code> framework. 
+On selecting the classified items output by the query, its usage further is governed 
+by the &quot;Business Logic&quot; defined by the Application Developers, a Catalog 
+Usage Interface Implementation, which is not CAA Exposed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAACLGUcCustomizingCatalogBrowser.htm">Integrating a Customized 
+		Catalog Browser in your Command</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCusto.htm')">
+		Understanding PLM Modeler and Customization</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Mar 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

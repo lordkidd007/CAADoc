@@ -1,0 +1,219 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Error</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Understanding PLM Error</h1>
+		</td>
+		<td rowspan="2" align="right" valign="top">
+		<p></p>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The Error Management, was so far done with a <code>CATError</code> object, 
+		which typically lets us have access only to the last of the sequence of 
+		errors that might result from any operation. Currently, atleast for the 
+		PLM Server Access Operations, the Error Management Strategy has evolved 
+		to include an Error Stack which contains an entire list of errors resulting 
+		from such operations, and thus letting an end-user access any of those errors. 
+		It is significant to note that an E_INVALIDARG return is not considered 
+		as an error to be handled by an ErrorStack class.</p>
+		<p>Our focus in this article is on the methodology of error management exclusively 
+		for the PLM Server Access Operations like QEOPS, Versioning, Maturity etc. 
+		It also delves further into the details of the recommended deployment of 
+		this error management strategy in the Client Application.</p>
+		<ul>
+			<li><a href="#Part1">Introduction</a></li>
+			<li><a href="#The CATIAdpPLMErrorReviewer Handle">The Error Stack Class</a></li>
+			<li><a href="#The PLM Error Class">The PLM Error Class</a></li>
+			<li><a href="#In Short">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Introduction</h2>
+<p>The management of errors associated with the PLM Server Access Operations on 
+the client side is fundamentally managed with the aid of CAA Components, listed 
+below</p>
+<ul>
+	<li>The Error Stack Class, handled by a <code><em>CATIAdpPLMErrorReviewer</em></code> 
+	type</li>
+	<li>A Factory Class, a <code>CATAdpPLMErrorReviewerFactory</code><em></em> type, 
+	responsible for creating the Error Stacks</li>
+	<li>An Iterator, a <code><em>CATIAdpPLMErrorIterator</em></code> type, to parse 
+	through the contents of the Error Stack</li>
+	<li>A <code><em>CATIAdpPLMError</em></code> handle, to access the content of 
+	each unitary Error Cell stored within an Error Stack</li>
+</ul>
+<p>An illustrative deployment of these classes, as recommended in the client application 
+occurs in the UC [<a href="#References">1</a>]. This Technical Article fundamentally 
+focusses on typical features of an Error Stack Class, which one should take into 
+consideration while deploying it in the client applications. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="The CATIAdpPLMErrorReviewer Handle"></a>The Error Stack Class</h2>
+<p>The <code><em>CATIAdpPLMErrorReviewer</em> </code>Interface is a handle dedicated 
+to the management of all errors raised by a (series) of PLM Server Access operation(s) 
+on PLM Components. (QEOPS, Component Lifecycle operations like Maturity, Versioning 
+etc.) This Interface actually handles a PLM Error Reviewer object which acts as 
+a stack for all errors on the client side raised during these operations. It is 
+significant to note that an E_INVALIDARG return is not considered as an error to 
+be managed by the Error Stack class. The PLMErrorReviewer object is designed to 
+be used on the client side both in interactive and batch contexts.</p>
+<p>A significant point to note here (which can also be treated as a <strong>Word 
+Of Caution</strong>) is with regard to the typical features of the ErrorReviewer 
+object. </p>
+<p>The same PLMError Reviewer object could be used sequentially to call several 
+PLM Operations. Subsequent errors raised by each operation are appended to the current 
+set of errors contained by the Reviewer object. Please note that the Error Stack 
+could be populated only by a PLM Server Access Operation, on encountering an error. 
+Meaning, the application does not have the liberty to add its own PLM Error to the 
+stack.</p>
+<p>But then, each time this Reviewer object is updated, a new Iterator has to be 
+retrieved to parse through it. This is illustrated by the representative code below</p>
+<pre class="code">        Retrieve PLMErrorReviewer1
+	Call Method1 with ErrorReviewer1
+	Get Pointer to Iterator1 (on PLMErrorReviewer1)
+				      (Outputs 1 Error)
+	Call Method2 with same ErrorReviewer1
+	With old Iterator1 (Still outputs 1 Error)
+	Get Pointer to new Iterator2 (on PLMErrorReviewer1, again)
+						(Outputs 2 Errors) </pre>
+<p>To begin with, PLMErrorReviewer1 is retrieved. This is followed by a call to 
+a PLM Server Access Method1, which fails, thus appending the ErrorReviewer1 with 
+one error.</p>
+<p>We then retrieve a pointer to Iterator1 (on PLMErrorReviewer1), through which 
+we access the only error, corresponding to the failure of Method1.</p>
+<p>We then make another PLM Server Access call to Method2, which also fails. Since 
+we pass the same PLMErrorReviewer1 object, the new error is appended to ErrorReviewer1 
+itself.</p>
+<p>But its important to note the previous Iterator1 allows us access only to the 
+first error. It is essential to retrieve a ponter to the new Iterator2 (on the same 
+PLMErrorReviewer1), which would now allow us access to both the errors. This Use 
+Case [<a href="#References">1</a>] deals with this scenario.</p>
+<p>Now there could be a case when in a session, several ErrorReviewers may exist 
+at the same time in the current session for distinct uses. Effectively, it implies 
+that we have a dedicated ErrorReviewer for specific PLM Services. </p>
+<p>But it should be noted that it is not possible for us to cleanup and reuse an 
+existing ErrorReviewer. This calls for creating a new ErrorReviewer each time, it 
+is required, as the representative code extract below illustrates.</p>
+<pre class="code">        Retrieve PLMErrorReviewer1
+	Call Method1 
+	Get Pointer to Iterator1 (Outputs 1 Error)
+	Delete PLMErrorReveiwer1
+	Retrieve PLMErrorReviewer2
+	Call Method2 with the new PLMErrorReviewer2
+	Get Pointer to new Iterator2 (onPLMErrorReviewer2)
+			    (Outputs 1 Error,the last one) 
+</pre>
+<p>Yet again, we retrieve PLMErrorReviewer1. It is passed as a parameter to a PLM 
+Server Access Method1, which we confirm fails. As a result, ErrorReviewer1 is appended 
+by one error.</p>
+<p>Next we retrieve a new PLMErrorReviewer2 and pass it on to another PLM Server 
+Access Method2, which we confirm fails. ErrorReviewer2 is appended by this error.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="The PLM Error Class"></a>The PLM Error Class</h2>
+<p>In the previous section, we had an Error Stack populated with a sequence of errors 
+associated with a failure of a PLM Server Access operation. It is through the <i>
+CATIAdpPLMError</i> handle that each unitary Error cell within the stack, is accessed.</p>
+<p>Through this Interface, user can retrieve the elementary data associated with 
+each PLM Error. Since we deal with a PLM Server Access Operation, the errors would 
+normally be associated with a PLM Component Identificator, which could be retrieved 
+from the PLM Error. But then, a PLM Component Identificator may not exist, particularly 
+for a global system error which is associated not with any specific component, but 
+impacts all components handled by an operation.</p>
+<p>A sample output of the information that could be retrieved from the PLM Error 
+class is depicted below (to be modified)</p>
+<pre class="code">...
+ Iterator1 Error No. :1
+   No component associated to this PLM error: this is a global system error.
+Error details :
+   ---------------------------------------------------
+   Id         : 4294967295
+   MsgId      :
+   MsgCatalog : CATAdpErrorCell.cat
+   Name       : ?Invalid Id?
+   MessageText: No entry found for error id 0xffffffff
+   NLSMessage : &lt;CATAdpErrorCell -1 &gt;
+   raised by  :
+   line No.   : 0
+   -------------------------------------------------
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="In Short"></a>In Short</h2>
+<p>To summarize, this Technical Article primarily dealt with the Error Management 
+for exclusively the PLM Server Access Operations, on the client side, in both interactive 
+and batch contexts. The PLM Server Access operations include QEOPS, Versioning, 
+Maturity, Lock and Unlock.</p>
+<p>This is accomplished through objects of an Error Stack Class (<code><em>CATIAdpPLMErrorReviewer</em></code>), 
+its Iterator (<code><em>CATIAdpPLMErrorIterator</em></code>) and <code><em>CATIAdpPLMError</em></code>, 
+a handle to access each unitary PLM Error in the Stack. The UC[<a href="#References">1</a>] 
+includes a scenario which illustrates this actual deployment of the error management 
+in the client code.</p>
+<p>This article fundamentally focuses on certain typical features of the PLMErrorReviewer 
+class and the way it effects its deployment in the client code. There can be several 
+Error Reviewers co-existing in the same session for distinct uses, meaning we could 
+have a dedicated Error Reviewer for specific PLM Services. </p>
+<p>The same PLMError Reviewer object could be used sequentially as a parameter to 
+several PLM Operations. Subsequent errors raised by each operation are appended 
+to the current set of errors contained by the Reviewer object. But then, each time 
+this Reviewer object is updated, a new Iterator has to be retrieved to parse through 
+it. </p>
+<p>An important point to note is that we cannot cleanup and reuse the same ErrorReviewer 
+again. User has to create a new Error Reviewer for the subsequent PLM Operations. 
+Also an E_INVALIDARG return is not considered as an error, in the context of a PLMErrorReviewer 
+error management.</p>
+<p>The errors in the Error Stack could be accessed, to retrieve elementary data 
+associated with it, most importantly the PLM Component Identificator, commonly associated 
+with the PLM Server Access Operations.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAdpUcPLMServerAccessErrorManagement.htm">Retrieving Errors 
+		of a PLM Server Access Operation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

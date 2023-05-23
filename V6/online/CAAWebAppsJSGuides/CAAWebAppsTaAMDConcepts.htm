@@ -1,0 +1,433 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>AMD Concepts</title>
+    
+    </head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>AMD Concepts</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>JavaScript is a &quot;free&quot; language which can quickly become a brake to the development and the maintenance of large projects. The first chapter explains progressively the need and the definition of a pattern code named &quot;module&quot;. This pattern, which has met a large success, has been improved with the introduction of the AMD pattern. AMD, which stands for Asynchronous Module Definition, is described in the second chapter. You will learn the concepts, and the advantages of such modules. The third chapter details some aspects of the implementation, and the recommendations in the <b>3D</b>EXPERIENCE platform  context.</p>
+            <p>For the curious, in the reference section, you will find some links [<a href="#References">1-3</a>] pointing to articles on the web.</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Javascript Module Definition</h2>
+<p>A <b>module</b> is a code pattern to define functions and variables that you <b>master the scope</b>. In the context of a large application, the encapsulation, the control names, and the mastery of what is exposed are very strong advantages in code lisibility and maintainability. We will illustrate it by an example all along this first chapter.</p>
+    <p>Let's start with the first version of <i>Device.js</i></p>
+<pre class="code">...
+var <b>inputDevices</b> = {} ;
+function <b>addInputDevice</b>(deviceName){
+   inpuDevices[deviceName]=true ;
+}
+function <b>handleDevice</b>(deviceName){
+   if (inpuDevices[deviceName]===true ) {
+	return true ;
+    }
+    return false ;
+}
+function <b>init</b>(){
+   addInputDevice("SpaceMouse");
+   loopOnDeviceEvent("SpaceMouse");
+} 
+<b>init</b>();
+...</pre>
+<p>This code can be used like that:</p>
+    <pre class="code">...
+&lt;script src=pathsource/Device.js&gt;&lt;/script&gt; 
+...</pre>
+<p>You can observe that:</p>
+    <ul>
+        <li>All variables and functions of <i>Device.js</i> are global. You insert twice this file, and in the browser you have them (global values) twice too.</li>
+        <li>All the functions (<i>addInputDevice,init,handleDevice</i>) and&nbsp;the variable (<i>inputDevices</i>) can be used by everybody inserting Device.js whereas some could be private.</li>
+    </ul>
+<p>To avoid that, the concept of <b>anonymous fonction</b> is used.&nbsp;  </p>
+    <pre class="code">...
+(<b>function</b> () {
+    var <b>inputDevices</b> = {} ;
+    function <b>addInputDevice</b>(deviceName){
+       inpuDevices[deviceName]=true ;
+    }
+    function <b>handleDevice</b>(deviceName){
+       if (inpuDevices[deviceName]===true ) {
+	    return true ;
+        }
+        return false ;
+    }
+    function <b>init</b>(){
+       addInputDevice(&#8220;SpaceMouse&#8221;);
+       loopOnDeviceEvent(&#8220;SpaceMouse&#8221;);
+    } 
+    <b>init</b>();
+}) ();
+...</pre>
+    <p>In this extreme example, everything is encapsulated. All names of functions and variables are related to the anonymous function, therefore no risk of collision with variables / functions of another js source. But this pattern has the major drawback of limiting the use of variables / functions outside the anonymous function. 
+        So we need another way that will allow us to expose 'public' objects or functions, while maintaining "internal" what should be.</p>
+    <p>We will do it with the ability for a function to <b>return a literal object </b>which<b> </b>in Javascript is a list of pairs (name, value) separated by commas.</p>
+     <pre class="code">var myObject= {
+    name  : 'the name',
+    age   :  20
+};
+</pre>
+<p>So, now lets see the third way to code Device.js </p>
+<pre class="code">
+var <b>virtualReality</b>= (function() {
+   var  inputDevices = {} ;
+   var initialized=false ;
+   function init {
+       if  (initialized === false) {
+	 virtualReality.addDevice("SpaceMouse");
+       }
+   }
+   
+   <b>return</b> {
+       <b>addInputDevice</b> : function (deviceName) {
+             virtualReality.inputDevices[deviceName]=true;
+       },
+       <b>handleDevice</b> : function (deviceName) {
+	    Init();
+             If (virtualReality. inputDevices[deviceName] === true )
+	        return true;
+             }else {
+                 return false;
+             }
+       }
+   };
+})() ;
+</pre>
+<p>This code can be used like that:</p>
+    <pre class="code">
+... 
+&lt;script src=&#8221;pathsource/Device.js&#8221;&gt;&lt;/script &gt;
+virtualReality.handleDevice(&#8220;SpaceMouse&#8221;);
+...
+</pre>
+    <p>This anonymous function returns a literal object containing only two functions (<i>AddInputDevice</i> and <i>HandleDevice</i>), while the <i>init</i> function and the variables <i>initialized</i> and <i>inputDevices</i> stay private. This third version of Device.js is what we call a &quot;<b>module</b>&quot;. </p>
+    <p>Nevertheless this pattern has still a limitation while it still requires a global variable - here <i>virtualReality </i>-&nbsp;to receive the object exported by the anonymous function. Therefore, the <i>Device.js file</i> cannot be included twice.&nbsp; </p>
+    <p>So, in this context, <b>AMD</b> has been developed to solve at least this limitation.&nbsp; </p>
+ 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>AMD Module Definition</h2>
+    <p>An AMD module is first a module, so it has all the features seen previously:</p>
+
+    <ul>
+        <li>Creation of logical code group,</li>
+        <li>Removal of useless global variables/functions,</li>
+        <li>Enclosing private objects, to expose public objects only.</li>
+    </ul>
+<p>To that are added the following characteristics:</p>
+    <ul>
+        <li>Removal of ALL global variables,</li>
+        <li>Definition of dependancies between modules</li>
+        <li>Asynchrone code execution </li>
+    </ul>
+<p>All together these feature are implemented through two API which are <b>define</b> and <b>require</b>. </p>
+<h3><a name="Part2-1"></a>Define Function</h3>
+<p>The define function enables you to define a piece of code named module. It is the key api, the one you will mainly use. This function can have three arguments: </p>
+<pre class="code">
+define ('modulename', [dependencies] , factory );
+</pre>
+<p>Where</p>
+     <ul>
+        <li>The <b>modulename</b> argument can be optional, but in the <b>3D</b>EXPERIENCE platform  it is strongly recommanded to set one, and to follow the naming rule as detailed in the next chapter.</li>
+        <li>The <b>dependencies </b>argument, also optional, is a list of modules. The elements exported by those modules are used by the module factory. We call them also pre-requisite or required modules.</li>
+        <li>The <b>factory</b> argument is an anonymous callback function invoked when all the prerequisite modules are loaded and executed, and whose arguments are elements exported by the pre-requisite modules. The factory usually exports something. if not; it is a &quot;closed&quot; module exposing nothing. It is possible but rare.</li>
+    </ul>
+<p>Taken a basic example to illustrate that. The following example is a module exporting mathematical operations with only one argument. In this extract, the exposed operation, <i>nFirst</i>, pre-requisites an operation defined in another AMD module. The complete example is referenced here [<a href="#References">4</a>]. </p>
+<pre class="code">
+1 - <b>define</b>('DS/CAAWebAppsOperationBase/basic/<b>UnitaryOp</b>',[
+2-	'DS/CAAWebAppsOperationBase/basic/<b>BinaryOp</b>',
+3-	'DS/CAAWebAppsOperationBase/basic/<b>LogicOp'</b>
+4- ] , function (<b>binaryOp, logicOp</b> ) {
+	
+	'use strict';
+
+5-	var <b>exports</b>;
+	
+6-	exports = {
+	     
+7-		<b>nFirst</b> : function (x) {
+			if ( x &gt; 0 ) {
+			    var value=0 ;
+			    for ( var i= 1 ; i &lt;= x ; i++  ) { 
+8-                                  value = <b>binaryOp.add</b>(value,i); 
+                                }
+			    return value;
+			} else {
+			    return -1 ;
+			}
+		},		
+		 ...
+	} ;
+	
+9-	return <b>exports</b>;
+});
+</pre>
+<p>Line per line</p>
+
+    <ul>
+        <li>line 1 : the name of the module respecting the DS AMD naming rule - see next chapter </li>
+        <li>line 2 and 3 : the names of two other modules. </li>
+        <li>line 4 : the factory function whose arguments, <i>binaryOp</i> and&nbsp; <i>logicOp</i> , represent the object exported by the previous pre-requisite modules. </li>
+        <li>line 5 : the declaration of the object (<i>exports) </i>exported at the end of the factory at line 9. </li>
+        <li>line 7 : the beginning of the function, <i>nFirst. </i>This function computes the sum of the first x ( input of the function) integers. To do the sum, the <i>nFirst</i> function uses the <i>add</i> function exposed by the <i>DS/CAAWebAppsOperationBase/basic/BinaryOp</i> module represented by the <i>binaryOp</i> argument of the factory.&nbsp; </li>
+    </ul>
+<p>This module exports an element containing the operation nFirst. It will be used like that </p>
+<pre class="code">UnitaryOp.nFirst(x);</pre>
+<p>Where <i>UnitaryOp</i> is&nbsp; a representant of the <i>DS/CAAWebAppsOperationBase/basic/UnitaryOp</i> module<i>.</i></p>
+<p>
+    You can see through this basic piece of code the capabilities of the <i>define</i> function: write elegant, and simple code without using global variable, use another modules without any further declaration that the list of dependencies, and export only the necessary object. </p>
+    <p>This example has also shown how to use a module (<i>BinaryOp</i>) thanks to a pre-requisite, and inside the factory through one of its argument.&nbsp; Now let's see how it can be used by another way.</p>
+<h3><a name="Part2-2"></a>Require Function</h3>
+<p>The <i>require</i> function is another mean, besides the <i>define</i> function, to write a piece of JavaScript code that is based on other modules. This function has two arguments:</p>
+    <pre class="code">
+require ([dependencies], factory );
+</pre>
+ <p>Where</p>
+     <ul>
+        <li>The <b>dependencies </b>argument<b>,</b> optional, is the list of modules whose exported elements are required for the module factory,</li>
+        <li>The <b>factory</b> argument is an anonymous callback function called when all the prerequisite (required) modules are loaded and executed, and whose arguments are elements exported by the pre-requisite modules. But conversely to the define function, this factory never exports something.</li>
+    </ul>
+<p>The require function can be used in two contexts, either in none-reusable code or inside&nbsp; AMD modules. Let's detail.</p>
+<h4><a name="Part2-2-a"></a>Outside module</h4>
+<p>We avoid giving an example of global Javascript code since it is not recommended. We discuss the most likely case that you will be use, namely in the code of your web application, the html page</p>
+<pre class="code">
+&lt;script&gt;
+  require( ['DS/CAAWebAppsOperationBase/complex/ComplexOp',
+            <b>'DS/CAAWebAppsOperationBase/basic/UnitaryOp'</b>], function (complexOp,<b>unitaryOp</b>) { 
+    'use strict'; 
+    ...
+    onRefresh: function () {
+       var operation= ...;
+       var value= -1 ;
+       var textOp='' ;
+       if ( operation === 'NFirst'  )  {
+	      textOp='Sum first 10 numbers';
+	      value = <b>unitaryOp.nFirst(10); </b>							   
+       } 
+       ...
+       var textToDisplay="The operation " + textOp + ' is = ' + value ;
+       textToDisplay = textToDisplay + "Select Refresh/Edit menu to refresh/choose another operation"
+       <b>widget.setBody</b>(textToDisplay);
+	}
+    ...
+  } );
+&lt;/script&gt;;
+...
+</pre>
+    <p>This example is still extracted from the <i>CAAWebAppsOperationApp</i> use case [<a href="#References">4</a>]. This extract shows the use of the <i>require </i> function in the code triggered on the <i>onRefresh</i> event of the widget.&nbsp; The code consists in displaying the result of the sum of first ten integers. The module <i>DS/CAAWebAppsOperationBase/basic/UnitaryOp</i></i> exporting the <i>nFirst</i> method is declared in the dependencies list, and <i>unitaryOp, </i>argument of the <i>require</i> factory<i>, </i>is its representant.
+    When&nbsp; <i>DS/CAAWebAppsOperationBase/basic/UnitaryOp </i>is loaded and executed, the callback function is invoked, and the line <i>UnitaryOp.nFirst(10)</i> is executed. The value of the result (<i>value</i>) is valid for the string <i>textToDisplay </i>assigned to the body content since all lines are inside the factory function of the require. </p>
+<h4><a name="Part2-2-b"></a>Inside module </h4>
+<p>It is possible to use the require function inside a factory of a define function usually to solve cyclicity issue. Nevertheless, before using this possibility, try at first to redesign your code. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>AMD Module Implementation</h2>
+<p>In the previous chapter we have introduced the <i>define</i> and <i>require</i> functions. Now have a look to some implementative details.</p>
+<h3><a name="Part3-1"></a>Module Naming</h3>
+    <p>How are named the modules, how they are referenced, how the physical file is found ? Such&nbsp; questions are solved by this section.</p>
+    <h4>  Module Identification</h4>
+    <p>   The module defined with the define function can have, or not, a name, but in the context of the <b>3D</b>EXPERIENCE platform widget the recommendation is to set it. This name is based on the name of the mweb&nbsp;module [<a href="#References">5</a>] containing the javascript code. </p>
+    <pre class="code">partnername/mwebname/dir1/dir2/../sourcename  </pre>
+     <p>Where</p>
+    <table class="fill">
+        <tr>
+            <td>partnername</td>
+            <td>Some letters to identity your company. For DS, the string is "DS", otherwise see the section <a href="#non DS naming">"non DS naming"</a> section</td>
+        </tr>
+        <tr>
+            <td>mwebname</td>
+            <td>the name of the web app inside the rtv ($rtv/webapps/mwebname). Without a change in the imakefile of the mweb module, by default it is the directory name of the mweb module</td>
+        </tr>
+        <tr>
+            <td>dir1/dir2/..</td>
+            <td>the path below src in the mweb module</td>
+        </tr>
+        <tr>
+            <td>sourcename</td>
+            <td>the name of the js file without its js extension containing the AMD module</td>
+        </tr>
+    </table>
+    <p>example: <i>DS/CAAWebAppsOperationBase/basic/UnitaryOp</i> defined inside <i>CAAWebAppsJS.edu/CAAWebAppsOperationBase.mweb/src/basic/UnitaryOp.js</i> [<a href="#References">4</a>].</p>
+    <h4> <a name="Part3-1-a"></a> Dependency Identification</h4>
+    <p>The dependencies are used in the <i>define</i> and <i>require</i> functions. In both cases, this argument can be optional like you can observe just below:</p>
+   <pre class="code">
+define('DS/mwebname/sourcename', function () { .... } );
+require(function () { .... } );  </pre>
+    <p>When they are required, the pre-requisit modules are referenced with their define name. The list is enclosed by [], and each element of the list is enclosed by ', and separated by a comma between them. </p>
+    <pre class="code">
+define('DS/mwebname/mymodA, <b>['DS/mwebname/mymodB','DS/mwebname/mymodC']</b>, function () { .... } );
+require(<b>[</b>'<b>DS/mwebname/mymodA</b>'<b>]</b>, function () { .... } );
+</pre>
+    <p>You can see that the way to reference the modules is the same way as how you define them. </p>
+    <h4> <a name="Part3-1-b"></a> Logical versus Physical name</h4>
+    <p>So far we have discussed the module with a name that could be called "logical." You have perhaps noticed that we have never given the path to the js file in the runtime view. 
+	The link between the "logical" and the "physical&quot; name is computed by the DS configuration of the AMD pattern. This configuration is integrated into the <i>define</i> &amp; <i>require</i> functions 
+	provided by DS. 
+        It transforms <i>partnername/mwebname/../sourcename</i> into a runtimeview path: 
+    </p>
+    <ul>
+        <li>$RTV/webapps/mwebname/<i>../sourcename</i>.js if the code is not concatened by mkmk </li>
+        <li>$RTV/webapps/mwebname/mywebname.js if the code is concatened by mkmk</li>
+    </ul>
+    <p>The build options (concatenation &amp; minification)&nbsp; for mweb modules are described in the referenced article
+	[<a href="#References">6</a>].</p>
+    <p>The  <i>define</i> &amp; <i>require</i> are <b>nativelly present into the 3D Dashbaord</b>, so you do not have to include a file defining them in your web apps html file. </p>
+ 
+   <p>Finally, for the advanced developper, notice that both are  based on <b>require.js</b>, and not <b>curl.js</b>
+<h4><a name="non DS naming"></a>non DS naming</h4> 
+<p>When the module name does not start with "DS", you have to change the AMD loader configuration. </p>
+
+<p>First declare the path: </p>
+<pre class="code">
+require.config({
+  paths: {
+    '<b>partnername</b>': 'http://example.com/js'
+  }
+});
+</pre>
+<p>This declaration can be inserted in your widget html file, or included with the &lt;script src ="..."&gt;&lt;/script&gt; tags.</p>
+<p>So when you write </p>
+<pre class="code">
+require(['partnername/webappname/dir1/.../dir2/jsnamefile'],
+  function(jsnamefile){
+    // do something with the module jsnamefile
+  }
+);
+</pre>
+<p>The <i>http://example.com/js/webappname/dir1/.../dir2/jsnamefile.js</i> is actually loaded.</p>
+<p>Some advice:</p>
+<ul>
+<li>Never update or modify the baseUrl or path for DS modules </li>
+<li>If you use mkmk tool, do not use the concatenation mode </li>
+<li>The AMD loader configuration must be done <i>before</i> to require a module. </li>
+<li>Avoid to change the AMD Loader configuration inside a module definition</li>
+</ul>
+  <h3>  <a name="Part3-2"></a>Callback function</h3>
+    <p>The <i>define</i> and <i>require</i> functions both define a piece of js code included in a function also named the 'factory'. Usually <i>define</i> exports an element, while never for <i>require</i>. </p>
+<h4><a name="Part3-3-a"></a>Anonymous function</h4>
+<p>The factory is an anonymous  function for which the arguments are the objects exported by each pre-requisite module.  The arguments are in the same order as the pre-requisite modules.</p>
+<pre class="code">define/require([dependance1,dependance2,...], function (Arg1,Arg2,...) { } ) </pre>
+    <p>Where <i>Arg1</i> represents the element returned by <i>dependance1</i>, <i>Arg2</i> represents the element returned by <i>dependance2</i>, and so one</p>
+<p>Without giving strict naming rule, we can suggest that the argument name reflects the name of the js file, the final string of the AMD module name</p>
+<pre class="code">
+1 - <b>define</b>('DS/CAAWebAppsOperationBase/basic/<b>UnitaryOp</b>',[
+2-	'DS/CAAWebAppsOperationBase/basic/<b>BinaryOp</b>',
+3-	'DS/CAAWebAppsOperationBase/basic/<b>LogicOp'</b>
+],    function<b> (binaryOp, logicOp)</b> {
+          ...
+     }
+</pre>
+<p>In this example:</p>
+    <ul>
+        <li><b>binaryOp</b> represents the <b>variable</b> returned by the module <b>BinaryOp</b></li>
+        <li><b>logicOp</b> represents the  <b>variable</b> returned by the module <b>LogicOp</b></li>
+    </ul>
+
+<h4><a name="Part3-3-b"></a>Asynchonous Callback</h4>
+<p>The factory function is a <b>callback</b> called when the pre-requisite modules are loaded and executed. This feature is a key point of the AMD pattern. Let's see with a basic sample:</p>
+    
+<pre class="code">
+1.  var val=-1 ;
+2.  require ( [module1], function (module1) {
+3.     val= module1.fct();     
+    }
+4.  log (val);
+</pre>
+    <p>The code is executed in this order : line 1, 2 and 4. It means that at line 4 the value of <i>val</i> is -1, and not the value returned by <i>module1.fct()</i>.  </p>
+    <p>The execution of line 2 consists in asking for the loading, and the execution (recursively) of each required modules. When it is over, and the event queue is ready, the callback function is executed. </p>
+<p>So usually the prevous code is writen as follows:</p>
+    <pre class="code">
+1.  var val=-1 ; 
+2.  require ( [module1], function (module1) {
+3.     val= module1.fct();    
+4.     <b>log (val); </b>
+    }
+</pre>
+    <p>The code requiring the result of an AMD module is including in the scope of the callback. </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>The <b>AMD</b> module is a js pattern providing a great flexibility in writing your javascript development by giving you the ability to define/use modules through two API: <b>define</b> and <b>require. </b> The following capabilities of the AMD pattern are the reasons of its success and fast spread in the web application development. </p>
+    <ul>
+        <li>split code in logic part, ( easier for code readibility and maintainbility)</li>
+        <li>Avoid global variables and functions,  ( mandatory for code reuse)</li>
+        <li>Keep private the internal variables and functions,  (safety code)</li>
+        <li>Encapsulate the physical path to the pre-requisites modules,  (easier to manage code location) </li>
+        <li>Implement asynchonous mechanism for the loading and the execution of the modules (do not freeze the web app when loading big data) </li>
+    </ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	 <tr>
+		<td>[1]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('https://github.com/amdjs/amdjs-api/wiki/AMD');return false;">
+			https://github.com/amdjs/amdjs-api/wiki/AMD</a></td>
+	</tr>
+    <tr>
+		<td>[2]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://www.sitepen.com/blog/2012/06/25/amd-the-definitive-source');return false;">
+			http://www.sitepen.com/blog/2012/06/25/amd-the-definitive-source</a></td>
+	</tr>
+     <tr>
+		<td>[3]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://addyosmani.com/writing-modular-js/');return false;">
+			http://addyosmani.com/writing-modular-js/</a></td>
+	</tr>
+    <tr>
+		<td>[4]</td>
+		<td><a href="CAAWebAppsUcOperationApp.htm">Defining and Using AMD Modules</a></td>
+	</tr>
+     <tr>
+		<td>[5]</td>
+		<td>mkmk & mweb module</td>
+	</tr>
+	 <tr>
+		<td>[6]</td>
+		<td><a href="CAAWebAppsTamkmkbuild.htm">Concatenation and minification, Web Module Build Options</a></td>
+	</tr>
+    
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

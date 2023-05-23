@@ -1,0 +1,951 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Importing V5 Documents Including Applicative Data into PLM</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Importing V5 Documents Including Applicative Data 
+		into PLM</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article details the concepts and restrictions to import V5 documents, 
+		with CAA data, into PLM Repository. The first step consists in to present 
+		the File Base Design Import (FBDI) principles. The second chapter explains 
+		what you have to do in order that the FBDI process takes into account data 
+		(feature) included inside containers created by your CAA application. The 
+		third chapter zooms in on different aspects of the CAA container import.</p>
+		<ul>
+			<li><a href="#Overview">Overview of FBDI</a>
+			<ul>
+				<li><a href="#Part1.1">Steps in FBDI</a></li>
+				<li><a href="#Migration">V5 Document Import</a></li>
+			</ul>
+			</li>
+			<li><a href="#Methodology">Methodology to Import 
+			CAA V5 Containers</a><ul>
+				<li><a href="#Container">CAA Container Import 
+				Principles</a></li>
+				<li><a href="#Declaration">Declaration by XML File</a>
+				</li>
+				<li><a href="#Part2.2">XML File Syntax for Containers</a></li>
+				<li><a href="#Part2.3">XML File Syntax for Feature Links</a></li>
+			</ul>
+			</li>
+			<li><a href="#Import">CAA Data Import Specificities</a>
+			<ul>
+				<li><a href="#Constraints">PLM Constraints and Limitations</a></li>
+				<li><a href="#Failure">Import Failure Cases</a></li>
+				<li><a href="#Features">Features Migration</a></li>
+				<li><a href="#Part3.3">Links Migration</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Overview"></a>Overview of FBDI</h2>
+<h3><a name="Part1.1"></a>Steps in FBDI</h3>
+<p>This chapter explains how the FBDI engine is working. We illustrate the functionality 
+with the interactive command &#8220;<em>CATIA File</em>&#8221; from the &#8220;<em>PLM Access</em>&#8221; 
+/ &quot;Import&quot; Menu.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: FBDI Steps</caption>
+	<tr>
+		<td><map name="FPMap0" id="FPMap0">
+		<area href="#Compute" shape="rect" coords="288, 68, 331, 107" alt="Compute List of Documents" />
+		<area href="#Compute" shape="rect" coords="327, 3, 418, 52" alt="Compute List of Documents" />
+		<area href="#Check" shape="rect" coords="417, 185, 467, 220" alt="Check V5 Document Migration Feasibility" />
+		<area href="#Check" shape="rect" coords="470, 228, 576, 273" alt="Check V5 Document Migration Feasibility" />
+		<area href="#Declare" shape="rect" coords="271, 196, 310, 227" alt="Declare PLM Objects" />
+		<area href="#Declare" shape="rect" coords="320, 226, 417, 275" alt="Declare PLM Objects" />
+		<area href="#Migrate" shape="rect" coords="101, 182, 169, 232" alt="Data and Links Migration" />
+		<area href="#Migrate" shape="rect" coords="168, 231, 264, 269" alt="Data and Links Migration" />
+		</map>
+		<img alt="FBDI Principles" src="images/CAACenFmgFBDIPrinciples_StepsInFBDI.png" usemap="#FPMap0"/></td>
+	</tr>
+</table>
+<p>As shown in the picture above, there are four steps in the FBDI process: (Click 
+on the picture for direct access on explanations)</p>
+<ol>
+	<li><a href="#Compute">Compute List of Documents</a></li>
+	<li><a href="#Check">Check V5 Document 
+	Migration Feasibility</a></li>
+	<li><a href="#Declare">Declare PLM Objects</a></li>
+	<li><a href="#Migrate">Data and Links Migration</a></li>
+</ol>
+<p>Each steps in detailed now.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Compute"></a>Step1: Compute List of Documents</h4>
+<p>From the file(s) selected by the end-user, a consistent set of documents is computed 
+as a list of files [<a href="#Fig.2">Fig.2</a>].</p>
+<p>Firstly, we initialize the list with the selected file(s). All the files pointed 
+by a file already in the list are also added. So, all the documents pointed by the 
+selected file(s) are added to the list. And recursively we build a list of documents 
+in which all external links are pointed documents in the list.</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig.2: Consistent Set of Documents</caption>
+	<tr>
+		<td>
+		<img alt="Consistent Set of Documents" src="images/CAACenFmgFBDIPrinciples_ListOfDocument.png"/></td>
+	</tr>
+</table>
+<p>In this step, if a pointed document is not retrieved, the FBDI report shows the 
+missing files.</p>
+<p>Once this list of document is computed, it is returned to the user. All files 
+to be migrated are shown, and the user can choose to migrate the files or just to 
+analyze if the migration is possible. When the &#8220;<em>Analyze</em>&#8221; option is selected, 
+the command only executes the next step, &#8220;<em>Check V5 Migration Documents Feasibility</em>&#8221;.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Check"></a>Step 2: Check V5 
+Document Migration Feasibility</h4>
+<p>In this step, files are introspected to check that the migration is possible. 
+For example, if a file from the list computed during the first step is a V5R1 Part, 
+since its migration is impossible, the problem would be detected here, and the FBDI 
+command would be stopped before the import of any data. In this article, we will 
+present some other limitations that can stop 
+the FBDI command during this step. See <a href="#Failure">Import Failure Cases</a>.</p>
+<p>With the &#8220;<em>Analyze</em>&#8221; option, the FBDI command is stopped at the end of 
+this method. Otherwise, if the check did not detect any problem for the migration 
+of the documents, we pass to the next step.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Declare"></a>Step 3: Declare PLM Objects</h4>
+<p>Each V5 document is migrated in one or several PLM Objects [<a href="#References">1</a>]. 
+Two examples to illustrate the purpose:</p>
+<ul>
+	<li>When importing a Part document a PLM Representation Reference, a PLM Representation 
+	Instance and a PLM Product Reference are created<table>
+		<caption>Fig.3: Part File Import</caption>
+		<tr>
+			<td>
+			<img alt="Part File Import" src="images/CAACenFmgFBDIPrinciples_MigrationOfCATPart.png"/></td>
+		</tr>
+	</table>
+	</li>
+	<li>When importing a Product document, at least a PLM Reference is created<table>
+		<caption>Fig.4: Product File Import</caption>
+		<tr>
+			<td>
+			<img alt="Product File Import" src="images/CAACenFmgFBDIPrinciples_MigrationOfCATProduct.png"/></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<p>Two remarks about these pictures:</p>
+<ol>
+	<li>You can see that PLM Objects are created from the PRODUCT modeler. For Part 
+	or Product V5 documents, it is this PLM modeler, but for other cases, it is 
+	depending on the V5 document type.</li>
+	<li>How the contents of the V5 documents are included inside these PLM Objects, 
+	is explained further in the <a href="#Migration">V5 Document Import</a> 
+	section.</li>
+</ol>
+<p>The PLM Objects that will result from each V5 document are declared in the
+<strong>Relationship Mapping Table</strong> (RMT). In the examples just below, a 
+Part to migrate will add three PLM Objects (a PLM Product Reference, its PLM Product 
+Representation instance, and the PLM Product Representation Reference), and a Product 
+document will add one (a PLM Product Reference). At the end of this step, the RMT 
+table contains all PLM Objects that will be created during the migration.</p>
+<p>This table is created in order to update links between data contained in those 
+V5 documents. This table life cycle ends at the end of the FBDI process.</p>
+<p>Once all the PLM Objects are declared, we pass to the next step.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Migrate"></a>Step 4: Data and Links Migration</h4>
+<p>Finally, the last step consists in to migrate the documents in PLM Objects as 
+declared in the previous step.</p>
+<p><strong>Data</strong> are features inside containers, and <strong>links</strong> 
+are link&#39;s attributes between features.</p>
+<p>The <strong>Links Mapping Table</strong> (LMT) is valued during the data migration 
+of each document. It is used during the link migration and is deleted at the end 
+of the link migration of a document. Its lifecycle is the duration of the migration 
+of one V5 document.</p>
+<p>The purpose of the LMT is to associate features from the V5 document with their 
+corresponding feature(s) in PLM data. When a feature is created in PLM context, 
+it generally replaces a feature from the V5 file. To keep the track of this &#8220;legacy&#8221;, 
+the LMT is used. Deleted features are also registered in this table. This table 
+is used to redirect internal (inside the document) V5 links on new features when 
+the pointed features are modified or to unset the links if the pointing features 
+are removed.</p>
+<p>For each document, the data are migrated and then links are updated using the 
+LMT and the RMT.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Migration"></a>V5 Document Import</h3>
+<p>During the step 4 data migration (See <a href="#Fig.1">Fig.1: FBDI Steps</a>), there are two very different 
+ways to deal with a V5 document. &#8220;<strong>In Situ</strong>&#8221; and &#8220;<strong>Ex Situ</strong>&#8221; 
+migration will now be introduced.</p>
+<h4><a name="InSitu"></a>In Situ Import</h4>
+<p><strong>In Situ</strong> import means two things:</p>
+<ul>
+	<li>Importing a V5 document creates a PLM Representation Reference (+ PLM Product 
+	reference + PLM Representation Instance)</li>
+	<li>V5 document is almost the main stream associated with the created PLM Representation 
+	Reference [<a href="#References">2</a>].</li>
+</ul>
+<p>Illustrating that by a picture:</p>
+<table>
+	<caption>Fig.5: In Situ Migration Import</caption>
+	<tr>
+		<td>
+		<img alt="In Situ Migration Import" src="images/CAACenFmgFBDIPrinciples_InSituMigration.png"/></td>
+	</tr>
+</table>
+<p>The main stream of the created PLM Representation reference is the V5 document 
+itself less some data (hatched zone). For a Part document its product container 
+is removed.</p>
+<p>In this import mode you have, for example, the <strong>Part</strong> document, 
+where the stream is named 3D Shape, and the <strong>Drawing</strong> document , 
+where the stream is named Drawing.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="ExSitu"></a>Ex Situ Import</h4>
+<p><strong>Ex Situ</strong> import means that the V5 document is not itself reused 
+inside the created PLM Objects. We create completely new PLM data from a V5 document.</p>
+<p><strong>Product</strong> files are mainly imported Ex Situ.</p>
+<table>
+	<caption>Fig.6: Ex Situ Import</caption>
+	<tr>
+		<td>
+		<img alt="Ex Situ Import" src="images/CAACenFmgFBDIPrinciples_ExSituMigration.png"/></td>
+	</tr>
+</table>
+<p>You can see that the Product document is imported in two kind of PLM elements:</p>
+<ul>
+	<li>PLM Product reference and PLM Product Instance to represent the PLM data 
+	of the initial Product</li>
+	<li>PLM Technological Representation [<a href="#References">3</a>] (and its 
+	instance) to contain the non PLM data of the initial Product. These non PLM 
+	data are features inside applicative container.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Methodology"></a>Methodology to Import CAA V5 
+Containers</h2>
+<p>Natively, FBDI can completely import V5 documents containing containers created 
+by DS applications. Those containers can contain CAA features, features created 
+by CAA application or DS features, the import will be complete. But if the V5 document 
+contain containers created by a CAA application, without an explicit declaration, 
+those containers will be not imported. In this chapter, we present how there are 
+imported, and how to integrate them in the FBDI process using a declarative XML 
+file.</p>
+<p>CAA features (i.e. features instantiated from a Start Up created by a CAA partner) 
+in DS containers are handled by the implementation of the container they belong 
+to. They are not involved in this process.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Container"></a>CAA Container Import Principles</h3>
+<p>There are two ways to process a container created by a CAA applications either 
+it is <strong>kept</strong>, or it is <strong>removed</strong> from the new PLM 
+data. The following pictures show where these CAA containers , when they are kept, 
+will be located according to the In or Ex Situ 
+import mode (see <a href="#Migration">V5 Document Import</a>).</p>
+<p><strong>In Situ Mode ( Part, Drawing)</strong></p>
+<table>
+	<caption><a name="Fig.7"></a>Fig.7: CAA Container With In Situ Import</caption>
+	<tr>
+		<td>
+		<img alt="CAA Container With In Situ Import" src="images/CAACenFmgFBDIPrinciples_InSituCAAContainer.png"/></td>
+	</tr>
+</table>
+<p>On this picture, you can see that:</p>
+<ul>
+	<li>Only two containers have been kept: CAA Container2 is not imported in the 
+	3DShape.</li>
+	<li>All imported CAA Container, from the same V5 document, are located in the 
+	same 3D Shape (In Situ principle)</li>
+</ul>
+<p>The naming of the PLM Objects (set of PLM Attributes) is managed by the FBDI 
+process. You can refer to the help of the FBDI command to have complete information 
+about the naming of the identifier set attributes of the created PLM Objects.</p>
+<p><strong>Ex Situ Mode (Product)</strong></p>
+<p>There are different possibilities for the Ex Situ import case.</p>
+<table>
+	<caption><a name="Fig.8a"></a>Fig.8a: One CAA Container One PLM Techno Rep</caption>
+	<tr>
+		<td>
+		<img alt="One CAA Container One PLM Techno Rep" src="images/CAACenFmgFBDIPrinciples_ExSituCAAContainer1.png"/></td>
+	</tr>
+</table>
+<p>In this first case, you can see that for each imported CAA container of the V5 
+Product, a PLM Technological Representation (and its instance) is created. It contains 
+only one stream containing the CAA container data. CAA Container2 is not imported.</p>
+<table>
+	<caption><a name="Fig.8b"></a>Fig.8b: Several CAA Containers in same PLM Techno 
+	Rep</caption>
+	<tr>
+		<td>
+		<img alt="Several CAA Containers in same PLM Techno Rep" src="images/CAACenFmgFBDIPrinciples_ExSituCAAContainer2.png"/></td>
+	</tr>
+</table>
+<p>In this second case, you can see that the imported CAA containers of the V5 Product, 
+are now located in the same PLM Technological Representation. CAA Container2 is 
+not imported.</p>
+<table>
+	<caption><a name="Fig.8c"></a>Fig.8c: CAA Containers in 3D Shape</caption>
+	<tr>
+		<td>
+		<img alt="CAA Containers in 3D Shape" src="images/CAACenFmgFBDIPrinciples_ExSituCAAContainer3.png"/></td>
+	</tr>
+</table>
+<p>In the third case, you can see that a CAA container of the V5 Product, can be 
+also located inside a 3D shape. Note that like you have the choice for the PLM Techno 
+Rep, you have the choice of the PLM Representation Reference. Another CAA container 
+could be located in the same 3D Shape as for CAA Container3, or located in another 
+3D Shape.</p>
+<p>You will see below how you can pilot the PLM Representation Reference to locate 
+your CAA container. But take care, you will see in next sections, that this openness 
+is not always possible. It depends on the contents of the CAA containers. It will 
+be detailed further.</p>
+<p>A last thing about the naming of the PLM Objects created by the Ex Situ import.</p>
+<ul>
+	<li>For all PLM Objects representing the Product Structure (PLM Product Reference 
+	/ PLM Product Instance), the PLM attributes are managed by FBDI process. You 
+	can refer to the help of the FBDI command to have complete information about 
+	the naming of the identifier set attributes of the created PLM Objects.</li>
+	<li>For PLM Representation Reference(s) (Techno Rep or 3D Shape) you will see 
+	below that you can control a part of their PLM_ExternalID value. Controlling 
+	this naming is the means to locate two containers in the same PLM Representation 
+	Reference.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Declaration"></a>Declaration by XML File </h3>
+<p>Keep or not a CAA container, choose its location in Ex Situ mode, are options 
+pilot by XML file. The DTD of such XML file is the following:</p>
+<pre class="code">&lt;!DOCTYPE <strong>CAADataForFBDI</strong> [
+&lt;!ELEMENT CAADataForFBDI (CAAContainers,CAAFeatures)&gt;
+
+&lt;!ELEMENT <strong>CAAContainers</strong> (container*)&gt;
+&lt;!ELEMENT container ()&gt;
+&lt;!ATTLIST container
+  ...
+&gt;
+&lt;!ELEMENT <strong>CAAFeatures</strong> (feature*) &gt;
+&lt;!ELEMENT feature (attribute*) &gt;
+&lt;!ATTLIST feature 
+... 
+&gt;
+]&gt;</pre>
+<ul>
+	<li>a section to manage your CAA containers</li>
+	<li>a section to manage some specific attributes of your CAA feature inside 
+	CAA containers.</li>
+</ul>
+<p>All the XML files must be stored in a folder specified in the FBDI settings panel 
+(see Tools/Options/General/FBDI General).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part2.2"></a>XML File Syntax for Containers</h3>
+<p>here the DTD section declaring how CAA containers are migrated.</p>
+<pre class="code">&lt;!ELEMENT <strong>CAAContainers</strong> (container*)&gt;
+&lt;!ELEMENT container ()&gt;
+&lt;!ATTLIST container
+  <a href="#Type"><strong>Type</strong></a> CDATA #REQUIRED
+  <a href="#docType"><strong>DocType</strong></a> CDATA #REQUIRED
+  <a href="#mode"><strong>Mode</strong></a> (Keep|Remove) #REQUIRED
+  <a href="#targetRep"><strong>TargetRep</strong></a> (TechnoRep|3DShape) #IMPLIED
+  <a href="#appId"><strong>RepId</strong></a> CDATA #IMPLIED
+&gt;
+]&gt;</pre>
+<p>Each tag is now detailed in next sub-sections.</p>
+<h4>Meaning of Each Tag</h4>
+<p><strong><a name="Type"></a>Type</strong></p>
+<p>This tag is mandatory inside the xml file, as the tag <code>#REQUIRED</code> 
+is mentioned. <code>CDATA</code> is the late type of the container.</p>
+<pre class="code">HRESULT <strong>CreateApplicativeContainer</strong>( void**  oApplicativeContainer, 
+ const CATIdent  iContainerType, 
+ const IID&amp;  iInterfaceId, 
+ const CATIdent  iContainerSuperType = &quot;&quot;, 
+ const CATUnicodeString&amp;  iIdentifier = &quot;&quot;) = 0  
+</pre>
+<p>The late type of the container is defined when using the API to create the applicative 
+container. Here the <code>CreateApplicativeContainer</code> method of <em>CATIPsiRepRefApplicativeDataAccess</em> 
+interface: (compare with the V5 method to create an applicative container, you will 
+see that they have the same arguments). The &quot;container type&quot; value, <code>CDATA</code> 
+, is the second argument of this method.</p>
+<p>Nevertheless, if your CAA container is without a special latetype, i.e. <code>
+iContainerType</code> is valuated with CATFeatCont, you must use the identifier 
+of the CAA container, the last argument (<code>iIdentifier</code>) of the <code>
+CreateApplicativeContainer</code><strong> </strong>method.</p>
+<p><strong><a name="docType"></a>DocType</strong></p>
+<p>This tag is mandatory inside the xml file, as the tag <code>#REQUIRED</code> 
+is mentioned. <code>CDATA</code> is the extension of the V5 document:</p>
+<ul>
+	<li>Part document: CATPart</li>
+	<li>Product document: CATProduct</li>
+</ul>
+<p><strong><a name="mode"></a>Mode</strong></p>
+<p>This tag is mandatory inside the xml file, as the tag <code>#REQUIRED</code> 
+is mentioned. The tag can only have two states:</p>
+<ul>
+	<li><strong>Keep</strong>: CAA V5 Container is imported</li>
+	<li><strong>Remove</strong>: CAA V5 Container is not imported.</li>
+</ul>
+<p><strong><a name="targetRep"></a>TargetRep</strong></p>
+<p>This tag is optional inside the xml file, as the tag <code>#IMPLIED</code> is 
+mentioned. The possible value are</p>
+<ul>
+	<li><strong>TechnoRep</strong>: the applicative container will be included inside 
+	a stream hold by PLM technological representation</li>
+	<li><strong>3DShape</strong>: the applicative container will be included inside 
+	a 3D shape of a PLM representation reference</li>
+</ul>
+<p>This is optional at least for the two following cases:</p>
+<ul>
+	<li>The CAA container is not imported (mode = Remove).</li>
+	<li>The import mode is In Situ (see <a href="#InSitu">In Situ Import</a>). You cannot 
+	choose the target since FBDI uses the original V5 document to be the main stream 
+	of the newly created PLM Representation Reference.</li>
+</ul>
+<p>In <a href="#ExSitu">Ex Situ Import</a>, since input V5 document 
+is not reused, FBDI proposes you, in some specific cases, to chose the type of the 
+target PLM Representation Reference: either a PLM Representation Reference with 
+a 3D Shape or a PLM Technological Representation.</p>
+<p>This array sumps up the different cases:</p>
+<table class="fill">
+	<tr>
+		<td colspan="2"><strong>About your CAA container ...</strong></td>
+		<td><strong>What to do ?</strong></td>
+	</tr>
+	<tr>
+		<td colspan="2">To Remove</td>
+		<td>Do not use the tag. If, nevertheless, you set it, FBDI will ignore it.</td>
+	</tr>
+	<tr>
+		<td colspan="2"><a href="#InSitu">In Situ Import</a> (Part, Drawing, etc.)</td>
+		<td>Do not use the tag. If, nevertheless, you set it, use 3DShape, otherwise, 
+		FBDI will raise an error.</td>
+	</tr>
+	<tr>
+		<td rowspan="3"><a href="#ExSitu">Ex Situ Import</a> (Product)</td>
+		<td>CAA Containers containing mechanical features. </td>
+		<td>You must set the tag, and the value must be: 3Dshape. Otherwise, FBDI 
+		will raise an error</td>
+	</tr>
+	<tr>
+		<td>CAA Containers containing extension feature or aggregated features</td>
+		<td>You can use the tag to set 3DShape or TechnoRep. The only one rule to 
+		respect, checked by FBDI engine, is that the two containers (those containing 
+		aggregated/extended and aggregating/extending features) have same target 
+		rep.
+		<p>By default, if the option is not explicitly specified, the CAA V5 container 
+		is considered to be imported into a PLM Technological Representation.
+		</p>
+		</td>
+	</tr>
+	<tr>
+		<td>otherwise</td>
+		<td>You can user either 3DShape or TechnoRep<p>By default, if the option 
+		is not explicitly specified, the CAA V5 container is considered to be imported 
+		into a PLM Technological Representation.</p>
+		</td>
+	</tr>
+</table>
+<p>Illustration of importing Container inside Product document including Mechanical 
+features.</p>
+<table>
+	<caption><a name="Fig.9"></a>Fig.9: Ex Situ Migration, Mechanical Feature Import</caption>
+	<tr>
+		<td>
+		<img alt="Ex Situ Migration, Mechanical Feature Import" src="images/CAACenFmgFBDIPrinciples_ExSituMigr2.png"/></td>
+	</tr>
+</table>
+<p>If CAA features are aggregating by or Extending Mechanical features, the CAA 
+container must be migrated into a 3D Shape. A container with those kind of features, 
+declared in XML file to be migrated into a Techno Rep and not into a 3D Shape, involves 
+FBDI migration failure and an error message is added in FBDI&#8217;s report file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p><strong><a name="appId"></a>RepId</strong></p>
+<p>This tag is optional inside the xml file, as the tag <code>#IMPLIED</code> is 
+mentioned. This option is useless for In Situ import. It will be only taken into 
+account in Ex Situ Import case.</p>
+<p><code>CDATA</code> is a string used to build the PLMExternal_ID value of the 
+PLM Representation Reference where your CAA container will be locate.</p>
+<p>The PLMExternal_ID is built with the concatenation of:</p>
+<ul>
+	<li>The defined prefix (optional).</li>
+	<li><code>CDATA</code> of RepId tag.</li>
+	<li>The PLMExternal_ID of the Product Reference aggregating the PLM Representation 
+	instance.</li>
+</ul>
+<p>If the tag is not explicitly valuated, by default CDATA is valuated by container 
+&#39;s type (<strong>Type</strong> tag value).</p>
+<p>If two CAA containers use the same RepId, they will be located in the same PLM 
+Representation Reference.</p>
+<p>But take care when you use this possibility: if you have a CAA Container containing 
+feature aggregating, or extended, an another feature , not located in the same container, 
+the same RepId must be used for the two containers. An error message is logged in 
+the FBDI&#8217;s report file if such a case is encountered.</p>
+<table>
+	<caption>Fig.10: Different or Same RepId for Containers</caption>
+	<tr>
+		<td>
+		<img alt="Different or Same RepId for Containers" src="images/CAACenFmgFBDIPrinciples_ExSituMigr1.png"/></td>
+	</tr>
+</table>
+<h4>Example of an XML File Using this Syntax</h4>
+<pre class="code">&lt;CAADataForFBDI&gt;
+  &lt;CAAContainers&gt;
+    &lt;container Type=&quot;<strong>MyCAAContainer1</strong>&quot; DocType=&quot;CATPart&quot; Mode=&quot;Keep&quot;&gt;&lt;/container&gt;
+    &lt;container Type=&quot;<strong>MyCAAContainer1</strong>&quot; DocType=&quot;CATProduct&quot; Mode=&quot;Remove&quot;&gt;&lt;/container&gt;
+    
+    &lt;container Type=&quot;<strong>MyCAAContainer2</strong>&quot; DocType=&quot;CATProduct&quot; Mode=&quot;Remove&quot;&gt;&lt;/container&gt;
+    
+    &lt;container Type=&quot;<strong>MyCAAContainer3</strong>&quot; DocType=&quot;CATProduct&quot; Mode=&quot;Keep&quot; 
+               TargetRep=&quot;TechnoRep&quot; RepId=&quot;MyBeautifulTechnoRep&quot;&gt;&lt;/container&gt;
+               
+    &lt;container Type=&quot;<strong>MyCAAContainer4</strong>&quot; DocType=&quot;CATProduct&quot; Mode=&quot;Keep&quot; 
+               TargetRep=&quot;3DShape&quot;&gt;&lt;/container&gt;
+  &lt;/CAAContainers&gt;
+&lt;/CAADataForFBDI&gt;</pre>
+<p>In this example:</p>
+<ul>
+	<li>Containers of type &#8220;MyCAAContainer1&#8221; located in Part files will be imported 
+	as is in a 3D Shape, whereas the same kind of container located in Product will 
+	be removed.</li>
+	<li>Containers of type &#8220;MyCAAContainer2&#8221; located in CATProduct will be removed 
+	since &quot;Remove&quot; mode is chosen.</li>
+	<li>Containers of type &#8220;MyCAAContainer3&#8221; located in Product files will be imported 
+	as is in a Techno Rep whose the PLMExternalID will be build with the string: 
+	&#8220;MyBeautifulTechnoRep&#8221;.</li>
+	<li>Containers of type &#8220;MyCAAContainer4&#8221; located in Product files will be imported 
+	as is in a 3DShape whose the PLMExternalID will be build with the string is 
+	&#8220;MyCAAContainer4&#8221;, since <code>RepId</code> is not mentioned.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Part2.3"></a>XML File Syntax for Feature Links</h3>
+<p>Here it is important to know the PLM concepts about the feature&#39;s link. [<a href="#References">6</a>]</p>
+<p>Here the DTD section of XML files declaring how CAA Features links are migrated.</p>
+<pre class="code">&lt;!DOCTYPE CAADataForFBDI [
+&lt;!ELEMENT CAADataForFBDI (CAAContainers,CAAFeatures)&gt;
+&lt;!ELEMENT CAAFeatures (feature*) &gt;
+&lt;!ELEMENT feature (attribute*) &gt;
+&lt;!ATTLIST feature 
+	type CDATA #REQUIRED &gt;
+&lt;!ELEMENT attribute () &gt;
+&lt;!ATTLIST attribute
+	<strong>OldAttr</strong> CDATA #REQUIRED
+	<strong>NewAttr</strong> CDATA #REQUIRED
+&gt;
+]&gt;</pre>
+<h4>Feature Section</h4>
+<p>You add a feature section only if one its attributes is a tk_specobject and the 
+pointing/pointer elements will be not in the same PLM Representation Reference. 
+In case of doubt, add the section.</p>
+<h4>Meaning of each Tag</h4>
+<p><strong>OldAttr</strong></p>
+<p>This tag is mandatory inside the xml file, as the tag <code>#REQUIRED</code> 
+is mentioned. CDATA is the name of the attribute whose the type is <code>tk_specobject
+</code>and follows the specifications indicated just above.</p>
+<p><strong>NewAttr</strong></p>
+<p>This tag is mandatory inside the xml file, as the tag <code>#REQUIRED</code> 
+is mentioned. CDATA is the name of the attribute whose the type is <code>tk_external</code> 
+and which will be the new attribute in PLM.</p>
+<h4>Example of XML file using this syntax.</h4>
+<pre class="code">&lt;CAADataForFBDI&gt;
+  &lt;CAAFeatures&gt;
+     &lt;feature type=&quot;MyCAAFeature1&quot;&gt;
+        &lt;attribute <strong>OldAttr</strong>=&quot;MyOld_tk_specobject1&quot; 
+                      NewAttr=&quot;MyNew_tk_external1&quot;&gt;&lt;/attribute&gt;
+        &lt;attribute OldAttr=&quot;MyOld_tk_specobject2&quot; 
+		   NewAttr=&quot;MyNew_tk_external2&quot;&gt;&lt;/attribute
+     &lt;/feature&gt;
+  &lt;/CAAFeatures&gt;
+        
+&lt;/CAADataForFBDI&gt;</pre>
+<p>In this example:</p>
+<ul>
+	<li>The &#8220;MyCAAFeature1&#8221; feature has tk_specobject links that will be migrated 
+	in tk_external.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Generating a New CATfct</h4>
+<p>In parallel with this XML file you must regenerate the CATfct file containing 
+the CAA&#39;s Startup in order to modify it. For this step, it is strongly recommended 
+to read articles of the Modeling Feature Sub-Section inside Feature Modeler section.</p>
+<p>Follow this methodology: ( in bracket the dedicated feature modeler article):</p>
+<ol>
+	<li>Create the OSM file from the existing CATfct file [<a href="#References">4</a>]
+	<p>Here is an extract of an OSM file</p>
+	<pre class="code">feature <strong>MyCAAFeature1</strong> #startup 
+{
+   <strong>specobject</strong> MyOld_tk_specobject1 #in	 
+  <strong> specobject</strong> MyOld_tk_specobject2 #in	 
+  <strong> component</strong>  MyOld_tk_component3   #in	 
+  <strong> external </strong>  MyOld_tk_external4  #in	 	 
+}
+</pre>
+	<p>The &quot;MyCAAFeature1&quot; feature, in V5 context, has four attributes. Suppose:</p>
+	<ol>
+		<li><code>MyOld_tk_specobject1</code>: you are sure that data is within 
+		the same PLM Representation Reference as &quot;MyCAAFeature1&quot; feature</li>
+		<li><code>MyOld_tk_specobject2</code>: It can pointes a data outside the 
+		PLM Representation Reference containing &quot;MyCAAFeature1&quot; feature</li>
+		<li><code>MyOld_tk_component3</code>: aggregation links</li>
+		<li><code>MyOld_tk_external4</code>: You are sure that data are not in the 
+		same PLM Representation Reference as &quot;MyCAAFeature1&quot; feature</li>
+	</ol>
+	</li>
+	<li>Modify the OSM file [<a href="#References">5</a>]
+	<p>In bold the added data:</p>
+	<pre class="code">feature MyCAAFeature1 #startup 
+{
+   specobject MyOld_tk_specobject1 #in	
+   
+   specobject MyOld_tk_specobject2 #in
+   
+   <strong>external</strong> <strong>MyNew_tk_external2 #in</strong>	<strong>#external_link_meta_data(link2)</strong> 
+   <strong>external_link_meta_data link2 {
+        meta_data_relation-&gt;category = &quot;Reference3&quot;
+        meta_data_relation-&gt;role = &quot;CAAGenericGeneralPurpose&quot; 
+        }	</strong>
+   
+   external   MyNew_tk_external3 #in	 <strong>#external_link_meta_data(link3)</strong> 
+   
+   component  MyOld_tk_component4  #in
+   
+   <strong>external_link_meta_data link3 {
+        meta_data_relation-&gt;category = &quot;Reference3&quot;
+        meta_data_relation-&gt;role = &quot;CAAGenericGeneralPurpose&quot; 
+        }</strong>
+}
+</pre>
+	<ol>
+		<li><code>MyOld_tk_specobject1</code>: no change</li>
+		<li><code>MyOld_tk_specobject2</code>:
+		<ul>
+			<li>A new attribute is added (<code>MyNew_tk_external2</code>): it is 
+			an external attribute. It means that in PLM context, the feature will 
+			have two attributes instead one in V5.
+			<ul>
+				<li><code>MyOld_tk_specobject2</code> will be unset as explained 
+				further.</li>
+				<li><code>MyNew_tk_external2</code><strong> </strong>will be the 
+				used attribute </li>
+			</ul>
+			</li>
+			<li>A metadata section is added.</li>
+		</ul>
+		</li>
+		<li><code>MyOld_tk_component3</code>: no change</li>
+		<li><code>MyNew_tk_external4</code>:</li>
+	</ol>
+	<ul>
+		<li>Only a metadata section is added.</li>
+	</ul>
+	<p>About the metadata section, you have all details (whose category and role 
+	values) in the referenced article [<a href="#References">6</a>].</p>
+	</li>
+	<li>Regenerate the CATfct from the OSM [<a href="#References">4</a>]</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Import"></a>CAA Data Import Specificities</h2>
+<p>This chapter details the limitations, some specific cases in case of CAA container 
+migration.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Constraints"></a>PLM Constraints and Limitations</h3>
+<p>The import in PLM Repository is done with respect of 3 kinds of constraints:</p>
+<ul>
+	<li>PLM modeling constraints:
+	<ul>
+		<li>Only tk_external [<a href="#References">6</a>] link for inter PLM components 
+		relations.</li>
+		<li>Extension/Aggregated feature cannot exist without its Base/Aggregating 
+		feature.</li>
+		<li>A Mechanical Modeler feature must be stored in a 3D Shape.</li>
+	</ul>
+	</li>
+	<li>PLM import mechanisms:
+	<ul>
+		<li>Removing an aggregating feature also delete its aggregated features 
+		as their lifecycle are linked.</li>
+		<li>Removing a Base feature also delete its Extension features as their 
+		lifecycle are linked.</li>
+	</ul>
+	</li>
+	<li>PLM Ex-Situ import limitations:
+	<ul>
+		<li>An Extension/Aggregated feature required in a PLM Representation Reference 
+		won&#8217;t be imported if its Base/Aggregating feature belongs to a different 
+		PLM Representation Reference.</li>
+		<li>Product features extension are not migrated as there is no equivalent 
+		in PLM.</li>
+	</ul>
+	</li>
+</ul>
+<p>In the next paragraphs, references to those constraints are included.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Failure"></a>Import Failure Cases</h3>
+<p>The main failure cases detailed here:</p>
+<ul>
+	<li>Syntax check of XML files.
+	<p>The XML files defined for the different CAA applications are read and concatenated. 
+	The content of those files has to be consistent to launch the import.<br />
+	XML file parsing is interrupted at first error encountered and FBDI migration 
+	is stopped:</p>
+	<ul>
+		<li>If XML file can&#39;t be read.</li>
+		<li>If a mandatory parameter is missing.</li>
+		<li>If a parameter value is not recognized ( wrong format ).</li>
+		<li>If a type of container for a given type of document is defined more 
+		than once in the XML files with different tags</li>
+		<li>If a document type is not managed by FBDI migration</li>
+	</ul>
+	</li>
+	<li>Consistency check between XML files and data in documents to be imported.
+	<p>During this stage, we especially check that all XML directives for migration 
+	fit with <a href="#Constraints">PLM Constraints and Limitations</a>. 
+	A severe error is raised:</p>
+	<ul>
+		<li>If a container with Product features is required to be migrated &#8220;as 
+		is&#8221;.</li>
+		<li>If an aggregation/extension link between PLM components is detected.</li>
+		<li>If a document contains CAA containers not defined in the XML files.</li>
+	</ul>
+	</li>
+	<li>Migration itself ( data and links ).
+	<p>See <a href="#Features">Features Migration</a> and
+	<a href="#Part3.3">Links Migration</a> chapters below for further explanations.</p>
+	</li>
+	<li>In batch context, Save in data base.<br />
+	<p>The data base can only receive valid data. If errors have occurred during 
+	FBDI migration step, representation reference with unsuccessful containers won&#39;t 
+	be saved or partially saved if possible.</p>
+	</li>
+</ul>
+<p>For every steps, warnings and errors are logged in the FBDI&#39;s report. FBDI process 
+is stopped if a severe error is encountered.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Features"></a>Features Migration</h3>
+<p>CAA containers are removed or imported as is in PLM Repository. If a container 
+is removed, all its children features are removed too. But if a container is declared 
+to be imported, perhaps its contents will be not complete in order to ensure data 
+integrity or PLM rules. The current chapter details some cases where features are 
+removal from imported container, or their link&#39;s attributes modified to respect 
+this integrity.</p>
+<p>Generally the explanation will be illustrated by pictures whose the legend is 
+the following.</p>
+<table>
+	<caption>Fig.11: Legend for Next Pictures</caption>
+	<tr>
+		<td>
+		<img alt="Legend for Next Pictures" src="images/CAACenFmgFBDIPrinciples_Caption.png"/></td>
+	</tr>
+</table>
+<h4>Removing an Aggregating/ Extended Feature</h4>
+<p>Removing an aggregating/extended feature will delete all its aggregated/extension 
+features, even if those features are in other containers as the life cycle of aggregated/extension 
+feature is linked to their aggregating/extended feature.</p>
+<table>
+	<caption><a name="Fig.12"></a>Fig.12: Removing an Aggregating/ Extended Feature</caption>
+	<tr>
+		<td>
+		<img alt="Removing an Aggregating/ Extended Feature" src="images/CAACenFmgFBDIPrinciples_InSituMigr1.png"/></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.12">Fig.12</a>] shows two containers to process. MyCAACont2 contains 
+one feature aggregated by, or which extends, a feature included inside MyCAACont1. 
+MyCAACont1 is removed, and MyCAACont2 is kept for the import.</p>
+<p>You can see that even MyCAACont2 is an imported container, its represented feature 
+cannot be imported since it is aggregated by, or it is an extension of, another 
+feature which is included in a none imported container.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Removing an Aggregated/Extension Feature </h4>
+<table>
+	<caption>Fig.13: Removing an Aggregated/Extension Feature</caption>
+	<tr>
+		<td>
+		<img alt="Removing an Aggregated/Extension Feature" src="images/CAACenFmgFBDIPrinciples_InSituMigr2.png"/></td>
+	</tr>
+</table>
+<p>[Fig.13] shows two containers to process. MyCAACont2 contains one feature aggregated 
+by, or which extends, a feature included inside MyCAACont1. MyCAACont1 is kept, 
+and MyCAACont2 is removed for the import. (inverse case of [<a href="#Fig.12">Fig.12</a>])</p>
+<p>You can see that all the features of MyCAACont1 are imported, even the one aggregating, 
+or extended by, another feature included inside a remove container. Nevertheless 
+this feature has been modified: its aggregating link, or extension link, has been 
+removed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part3.3"></a>Links Migration</h3>
+<p>Once the feature migration is finished for a document, FBDI study the feature&#39;s 
+link, in order to point the elements, in PLM context, corresponding to the V5 pointed 
+elements.</p>
+<p>Links of the features in the CAA containers imported &#8220;As is&#8221; are updated using 
+the mapping tables (<a href="#Declare">RMT</a> &amp;
+<a href="#Migrate">LMT</a> tables).</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Attributes of Type tk_specobject</h4>
+<ul>
+	<li>In V5 context, you can use a tk_specobject attribute to point a feature 
+	in another document. In PLM context it is not possible. The attribute must be 
+	a tk_external attribute to point an element outside the PLM Component [<a href="#References">6</a>].
+	<table>
+		<caption>Fig.14a: Only tk_external for Links inter PLM Components</caption>
+		<tr>
+			<td>
+			<img alt="Only tk_external for Links inter PLM Components" src="images/CAACenFmgFBDIPrinciples_RemoveExternalLink.png"/></td>
+		</tr>
+	</table>
+	<p>So, when the V5 feature is imported, its tk_specobject link is unset. The 
+	new attribute (tk_external) is valuated to pointes the feature in the other 
+	PLM Rep Ref.</p>
+	</li>
+	<li>Links on removed features logged in the LMT, like features in the CATProdCont 
+	or in removed CAA containers for example, are unset. The attribute of the link 
+	still exists but the value is unset.
+	<table>
+		<caption>Fig.14b: Links Intra PLM Components</caption>
+		<tr>
+			<td>
+			<img alt="Links Intra PLM Components" src="images/CAACenFmgFBDIPrinciples_RemoveLinksOnRemovedFeature.png"/></td>
+		</tr>
+	</table>
+	On this above picture you can see links between features inside the same PLM 
+	Representation Reference, so tk_specobject attribute can still be used. But 
+	note that links, where the pointed feature is removed, are unset. </li>
+	<li>Links on modified features logged in the LMT are redirected if the V5 pointed 
+	feature is mapped with only one feature located in the same PLM Component as 
+	the pointing feature. In the other cases, the link is unset.
+	<p>
+	<img alt="tk_specobject Links" src="images/CAACenFmgFBDIPrinciples_RemoveLinksLMT1.png"/></p>
+	<p>tk_specobject links on a modified feature are unset as the V5 feature is 
+	mapped with more than one features in PLM Context.</p>
+	<p>
+	<img alt="tk_specobject Links" src="images/CAACenFmgFBDIPrinciples_RemoveLinksLMT2.png"/></p>
+	<p>tk_specobject links on a modified feature are redirected as the V5 feature 
+	is mapped with only one features in PLM Context</p>
+	</li>
+	<li>In the other cases, we check that the link is valid (if we can find the 
+	pointed feature). If it is not valid, we just unset the link.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Attributes of Type tk_external</h4>
+<ul>
+	<li>Links pointing inside a document imported In Situ are redirected, using 
+	the RMT, on the same element located in the Representation Reference associated 
+	with the V5 document. If this pointed element has been removed during or after 
+	the migration, the link will be created and saved without any valid pointed 
+	object.
+	<p>
+	<img alt="tk_external Links" src="images/CAACenFmgFBDIPrinciples_RedirectionWithRMT1.png"/></p>
+	<p>tk_external link on a V5 feature in a document imported In Situ is redirected</p>
+	</li>
+	<li>For links on elements logged in the RMT, we redirect the link on the corresponding 
+	PLM Component.
+	<p>
+	<img alt="tk_external Links" src="images/CAACenFmgFBDIPrinciples_RedirectionWithRMT2.png"/></p>
+	<p>tk_external link on a V5 feature mapped in the RMT is redirected on the PLM 
+	Component</p>
+	</li>
+	<li>For internal links on features, which means for links between 2 features 
+	located in the same V5 document:
+	<ul>
+		<li>Links on removed features logged in the LMT are unset.</li>
+		<li>Links on modified features logged in the LMT are redirected if the V5 
+		pointed feature is mapped with only one feature in PLM Context. In the other 
+		cases, the link is unset.</li>
+		<li>In the other cases, we check that the link is valid (if we can find 
+		the pointed feature). If it is not valid, we just unset the link.</li>
+	</ul>
+	</li>
+	<li>In the other cases the link is unset, particularly for links on V5 document 
+	imported Ex Situ.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Attributes of type tk_list or tk_specobject or tk_external</h4>
+<p>Each element of those lists is treated with the rules defined just above for 
+attributes of type tk_specobject or tk_external. But instead of being unset, those 
+elements are removed from the lists.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article, we have seen how to declare the import of CAA data in XML files.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm');">
+		PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm');">
+		PLM Representation Reference Overview</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstTaTechnoRep.htm')">
+		Understanding Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaMaintainingCatalogs.htm')">
+		Managing StartUp Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAOsmTaModelingStartUps.htm')">
+		Modeling StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTcLinkingFeaturesToc.htm')">
+		Link Attributes</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Sep 2007]</td>
+		<td>Revision</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Working with Providers</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Working with Providers</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Some specific features, like Extension Features[<a href="#References">1</a>], 
+		are designed to be instantiated in Applicative Containers. However, those 
+		containers are quite restraint in front of CATPrtCont.</p>
+		<p>This article is going to talk about a way to extend several CATPrtCont's 
+		mechanisms to Applicative Container, using Providers.</p>
+		<p>To take full advantage of this article, it may be interesting to get 
+		more precision about Applicative Container, referring to the &quot;Creating 
+		Features in an Applicative Container&quot; article [<a href="#References">2</a>].</p>
+		<ul>
+			<li><a href="#100000">What Are Providers?</a></li>
+			<li><a href="#200000">Provider Management in Mechanical Part Context</a></li>
+			<li><a href="#300000">Provider Mechanism - How Does It Work?</a>
+				<ul>
+					<li><a href="#310000">Implement Providers</a></li>
+					<li><a href="#320000">Declare Providers &amp; Initialize Provider 
+						Mechanism</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What are Providers?</h2>
+<p>Providers are used to extend behaviors (normally restricted to CATPrtCont) on 
+Applicative Containers. This technology, normally used in Product case, can be extended 
+in Part case.</p>
+<p>A provider is a component (in Object Modeler meaning) which implements an interface 
+whose aim is to retrieve the features of a container. It is dedicated to a unique 
+applicative container.</p>
+<p>Each interface implemented by a provider (and relying to the provider mechanism) 
+is linked to a behavior in the DS application. This table below lists all the available 
+behaviors in the context of the MechanicalPart.</p>
+<table class="fill">
+	<caption><a name="Tab1">Tab.1</a> Available Behavior for MechanicalPart Context</caption>
+	<tr>
+		<th>Behavior</th>
+		<th>Interface activated on the feature</th>
+		<th>Interface Provider</th>
+	</tr>
+	<tr>
+		<td>Update Mechanism</td>
+		<td>CATIFmFeatureBehaviorCustomization</td>
+		<td>CATIUpdateProvider</td>
+	</tr>
+	<tr>
+		<td>Visualization in Spec Tree</td>
+		<td>CATINavigateObject</td>
+		<td>CATINavigateProvider</td>
+	</tr>
+	<tr>
+		<td>3D Visualization</td>
+		<td>CATI3DGeoVisu</td>
+		<td>CATI3DVisuProvider</td>
+	</tr>
+	<tr>
+		<td>Knowledge Parameter</td>
+		<td>CATIParmPublisher</td>
+		<td>CATIParmProvider</td>
+	</tr>
+</table>
+<p>Providers are managed by a &quot;Provider Manager&quot; (<em><strong>CATIProviders</strong></em>) 
+set on the session and retrieved during the Applicative Container's initialization 
+(<em><strong>CATInit::Init</strong></em>).</p>
+<p><strong>Please note</strong> that applicative containers designed for <strong>
+extension</strong> are automatically loaded and initialized on the open of an extended 
+part; which is not the case for &quot;traditional&quot; applicative container. (For 
+traditional applicative container, you have to load it manually on opening the Part 
+- For example when you open your dedicated Workshop).</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Provider Management in Mechanical Part Context</h2>
+<p>Provider Managers (<strong>CATIProviders</strong>) are <strong>only</strong> 
+supported by the Mechanical Part. This means that all extended behaviors, or provided 
+Mechanisms, are linked to <strong>MechanicalPart Feature</strong>.</p>
+<p>For instance, Update Mechanism, which is extended to applicative container implementing
+<strong><em>CATIUpdateProvider</em></strong>, will only start updating entirely 
+the <strong>MechanicalPart</strong>.</p>
+<p>Let's take the example of an Extension Feature extending a CombinedCurve instance. 
+This extension will only be updated updating the Mechanical Part! (Local Update 
+on Extended Combined Curve will not dispatch Update to its extension).</p>
+<p>Let's take another example...For instance, <em>CATINavigateProvider</em>'s implementation. 
+This provided mechanism will make your applicative features displayable below the 
+3D Shape node in the SpecTree.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Provider Mechanism - How Does It Work?</h2>
+<h3><a name="310000"></a>Implement Providers</h3>
+<p>This implementation is done on components (in Object Modeler meaning) keeping 
+in mind the specific context of the Mechanical Part
+(see <a href="#200000">Provider Management in Mechanical Part Context</a>).</p>
+<p>You can create a unique provider which implements all the requested interfaces, 
+or you can create as many classes as interfaces. In the use case <em><strong>CAAMmr3DDataExtension</strong></em> 
+[<a href="#References">3</a>] we decided to create four components - one for each 
+interfaces.</p>
+<p>As said above, you have to take into account <em>&quot;the specific context of 
+Mechanical Part&quot;</em> in those implementations. Let's take the example of
+<strong><em>CAAMmrDataExtensionContNavigateProvider</em></strong> implementation 
+below to explain this.</p>
+<pre class="code">...
+CATImplementClass(CAAMmrDataExtensionContNavigateProvider,
+                  Implementation,
+                  CATINavigateProvider,
+                  CATNULL);
+
+CATImplementBOA(CATINavigateProvider, CAAMmrDataExtensionContNavigateProvider);
+...
+HRESULT CAAMmrDataExtensionContNavigateProvider::GetChildren(<strong>CATBaseUnknown * iObj</strong>, CATListPtrCATBaseUnknown ** oListChildren)
+{
+...</pre>
+<p><em>&quot;The specific context of Mechanical Part&quot;</em> means that, currently,
+<strong>iObj</strong> can <strong>only</strong> represent the <strong>MechanicalPart</strong>.</p>
+<p>This is primordial to keep in mind because this fact conditions all the Provider 
+implementation!</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Declare Providers &amp; Initialize Provider Mechanism</h3>
+<p>Providers make a sort of continuity between Applicative Container and CATPrtCont 
+for behaviors listed in <a href="#100000">What Are Providers?</a> above.</p>
+<p>Provider mechanism is initialized during the initialization of the applicative 
+container. (i.e. during the <em>CATIInit</em> implementation on the applicative 
+container)</p>
+<p>In this implementation (an example can be found in the UseCase [<a href="#References">3</a>]), 
+we first retrieve the Provider Manager (<em>CATIProvider</em>)</p>
+<p>Then, we declare all Providers (i.e all component in Object Modeler meaning) 
+which have to be taken into account on the applicative container.</p>
+<pre class="code">...
+void CAAxxxxx::<strong>Init</strong> (CATBoolean iDestroyExistingData) 
+{ 
+<strong>CATIProviders</strong> *piProvidersManager= NULL;
+
+rc = <strong>CATMmiPubServicesAccess</strong>::GetProvidersManager(piProvidersManager);
+
+CATMyNavigateProvider *pAppliContNavProvider = new CATMyNavigateProvider ();
+rc = piProvidersManager -&gt; <strong>AddProvider</strong> (IID_CATINavigateProvider,pAppliContNavProvider);
+...</pre>
+<p>As you can see, in the example above, we retrieve a pointer to <em>CATIProvider</em> 
+and we add a <em>CATMyNavigateProvider</em>, which is a kind of <em>CATINavigateProvider</em>, 
+to this &quot;Provider Manager&quot;.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Provider mechanism is one way to extend some CATPrtCont's behaviors (Update,
+<em>f(x)</em>, Visualization in SpecTree and in 3D) to applicative containers.</p>
+<p>It is currently set on MechanicalPart context. This means that the &quot;working 
+object&quot; will always represent the MechanicalPart; which links all behaviors 
+to MechanicalPart Feature.</p>
+<p>The Provider Mechanism is set during the initialization of applicative container, 
+retrieving the Provider Manager and declaring all the providers needed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaExtension.htm">Working With Extension Features</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaApplicativeContainer.htm">
+		Understanding Applicative Container</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrUcExtendingCombinedCurveSamplesOverview.htm">Extending 
+		a Mechanical Feature using Extension Features and Providers</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,457 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Common Protocol Integration</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Common Protocol Integration</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A set of operations (<strong>Delete</strong>, <strong>Update</strong>,
+		<strong>Copy-Paste</strong>) can be commonly invoked on objects, by users 
+		irrespective of their ownership privileges. CAA facilitates this by 
+		exposing a set of generic APIs in its <em>DataCommonProtocolUse</em> 
+		framework. As a prerequisite, an object has to simply implement the <em>
+		CATIUseEntity </em>to support these common services.</p>
+		<p>A feature can selectively support some of these common services or 
+		not support it altogether. It is governed by a protocol which is defined 
+		and associated with its StartUp. The protocol definition is realized by 
+		distinct entries in its OSM file. The current article details the OSM 
+		update, the relevance of these entries towards defining a protocol and 
+		its impact on the feature support for the common routines.</p>
+		<ul>
+			<li><a href="#Part1">What are the Exposed Common Services?</a></li>
+			<li><a href="#Why expose">Why Expose the Common Services</a></li>
+			<li><a href="#Define the protocol">Defining the Common Service Protocol</a><ul>
+				<li><a href="#Declare the adhesion">Declare your Feature supports the Common Service Protocol</a></li>
+				<li><a href="#Declare the supported protocols">Define the Common Services Protocol for your Feature</a></li>
+				<li><a href="#Default Behavior">Default Behavior</a></li>
+			</ul>
+			</li>
+			<li><a href="#Scenarios">Scenarios</a><ul>
+				<li><a href="#SU with no protocol">StartUp with 
+				No Declaration for Protocol</a></li>
+				<li><a href="#SU sharing protocol">StartUp 
+				sharing a Protocol (Metadata block)</a></li>
+				<li>
+				<a href="#SU inheriting from a feat without protocol">StartU 
+				Inheriting from a Feature which has No Protocol</a></li>
+				<li><a href="#SU inheriting protocol">StartUp 
+				Inheriting a Protocol</a></li>
+				<li>
+				<a href="#SU inheriting protocol to override it">StartUp 
+				Inheriting a Protocol but Overriding it</a></li>
+				<li>
+				<a href="#SU inheriting protocol but withdraw support">StartUp 
+				Inheriting a Protocol and Overriding it, to withdraw support for 
+				the common routines</a></li>
+			</ul>
+			</li>
+
+			<li><a href="#In short">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="Part1"></a>What are the Exposed Common Services?</h2>
+<p>The common services exposed by the <em>DataCommonProtocolUse</em> framework are listed below:</p>
+<ul>
+	<li>&nbsp;The <em>DataCommonProtocolServices</em> Class exposes the service to<ul>
+		<li>&nbsp;<strong>Delete</strong> an object</li>
+		<li>&nbsp;<strong>Update</strong> an object</li>
+	</ul>
+	</li>
+	<li>&nbsp;The <em>DataCommonProtocolCCPServices</em> Class exposes the service to
+	<ul>
+		<li>&nbsp;<strong>Copy, Cut</strong> and <strong>Paste</strong> an object</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Why expose"></a>Why Expose the Common Services?</h2>
+<p>Operations like <strong>Delete</strong> and <strong>Update</strong> are required to be invoked on objects, by 
+users, irrespective of their ownership privileges, since these are generally 
+required across user and application base.</p>
+<p>If you are an owner of a feature (more precisely the owner of the catalog 
+defining it), you can very well delete a feature with a call to the <code>DeleteSelf()</code> 
+method of the <em>CATFmFeatureFacade</em> class, equipped with the appropriate 
+credentials. On similar lines, you may update your feature with a call to <code>Update()</code>
+ of the same class. </p>
+<p>While if the user does not own the feature, as a responsible of your data 
+model, you must expose these common services for applications built on your data 
+model.&nbsp; Now, instead of asking each Modeler to expose its own set of services, CAA has made it easy by exposing those using the classes of the 
+<em>DataCommonProtocolUse</em> framework, listed above. </p>
+<p>By default, there is no possibility by API to do a Copy/Paste/Cut operations, 
+irrespective of you being an owner or not. Nevertheless, you have the capability 
+to authorize (for yourself and applications based on your features) the Copy and 
+Paste operations. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Define the protocol"></a>Defining the Common Services Protocol</h2>
+<p>The Common Services protocol is defined for your feature by merely making a 
+few entries (declarations, more precisely) in the OSM file (Catalog), defining 
+your StartUp. The declarations in the OSM file can be broadly categorized as 
+under: </p>
+<ul>
+	<li><a href="#Declare the adhesion">Declare your feature supports the Common 
+	Services Protocol</a></li>
+	<li><a href="#Declare the supported protocols">Define the Common Services 
+	Protocol for your feature </a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><strong><a name="Declare the adhesion"></a>Declare your Feature supports the 
+Common Services Protocol</strong></h3>
+<p>A typical StartUp definition (as it occurs in an OSM file) is depicted below.
+The details of modeling a StartUp have been discussed in a dedicated UC on this 
+subject [<a href="#References">1</a>]</p>
+<pre class="code">
+...
+<b>feature</b> <i>identifier</i> [<i>super_identifier</i>] [<i>facets</i>..] {
+        <strong>#interface::CATIUseEntity = </strong><em><strong>MetadataName</strong></em>
+<b>        </b><i>attribute_definitions
+</i><b>        </b>[<i>attribute_initializations</i>]
+...</pre>
+ <p>Now in order to declare your feature supports the common services protocol, you 
+	simply have to insert the statement marked in bold above, just before the 
+	attribute declaration, inside the <strong>feature</strong> statement block. 
+	</p>
+
+ <p><em>MetadataName</em> is the name of a metadata bloc explained further. The 
+	same <em>MetadataName</em> block name can be reused for several StartUp of the 
+	same catalog.&nbsp; </p>
+<p>If you don't add this line, you have to consider two cases:</p>
+<ul>
+	<li>Your StartUp is created from scratch, so your StartUp does not implement 
+	the protocol</li>
+	<li>Your StartUp is derived from another one and so your StartUp has the same 
+	behavior as the derived StartUp.</li>
+</ul>
+	<p>&nbsp;</p>
+<table class="Remark"> 
+	<tr> 
+		<td class="Remark"><strong>Warning</strong>: A DS StartUp may prohibit 
+		its overriding. So, if you create a StartUp deriving from a such DS 
+		StartUp, the CATFctEditorAssisstant tool will fail if you try to add a 
+		metadata statement. (For your own StartUp this capability is not open)
+		
+		</td></tr></table>
+	<p>&nbsp;</p>
+		 <script type="text/javascript">insertLinkToTop();</script>
+		 
+
+	<h3><strong><a name="Declare the supported protocols"></a>Define the Common 
+Services Protocol for your Feature </strong></h3>
+<p>In this section we detail the contents of the Metadata block, which define 
+the common services protocol for our feature. The contents are depicted below</p>
+<pre class="code"><strong>metadata</strong> metadataname {
+       implementInterface       = true | false
+       implementUpdateAspect    = true | false
+       implementDeleteAspect    = true | false
+       implementCopyPasteAspect = true | false
+}
+...</pre>
+<p>You&#8217;ll find the metadata block has four distinct entries in it. The 
+significance of these entries and the values set for each are explained ahead. 
+The impact of those settings on the feature behavior, as far as its support for 
+the common routines is concerned, is dealt in a dedicated UC [<a href="#References">2</a>]. The order of these entries does not matter, though.
+</p>
+<ul>
+	<li><strong>implementInterface -</strong>
+If value is set to true, it implies your StartUp implements the <em>CATIUseEntity</em>, otherwise it does not. Your feature can leverage from the common 
+services, only if it implements this Interface, since this Interface pointer is 
+an input for the common APIs.<br>
+<p>A significant point to note here is that you cannot implement <em>CATIUseEntity</em> on your feature, using the standard Object Modeler 
+(OM) mechanism. You realize this 
+implementation by inserting that statement in your OSM file. Since it doesn't 
+involve any C++ coding, it is that much more easier for an end-user.</p>
+	<p>If value is set to <strong>false</strong>, the remaining three entries 
+	are insignificant, since your feature does not support the common services. 
+	</p>
+<table class="Remark"> 
+	<tr> 
+		<td class="Remark"><strong>Warning</strong>: This case is not the same 
+		as the case where your feature, by default does not support the common 
+		routines, since in this case, our feature is not governed by a 
+		predefined protocol. While, in the current case, since we have set <strong>
+		implementInterface</strong> to <strong>false</strong>, it implies that 
+		we have a predefined protocol which explicitly declares our feature as 
+		not supporting the common routines. The two cases are thus subtly 
+		distinct. 
+		The significance of the latter case is especially for a scenario when 
+		your feature is a derived entity, which has inherited a protocol from up 
+		the hierarchy. As a result, if your feature supports the common 
+		routines, and if you would like to override it by withdrawing this 
+		support, you have no option but to declare that your feature is governed 
+		by a protocol which has set <strong>implementInterface</strong> 
+		to <strong>false</strong>
+		
+		</td></tr></table>
+	<p>While if the value is set to <strong>true</strong>, it implies that your 
+	feature supports the common services. The remaining three entries are then 
+	mandatory, since they will specify the common services supported and those 
+	not supported by your feature.</p>
+	</li>
+	<li><strong>implementUpdateAspect</strong> - If the value is set to <strong>true</strong>, 
+	the protocol defined allows an end-user to successfully invoke the 
+	IsUpToDate() and Update() calls on your feature. If set to <strong>false</strong>, 
+	these calls fail</li>
+	<li><strong>implementDeleteAspect</strong> - If value is set to <strong>true</strong>, the 
+	protocol defined allows an end user to delete your feature. If set to 
+	<strong>false</strong> 
+	the call to Delete() and CanBeDeleted() fails</li>
+	<li><strong>implementCopyPasteAspect</strong> - If value is set to <strong>true</strong>, the 
+	protocol defined allows an end user to copy paste your feature. If set to 
+	<strong>false</strong>, the method fails<br>
+	<table class="Remark"> 
+	<tr> 
+		<td class="Remark"><span class="run-in">Warning</span>: Do not use this option for a feature extension.[<a href="#References">3</a>]</td></tr></table></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Default Behavior"></a>Default Behavior</h3>
+<p>When your StartUp exposes common services with this OSM protocol, the 
+behavior of the methods of <em>DataCommonProtocolServices</em> are: </p>
+<ul>
+	<li><strong>IsUpToDate</strong> is equivalent to CATFmFeatureFacade::IsUpToDate</li>
+	<li><strong>Update</strong> is equivalent to CATFmFeatureFacade::Update</li>
+	<li><strong>CanDelete</strong> makes a simple and unique test :if the 
+	feature to delete is aggregated, it cannot be deleted. This behavior can be 
+	customized [<a href="#References">4</a>]</li>
+	<li><strong>Delete</strong> calls CanDelete + 
+	CATFmFeatureFacade::DeleteSelf</li>
+</ul>
+<p>Pay attention : these behavior are the ones when your StartUp exposes common 
+services with this OSM protocol. For DS features, refer to the 
+modeler/application documentation to know the behavior of the common services. 
+They can be slightly different.</p>
+<p>For the DataCommonProtocolCCPServices method, see the article about CCP. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Scenarios"></a>Scenarios</h2>
+<p>We&#8217;ll begin by depicting the overall content of an OSM file, which has the 
+StartUp definition and the Common Services protocol defined within it. </p>
+<pre class="code">
+<strong>document</strong> `CAAFmExtMyCatalog.CATfct` 
+{
+   <strong>container</strong> CATFeatCont #root 
+   {
+       <strong>feature</strong> CAAFmExtFeat1 #startup {...}
+       <strong>feature</strong> CAAFmExtFeat2 #startup {...}
+
+   }
+   <strong>metadata</strong> name1 {}
+   
+   <strong>metadata</strong> name2 {}
+} 
+</pre>
+<p>You&#8217;ll notice the metadata and the container statement are at the same 
+	level. The scenarios that follow are based on the contents of this OSM file</p>
+	<script type="text/javascript">insertLinkToTop();</script>
+	
+<h3><a name="SU with no protocol"></a>StartUp with No Declaration for Protocol</h3>
+<p>A StartUp definition shown below, does not have a declaration for the 
+protocol in it. </p>
+<pre class="code">
+<b>feature</b> <strong>CAAFmExtPoint1D</strong> #StartUp {
+       
+        double var
+}</pre>
+<p>The <strong>CAAFmExtPoint1D</strong> StartUp definition depicts it is created from scratch. Since it has no declaration for the common services protocol, it implies it does not support 
+the common services.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="SU sharing protocol"></a>StartUps sharing a Protocol (Metadata block)</h3>
+<p>We have two StartUp definitions below, both referring to a single metadata 
+block, thus sharing the same protocol.</p>
+<pre class="code">
+<b>feature</b> <strong>CAAFmExtPoint2D</strong> #StartUp {
+        <strong>#interface::CATIUseEntity = MyImplementation1</strong>
+        ...
+        }
+ 
+<b>feature</b> <strong>CAAFmExtPoint3D</strong> #StartUp {
+        <strong>#interface::CATIUseEntity = MyImplementation1</strong>
+        ...
+        }
+}  
+...      
+<strong>metadata MyImplementation1</strong> {
+       implementInterface       = true  
+       implementUpdateAspect    = true  
+       implementDeleteAspect    = false
+       implementCopyPasteAspect = true  
+   }
+...</pre>
+
+	<p><strong>CAAFmExtPoint2D</strong> and <strong>CAAFmExtPoint3D</strong>, both refer to the same metadata 
+	block and hence share the same behaviour, as far as the common service 
+	protocol is concerned.
+	The metadata block contents imply both implement the <em>CATIUseEntity</em>. 
+	Both support feature update and the copy paste service, while not the delete 
+	call.<br></p>
+	<script type="text/javascript">insertLinkToTop();</script>
+	
+
+<h3><a name="SU inheriting from a feat without protocol"></a>StartUp Inheriting from a 
+&quot;StartUp without a Protocol&quot;</h3>
+<p>We have a StartUp below which inherits from another StartUp. The latter is 
+without a protocol.</p>
+<pre class="code">
+<b>feature</b> <strong>CAAFmExtPoint4D</strong> <strong>CAAFmExtPoint1D</strong> #StartUp {
+        ...
+        }        
+</pre>
+<p><strong>CAAFmExtPoint4D</strong> StartUp derives from <strong>CAAFmExtPoint1D</strong>.   
+ 	</p>
+<p><strong>CAAFmExtPoint4D</strong> inherits its behavior from 
+<strong>CAAFmExtPoint1D</strong>. 
+ 	Now since, <strong>CAAFmExtPoint1D</strong> does not support the common services protocol, 
+<strong>CAAFmExtPoint4D</strong> StartUp does not support it, as well.
+ 	</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="SU inheriting protocol"></a>StartUp Inheriting a Protocol</h3>
+<p>We have a StartUp below which inherits its protocol.&nbsp;</p>
+<pre class="code">
+<strong>feature</strong> <strong>CAAFmExtPoint5D</strong> <strong>CAAFmExtPoint3D</strong> #StartUp {
+                                                    ...
+                                                 }&nbsp;</pre>
+
+                                                 
+<p>StartUp <strong>CAAFmExtPoint5D</strong> derives from <strong>CAAFmExtPoint3D</strong>. As a result it inherits 
+the protocol defined by the metadata block &quot;<strong>MyImplementation1</strong>'. 
+It thus supports the feature update and copy paste service, but not the delete 
+call.</p>
+                                                 <script type="text/javascript">insertLinkToTop();</script>
+                                                 
+<h3><a name="SU inheriting protocol to override it"></a>StartUp Inheriting a Protocol and Overriding it</h3>
+<p>The StartUp below, inherits its protocol and overrides it with its own local 
+version. &nbsp;</p>
+<pre class="code">
+<strong>feature</strong> <strong>CAAFmExtPoint6D</strong> <strong>CAAFmExtPoint3D</strong> #StartUp {
+<strong>       #interface::CATIUseEntity = MyImplementation2</strong>
+        ...
+        }    
+}     
+...          
+<strong>metadata</strong> <strong>MyImplementation2</strong> {
+       implementInterface       = true  
+       implementUpdateAspect    = true  
+       implementDeleteAspect    = true<strong>
+</strong>       implementCopyPasteAspect = true  
+       }
+...</pre>
+<p><strong>CAAFmExtPoint6D</strong> is derived from <strong>CAAFmExtPoint3D</strong>. 
+The latter supports the common service protocol, as defined in the metadata 
+block &#8220;<strong>MyImplementation1</strong>&#8221;. </p>
+<p><strong>CAAFmExtPoint6D</strong>, inherits this behaviour, but chooses to 
+override it with its own protocol, defined by the metadata block &quot;<strong>MyImplementation2</strong>&quot;. 
+The new protocol sets <strong>implementDeleteAspect</strong> to <strong>true, </strong>
+thus supporting <strong>Delete</strong>, as well in addition to the other common 
+routines.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="SU inheriting protocol but withdraw support"></a>StartUp Inheriting a Protocol, but withdrawing support for the Common 
+Routines</h3>
+<p>A StartUp which inherits a protocol, but subsequently overrides it to 
+withdraw support for the common routines is depicted below. </p>
+<pre class="code">
+...
+<strong>feature</strong> <strong>CAAFmExtPoint7D</strong> <strong>CAAFmExtPoint3D</strong> #StartUp {
+<strong>       #interface::CATIUseEntity = MyImplementation3
+</strong>        ...
+        }  
+}
+...
+<strong>metadata</strong> <strong>MyImplementation3</strong> {
+       <strong>implementInterface       = false</strong>  
+       }
+...</pre>
+<p><strong>CAAFmExtPoint7D</strong> derives from <strong>CAAFmExtPoint3D</strong>. 
+The latter, as we saw before, supports the common services protocol. As a 
+result, <strong>CAAFmExtPoint7D</strong> inherits this behavior, while we intend 
+to no longer support it.</p>
+<p>Hence, we override the behaviour, with the statement <strong>
+#interface::CATIUseEntity = MyImplementation3</strong>, which implies the 
+derived feature refers to its own meta data block &#8220;My <strong>Implementation3</strong>&#8217;. 
+This metadata block sets <strong>implementInterface</strong> to <strong>false</strong>, 
+which implies your feature no longer supports the <em>CATIUseEntity</em>. The remaining 3 entries are not required, since those are 
+useless.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="In short"></a>In Short</h2>
+<p>This article describes the steps involved to define a protocol for your 
+feature to support the common services exposed by CAA. The common services 
+include Update, Delete and the Copy Paste operations and can be accessed by 
+users, irrespective of the ownership priviliges.</p>
+<p>The CAA users can leverage from the default implementation of these services 
+exposed by the DataCommonProtocolUse framework. All it requires is your feature 
+must implement the <em>CATIUseEntity</em>.</p>
+<p>The article finally guides you along the steps involved in updating your OSM 
+file, to define this protocol for your feature. The protocol essentially 
+determines firstly if your feature supports the common services and next to 
+selectively declare support for the common routines.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAOsmTaModelingStartUps.htm">Modeling Your StartUp</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAFmExtUcCommonServicesUsageProtocol.htm">Declaring Common 
+		Services Protocol</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAFmExtTaFeatureExtension.htm">Understanding Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaFeatureLifeCycle.htm">Understanding Feature Life Cycle</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

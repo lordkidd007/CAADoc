@@ -1,0 +1,304 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_mk_is_transfer</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp; </p>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><h1>RADE</h1>
+    </td>
+    <td VALIGN="TOP"><h2>Source Code Manager</h2>
+    </td>
+    <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2"><h3><a NAME="Top"></a>adl_mk_is_transfer</h3>
+      <p><i>Creating an intersite transfer between two workspaces</i></td>
+  </tr>
+  <tr>
+    <td COLSPAN="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+      <p>The <b>adl_mk_is_transfer</b> command is an intersite command that is used
+      for setting up an intersite transfer between the current
+      workspace and a workspace of another SCM site.&nbsp; <ul>
+      <li><b><a href="#Synopsis">Synopsis</a></b></li>
+      <li><b><a href="#Usage">Usage</a></b></li>
+      <li><b><a href="#Options">Options</a></b></li>
+      <li><b><a href="#routing">Routing Support</a></b></li>
+      <li><b><a href="#Examples">Examples</a></b></li>
+      <li><b><a href="#References">References</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Synopsis"></a>Synopsis</h3>
+
+<p><b>adl_mk_is_transfer</b> [transfer_name] <b>-r_is_server</b> host:port | ( <b>-r_is_server_host</b> host <b>-r_is_server_port</b> port)
+<b>-r_parent_ws</b> remote_workspace [<b>-r_tree</b>  ws_tree_name] [<b>-tree</b>
+ local_ws_tree_name] [[<b>-image</b> image_name]|[<b>-dir</b> directory [<b>-local_dir</b>]]]
+[-<b>no_mirror_ws</b>] [<b>-h</b> | <b>-help</b> | <b>-?</b>] </p>
+
+<h3><a NAME="Usage"></a>Usage</h3>
+
+<p>The adl_mk_is_transfer command is the first command to be used for setting up
+an intersite transfer between two SCM sites.</p>
+<table border="0">
+  <tr>
+    <td><img border="0" src="images/ISFigure2.gif" width="150" height="180"></td>
+    <td><img border="0" src="images/ISFigure1.gif" width="150" height="180"></td>
+    <td valign="top">The command takes in argument two workspaces (the current
+      one and the one specified by the -r_ws option) and creates a new workspace
+      right under the remote workspace (-r_ws).
+      <p>The new workspace is called the remote mirror workspace or mirror
+      workspace and the one specified by the -r_ws option becomes the remote
+      parent workspace.</p>
+    </td>
+  </tr>
+</table>
+<p>Once the command will be completed, the remote parent workspace won't be
+directly managed by other intersite commands. All commands (adl_attach_is, 
+adl_sync_is, adl_promote_is, ...) will operate on the
+current workspace and the remote mirror workspace. The remote parent workspace
+will be the target workspace with which developments will be shared and to which
+local developments will be promoted.</p>
+<p>With the &quot;-no_mirror_ws&quot; option, you can transfer <b>all</b> the 
+modifications from the current workspace to the remote workspace without remote 
+mirror workspace. Only the adl_mirror_is command is available. No mirror 
+workspace is created on remote site.</p>
+<p>Remote actions are performed by the SCM Multisite Transfer Manager which is
+specified by the -r_is_server_host and -r_is_server_port options.</p>
+<p>Each time this transfer will be used, it will need to stored transfer
+specific information on the user file system. It is possible to choose between
+two locations:</p>
+<ul>
+  <li>either one image of the current workspace</li>
+  <li>or any other directory.<br>
+    The -local_dir option is used in this case to specify whether this directory
+    is local to the current host or if it can be used for others hosts on the
+    local network.</li>
+</ul>
+<p>If no directory is specified, the command will used the current working image
+for storing information.</p>
+<p>In case of multitree workspace, the adl_mk_is_transfer command is to be used
+between the first couple of workspace tree (local tree, remote tree) and the
+adl_link_is_transfer [<a href="#Ref1">1</a>] for the other workspace trees.</p>
+<p>The existing transfers can be listed by using the adl_ls_transfer [<a href="#Ref2">2</a>]
+command.&nbsp;</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Options"></a>Options</h3>
+
+<p>adl_mk_is_transfer accepts the following options: </p>
+
+<table>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-h|-help|-?</tt></td>
+    <td>Help of the command</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>transfer_name</tt></td>
+    <td>Name of an existing transfer associated with the current local workspace</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_is_server</td>
+    <td> The remote SCM Multisite server host name and port number with the format host:port</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_is_server_host</td>
+    <td>Name or IP address of the remote host where the SCM Multisite Transfer Manager is
+      running (see also &quot;<a href="#routing">Routing Support</a>&quot;)</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-r_is_server_port</tt></td>
+    <td>¨Port on which the remote SCM Multisite Transfer Manager is running
+      (see also &quot;<a href="#routing">Routing Support</a>&quot;)</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-attached_fw_mod</tt></td>
+    <td>Attach all internal modules and data components in the workspace hierarchy of
+    attached frameworks</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-r_parent_ws workspace_name</tt></td>
+    <td>Name of the remote workspace with which the transfer is to be set up.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_tree ws_tree_name</td>
+    <td>To specify with which remote tree the transfer is to be set up.<br>
+      This parameter can be omitted in case the remote workspace exists in only one tree.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-tree ws_tree_name</td>
+    <td>To specify with which local tree the transfer is to be set up.<br>
+      This parameter can be omitted in case the local workspace exists in only one tree.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-image image_name</td>
+    <td>Name of one image of the current workspace that will be used for storing transfer specific
+      files</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-dir path</td>
+    <td>Path to a directory that will be used for storing transfer specific files.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-local_dir</td>
+    <td>To indicate that the directory specified by -dir option is local to the current
+      host</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-no_mirror_ws</td>
+    <td>To indicate that a mirror workspace (child of remote workspace) is not 
+    created in remote site.</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="routing"></a>Routing Support</h3>
+
+<p>When there is no direct connection possible between a client host and the
+remote SCM Multi-site Transfer Manager, for instance because this is forbidden
+by firewall rules, it is possible to use intermediate transfer managers between
+the client host and the final transfer manager.&nbsp;</p>
+
+<p>This is explained in the figure here after:</p>
+
+<table border="0">
+  <tr>
+    <td width="50%"><img border="0" src="images/routing.gif" width="300" height="180"></td>
+    <td valign="top" align="left">The adl_transfer_client&nbsp; cannot join
+      directly the host H3 where the transfer manager is listening on port XXX.
+      <p>Connections can be made from host H1 to host H2 using port YYY.</p>
+      <p>In this case, we can start a SCM Multi-site transfer manager on port
+      YYY on host YYY and ask the client to specify that transfers must be
+      performed to host H3 through host H2.</p>
+      <p>There is no database nor file server to set up on host H2, we just need
+      to install the SCM commands and to run the SCM Multi-site transfer manager
+      using the port YYY.&nbsp;</td>
+  </tr>
+</table>
+<p>Here is the command to execute in order to declare a transfer to host H3
+going through host H2 - note that only the parameters related to the remote
+transfer managers are shown here:</p>
+
+  <table class="code">
+    <tr>
+      <td><dl>
+        <p><b>adl_mk_is_transfer</b> my_transfer -r_is_server
+        &quot;H2:YYY#H3:XXX&quot; ...<br>
+        ...</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+<p>More than one intermediate SCM Multi-site transfer manager can be specified,
+the syntax is:</p>
+
+<p>host1:port1#host2:port2#....#hostn:portn</p>
+
+<p>where &quot;host1:port1&quot; is the first transfer manager to contact and
+&quot;hostn:portn&quot; is the last transfer manager, that is to say the one on
+which remote SCM commands will be executed.</p>
+
+<p align="right">[<a href="#Top">Top</a>]<!---------------------------------comment-------------------------------------></p>
+
+<h3><a NAME="Examples"></a>Examples</h3>
+
+<dl>
+  <p>Creation of a transfer between the workspace &quot;devlocal&quot; and the
+  remote workspace prjV5R7, the transfer information will be stored in the
+  current image of the workspace &quot;devlocal&quot;: </p>
+  <table class="code">
+    <tr>
+      <td>adl_ch_ws devlocal<br>
+        ...<dl>
+        <p><b>adl_mk_is_transfer</b> -r_is_server_host randdsy -r_is_server_port 23453 -r_parent_ws prjV5R7 -r_tree V5R7
+        -tree treelocal<br>
+        Checking current workspace devlocal...<br>
+        Checking remote workspace prjV5R7...<br>
+        Creating mirror workspace under prjV5R7...<br>
+        Registering the new intersite transfer between devlocal and prjV5R7 in local database.<br>
+        &nbsp; <br>
+        Intersite command successful</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp; </p>
+  <p>Creation of the transfer &quot;my_transfer&quot; between the local
+  workspace and the remote workspace prjv5R7, the transfer information will be
+  stored in the directory E:\transfers:&nbsp; </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <p><b>adl_mk_is_transfer</b> my_transfer -r_is_server_host randdsy -r_is_server_port 23453 -r_parent_ws prjV5R7 -r_tree V5R7
+        -tree treelocal -dir E:\transfers -local_dir<br>
+        ...</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+</dl>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<dl>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <h3><a NAME="References"></a>References</h3>
+  <table WIDTH="100%">
+    <tr>
+      <td VALIGN="TOP"><a name="Ref1"></a>[1]</td>
+      <td><a href="CAAWsmLinkIsTransfer.htm">adl_link_is_transfer: LInking an
+        intersite transfer into a workspace tree</a></td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP">
+        <a name="Ref2"></a>[2]</td>
+      <td><a href="CAAWsmLsTransfer.htm">adl_ls_transfer: Listing intersite
+        transfers</a></td>
+    </tr>
+  </table>
+  <p align="right">[<a href="#Top">Top</a>]</p>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <h3><a NAME="History"></a>History</h3>
+  <table WIDTH="100%">
+    <tr>
+      <td VALIGN="TOP">Version: <b>2</b> [Jan 2004]</td>
+      <td VALIGN="TOP">Document update : -no_mirror_ws option added</td>
+    </tr>
+    <tr>
+      <td VALIGN="TOP">Version: <b>1</b>  [Mar 2002]</td>
+      <td VALIGN="TOP">Document created</td>
+    </tr>
+  </table>
+  <p align="right">[<a href="#Top">Top</a>]</p>
+  <hr>
+<!---------------------------------comment------------------------------------->
+  <p><i>Copyright © 2002, Dassault Systèmes. All rights reserved.</i> </p>
+</dl>
+</body>
+</html>

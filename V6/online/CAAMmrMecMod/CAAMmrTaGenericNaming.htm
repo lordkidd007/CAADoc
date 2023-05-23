@@ -1,0 +1,392 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Generic Naming Overview</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Generic Naming Overview</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes the Generic Naming mechanism.</p>
+		<p>A prerequisite knowledge of the Topological Modeler [<a href="#References">1</a>] 
+		is recommended to fully understand this article.</p>
+		<ul>
+			<li><a href="#100000">Objective of Generic Naming</a></li>
+			<li><a href="#200000">How Is the Generic Name Built?</a></li>
+			<li><a href="#300000">The BRep Access</a></li>
+			<li><a href="#400000">The BRep Feature</a>
+				<ul>
+					<li><a href="#410000">Featurization</a></li>
+					<li><a href="#420000">BRep Feature Types</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Objective of Generic Naming</h2>
+<p>During the design, it can be useful to select a topological sub-element such 
+as an edge or a face as input specification of a new Mechanical Feature.</p>
+<p>This is illustrated in the following example, that shows in red the selection 
+of an Edge to create a Fillet.</p>
+<table>
+	<caption>Selection of an Edge to Create a Fillet</caption>
+	<tr>
+		<td>
+		<img alt="Selection of an Edge to Create a Fillet" height="283" src="images/CAAMmrBRepAccess.jpg" width="626"/>
+		</td>
+	</tr>
+</table>
+<p>Mechanical Modeler is a Specification/Result system: the specifications, modeled 
+by the mechanical features, represent the design intent and enable the construction 
+of the geometrical result Mechanical features are persistent, whereas on the contrary 
+the generated topological results are temporary. Each time an update of the mechanical 
+part is performed, the geometry is destroyed and rebuilt.</p>
+<p>Therefore, a mechanical feature can't reference directly a topological sub-element. 
+To illustrate this, lets consider the following example: a user creates a sweep 
+using the resulting edge of a spline feature as profile. Suppose that the sweep 
+references the edge directly using its geometrical identifier, called &quot;tag&quot;. 
+Whenever the user modifies the spline, the topology is deleted and replaced by a 
+new one that may have a different tag. The tag used by the sweep would now reference 
+an element that no longer exists. The sweep could not be recalculated.</p>
+<table>
+	<caption>The Unstable Topological Tag</caption>
+	<tr>
+		<td>
+		<img alt="The Unstable Topological Tag" height="414" src="images/CAAMmrGN1.png" width="479"/></td>
+	</tr>
+</table>
+<p>The solution implemented in Mechanical Modeler to overcome this problem is to 
+use a name instead of a direct reference to the cell. Such a name is called a
+<strong>Generic Name</strong>, it provides a stable way to reference a topological 
+sub-element.</p>
+<p>The Generic Name is built through a temporary object representing the geometry 
+selection, called <strong>BRep Access.</strong> It can be made persistent and stored 
+in a specific feature, called <strong>BRep Feature</strong>. BRep Features can be 
+referenced as input specification of Mechanical Features.</p>
+<p>Lets consider the precedent example. Thanks to the BRep feature, the Sweep can 
+be recalculated after the modification of the Spline:</p>
+<table>
+	<caption>The BRep Feature</caption>
+	<tr>
+		<td>
+		<img alt="The BRep Feature" height="198" src="images/CAAMmrGN2.png" width="406"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>How is the Generic Name Built?</h2>
+<p>The Generic Name is built during the update of a mechanical feature. It's a kind 
+of record of all the steps that lead to the creation of the sub-element it references. 
+In the precedent example, instead of pointing directly the edge, the sweep references 
+a name that describes precisely this cell, for instance "result edge of the feature 
+Spline". After an update, the sweep will be able to find the correct topology in 
+the result by interpreting this description.</p>
+<p>The Generic Name label is built from the CGM journal, a graph that describes 
+the construction relations that exist between the cells of successive bodies. Refer 
+to the technical articles "Understanding the CGM journal" [<a href="#References">2</a>] 
+and "Understanding the Topological Journal Methodology"[<a href="#References">3</a>] 
+in Geometric Modeler CAA encyclopedia for details on the history graph of topological 
+objects.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>The BRep Access</h2>
+<p>The BRep Access is a temporary object that references a sub-part of a CATBody, 
+such as an Edge, a Vertex, a Surface. When a user selects interactively a topological 
+cell, a generic name is automatically calculated for this cell and stored in the
+<strong>BRep Access</strong> object, also called selecting object.</p>
+<p>The <em><strong>CATIMmiUseBRepAccess</strong></em> and <em><strong>CATIMmiUseTopoAccess</strong></em> 
+interfaces enables to manage the selecting object. For instance, they enable to 
+access the feature that owns the cells or the cells themselves.</p>
+<p>The <em><strong>CATIMmiUseBRepDecodeServices</strong></em> interface enables 
+to generate a selecting object from a cell.</p>
+<p>Refer to the technical article &quot;BRep Access objects&quot; for further information 
+[<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>The BRep Feature</h2>
+<p>A selecting object can be made persistent in the 3D Shape by generating a
+<strong>BRep Feature</strong>. This step is called <strong>featurization</strong> 
+of the selecting object. The BRep Feature can then be referenced as input specification 
+of a Mechanical Feature.</p>
+<p>The <em><strong>CATIMmiUseBRep</strong></em> and <em><strong>CATIMmiUseMfBRep
+</strong></em>interfaces enable to manage BRep Features.</p>
+<p>Note : BRep Features are not visible in the specification tree.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="410000"></a>Featurization</h3>
+<p>Featurization can be done manually from a selecting object with the <em>
+<strong>CATIMmiUseFeaturize</strong></em> interface or automatically from an interactive 
+selection using <em><strong>CATFeatureImportAgent</strong></em> .</p>
+<p>BRep Features are defined by certain parameters that need to be specified during 
+the Featurization process.</p>
+<ul>
+	<li><strong>Featurization mode</strong>: determines if the BRep feature should 
+		point on a relimited or a functional geometry.
+		<ul>
+			<li><strong>Relimited</strong> mode: this option should be used when 
+				the boundaries, or shape, of the selected cell is important (fillet, 
+				draft, projection).</li>
+			<li><strong>Functional</strong> mode: this option should be used when 
+				the shape of the selected cell is not important, that is to say 
+				whenever the support geometry is the goal, whatever the topological 
+				boundaries may be (support plane of a sketch, axis of a cylinder).
+			</li>
+		</ul>
+	</li>
+	<li><strong>Support Feature</strong>: determines which feature should be used 
+		to find the referenced cells.
+		<ul>
+			<li><strong>Selecting</strong>: indicates that the support of the BRep 
+				feature should be the &quot;In Work Object&quot; at selection time.</li>
+			<li><strong>Last</strong>: indicates that the support of the BRep feature 
+				should be the last feature that modified the cell.</li>
+			<li><strong>Initial</strong>: indicates that the support of the BRep 
+				feature should be the feature that created the selected cell, without 
+				taking into account any of its modifications.</li>
+		</ul>
+	</li>
+	<li><strong>Build type</strong>: Temporary or Permanent mode
+		<ul>
+			<li><strong>Temporary:</strong> this option is mainly used for the creation 
+				of contextual features.</li>
+			<li><strong>Permanent:</strong> this option is mainly used for the creation 
+				of form features.</li>
+		</ul>
+	</li>
+</ul>
+<p>Usually BRep features will be created using one of the two sets of combined options:</p>
+<ul>
+	<li>Functional featurization + Initial feature support.</li>
+	<li>Relimited featurization + Last feature support.</li>
+</ul>
+<p>To illustrate the featurization options, lets consider the following example: 
+a Pad with a Pocket and a Hole.</p>
+<p><img alt="" height="199" src="images/CAAMmrPocketexample.png" width="328"/></p>
+<p>From a selected surface, the square in blue, we want to create a BRep feature 
+in order to create an Offset.</p>
+<p><img alt="" height="209" src="images/CAAMmrPocket1.png" width="320"/></p>
+<p>Lets look at the effects of the different featurization parameters:</p>
+<ul>
+	<li>Featurization Mode
+		<ul>
+			<li>If Relimited Mode is chosen: the BRep feature will reference the 
+				selected relimited geometry of the selected Face, highlighted in 
+				blue.
+				<p>
+				<img alt="" height="148" src="images/CAAMmrPocketMode1.png" width="217"/></p>
+			</li>
+			<li>If Functional Mode is chosen: the BRep feature will reference the 
+				two highlighted surfaces, that belong to the same initial Face created 
+				by the Pad, and that have the same name. There is no possibility 
+				to distinguish them.
+				<p>
+				<img alt="" height="151" src="images/CAAMmrPocketMode2.png" width="221"/></p>
+			</li>
+		</ul>
+	</li>
+	<li>Support type
+		<ul>
+			<li>If Selecting feature support is chosen, the support feature will 
+				be the &quot;In Work Object&quot;, Hole.1.</li>
+			<li>If Last feature support is chosen, the support feature will be 
+				Pocket.1, since the feature Hole.1 does not affect the selected 
+				face.</li>
+			<li>If Initial feature support is chosen, the support feature will 
+				be Pad.1.</li>
+		</ul>
+		<p>
+		<img alt="" height="178" src="images/CAAMmrPocketSupport.png" width="265"/></p>
+		Here are a few examples of the result Offset, depending on the combination 
+		of featurization parameters:
+		<ul>
+			<li>Functional Mode + Initial Feature Support
+				<p><img alt="" height="198" src="images/CAAMmrPocket2.png" width="225"/></p>
+				<p>The initial Support being the Pad, it's the surface of the pad 
+				that is referenced. (Note: Relimited Mode would give the same result 
+				in this case).</p>
+			</li>
+			<li>Relimited Mode + Last Feature Support
+				<p><img alt="" height="179" src="images/CAAMmrPocket3.png" width="224"/></p>
+				<p>The last feature being the Pocket and the Mode being Relimited, 
+				it's the relimited selected surface of the Pocket that is referenced.
+				</p>
+			</li>
+			<li>Functional Mode + Last Feature Support
+				<p><img alt="" height="170" src="images/CAAMmrPocket4.png" width="224"/></p>
+				<p>The last feature being the Pocket and the Mode being Functional, 
+				it's the two end surfaces of the pocket that are referenced without 
+				distinction.</p>
+			</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="420000"></a>BRep Feature Types</h3>
+<p>There are several types of BRep Features, according to the type of the object 
+of selection they were built from and according to the featurization mode. The different 
+types of objects of selection and BRep Features are handled thanks to specific interfaces. 
+This article just mentions these types and interfaces, you should refer to the 
+technical articles &quot;BRep Access objects&quot;[<a href="#References">4</a>] 
+and &quot;BRep Features&quot; [<a href="#References">5</a>] for a more detailed 
+view.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Surfaces</h4>
+<p>As seen in the precedent example, a surfacic BRep Feature can be functional or 
+relimited:</p>
+<ul>
+	<li>Functional Surface: this is a feature corresponding to all the faces having 
+		the same name, regardless of the relimitation and connexity. This feature 
+		may be more stable than Relimited Surface across modifications, but it does 
+		not allow to distinguish between non connected faces. For a given Functional 
+		Surface, there may be several Relimited Surfaces.</li>
+	<li>Relimited Surface: this feature is defined as connected, at least at creation 
+		time. It allows a select in a more accurate way.</li>
+</ul>
+<p>To get the type, you must call the <code><strong>GetBRepLimitationType</strong>
+</code>method of the<em><strong> CATIMmiUseBRep</strong></em> interface.</p>
+<p>Objects of selection for a surface are filtered with the <em><strong>CATIMmiUseRSur
+</strong></em>interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Edges</h4>
+<p>Edge BRep features are handled with <em><strong>CATIMmiUseMfEdge</strong>
+</em>interface.</p>
+<p>Objects of selection for any types of Edges are filtered with the <em>
+<strong>CATIMmiUseREdgeAccess</strong></em> interface.</p>
+<h5>Internal Edges</h5>
+<p>Internal Edges are edges located between two faces. There are two types of BRep 
+features for Internal Edges, functional or relimited:</p>
+<ul>
+	<li>Functional Edge: this is a feature corresponding to all the edges having 
+		the same name, regardless of the relimitation and connexity. This feature 
+		may be more stable than Relimited Edge across modifications, but it does 
+		not allow to distinguish between non connected edges. For a given Functional 
+		Edge, there may be several Relimited Edges.</li>
+	<li>Relimited Edge: this feature is defined as connected, at least at creation 
+		time. It allows a select in a more accurate way.</li>
+</ul>
+<p>To get the type, you must call the <code><strong>GetBRepLimitationType</strong>
+</code>method of the<em><strong> CATIMmiUseBRep</strong></em> interface.</p>
+<p>The object of selection for an Internal Edge is filtered with <em><strong>CATIMmiUseREdge</strong></em> 
+interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h5>Border Edges</h5>
+<p>Border Edges are edges defined as free edges bordering a single face of a shell.
+</p>
+<p>The object of selection for a Border Edge is filtered with <strong><em>CATIMmiUseBorderREdge
+</em></strong>interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h5>Wire Edges</h5>
+<p>Wire Edges are edges defined as free edges of a wire.</p>
+<p>The object of selection for a Wire Edge is filtered with <em><strong>CATIMmiUseWireREdge</strong></em><strong><em>
+</em></strong>interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Vertices</h4>
+<p>Objects of selection for any types of vertices are filtered with <em><strong>
+CATIMmiUseFVertexAccess</strong></em> interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h5>Vertices on 3D or 2D Geometry</h5>
+<p>Vertices on 3D or 2D geometry are vertices defined as extremities of at least 
+two edges of one or several faces.</p>
+<p>The object of selection for a Vertex on 3D or 2D geometry is filtered with
+<em><strong>CATIMmiUseFVertex</strong></em> interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h5>Wire Vertices</h5>
+<p>Wire Vertices are vertices defined as intersection of two Wire Edges.</p>
+<p>The object of selection for a Wire Vertex is filtered with <em><strong>CATIMmiUseWireFVertex</strong></em><strong><em>
+</em></strong>interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h5>Border Vertices</h5>
+<p>Border Vertices are vertices defined as extremities of Wire Edges.</p>
+<p>The object of selection for a Border Vertex is filtered with <em><strong>CATIMmiUseBorderFVertex</strong></em><strong><em>
+</em></strong>interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The main purpose of Generic Naming is to provide a stable way to reference a 
+topological sub-element. The Generic Name is built through a temporary object representing 
+the geometry selection, called <strong>BRep Access.</strong> The <strong>featurization</strong> 
+process enables to generate from the BRep Access a specific feature, called
+<strong>BRep Feature</strong>, that is persistent and that can be referenced by 
+Mechanical Features.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAACgmModel/CAACgmTaTobTopoConcepts.htm">
+		Topology Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAACgmOperators/CAACgmTaTopJournal.htm">
+		Topological Journal: Principles</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAACgmOperators/CAACgmTaTopJournalMethodology.htm">
+		Topological Journal: Methodology</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrTaBRepAccessGlossary.htm">BRep Access Objects</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAMmrTaBRepFeatureGlossary.htm">BRep Features</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2002]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2006]</td>
+		<td>Total Review + BRep feature list added</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Apr 2010]</td>
+		<td>Document updated for V6 novelties</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

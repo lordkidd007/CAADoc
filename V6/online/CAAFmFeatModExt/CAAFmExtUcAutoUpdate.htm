@@ -1,0 +1,577 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Auto Update</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Auto-Update</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the <code>CAAFmExtAutoUpdate</code> use case (UC). 
+		A feature referencing another feature can be automatically updated on modification/update 
+		of the referenced feature, if it has the <strong>auto_update</strong> facet 
+		associated with its specobject attribute in the feature definition (<strong>OSM</strong>). 
+		The <em>CATIFmFeatureBehaviorCustomization</em> implementation on a feature 
+		is called when its update is invoked. The technical article &quot;<strong>Auto-Update 
+		Facet Principle and Usage</strong>&quot; [<a href="#References">1</a>] delves 
+		into the depth of this topic.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmExtAutoUpdate Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmExtAutoUpdate Do</a></li>
+				<li><a href="#How">How to Launch CAAFmExtAutoUpdate</a></li>
+				<li><a href="#Where">Where to Find the CAAFmExtAutoUpdate Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The user learns the steps to integrate an auto-update capability to a feature. 
+This capability triggers an automatic update of a referencing feature in response 
+to a modification/update of a referenced feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAFmExtAutoUpdate Use Case</h2>
+<p>The <code>CAAFmExtAutoUpdate</code> is a use case of the <code>CAAFeatureModelerExt.edu</code> 
+framework that illustrates <code>FeatureModelerExt</code> framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmExtAutoUpdate Do</h3>
+<p>The UC illustrates the steps involved to integrate auto-update capabilities in 
+features. It further demonstrates this auto-update of a feature on modification 
+and update of its referenced feature.</p>
+<p>The UC refers to the features defined in the &quot;<strong>CAAFmExtElementCatalog</strong>&quot; 
+catalog. An extract of the associated <strong>OSM</strong> file, representing these 
+StartUp definitions follows. The StartUps include a 2D Point (<strong>CAAFmExtPoint2D</strong>), 
+a line (<strong>CAAFmExtLine2D</strong>), and two RelimitedLines (<strong>CAAFmExtReLimitLine1</strong>,
+<strong>CAAFmExtRelimitLine2</strong>).</p>
+<pre>feature <strong>`CAAFmExtPoint2D`</strong> #startup {
+		double `x`
+		double `y`
+		`x`=-1.
+	}
+
+feature <strong>CAAFmExtLine2D</strong> #startup {
+		component Point1
+		component Point2
+	}
+
+feature <strong>CAAFmExtRelimitLine1</strong> #startup {
+		<strong>specobject MyBaseLine #in</strong>
+		double alpha1 
+		double alpha2
+		double length
+		alpha1=0.2
+		alpha2=0.5
+		length=-1
+	}
+
+feature <strong>CAAFmExtRelimitLine2</strong> #startup {
+		<strong>specobject MyBaseLine #in</strong> #<strong>auto_update</strong>
+		double alpha1 
+		double alpha2
+		double length
+		alpha1=0.1
+		alpha2=0.5
+		length=-1
+	}
+</pre>
+<p>The <strong>Line</strong> aggregates two <strong>Points</strong> under it. This 
+is realized by valuating the <strong>Line</strong> attributes <strong>Point1</strong> 
+and <strong>Point2</strong>.</p>
+<p>The <strong>RelimitedLine1</strong> feature references the base <strong>Line</strong> 
+feature, as depicted in the [<a href="#Fig.1">Fig.1</a>] that follows. This is realized 
+by valuating the attribute <strong>MyBaseLine</strong>, a <strong>specobject</strong>
+<strong>type</strong>.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig.1</caption>
+	<tr>
+		<td>
+		<img alt="Fig.1" src="images/CAAFmExtUCAutoUpdate_Fig1.gif" width="485" height="282"></td>
+	</tr>
+</table>
+<p>The <strong>RelimitedLine2</strong> feature also references the base <strong>
+Line</strong> feature but this time the attribute &quot;<strong>MyBaseLine</strong>&quot;, 
+of <strong>type</strong> <strong>specobject</strong> has also an &quot;<strong>autoupdate</strong>&quot; 
+facet associated with it, as depicted in [<a href="#Fig.2">Fig.2</a>] that follows.</p>
+<p>As a result any modification/update of the referenced base line feature triggers 
+an automatic update of the referencing <strong>RelimitedLine2</strong> feature.
+</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig.2</caption>
+	<tr>
+		<td>
+		<img alt="Fig.2" src="images/CAAFmExtUCAutoUpdate_Fig2.gif" width="484" height="282"></td>
+	</tr>
+</table>
+<p></p>
+<p>Our base line feature extends from <strong>(100,0)</strong> to <strong>(200,0)</strong>. 
+The length of the line is <strong>100</strong>.</p>
+<p>The <strong>RelimitedLine2</strong> feature to begin with, is not updated. We 
+retrieve its length which is <strong>-1</strong>, the default value set in the
+<strong>OSM</strong> file. We next invoke <strong>Update</strong> on the base
+<strong>Line</strong> feature.</p>
+<p></p>
+<table>
+	<caption><a name="Fig.3"></a>Fig.3</caption>
+	<tr>
+		<td>
+		<img alt="Fig.3" src="images/CAAFmExtUCAutoUpdate_Fig3.gif" width="589" height="230"></td>
+	</tr>
+</table>
+<p>An Update of the base Line feature triggers an automatic update of the
+<strong>RelimitedLine2</strong> feature. It&#39;s <strong>length</strong> is now updated 
+to <strong>40</strong>.</p>
+<p>The <strong>RelimitedLine2</strong> attributes <strong>alpha1</strong> and
+<strong>alpha2</strong>, determine the start and the end points, respectively of 
+the Relimited Line. Relative to the start point of the base line feature,
+<strong>alpha1</strong> represents the offset as a proportion of the length along 
+the three axis (X,Y,Z). On similar lines <strong>alpha2</strong> is used to evaluate 
+the offset of the end point of the Relimited Line from the Start Point of the base 
+line feature.</p>
+<p>In the current case <strong>alpha1</strong> <strong>= 0.1</strong>. The Start 
+Point of the <strong>RelimitedLine2</strong> feature is computed as depicted below:</p>
+<pre class="code">X Coord of Start Point of RelimitedLine2 = X Coord of Start Point of Base Line feature 
+                                           + (alpha1*(X Coord of End Point of Base Line feature - X Coord of Start Point of Base Line feature)
+                                         = 100 + 0.1(200 - 100) = 110
+Y Coord of Start Point of RelimitedLine2 = Y Coord of Start Point of Base Line feature 
+                                           + (alpha1*(Y Coord of End Point of Base Line feature - Y Coord of Start Point of Base Line feature)
+                                         = 0.0 + (0.1(0.0 - 0.0) = 0.0
+</pre>
+<p>The value of <strong>alpha2 = 0.5</strong>. The End Point of the <strong>RelimitedLine2</strong> 
+feature is computed as depicted below:</p>
+<pre class="code">X Coord of End Point of RelimitedLine2 = X Coord of Start Point of Base Line feature   
+                                         + (alpha2*(X Coord of End Point of Base Line feature - X Coord of Start Point of Base Line feature)
+                                        = 100 + (0.5*(200-100)) = 150
+Y Coord of End Point of RelimitedLine2 = Y Coord of Start Point of Base Line feature   
+                                         + (alpha2*(Y Coord of End Point of Base Line feature - Y Coord of Start Point of Base Line feature)
+                                       = 0.0 + (0.1(0.0 - 0.0) = 0.0</pre>
+<p>The <strong>length</strong> of the <strong>RelimitedLine2</strong> feature is 
+computed. It evaluates to <strong>40</strong>.</p>
+<p>On the other hand Update of the base Line feature does not trigger an automatic 
+update of the <strong>RelimitedLine1</strong> feature, since it is not associated 
+with the #<strong>auto_update</strong> facet in the <strong>OSM</strong> file. It&#39;s 
+status continues to remain &quot;not updated&quot; and the length retrieved is -1 always.
+</p>
+<p>Now, if we explicitly launch an <strong>Update</strong> on <strong>RelimitedLine1</strong>, 
+it results in its <strong>length</strong> being updated to <strong>30</strong>, 
+as depicted in [<a href="#Fig.4">Fig. 4</a>] below.</p>
+<table>
+	<caption><a name="Fig.4"></a>Fig.4</caption>
+	<tr>
+		<td>
+		<img alt="Fig.4" src="images/CAAFmExtUCAutoUpdate_Fig4.gif" width="575" height="252"></td>
+	</tr>
+</table>
+<p>The Start Point and the End Point of the <strong>RelimitedLine1</strong> are 
+computed as in the previous step with <strong>alpha1 = 0.2</strong> and <strong>
+alpha2 = 0.5</strong> currently. The Start Point thus evaluates to <strong>(120.0,0.0)</strong> 
+and the End Point evaluates to <strong>(150.0,0.0)</strong>. The <strong>length</strong> 
+finally is <strong>30</strong>.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="How"></a>How to Launch CAAFmExtAutoUpdate<br>
+</h3>
+<p>To launch <code>CAAFmExtAutoUpdate</code>, you will need to set up the build 
+time environment, then compile <code>CAAFmExtAutoUpdate</code> along with its prerequisites, 
+set up the run time environment, and then execute the sample. This is fully described 
+in the referenced article [<a href="#References">2</a>].</p>
+<p>mkrun -c &quot;<em><code>CAAFmExtAutoUpdate</code> Repository Server UserId Password 
+SecurityCtx Environment</em>&quot;</p>
+<p>Where</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(Since use case modifies PLM Data)</td>
+	</tr>
+	<tr>
+		<th>Environment</th>
+		<td>A PLM environment containing PLMProductDS (a PRODUCT&#39;s custo)</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAFmExtAutoUpdate Code</h3>
+<p><code>CAAFmExtAutoUpdate</code> code is located in the <code>CAAFmExtAutoUpdate.m</code> 
+and <code>CAAFmExtModeler.m</code> use case module of the <code>CAAFeatureModelerExt.edu</code> 
+framework. The path follows:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtAutoUpdate.m</code></p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtModeler.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the root 
+folder of your API installation. It is made of source files namely.</p>
+<ul>
+	<li><code>CAAFmExtAutoUpdate.cpp</code>, which has the UC main in it</li>
+	<li><code>CAAEFmExtRelimitedLine1.cpp</code>, <code>CAAEFmExtRelimitedLine2.cpp</code> 
+	the <em>CATIFmFeatureBehaviorCustomization</em> implemenation for <strong>CAAFmExtRelimitLine1</strong> 
+	and <strong>CAAFmExtRelimitLine2</strong> respectively</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The logical steps of <code>CAAFmExtAutoUpdate</code> are:</p>
+<ol>
+	<li>
+	<a href="#Implementing the  CATIFmFeatureBehaviorCustomization Interface">Implementing 
+	the CATIFmFeatureBehaviorCustomization Interface</a></li>
+	<li><a href="#Build() Impl of RelimitLine1 feat">The Build() Implementation 
+	of RelimitedLine2 feature</a></li>
+	<li><a href="#Build() Impl of RelimitLine1 feat">The Build() Implementation 
+	of RelimitedLine1 feature</a></li>
+	<li><a href="#Check update status">Check Update staus and invoke Update on a 
+	feature</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Implementing the  CATIFmFeatureBehaviorCustomization Interface">
+</a>Implementing the <em>CATIFmFeatureBehaviorCustomization</em> Interface</h3>
+<p>This interface is implementable with the BOA mechanism; It implies to create 
+a header file and a source file for your StartUp late type [<a href="#References">4</a>].
+Here extract of code for the <code>CAAFmExtRelimitLine1</code> late type.</p>
+<ul>
+	<li>For the header</li>
+</ul>
+<p>A new class, CAAEFmExtRelimitLine1 is created. Its header file is a follows.</p>
+<pre class="code">...
+class <strong>CAAEFmExtRelimitLine1</strong>:  public CATFmFeatureCustomizationAdaptor
+{
+  CATDeclareClass;
+public:
+    virtual HRESULT <strong>Build</strong>();
+private:
+	
+      // Standard constructors and destructors for an implementation class
+      CAAEFmExtRelimitLine1();
+      virtual ~CAAEFmExtRelimitLine1();
+
+      CATFmCredentials _MyCredential;
+};
+...</pre>
+<p>The class is derived from <em>CATFmFeatureCustomizationAdapator</em> class. So 
+on your own class, you only have to add the methods to overwrite.</p>
+<ul>
+	<li>For the source</li>
+</ul>
+<pre class="code">...
+<strong>CATImplementClass</strong>(CAAEFmExtCCP_B,
+		  DataExtension, 
+		  CATIFmFeatureBehaviorCustomization,
+		  <strong>CAAFmExtCCP_B</strong>);
+
+...
+<strong>CATImplementBOA</strong>(CATIFmFeatureBehaviorCustomization,CAAEFmExtCCP_B);
+...</pre>
+<p><code>CAAFmExtRelimitLine1</code> is the late type implementing <em>CATIFmFeatureBehaviorCustomization</em>. 
+CAAEFmExtRelimitLine1 is the class implementing the data extension.</p>
+<p>Don&#39;t forget to update the dictionary file (CAAFeatureModelerExt.edu\CNext\code\dictionary\CAAFeatureModelerExt.edu.dico), 
+and to add an entry point for the new implementation.</p>
+<pre class="code">...
+<strong>CAAFmExtRelimitLine1</strong> CATIFmFeatureBehaviorCustomization  libCAAFmExtModeler
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3>The Build() Implementation of RelimitedLine2 feature</h3>
+<p>The <code>Build()</code> Implementation of the <em>CATIFmFeatureBehaviorCustomization</em> 
+class for the <strong>RelimitedLine2</strong> feature follows. It primarily involves 
+retrieving the referenced base Line feature and the <strong>alpha1</strong> and
+<strong>alpha2</strong> attribute values. The Start and End points of the base line 
+feature is retrieved to further evaluate in conjunction with the <strong>alpha1</strong> 
+and <strong>alpha2</strong> values, the Start and End points of the Relimited Line.</p>
+<pre class="code"><strong>HRESULT CAAEFmExtRelimitLine2::Build()</strong>
+{ 
+    HRESULT rc = E_FAIL;
+    <strong>CATFmFeatureFacade FeatFacadeOnThis(_MyCredential,this)</strong>;
+<strong>    CATFmAttributeName  AttrName(&quot;MyBaseLine&quot;);
+</strong>    CATFmAttributeValue AttrValue;
+<strong>    double xPoint1,yPoint1,xPoint2,yPoint2</strong>;
+    xPoint1 = yPoint1 = xPoint2 = yPoint2 = 0.0;
+    rc = <strong>FeatFacadeOnThis.GetValue(AttrName,AttrValue)</strong>;
+
+    if (S_OK == rc)
+    {
+        CATFmFeatureFacade FeatFacadeOnBaseLine(_MyCredential);
+        rc = <strong>AttrValue.GetFeature(FeatFacadeOnBaseLine)</strong>; 
+        if (S_OK == rc)
+        {
+            <strong>CATFmAttributeName  AttrNamePoint1(&quot;Point1&quot;)</strong>;
+            <strong>CATFmAttributeName AttrNameCoordX(&quot;x&quot;);
+            CATFmAttributeName AttrNameCoordY(&quot;y&quot;);</strong>
+            rc = <strong>FeatFacadeOnBaseLine.GetValue(AttrNamePoint1,AttrValue)</strong>;
+            if (S_OK == rc)
+            {
+                CATFmFeatureFacade FeatFacadeOnPoint1(_MyCredential);
+                rc = <strong>AttrValue.GetFeature(FeatFacadeOnPoint1)</strong>;
+                if (S_OK == rc)
+                {   
+                    rc = <strong>FeatFacadeOnPoint1.GetValue(AttrNameCoordX,AttrValue)</strong>;
+                    if (S_OK == rc)
+                    {
+                        rc = <strong>AttrValue.GetDouble(xPoint1)</strong>;
+                        rc = <strong>FeatFacadeOnPoint1.GetValue(AttrNameCoordY,AttrValue)</strong>;
+                        if (S_OK == rc)
+                            rc = <strong>AttrValue.GetDouble(yPoint1)</strong>;
+                     } 
+</pre>
+<p>The <em>CATFmFeatureFacade</em> type (<code>FeatFacadeOnThis</code>) corresponding 
+to our <strong>RelimitedLine2</strong> feature is instantiated, to begin with.
+</p>
+<p><code>_MyCredential</code>, a <em>CATFmCredentials</em> type represents the Credentials 
+which authorize working with the &quot;<strong>CAAFmExtElement</strong>&quot; catalog.</p>
+<p>The referenced base Line feature is retrieved with the following two calls</p>
+<ul>
+	<li>The call to <code>GetValue()</code> of the <em>CATFmFeatureFacade</em> class 
+	(<code>FeatFacadeOnBaseLine</code>) returns AttrValue, a <em>CATFmAttributeValue</em> 
+	type for the attribute &quot;<strong>MyBaseLine</strong>&quot;, input as a <em>CATFmAttributeName</em> 
+	type</li>
+	<li>The call to <code>GetFeature()</code> of the <em>CATFmAttributeValue</em> 
+	class (<code>AttrValue</code>), further returns the referenced feature (base 
+	line feature) associated to this attribute value, as a <em>CATFmFeatureFacade</em> 
+	type (<code>FeatFacadeOnBaseLine</code>)</li>
+</ul>
+<p>The Start and the End Points of the base line feature is then retrieved with 
+the same calls as above. The &quot;<strong>Point1</strong>&quot; attribute of the base line 
+feature represents its Start Point. The point is retrieved as a <em>CATFmFeatureFacade</em> 
+type namely. <code>FeatFacadeOnPoint1</code>.</p>
+<p>Further the <strong>X</strong> and <strong>Y</strong> coordinates of this StartPoint 
+are retrieved with similar calls as above. The &quot;<strong>x</strong>&quot; and &quot;<strong>y</strong>&quot; 
+attributes of the Point feature store it coordinate values. The values are retrieved 
+as <code>xPoint1</code> and <code>yPoint1</code>, type double.</p>
+<p>On similar lines as above, the code below retrieves the X and Y coords of the 
+End Point of the base Line feature.</p>
+<pre class="code"><strong>HRESULT CAAEFmExtRelimitLine2::Build()</strong>
+{ 
+	...
+ <strong>	CATFmAttributeName  AttrNamePoint2(&quot;Point2&quot;)</strong>;
+         	rc = <strong>FeatFacadeOnBaseLine.GetValue(AttrNamePoint2,AttrValue)</strong>;
+         	if (S_OK == rc)
+         {
+        		CATFmFeatureFacade FeatFacadeOnPoint2(_MyCredential);
+	         rc = <strong>AttrValue.GetFeature(FeatFacadeOnPoint2)</strong>;    
+	         if (S_OK == rc)
+	         {   
+	               rc = <strong>FeatFacadeOnPoint2.GetValue(AttrNameCoordX,AttrValue)</strong>;
+	               if (S_OK == rc)
+	               {
+	                     rc = <strong>AttrValue.GetDouble(xPoint2)</strong>;
+	                     rc = <strong>FeatFacadeOnPoint2.GetValue(AttrNameCoordY,AttrValue)</strong>;
+	                     if (S_OK == rc)
+	                          rc = <strong>AttrValue.GetDouble(yPoint2)</strong>;
+	                }
+                    ...</pre>
+<p>The X and Y coords of the End Point of the base Line feature is retrieved as
+<code>xPoint2</code> and <code>yPoint2</code>, both double types.</p>
+<p>Now that we have the start and end points of the base line feature, we proceed 
+to evaluate the start and end points of the relimited line, in conjunction with 
+the alpha1 and alpha2 attribute values of the RelimitedLine feature.</p>
+<pre class="code"><strong>HRESULT CAAEFmExtRelimitLine2::Build()</strong>
+{ 
+   ...
+   if (S_OK == rc)
+    {
+        <strong>CATFmAttributeName AttrNameAlpha1(&quot;alpha1&quot;), AttrNameAlpha2(&quot;alpha2&quot;)</strong>;
+<strong>        double dalpha1, dalpha2</strong>;
+        dalpha1 = dalpha2 = 0.0;
+        
+        rc = <strong>FeatFacadeOnThis.GetValue(AttrNameAlpha1,AttrValue)</strong>;
+        if (S_OK == rc)
+        {
+            <strong>AttrValue.GetDouble(dalpha1)</strong>;
+            rc = <strong>FeatFacadeOnThis.GetValue(AttrNameAlpha2,AttrValue)</strong>;
+            if (S_OK == rc)
+                <strong>AttrValue.GetDouble(dalpha2)</strong>;
+        }
+</pre>
+<p>The <strong>alpha1</strong> and <strong>alpha2</strong> attribute values of the
+<strong>RelimitedLine2</strong> feature are retrieved, as <strong>dalpha1</strong> 
+and <strong>dalpha2</strong>, of type <strong>double</strong>. We proceed to evaluate 
+the coordinates of the start and end points of the relimited line.</p>
+<pre class="code"><strong>HRESULT CAAEFmExtRelimitLine2::Build()</strong>
+{ 
+     ...
+<strong>       double xPoint11 = xPoint1 + dalpha1*(xPoint2-xPoint1)</strong>;
+<strong>       double yPoint11 = yPoint1 + dalpha1*(yPoint2-yPoint1)</strong>;
+
+<strong>       double xPoint22 = xPoint1 + dalpha2*(xPoint2-xPoint1)</strong>;
+<strong>       double yPoint22 = yPoint1 + dalpha2*(yPoint2-yPoint1)</strong>;
+
+       // Set attribute values for the Relimited Line
+<strong>       double length = CATSqrt(CATSquare(xPoint22-xPoint11)+CATSquare(yPoint22-yPoint11))</strong>;
+<strong>     ...</strong>
+}
+</pre>
+<p>The <strong>X Coord</strong> of the start point of the Relimited line is offset 
+from the start point of the base line feature by a distance proportionate to
+<strong>dalpha1</strong>, of the length of the base line feature along the X axis.</p>
+<p>On similar lines, the <strong>Y Coord</strong> of the start point of the Relimited 
+line is evaluated, except this time it is along the Y axis.</p>
+<p>On similar lines, the <strong>X</strong> and <strong>Y</strong> <strong>Coord</strong> 
+of the end point of the Relimited line is evaluated, but this time it is <strong>
+dalpha2</strong> which is taken into account.</p>
+<p>The last step evaluates the length of the relimited line. It is simply the application 
+of the <strong>Pythagoras theorem</strong>.</p>
+<p>We finally set the length attribute of the Relimited Line.</p>
+<pre class="code"><strong>HRESULT CAAEFmExtRelimitLine2::Build()</strong>
+{ 
+   ...
+       <strong>AttrValue.SetDouble(length)</strong>;
+       <strong>CATFmAttributeName AttrNameLength(&quot;length&quot;)</strong>;
+       rc = <strong>FeatFacadeOnThis.SetValue(AttrNameLength,AttrValue)</strong>;
+    }
+    
+    return rc;
+}
+</pre>
+<p>The call to <code>SetValue()</code> of the <em>CATFmFeatureFacade</em> class 
+sets an attribute value. It is invoked on our RelimitedLine feature and the length 
+attribute is set with the value we evaluated above.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Build() Impl of RelimitLine1 feat"></a>The Build() Implementation of 
+RelimitedLine1 feature</h3>
+<p>The <code>Build()</code> implementation of the <strong>RelimitedLine1</strong> 
+feature is exactly the same as that for the <strong>RelimitedLine2</strong> feature. 
+A significant point to note though is that this implementation is not automatically 
+invoked on updating the referenced feature.</p>
+<p>It will be invoked only when <code>Update()</code> is explicitly invoked on the
+<strong>RelimitedLine1</strong> feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Check update status"></a>Check Update Status and Invoke Update on Features</h3>
+<p>The code that follows illustrates the step to check the Update status of a feature.</p>
+<pre class="code">rc = <strong>FeatFacadeOnRelimLine2.IsUpToDate()</strong>;
+if ( FAILED(rc) )
+{
+<strong>    if (E_FMUPDATEERROR == rc) ThrowLastErrorMessage(rc)</strong>;   
+    return 1 ;
+}</pre>
+<p>It simply involves invoking the <code>IsUpToDate()</code> API of the <em>CATFmFeatureFacade</em> 
+class.</p>
+<p>It returns <strong>S_FALSE</strong> if the feature is not updated. It returns
+<strong>S_OK</strong>, if the feature is updated.</p>
+<p>If the API throws an exception, the return is <strong>E_FMUPDATEERROR</strong>, 
+which is exclusively handled by the <code>ThrowLastErrorMessage()</code> global 
+function, which follows:</p>
+<pre class="code"><strong>void ThrowLastErrorMessage(HRESULT RC)</strong>
+{
+    CATUnicodeString ErrorMessageKey (&quot;&quot;) ;
+<strong>    CATError * pError = CATFmGetLastError(RC)</strong> ;
+    if ( NULL != pError )
+    {        
+<strong>        ErrorMessageKey = pError-&gt;GetNLSMessage()</strong>;		
+        cout &lt;&lt; &quot;Complete Error message key is : &quot; &lt;&lt; endl &lt;&lt; ErrorMessageKey.ConvertToChar() &lt;&lt; endl ;         
+        <strong>int IdErr = pError-&gt;GetId()</strong> ;
+        cout &lt;&lt; &quot;Last Error ID : &quot; &lt;&lt; endl &lt;&lt; IdErr &lt;&lt; endl ;
+        ...</pre>
+<p>The exception is retrieved with the <code>CATFmGetLastError()</code> global function 
+whose only input is the <code>HRESULT</code> returned by the <code>IsUpToDate()</code> 
+invocation (equally appicable for the <code>Update()</code> invocation, as well)</p>
+<p>The <code>CATFmGetLastError()</code> call returns <code>pError</code>, a <em>
+CATError</em>* type. The <code>GetNLSMessage()</code> API of the <em>CATError</em> 
+class returns the NLS message associated with this error, as a <em>CATUnicodeString</em> 
+type.</p>
+<p>The <code>GetId()</code> call of the <em>CATError</em> class, returns the error 
+ID, an int type.</p>
+<p>The code that follows is that for invoking <code>Update()</code> on a feature.</p>
+<pre class="code">rc = <strong>rc = FeatFacadeOnLine2D.Update();</strong>;</pre>
+<p>It is simply the call to <code>Update()</code> of the <em>CATFmFeatureFacade</em> 
+class.</p>
+<p>The return is the same as that for the <code>IsUpToDate()</code> call. Yet again, 
+if the API throws an exception, the <code>HRESULT</code> returned is <code>E_FMUPDATEERROR</code>, 
+exclusively handled by the <code>ThrowLastError()</code> global routine as depicted 
+above.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The UC illustrates the steps involved to integrate the auto-update capability 
+on a feature. A feature update can be automatically triggered on modification/update 
+on a referenced feature, if an auto_update facet is associated with its specobject 
+attribute, which links it to the referenced feature.</p>
+<p>The <code>Build()</code> implementation of the <em>CATIFmFeatureBehaviorCustomization</em> 
+Interface on a feature, invoked on its Update is detailed in this UC.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaAutoUpdateFacetPrincipleAndUsage.htm">Auto-Update 
+		Facet Principle and Usage</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Aug 2010]</td>
+		<td>Creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

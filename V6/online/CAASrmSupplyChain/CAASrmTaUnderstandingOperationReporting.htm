@@ -1,0 +1,423 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding the PLM Channel Report Operation</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding the PLM Channel Report Operation</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>In the large companies, there is a need to exchange data to synchronize 
+		them or simply share information inter site or outside the company (suppliers). 
+		DS offers a protocol to formalize data exchange between databases namely. 
+		the PLM Channel. A PLM channel is a Exchange medium created between two 
+		specific repositories, to allow optimized back and forth data exchange and 
+		ownership transfers of PLM Entities. [<a href="#References">1</a>]</p>
+		<p>A Report is generated as an output of these Publish/Synchronize operations, 
+		which provides a status of these operations. The current technical article 
+		delves into the details of this reporting process and the methodology to 
+		access and read the contents of this report.</p>
+		<ul>
+			<li><a href="#Intro">Introduction</a></li>
+			<li><a href="#Report of the publish op">Report of the PLM Channel Publish 
+			Operation</a></li>
+			<li><a href="#report of sync op">Report of the PLM Channel Synchronize 
+			Operation</a></li>
+			<li><a href="#description of content of report">Description of the Content 
+			of the Report</a><ul>
+				<li><a href="#the global report part">The &quot;Global Report&quot; Part</a></li>
+				<li><a href="#the data report part">The &quot;Data Report&quot; Part</a></li>
+			</ul>
+			</li>
+			<li><a href="#PI">Programming Interface</a><ul>
+				<li><a href="#CATIPLMExchangeServices">CATIPLMExchangeServices</a></li>
+				<li><a href="#CATPLMChannelReportServices">CATPLMChannelReportServices</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Intro"></a>Introduction</h2>
+<p>Customer uses PLMChannel API to transfer data back and forth between sites. To 
+operate these transfers between sites, the customer needs to be able to understand 
+the result of the operation performed to transfer the data. Basically, the customer 
+needs to be able to identify the published and synchronized data and in case of 
+failure, the errors that happened during these operations.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Report of the publish op"></a>Report of the PLM Channel Publish Operation</h2>
+<p>The publication of a PLM Channel takes a list of PLM Identificators, those for 
+publish, as an input. The publication engine then adds others PLM entities for completion 
+purpose to the input list and publishes a PLMBriefcase called revision containing 
+the description of all data (those given in input and the added ones).</p>
+<p>
+<img alt=" " src="images/CAASrmTaUsingReportOutputByPublishSync_Fig1.jpg" width="587" height="385"></p>
+<p>At the time the PLMChannel publication operation is completed (successfully or 
+not), the engine keeps a status for each published objects in memory (below a simplified 
+view).</p>
+<table class="fill">
+	<tr>
+		<th>Object Id</th>
+		<th>Status</th>
+	</tr>
+	<tr>
+		<td>Reference A</td>
+		<td>OK</td>
+	</tr>
+	<tr>
+		<td>Reference B</td>
+		<td>OK</td>
+	</tr>
+	<tr>
+		<td>...</td>
+		<td>...</td>
+	</tr>
+	<tr>
+		<td>Rep A</td>
+		<td>OK</td>
+	</tr>
+	<tr>
+		<td>Port of B</td>
+		<td>OK</td>
+	</tr>
+</table>
+<p>A serialized view of this status table is then output to a report file. Note 
+that: This serialized view does not distinguish object given in input and object 
+added by the publication engine. The revision is generated even if the global operation 
+failed. In some case, if the operation failed too early or potentially crashed in 
+the process, the .PLMBriefcase and therefore the report are not generated.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="report of sync op"></a>Report of the PLM Channel Synchronize Operation</h2>
+<p>For each objects contained in the .PLMBriefcase, a status is generated in the 
+report.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="description of content of report"></a>Description of the Content of 
+the Report</h2>
+<p>The report has two different sections:</p>
+<ol>
+	<li>One describing the Global Status of the operation (&quot;global report&quot;)</li>
+	<li>One describing the effect of the operation for each object involved in the 
+	PLM Channel operation (&quot;data report&quot;)</li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="the global report part"></a>The &quot;Global Report&quot; Part</h3>
+<p>This section states if the PLMChannel operation globally succeeded or failed.
+</p>
+<table class="fill">
+	<tr>
+		<th>Attribute</th>
+		<th>Possible Value</th>
+		<th>Comment</th>
+		<th>Purpose</th>
+	</tr>
+	<tr>
+		<td>Global Status</td>
+		<td>Success/Failure</td>
+		<td></td>
+		<td>Describes if the whole PLM Channel Operation succeeded or failed</td>
+	</tr>
+	<tr>
+		<td>Error Key</td>
+		<td>A CATString containing a stable Id of the error</td>
+		<td>Applicable only in case of failure</td>
+		<td>Provides a stable Id that can be used for automatic processing of errors</td>
+	</tr>
+	<tr>
+		<td>Original Error Message</td>
+		<td>A CATUnicodeString type containing the error message for the error</td>
+		<td>Applicable only in case of failure</td>
+		<td>For Display purpose</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="the data report part"></a>The &quot;Data Report&quot; Part</h3>
+<p>This section states for each data involved in the PLMChannel operation how the 
+operation affects the object.</p>
+<table class="fill">
+	<tr>
+		<th>Attributes</th>
+		<th>Possible Value</th>
+		<th>Comments</th>
+		<th>Purpose</th>
+	</tr>
+	<tr>
+		<td>Object Id</td>
+		<td>A CATIAdpPLMIdentificator type</td>
+		<td>&nbsp;</td>
+		<td>For Identification</td>
+	</tr>
+	<tr>
+		<td>Operation Status</td>
+		<td>Success/Failure</td>
+		<td>&nbsp;</td>
+		<td>Describes if an operation on an object was Success or not</td>
+	</tr>
+	<tr>
+		<td>Error Key</td>
+		<td>A CATString type containing a stable Id of the error</td>
+		<td>Not applicable in case of Success</td>
+		<td>Provides a stable Id that can be used for automatic processing of error</td>
+	</tr>
+	<tr>
+		<td>Original Error Message</td>
+		<td>A CATUnicodeString type containing the error message of the error</td>
+		<td>Not applicable in case of Success</td>
+		<td>For display purpose</td>
+	</tr>
+	<tr>
+		<td>Error Severity</td>
+		<td>Error/Error by Propagation</td>
+		<td>Not applicable in case of Success</td>
+		<td>Distinguishes if an error is owing to another object or if the object 
+		itself is faulty. <strong>Important</strong>: Error by Propagation cannot 
+		be provided for some FCS (File Cache System) or server transaction due to 
+		batch object processing</td>
+	</tr>
+	<tr>
+		<td>Performed Operation</td>
+		<td>An enum type describing the operation performed (described below)</td>
+		<td>Not applicable in case of failure</td>
+		<td>Identifies the operation performed on an object (especially during synchronization)</td>
+	</tr>
+	<tr>
+		<td>Additional Information</td>
+		<td>A list of CATUnicodeString type</td>
+		<td>Only available after publish</td>
+		<td>Provider customer information linked to an object</td>
+	</tr>
+</table>
+<p>The Performed Operation attribute can have the following value:</p>
+<table class="fill">
+	<tr>
+		<th>Operation</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>None</td>
+		<td>Default value (error case for example)</td>
+	</tr>
+	<tr>
+		<td>Synchronize_Create</td>
+		<td>The object has been created as a result of the synchronization</td>
+	</tr>
+	<tr>
+		<td>Synchronize_Update</td>
+		<td>The object has been updated as a result of the synchronization</td>
+	</tr>
+	<tr>
+		<td>Synchronize_Delete</td>
+		<td>The object has been deleted as a result of the synchronization</td>
+	</tr>
+	<tr>
+		<td>Synchronize_Ignore</td>
+		<td>No modification has been performed on the object since it is up to date</td>
+	</tr>
+	<tr>
+		<td>Publish</td>
+		<td>The object has been published</td>
+	</tr>
+	<tr>
+		<td>Publish_Filtered</td>
+		<td>The object was sought for publish but filtered (Optimized Publish topic)</td>
+	</tr>
+	<tr>
+		<td>Detach</td>
+		<td>The object has been detached (logically removed from the repository). 
+		It can happen in the case of direct instances of deleted references</td>
+	</tr>
+	<tr>
+		<td>TransferSiteOwnership_Request</td>
+		<td>The transfer site ownership of the object has been requested</td>
+	</tr>
+	<tr>
+		<td>TransferSiteOwnership_Emission</td>
+		<td>The transfer site ownership of the object has been emitted</td>
+	</tr>
+	<tr>
+		<td>TransferSiteOwnership_Reception</td>
+		<td>The transfer site ownership of the object has been received</td>
+	</tr>
+	<tr>
+		<td>TransferSiteOwnership_Acknowledge</td>
+		<td>The transfer site ownership of the object has been acknowledged</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="PI"></a>Programming Interface</h2>
+<p>Fundamentally we have two Interfaces which deal with Reports</p>
+<ul>
+	<li><em>CATIPLMExchangeServices</em> calls invoked befor the call to Publish/Synchronize 
+	which enables the generation of Reports</li>
+	<li><em>CATPLMChannelReportServices</em> calls to access a Report</li>
+</ul>
+<h3><a name="CATIPLMExchangeServices"></a>CATIPLMExchangeServices</h3>
+<p>The <em>CATIPLMExchangeServices</em> is an Interface which enables creating and 
+accessing the Report generated by a PLM Channel operation (<strong>Publish</strong>/<strong>Synchronize</strong> 
+of PLM entities).</p>
+<pre class="code">HRESULT <strong>SetReportFilePath</strong>(const CATUnicodeString&amp; iFilePath);</pre>
+<p>The <code>SetReportFilePath</code>() call of this Interface sets a path to generate 
+a report for publish or synchronize operation.</p>
+<h3><a name="CATPLMChannelReportServices"></a>CATPLMChannelReportServices</h3>
+<p>The <em>CATPLMChannelReportServices</em> class represents the services to access 
+the Report generated by the PLM Channel operation.</p>
+<pre class="code">HRESULT ExportedByPLMChannelAPI <strong>GetCATIPLMChannelReportServices</strong>(CATIPLMChannelReportServices*&amp; opChannelReportServices);</pre>
+<p>The <code>GetCATIPLMChannelReportServices</code> global call returns a <em>CATIPLMChannelReportServices</em>* 
+type.</p>
+<p>The <code>InitReport</code>() call of the <em>CATIPLMChannelReportServices</em> 
+class, depicted below is responsible for initializing a report from the Briefcase 
+output by the Publish or Synchronize command. It takes the Report File path as an 
+input.</p>
+<pre class="code">virtual HRESULT <strong>InitReport</strong>(const CATUnicodeString&amp; iReportFilePath)=0;</pre>
+<p>The <code>GetChannelReportGlobal</code>() call of the <em>CATIPLMChannelReportServices</em> 
+class, returns the global status of the operation that generated the Briefcase. 
+It is returned as a <em>CATIPLMChannelReportGlobal</em> type, as depicted in its 
+signature below.</p>
+<pre class="code">virtual HRESULT <strong>GetChannelReportGlobal</strong>(<em>CATIPLMChannelReportGlobal</em>*&amp; oReportGlobal)=0;</pre>
+<p>The <code>GetOperationGlobalStatus()</code> call of the <em>CATIPLMChannelReportGlobal</em> 
+class, returns the global status as a <em>CATIPLMChannelOperationGlobalStatus</em> 
+type.</p>
+<pre class="code">virtual HRESULT <strong>GetOperationGlobalStatus</strong>(<strong>CATPLMChannelOperationGlobalStatus&amp;</strong> oPLMChannelOperationGlobalStatus  )=0;</pre>
+<p>The <em>CATPLMChannelOperationGlobalStatus</em> is an enum type, which defines 
+the two variables below, representing the failure and success of the global operation.
+</p>
+<pre class="code">enum <strong>CATPLMChannelOperationGlobalStatus</strong>
+{
+	<strong>Failure</strong>=0,           
+	<strong>Success</strong>=1        
+};</pre>
+<p>On failure of the global operation, the <code>GetErrorKey</code>() of the CATIPLMChannelReportServices 
+class, returns the error key, as a <em>CATString</em> type.</p>
+<pre class="code">virtual HRESULT <strong>GetErrorKey</strong>(CATString&amp; oErrorKey)=0;</pre>
+<p>The original error message is retrieved with a call to <code>GetOriginalErrorMessage</code>(), 
+which returns a <em>CATUnicodeString</em> type. The message is displayed, the localization 
+determined by the location at which the operation that generated the report, was 
+performed.</p>
+<pre class="code">virtual HRESULT <strong>GetOriginalErrorMessage</strong>(CATUnicodeString&amp; oErrorMessage) = 0;</pre>
+<p>The <code>GetNextChannelReportData</code>() of the <em>CATIPLMChannelReportServices</em> 
+class, returns the report of a Publish/Synchronize operation on a specific PLM entity, 
+among the list, in a sequence. The report is retrieved as a <em>CATIPLMChannelReportData</em> 
+type.</p>
+<pre class="code">virtual HRESULT <strong>GetNextChannelReportData</strong>(CATIPLMChannelReportData *&amp; oReportData)=0;</pre>
+<p>The <code>GetOperationStatus</code>() of the <em>CATIPLMChannelReportData</em> 
+class, returns the Operation status on individual PLM entities. It is retrieved 
+as a <em>CATIPLMChannelOperationStatus</em> type.</p>
+<pre class="code">virtual HRESULT <strong>GetOperationStatus</strong>(CATPLMChannelOperationStatus&amp; oPLMChannelOperationStatus)=0;</pre>
+<p>The <em>CATPLMChannelOperationStatus</em> is an enum type as defined below.</p>
+<pre class="code">enum <strong>CATPLMChannelOperationStatus</strong>
+{
+     <strong>Failure</strong>=0,           
+     <strong>Success</strong>=1        
+};</pre>
+<p>On failure of the global operation, the <code>GetErrorKey</code>() of the CATIPLMChannelReportServices 
+class, returns the error key, as a <em>CATString</em> type.</p>
+<pre class="code">virtual HRESULT <strong>GetErrorKey</strong>(CATString&amp; oErrorKey)=0;</pre>
+<p>The original error message is retrieved with a call to <code>GetOriginalErrorMessage</code>(), 
+which returns a <em>CATUnicodeString</em> type. The message is displayed, the localization 
+determined by the location at which the operation that generated the report, was 
+performed.</p>
+<pre class="code">virtual HRESULT <strong>GetOriginalErrorMessage</strong>(CATUnicodeString&amp; oErrorMessage) = 0;</pre>
+<p>The error propagation status is returned by the <code>GetErrorPropagationStatus</code>() 
+of the <em>CATIPLMChannelReportData</em> class, as a <em>CATIPLMChannelOperationPropagationStatus</em> 
+type.</p>
+<pre class="code">virtual HRESULT <strong>GetErrorPropagationStatus</strong>(CATPLMChannelOperationPropagationStatus&amp; oChannelOperationPropagationStatus)=0;</pre>
+<p>The <em>CATPLMChannelOperationPropagationStatus</em> is an enum type, as defined 
+below. It defines two variables namely. <strong>Error</strong>, implying the object 
+itself is a faulty object while <strong>ErrorByPropagation</strong>, which implies 
+the object is not responsible for the failure of the operation.</p>
+<pre class="code"> enum <strong>CATPLMChannelOperationPropagationStatus</strong>
+   {
+	   Error = 0,
+	   ErrorByPropagation = 1
+   };</pre>
+<p>The operation performed on an object is retrieved with a call to <code>GetPerformedOperation</code>() 
+of the <em>CATIPLMChannelReportData</em> class. The operation type is returned as 
+a <em>CATPLMChannelOperationType</em>.</p>
+<pre class="code">virtual HRESULT <strong>GetPerformedOperation</strong>(CATPLMChannelOperationType&amp; oChannelOperationType)=0;</pre>
+<p>The <em>CATPLMChannelOperationType</em> is an enum type as defined below. It 
+lists all the different operations possible on an object while it is synchronized 
+at a target site.</p>
+<pre class="code">enum <strong>CATPLMChannelOperationType</strong>
+   {
+	   None               = 0,
+	   Synchronize_Create = 1,
+	   Synchronize_Update = 2,
+	   Synchronize_Delete = 3,
+	   Synchronize_Ignore = 4,
+	   Publish            = 5,
+	   Publish_Filtered   = 6,
+	   Detach             = 7,
+	   TransferSiteOwnership_Request               = 8,
+	   TransferSiteOwnership_Emission              = 9,
+	   TransferSiteOwnership_Reception             = 10,
+	   TransferSiteOwnership_Acknowledge           = 11
+   };</pre>
+<p>The additional info on an object is returned by a call to <code>GetAdditionalInfo</code>() 
+of the <em>CATPLMChannelReportData</em> class. The info is returned as a <em>CATListOfCATUnicodeString</em> 
+type.</p>
+<pre class="code">virtual HRESULT <strong>GetAdditionalInfo</strong>(CATListOfCATUnicodeString*  oAdditionalInfos)=0;</pre>
+<p>We have a dedicated Use Case &quot;<strong>Using Report output by the Publish/Synchronize 
+Operation</strong>&quot; [<a href="#References">2</a>] which delves in depth on each 
+of those API services exposed to work with a PLM Channel operations report.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article delves into the details of generating and accessing a Report generated 
+as an output of the Publish/Synchronize operation on a set of PLM entities. It also 
+briefly introduces the readers to the Programming Interface, to work with this Report.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAASrmTaSupplyChain.htm">Exchanging Data Using PLM Channel</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAASrmUcUsingReportOutputByPublishSynchronize.htm">Using Report 
+		Output by Publish/Synchronize Operations</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2011]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,640 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>CATDialog</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>CATDialog</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="quick">Quick Reference</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<pre><a href="#" onclick="javascript:CAAlink('CPP', 'Dialog', 'class', 'CATDialog'); return false;">CATDialog</a></pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p><em>CATDialog</em> is the base class for all dialog object classes and implements 
+their common mechanisms. All the tasks described here consequently apply to any 
+dialog object instance.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table>
+	<caption>Events</caption>
+	<thead>
+		<tr>
+			<th>Notification</th>
+			<th>Method</th>
+			<th>Sent when</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>CATDlgCreateNotification</td>
+		<td><code>GetCreateNotification</code></td>
+		<td>When the object is created</td>
+	</tr>
+	<tr>
+		<td>CATDlgVisibilityNotification</td>
+		<td><code>GetVisibilityNotification</code></td>
+		<td>Whenever the object visibility is modified</td>
+	</tr>
+	<tr>
+		<td>CATDlgResizeNotification</td>
+		<td><code>GetResizeNotification</code></td>
+		<td>Whenever the object is resized</td>
+	</tr>
+	<tr>
+		<td>CATDlgHelpNotification</td>
+		<td><code>GetHelpNotification</code></td>
+		<td>Whenever the object is selected using the What's This command</td>
+	</tr>
+	<tr>
+		<td>CATDlgDragEnterNotification</td>
+		<td><code>GetDragEnterNotification</code></td>
+		<td>Whenever the mouse is dragged and enters the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgDragOverNotification</td>
+		<td><code>GetDragOverNotification</code></td>
+		<td>Whenever the mouse is being dragged over the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgDragLeaveNotification</td>
+		<td><code>GetDragLeaveNotification</code></td>
+		<td>Whenever the mouse is dragged and leaves the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgDropNotification</td>
+		<td><code>GetDropNotification</code></td>
+		<td>Whenever a drop occurs on the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgEndDropNotification</td>
+		<td><code>GetEndDropNotification</code></td>
+		<td>Whenever a drop occurs on the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgStartDragNotification</td>
+		<td><code>GetStartDragNotification</code></td>
+		<td>Whenever a mouse drag starts on the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgCancelDragNotification</td>
+		<td><code>GetCancelDragNotification</code></td>
+		<td>Whenever a mouse drag stops on the dialog object</td>
+	</tr>
+	<tr>
+		<td>CATDlgDragButtonNotification</td>
+		<td><code>GetDragButtonNotification</code></td>
+		<td>Whenever a mouse drag starts on a button of the dialog object</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>Programmer's Guide</h2>
+<p>Three static tables contains:</p>
+<ol>
+	<li><code>KeyName</code>: the accelerator names</li>
+	<li><code>MagnitudeName</code>: the magnitudes [<a href="#References">1</a>] 
+		that you can set for the figures entered or displayed using combos, editors, 
+		and spinners, and that are expressed with the unit assigned to these magnitudes 
+		at the applicaiton level</li>
+	<li><code>UnitName</code>: the units [<a href="#References">1</a>] associated 
+		with these magnitudes that you can reset for a given combo, editor, or spinner.</li>
+</ol>
+<p>The programming tasks fall into the following topics:</p>
+<ul>
+	<li><a href="#100000">Managing parent/child links</a></li>
+	<li><a href="#200000">Managing properties</a></li>
+	<li><a href="#300000">Managing location and extent in the grid</a></li>
+	<li><a href="#400000">Managing resources</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Managing Parent/Child Links</h2>
+<p>Any dialog object has two parent/child links:</p>
+<ul>
+	<li>A dialog containment link to its dialog parent [<a href="#References">2</a>]. 
+		This dialog parent contains the object. It can be the window or dialog box, 
+		such as a frame or a tab page.</li>
+	<li>A CATCommand send/receive link to propagate notifications along the command 
+		tree structure [<a href="#References">2</a>] [<a href="#References">3</a>].</li>
+</ul>
+<p>Usually, the same dialog object is the parent for these two parent/child link, 
+since any dialog object that can contain others is also a CATCommand instance. Nevertheless, 
+it can be efficient to sometimes have two different parent objects.</p>
+<h3>Retrieving the Contained Children of a Dialog Object</h3>
+<p>A given dialog object can be the containing parent of several others. Use the
+<code>GetChildCount</code> method to determine how many children exist.</p>
+<pre class="code">int ChildrenCount = pDialog-&gt;GetChildCount();</pre>
+<p>Use the <code>GetChildNumberFromChild</code> method to retrieve the rank of a 
+given child dialog object among all the children of a dialog object.</p>
+<pre class="code">int ChildNumber = pDialog-&gt;GetChildNumberFromChild(pChild );</pre>
+<p>Use the <code>GetChildFromChildNumber</code> method to retrieve a child dialog 
+object from its rank.</p>
+<pre class="code">CATDialog * pChild = pDialog-&gt;GetChildFromChildNumber(nChild);</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Retrieving the Containing Dialog Window</h3>
+<p>Use the <code>GetFatherWindow</code> method to retrieve the dialog window that 
+contains the dialog object.</p>
+<pre class="code">CATDlgWindow * pContainingWindow = pDialog-&gt;GetFatherWindow();</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Changing the Dialog Containment Parent</h3>
+<p>Use the <code>ReParent</code> method to change the dialog containment parent.</p>
+<pre class="code">int Succeeded = pDialog-&gt;Reparent(pNewParent);</pre>
+<p><code>pNewParent</code> can be a CATDlgBox or a CATDlgWindow instance only, since 
+it must contain <code>pDialog</code>.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Changing the CATCommand Send/Receive Parent</h3>
+<p>Use the CATCommand <code>SetFather</code> method to change the CATCommand send/receive 
+parent.</p>
+<pre class="code">pDialog-&gt;SetFather(pNewParent);</pre>
+<p><code>pNewParent</code> must be a CATCommand instance to be able to receive the 
+notifications sent by <code>pDialog</code>. This is the case of all dialog objects.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Managing Properties</h2>
+<p>The dialog object properties are its visibility, its sensitivity to end user 
+interaction, its style.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3>Managing the Visibility</h3>
+<p>Use the <code>SetVisibility</code> and <code>GetVisibility</code> methods with 
+the parameters <code>CATDlgShow</code> and <code>CATDlgHide</code> to manage the 
+visibility of a dialog object.</p>
+<table>
+	<tr>
+		<td><em>set visibility</em></td>
+		<td>
+		<pre class="code">CATULong ObjectVisibility = CATDlgShow;
+pDialog-&gt;SetVisibility(ObjectVisibility);
+...</pre>
+		</td>
+	</tr>
+	<tr>
+		<td><em>get visibility</em></td>
+		<td>
+		<pre class="code">ObjectVisibility = pDialog-&gt;GetVisibiliy(ObjectVisibility);
+if (ObjectVisibility == CATDlgShow)
+  ...   // Object is visible
+else if (ObjectVisibility == CATDlgHide)
+  ...   // Object is not visible</pre>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Managing the Sensitivity</h3>
+<p>The sensitivity of a dialog object is its ability to react to an end user interaction. 
+It applies to dialog objects designed for this purpose, and can therefore be managed 
+for thses objects only, such as push buttons, combos, and spinners.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="CATDlgEnable Push Button" height="19" src="images/CAADlgCATDlgEnable.jpg" width="43"/></td>
+		<td>A sensitive Apply push button. When the end user pushes it, it reacts 
+		by sending a notification to its parent in the command tree structure</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="CATDlgDisable Push Button" height="19" src="images/CAADlgCATDlgDisable.jpg" width="43"/></td>
+		<td>A non sensitive Apply push button. It is displayed dimmed and can't 
+		be pushed.</td>
+	</tr>
+</table>
+<p>On the opposite, a label or a separator, that is used to display a text or an 
+image, or to help dialog object layout, are not sensitive objects.</p>
+<p>Use the <code>SetSensitivity</code>, <code>GetSensitivity</code>, and <code>IsSetSensitivity</code> 
+methods with the parameters <code>CATDlgEnable</code> and <code>CATDlgDisable</code> 
+to manage the sensitivity of a dialog object.</p>
+<table>
+	<tr>
+		<td><em>set sensitivity</em></td>
+		<td>
+		<pre class="code">CATULong ObjectSensitivity = CATDlgEnable;
+pDialog-&gt;SetSensitivity(ObjectSensitivity);
+...</pre>
+		</td>
+	</tr>
+	<tr>
+		<td><em>get sensitivity</em></td>
+		<td>
+		<pre class="code">ObjectSensitivity = pDialog-&gt;GetSensitivity(ObjectSensitivity);
+if (ObjectSensitivity == CATDlgEnable)
+  ...   // Object is sensitive
+else if (ObjectSensitivity == CATDlgDisable)
+  ...   // Object is not sensitive</pre>
+		</td>
+	</tr>
+	<tr>
+		<td><em>ask for sensitivity</em></td>
+		<td>
+		<pre class="code">...
+CATBool IsSensitive;
+if(pDialog-&gt;IsSetSensitivity())
+  ...   // Object is sensitive
+else
+  ...   // Object is not sensitive</pre>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Retrieving the Object's Style</h3>
+<p>The object's style can be retrieved thanks to the GetStyle method.</p>
+<pre class="code">CATDlgStyle ObjectStyle;
+ObjectStyle = pDialog-&gt;GetStyle();</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Linking to the Power Input</h3>
+<p>You can link an editor or a spinner to the PowerInput using the SetPowerInputLink 
+method. The PowerInput mode should be already enabled.</p>
+<pre class="code">int PowerInputLinkMode = 1;
+pEditor-&gt;SetPowerInputLink(PowerInputLinkMode);</pre>
+<p>Valid values are:</p>
+<table>
+	<tr>
+		<td>1</td>
+		<td>The object is linked to the Power Input</td>
+	</tr>
+	<tr>
+		<td>0</td>
+		<td>The object is not linked to the Power Input</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Managing Location and Extent in the Grid</h2>
+<p>Any object can set itself its location and extent in the grid [1] of its parent 
+object using the <code>SetGridConstraints</code> and <code>GetGridConstraints</code> 
+methods.</p>
+<table>
+	<tr>
+		<td><em>set grid constraint</em></td>
+		<td>
+		<pre class="code">CATDlgGridConstraints GridCsts(4, 2, 1, 1, CATGRID_4SIDES);
+pDialog-&gt;SetGridConstraints(GridCsts);</pre>
+		</td>
+	</tr>
+	<tr>
+		<td><em>set grid constraint parameters</em></td>
+		<td>
+		<pre class="code">... // OR
+pDialog-&gt;SetGridConstraints(4, 2, 1, 1, CATGRID_4SIDES);</pre>
+		</td>
+	</tr>
+	<tr>
+		<td><em>get grid constraint</em></td>
+		<td>
+		<pre class="code">...
+CATDlgGridConstraints NewGridCsts;
+NewGridCsts = pDialog-&gt;GetGridConstraints();</pre>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Managing Resources</h2>
+<p>The resources [1) are assigned to a dialog object from the resource files using 
+the object identifier or name passed as the second argument of the dialog object 
+constructor. Some resources can be automatically set using the DeclareResource macro. 
+If the resource files doen't exist or are not found, resources can be hardcoded 
+and assigned using methods, even if this is not recommended. In addition, some resources, 
+such as the values displayed in a combo, must be extracted from the resource files, 
+and set as the combo lines.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Managing the Resource Files and Keys</h3>
+<p>You can do the following:</p>
+<ul>
+	<li>Get the object's identifier or name used to build its resource keys in the 
+		resource files using the <code>GetName</code> method.
+		<pre class="code">CATString ObjectId;
+ObjectId = pDialog-&gt;GetName();</pre>
+	</li>
+	<li>Get and set the object's resource key using the <code>GetResourceID</code> 
+		and <code>SetResourceID</code> methods.
+		<table>
+			<tr>
+				<td><em>get key</em></td>
+				<td>
+				<pre class="code">CATString ObjectKey;
+ObjectKey = pDialog-&gt;GetResourceID();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set key</em></td>
+				<td>
+				<pre class="code">ObjectKey = &quot;NewKey&quot;;
+pDialog-&gt;SetResourceID(ObjectKey);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Add a resource file to be searched for by providing a pointer to either 
+		a message catalog, instance of the CATMsgCatalog class, or a resource catalog, 
+		instance of the CATRscCatalog class, or the resource file name, and its 
+		path.
+		<table>
+			<tr>
+				<td><em>add message catalog</em></td>
+				<td>
+				<pre class="code">CATMsgCatalog * MsgCat = new CATMsgCatalog();
+//Message catalog is in file MsgFileName.CATNls
+MsgCat-&gt;LoadMsgCatalog(&quot;MsgFileName&quot;);
+CATString Path(&quot;/u/users/psr/catalog&quot;);
+pDialog-&gt;AddResourcePath(*MsgCat, Path);
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>add resource catalog</em></td>
+				<td>
+				<pre class="code">CATRscCatalog * RscCat = new CATRscCatalog();
+//Resource catalog is in file RscFileName.CATRsc
+RscCat-&gt;LoadRscCatalog(&quot;RscFileName&quot;);
+pDialog-&gt;AddResourcePath(*RscCat, Path);
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>add message or resource catalog using its name</em></td>
+				<td>
+				<pre class="code">CATString Name(&quot;CatalogName&quot;);
+pDialog-&gt;AddResourcePath(Name, Path);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<p>The message catalogs are files suffixed by CATNls, such as MsgFileName.CATNls, 
+and resource catalogs are files suffixed by CATRsc, such as RscFileName.CATRsc.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Managing the Resource Values</h3>
+<p>You can do the following:</p>
+<ul>
+	<li>Get and set the title using the GetTitle and SetTitle methods.
+		<table>
+			<tr>
+				<td><em>get title</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucTitle;
+ucTitle = pDialog-&gt;GetTitle();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set title</em></td>
+				<td>
+				<pre class="code">ucTitle = ...;
+pDialog-&gt;SetTitle(ucTitle);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the mnemonic using the GetMnemonic and SetMnemonic methods.
+		<table>
+			<tr>
+				<td><em>get mnemonic</em></td>
+				<td>
+				<pre class="code">CATUnicodeChar ucMnemonic;
+ucMnemonic = pDialog-&gt;GetMnemonic();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set mnemonic</em> </td>
+				<td>
+				<pre class="code">ucMnemonic = ...;
+pDialog-&gt;SetMnemonic(ucMnemonic);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the accelerator as a keystroke combination using the GetAccelerator 
+		and SetAccelerator methods.
+		<table>
+			<tr>
+				<td><em>get accelerator</em></td>
+				<td>
+				<pre class="code">CATDlgAccelerator Accelerator;
+Accelerator = pDialog-&gt;GetAccelerator();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set accelerator</em></td>
+				<td>
+				<pre class="code">pDialog-&gt;SetAccelerator(Meta|UIK_a);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the accelerator as a CATUnicodeString instance using the GetAcceleratorString 
+		and SetAcceleratorString methods.
+		<table>
+			<tr>
+				<td><em>get accelerator</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucAccelerator;
+ucAccelerator = pDialog-&gt;GetAcceleratorString();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set accelerator</em></td>
+				<td>
+				<pre class="code">pDialog-&gt;SetAcceleratorString(&quot;Ctrl+a&quot;);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Set the icon names and types using the SetIconName and SetIconType methods.
+		<table>
+			<tr>
+				<td><em>set icon names</em></td>
+				<td>
+				<pre class="code">pDialog-&gt;SetIconName(&quot;IconNameNormal&quot;,
+&quot;IconNameSelected&quot;,
+&quot;IconNameFocussed&quot;,
+&quot;IconNameDisabled&quot;,);</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set icon type</em></td>
+				<td>
+				<pre class="code">pDialog-&gt;SetIconType(Modification);</pre>
+				</td>
+			</tr>
+		</table>
+		<p>Valid icon types are Default, General, Creation, Modification, Analysis, 
+		and NonTransparent.</p>
+	</li>
+	<li>Get and set the help message displayed in the message area of the status 
+		bar using the GetHelp and SetHelp methods.
+		<table>
+			<tr>
+				<td><em>get help</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucHelp;
+ucHelp = pDialog-&gt;GetHelp();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set help</em></td>
+				<td>
+				<pre class="code">ucHelp = ...;
+pDialog-&gt;SetHelp(ucHelp);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the short help message, or tooltip, displayed in box beside 
+		the objetc when the mouse moves above the object using the GetShortHelp 
+		and SetShortHelp methods.
+		<table>
+			<tr>
+				<td><em>get short help</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucShortHelp;
+ucShortHelp = pDialog-&gt;GetShortHelp();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set short help</em></td>
+				<td>
+				<pre class="code">ucShortHelp = ...;
+pDialog-&gt;SetShortHelp(ucShortHelp);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the Power Input help message displayed in front of the Power 
+		Input entry field using the GetPowerInputHelp and SetPowerInputHelp methods.
+		<table>
+			<tr>
+				<td><em>get Power Input help</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucPowerInputHelp;
+ucPowerInputHelp = pDialog-&gt;GetPowerInputHelp();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set Power Input help</em></td>
+				<td>
+				<pre class="code">ucPowerInputHelp = ...;
+pDialog-&gt;SetPowerInputHelp(ucPowerInputHelp);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get and set the long help message displayed in a box when the What's This 
+		command is used using the GetLongHelp and SetLongHelp methods.
+		<table>
+			<tr>
+				<td><em>get long help</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucLongHelp;
+ucLongHelp = pDialog-&gt;GetLongHelp();
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set long help</em></td>
+				<td>
+				<pre class="code">ucLongHelp = ...;
+pDialog-&gt;SetLongHelp(ucLongHelp);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Set the status bar text and temporary text using the SetStatusBarText and 
+		SetStatusBarTemporaryText methods.
+		<table>
+			<tr>
+				<td><em>set status bar message</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucStatusBarMsg = ...;
+pDialog-&gt;SetStatusBarText(ucStatusBarMsg);
+...</pre>
+				</td>
+			</tr>
+			<tr>
+				<td><em>set status bar temporary message</em></td>
+				<td>
+				<pre class="code">CATUnicodeString ucStatusBarTempMsg ...;
+pDialog-&gt;SetStatusBarTemporaryText(ucStatusBarTempMsg);</pre>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>Get a resource value from its key, and possibly by passing the associated 
+		parameters, if any, using the GetResourceValueFromKey method.
+		<pre class="code">CATString ObjectKey = &quot;sKey&quot;;
+CATUnicodeString ucValue;
+CATUnicodeSring ucParm[n];
+ucParm[0] = ...;
+ucParm[1] = ...;
+...
+int rc = pDialog-&gt;GetResourceValueFromKey(sKey, ucValue, ucParm);
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADlgQrMagnitudesAndUnits.htm">Magnitude and Unit Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADlgTaCreatingDialogs.htm">How to Create Dialog Objects</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAADlgTaCallbacks.htm">How to Use Callbacks to Trigger Actions</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAADlgQrCATDlgEditor.htm">CATDlgEditor</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAADlgQrCATDlgSpinner.htm">CATDlgSpinner</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

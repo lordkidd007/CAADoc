@@ -1,0 +1,289 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Generic Naming Mechanism</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Generic Naming Mechanism</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains the mechanism of the construction of the Generic 
+		Naming Objects. It is in in the continuity of the article entitled "Generic 
+		naming Overview" [<a href="#References">1</a>]. A good knowledge of the 
+		topological modeler is recommended to fully understand this article [<a href="#References">2</a>][<a href="#References">3</a>].
+		</p>
+		<ul>
+			<li><a href="#100000">Reminder of the Objective of Generic Naming</a></li>
+			<li><a href="#200000">Principles</a>
+				<ul>
+					<li><a href="#210000">Generic Naming Graph</a></li>
+					<li><a href="#220000">Graph Generation</a></li>
+					<li><a href="#230000">Node Generation</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Reminder of the Objective of Generic Naming</h2>
+<p>Generic Naming provides a stable identification of sub-parts of geometrical elements, 
+which are deleted and rebuilt during an update. This identification is a kind of 
+record of all CGM journals that lead to the creation of the sub-elements. </p>
+<p>Lets look at an example:</p>
+<p>
+<img alt="" height="198" src="../CAAMmrMecMod/images/CAAMmrGN2.png" width="406"/></p>
+<p>In this example, instead of pointing directly the edge, the sweep will store 
+a name that describe precisely this cell, for instance &quot;result edge of the 
+feature Spline.1&quot;. Even after an update of the geometry, the sweep will be 
+able to find the correct topology in the result by interpreting the name.</p>
+<p>The Generic Name is built through a temporary object representing the geometry 
+selection, called BRep Access<strong>.</strong> It can be made persistent by generating 
+a BRep Feature. The BRep Feature can then be referenced by a Mechanical Feature.</p>
+<p>The BRep Access and BRep features are the only CAA exposed objects concerning 
+Generic Naming. They are fully described in the technical articles "BRep Access" 
+and "BRep Features" [<a href="#References">4</a>][<a href="#References">5</a>], 
+so we will not talk more about them in this article. The purpose here is to explain 
+the principles of how the generic name is built, in order to understand the methods 
+that you will need to call in the implementation of the Build process of your feature. 
+Indeed, the Generic Naming needs to be generated during the Build phase of a feature.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Principles</h2>
+<p>The Generic Naming is calculated by reading a kind of history graph of the topological 
+objects. This graph describes the construction relations that exist between the 
+cells of successive bodies and is build from the CGM Journals. For more information 
+on the CGM journal, refer to the technical articles &quot;CGM journal&quot; and &quot;Topological 
+Journal methodology&quot; [<a href="#References">6</a>][<a href="#References">7</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Generic Naming Graph</h3>
+<p>The graph used by the generic naming is generated during the Build process. The 
+purpose of this graph is to help the application to build generic names for selected 
+elements. This graph is made of objects called scopes and nodes. These objects are 
+hidden both from the end-user and from the CAA point of view. They are mentioned 
+here to ease explanations about generic naming structures.</p>
+<p>To each mechanical feature is associated one scope. The scope makes the link 
+between the feature and its topological result (a <code>CATBody</code>). A scope 
+contains one or several nodes. Each node is linked to a cell (a <code>CATCell</code>) 
+within the result <code>CATBody</code>. A node is created only for the cells that 
+need to be named (faces of volumes, faces and border edges of open shells, edges 
+of wires, standalone vertices).</p>
+<p>A node will reference a node of a different scope if there is a recorded construction 
+relationship between the two associated cells. </p>
+<p>Just as cells can be shared between bodies, nodes can be shared between scopes, 
+as long as the associated cell remains in the resulting body.</p>
+<p>For each node, a name can be computed. Several nodes may have the same name (for 
+instance, faces of a cylinder).</p>
+<p>In the example below, we show a simplified view of the graph generated by a Sketch 
+and a Pad. In this figure [<a href="#Fig3">Fig.3</a>], the node (n1) which is linked 
+to the side face of the Pad (the one in grey) references the node (n2) which is 
+linked to the Line.1of the Sketch. This relationship expresses the fact that the 
+face has been generated from the line. This information is issued from the topological 
+journal during the build of the Pad.</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3: Generic Naming Graph</caption>
+	<tr>
+		<td><img alt="" height="248" src="images/CAAMmrGN3.jpg" width="542"/></td>
+	</tr>
+</table>
+<p>In this example, the generic name of the greyed face will be: Face generated 
+by Pad.1, from the edge of Sketch.1/Line.1.</p>
+<p>Nodes that do not have ancestor relationship can have a complementary information 
+that helps in identifying the node.</p>
+<p>In the example, we can see that every side face of the Pad will have a different 
+name. However, using that strategy, it is not possible to distinguish the top and 
+the bottom faces of the Pad. Both are built using the same elements, all the elements 
+of the profile. In that case it is necessary to add some information to the nodes 
+of the top and bottom faces.</p>
+<p>For a Pad, the top face will have a complementary information Top and the bottom 
+face will have the information Bottom.</p>
+<table>
+	<caption><a name="Fig4"></a>Fig.4: Added Information</caption>
+	<tr>
+		<td><img alt="" height="252" src="images/CAAMmrGN4.jpg" width="493"/></td>
+	</tr>
+</table>
+<p>This added information will be used to build the generic name. In our example, 
+the name of the top face will look like: Face generated by Pad.1 with info Top.</p>
+<p>Not all the cells of a <em>CATBody</em> needs to be tracked by the nodes of a graph. 
+In the above example, we can see that each edge is shared by only two faces. Therefore 
+it is possible to identify an edge by saying that it is the common edge between 
+two given faces.</p>
+<p>Therefore, the generic naming graph will not keep track of every topological 
+cells. It will only store:</p>
+<ul>
+	<li>The faces of a solid.</li>
+	<li>The boundary edges and the faces of a shell.</li>
+	<li>The extremity vertices and the edges of a wire.</li>
+</ul>
+<p>All the objects must have an associated node to allow the body storage, and make 
+the elements selectable.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>Graph Generation</h3>
+<p>The graph is generated during the update process of the Mechanical Part. Each 
+mechanical feature is responsible for the generation of its own scope and nodes, 
+which should be done during the Build of its Geometrical Result.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="230000"></a>Nodes Generation</h3>
+<p>A node must be associated to each of the named sub-elements of a body.</p>
+<p>According to the CGM journal, nodes may be of different types:</p>
+<ul>
+	<li>&quot;creation&quot; events will lead to a &quot;Gener&quot; node.</li>
+	<li>&quot;modification&quot;, &quot;subdivision&quot;, &quot;absorption&quot; 
+		events will lead to &quot;Modification&quot; nodes.</li>
+</ul>
+<p>Those types are not enough to inform CATIA about some wished behaviours. Additional 
+information can be specified using Translate Rules in the procedural report. This 
+is done using the method SetProcTranslateRule of the <em>CATIMmiProcReport</em> interface.</p>
+<ul>
+	<li>&quot;GenerToModifyCovering&quot;: Transform the created nodes from &quot;Generation&quot; 
+		to &quot;Modification&quot;, but adding an information called &quot;Covering&quot;.</li>
+	<li>&quot;GenerToGenerCovering&quot;: The created nodes need to be marked with 
+		the &quot;Covering&quot; information.</li>
+	<li>&quot;GenerToGenerCopy&quot; rule: this rule is available to specify that 
+		when the created node has one and only one parent of the same dimension, 
+		the attributes of its parent node (colors for instance) must be also applied 
+		to this node.</li>
+</ul>
+<p>The different node's types allow the following behaviors:</p>
+<ul class="wide">
+	<li>&quot;Gener&quot; nodes: The &quot;Gener&quot; nodes allow to define a new &quot;name&quot; 
+		in the Generic Naming graph. This kind of node identifies the &quot;initial 
+		feature&quot; of a new geometrical element. This is the highlighted feature 
+		in the specification tree when selecting the corresponding geometry in the 
+		3D. When defining a contextual feature (that is to say a feature that uses 
+		BRep features as inputs), this contextual can not be re-ordered before the 
+		initial feature of any geometrical element participating in the BRep feature 
+		definition (it is not only the support geometry, but may also involve neighbor 
+		geometries).</li>
+	<li>&quot;Modification&quot; nodes: The &quot;Modification&quot; nodes are nodes 
+		that simply derive from their parent node (for instance relimited or split 
+		face). The name is not changed, neither the initial feature. This node defines 
+		a (new) &quot;Last Feature&quot; for the geometry underlying the modified 
+		topological cell. When selecting the associated cell in the 3D, the feature 
+		of the parent node is highlighted in the specifications tree (in fact, the 
+		system goes up to the first &quot;Gener&quot; node. For faces, color is 
+		the same as on the parent face. It can however be redefined when face is 
+		split into several faces.</li>
+	<li>&quot;ModifCovering&quot; nodes: in some cases, the feature will create 
+		new surfaces that the owning application wishes more or less to be considered 
+		as simple dress-up of their parent surface. The goal is then to keep the 
+		name of the &quot;covered&quot; surface. Instead of being &quot;Gener&quot; 
+		nodes, internally, they are seen as &quot;Modification&quot; nodes. An example 
+		could be draft faces: when inserting a draft before a fillet, the wished 
+		behavior is that the fillet can be automatically solved on the resulting 
+		body, even if the edge it relies on has had a neighbor face covered by 
+		a draft. To do this, the draft faces are marked as &quot;ModifCovering&quot;. 
+		The added behaviors are the following: When selecting in the 3D, highlight 
+		in the specification tree stops on these nodes. On the contrary, when selecting 
+		the feature of the parent node, highlight in the 3D will also highlight 
+		the &quot;covering&quot; elements.</li>
+	<li>&quot;GenerCopy&quot; nodes: this additional type can be added on top of 
+		other types. It allows to copy attributes such as color from the parent 
+		node.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Generic Naming provides a stable identification of geometrical sub-elements.</p>
+<p>The Generic Naming graph, from which BRep Access objects and BRep features are created, 
+needs to be generated during the Build phase of a feature. Hence, you will need 
+to call the appropriate methods for that in the implementation of the <code>Build</code> 
+method of your feature. The article "Integrating a New geometrical Feature in the 
+Update Mechanism"[<a href="#References">8</a>] details these methods.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaGenericNaming.htm">
+		Generic Naming Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAACgmModel/CAACgmTaTobTopoConcepts.htm">
+		Topology Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAACgmModel/CAACgmTaTobTopoModel.htm">
+		The CGM Topological Model</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaBRepAccessGlossary.htm">
+		BRep Access Objects</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaBRepFeatureGlossary.htm">
+		BRep Features</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAACgmOperators/CAACgmTaTopJournal.htm">
+		Topological Journal: Principles</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAACgmOperators/CAACgmTaTopJournalMethodology.htm">
+		Topological Journal: Methodology</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAMmrTaBuildIntegrating.htm">Integrating a New Geometrical 
+		Feature in the Update Mechanism</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2012]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

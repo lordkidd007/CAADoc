@@ -1,0 +1,606 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Environment</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Environment</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+		<p>In this document is described what is a PLM environment and how 
+		you can use it. An example have been exposed to give you a best idea of its 
+		interest and use.</p>
+		<p>Previously, it is strongly recommended 
+		to read articles - PLM Dictionary [<a href="#References">1</a>] and&nbsp; PLM Modeler and Customization [<a href="#References">2</a>] 
+        - to be familiar with 
+		concepts and wording used in this article.</p>
+      <ul>
+		<li><a href="#Introduction">
+		Introduction</a><ul>
+		<li><a href="#The Need">The Need</a></li>
+		<li><a href="#Warning">Warning</a></li>
+      </ul>
+    	</li>
+        <li><a href="#PLM Environments">PLM 
+		Environment
+		Definition</a><ul>
+          <li>
+          <a href="#PLM Modeler, PLM customization and PLM Instantiable">PLM Instantiable 
+			Set</a></li>
+          <li><a href="#Definition">Definition</a></li>
+          <li><a href="#Theorical Example">Theoretical 
+          Sample</a></li>
+        </ul></li>
+        <li><a href="#PLM application Example">PLM Application Example</a><ul>
+          <li><a href="#The Custom Data Models">The Custom Data Models</a></li>
+          <li><a href="#The PLM Environments">The PLM Environments</a></li>
+          <li><a href="#Building Boards">Building Boards</a></li>
+          <li><a href="#Assembling Skateboards">Assembling Skateboards</a></li>
+        </ul></li>
+        <li><a href="#Usage">How to Use PLM Environment?</a></li>
+        <li><a href="#InShort">In Short</a></li>
+        <li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<h3><a name="The Need"></a>The Need</h3>
+<p>The PLM dictionary is a set of PLM Classes defining PLM 
+modelers and their multiple customizations. Taken the example of a PLM Modeler 
+where its PLM Reference is customized N times:</p>
+<table >
+	<caption align="center"><a name="Fig.1">Fig.1</a> Multi PLM Classes</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllEnvironment_Need.gif" width="527" height="237"></td>
+	</tr>
+</table>
+<p>
+Which (instantiable) PLM Class may be used to create the PLM object in database?&nbsp; 
+According to the design context what is the right one ? The PLM environment is a 
+way to solve this question.</p>
+<p>The PLM Environment is a tool enabling an administrator to pre-select for the 
+end user PLM 
+class types&nbsp;for two kinds of use:</p>
+<ul>
+	<li><b>Creating</b> PLM objects. What are the instantiable PLM Modeler class 
+	types to 
+	be used for an instantiation?&nbsp; </li>
+</ul>
+<blockquote>
+	<p>We use the wording &quot;<b>Authoring</b>&quot; PLM Class types, or Authoring 
+	types. In the example [<a href="#Fig.1">Fig.1</a>], <code>PLMReferenceCusto2</code> 
+    could be used as authoring type. In this PLM environment, only PLM object of&nbsp; 
+    type <code>PLMReferenceCusto2</code>&nbsp; could be created for the given 
+    PLM Modeler. </p>
+</blockquote>
+<ul>
+	<li><b>Looking for</b> PLM objects in database. What are the acceptable PLM class types 
+	for queries?&nbsp; </li>
+</ul>
+<blockquote>
+	<p>We use the wording &quot;<b>Usable</b>&quot; PLM Class types, or Usable 
+	types.&nbsp;In the example [<a href="#Fig.1">Fig.1</a>], if <code>PLMReferenceCusto2</code> 
+    and <code>PLMReferenceCusto3 </code>are usable types for a given Modeler and 
+    given a PLM 
+	environment, only PLM objects of&nbsp;these two 
+    types could be retrieved in database for this modeler.</p>
+</blockquote>
+<p>In both use cases, the administrator has considered that excluded PLM objects 
+type<code>s </code>are useless for the process. </p>
+<p>Within the system, several PLM Environments could be available, each one is created to be associated with a specific design context. A PLM Environment 
+can be created or modified through the DMC tool [<a href="#References">3</a>].</p>
+<p>The chapters <a href="#PLM Environments">PLM Environment Definition</a> and <a href="#PLM application Example">PLM Application Example</a> 
+will give you all the necessary information to understand what is made of a PLM 
+Environment. </p>
+ <script type="text/javascript">insertLinkToTop()</script>
+
+
+  <h3><a name="Warning"></a>Warning</h3>
+<p>But attention, we should first warn the 
+  reader about the PLM environment use:</p>
+  <ul>
+    <li>Creation case</li>
+  </ul>
+  <blockquote>
+    <p>An instantiable PLM class is always 
+    instantiable ! The PLM system will never forbid to use an instantiable PLM 
+    class to create a PLM object.&nbsp; It means that if an API does not respect 
+    the PLM Environment rule, any instantiable PLM class could be instantiated.
+    </p>
+    <p>An API to create a PLM Modeler Object 
+    and respecting PLM Environment rule, is one whose the PLM Environment is an 
+    input argument. The API will choose itself the PLM object type to create.</p>
+    <p>The <a href="#PLM application Example">PLM Application Example</a> 
+    chapter 
+    will illustrate this purpose with PRODUCT APIs. </p>
+  </blockquote>
+  <ul>
+    <li>Query case</li>
+  </ul>
+  <blockquote>
+    <p>API(s) of query (see CATPLMClientAdapter 
+    fw) will always accept any kind of PLM Class, while the PLM Class exists in 
+    PLM dictionary. By consequence, the developer of an application must 
+    previously check itself the available types before to propose / to do a query.</p>
+  </blockquote>
+  <p>The last chapter, 
+  <a href="#Usage">How to Use PLM Environment?</a>, will give you all the 
+  necessary information to code safely a PLM application based on
+  PLM Environment rules.</p>
+  <script type="text/javascript">insertLinkToTop()</script>
+
+  <h2><a name="PLM Environments"></a>PLM Environment Definition</h2>
+<p>A PLM environment is a set of&nbsp; PLM class types among all defined in the PLM 
+Dictionary. Before to explain how the types are selected, we should introduce a 
+word, PLM Instantiable Set. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Modeler, PLM customization and PLM Instantiable"></a>PLM Instantiable 
+Set</h3>
+  <p>The PLM Instantiable Set is not a reality from the PLM dictionary point of 
+	view as a PLM Modeler or a PLM Customization. It is just a word to represent 
+	what are the instantiable PLM Classes that you handle when you specify the 
+	name of the modeler or the name of one of its customization. This picture 
+	illustrates the three possible configurations:</p>
+<table >
+	<caption align="center"><a name="Fig.2">Fig.2</a> PLM Instantiable Set Definition</caption>
+	<tr>
+		<td><img border="0" src="images/CAAPLMAllModeler_customization.gif"></td>
+	</tr>
+</table>
+<ul>
+	<li>case 1 : The PLM Instantiable Set consists in five instantiable PLM 
+	Classes : the four of the PLM Customization and one of the PLM Modeler 
+	itself.</li>
+	<li>case 2 : The PLM Instantiable Set&nbsp; consists in four instantiable PLM 
+	Classes : those of the PLM Modeler itself</li>
+	<li>case 3 : The PLM Instantiable Set&nbsp; consists in four instantiable PLM 
+	Classes : those of the PLM Customization itself</li>
+</ul>
+<p>So to define a PLM Instantiable Set if you specify :</p>
+<ul>
+	<li>The name of the PLM Modeler, except the case 2, it cannot be considered 
+	as valid case,  
+	</li>
+	<li>The name of a PLM Customization, it will be considered as valid.</li>
+</ul>
+<p>Now we can go deeply in 
+the PLM Environment definition.&nbsp; </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Definition"></a>Definition</h3>
+<p>A PLM environment is a set of authoring and usable PLM class types defined <b>
+for each PLM Modeler</b> as follows:</p>
+<ul>
+	<li><b>Authoring PLM Class types </b>: You give the name one <b>1</b> PLM Instantiable 
+	Set</li>
+</ul>
+<blockquote>
+	<p>All the PLM Classes building the PLM Instantiable 
+	Set will be the authoring PLM class types. </p>
+	<p>No authoring PLM Class types can be defined, since an administrator can 
+	decide that in a specific environment, no creation are possible for this PLM Modeler.</p>
+</blockquote>
+<ul>
+	<li><b>Usable PLM Class types&nbsp; :</b> You give the name one <b>N</b> PLM Instantiable 
+	Sets 
+    + eventually the PLM modeler name when it contains customizable PLM Classes.</li>
+</ul>
+<blockquote>
+	<p>All the types of the N PLM Instantiable Set could be used to make a 
+    query. </p>
+    <p>In the specific case where the PLM Modeler contains customizable PLM 
+    classes, case 1 [<a href="#Fig.2">Fig.2</a>], adding the PLM Modeler itself enables you to make a query on all 
+    PLM classes types deriving from the customizable type. On example : Give 
+	me all the PLM Reference in database of this PLM Modeler. Using the PLM 
+	Modeler class type (customizable) you will have all the PLM Reference whatever 
+    their 
+	customization types.</p>
+    <p>No usable PLM Class types can be defined, since an administrator can 
+	decide that in a specific environment, no query are possible for this PLM Modeler.</p>
+</blockquote>
+<p>The best is now to illustrate this definition by a very simple theoretical sample.&nbsp; The <a href="#PLM application Example">PLM Application Example</a> 
+    chapter 
+    will illustrate a concrete case.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Theorical Example"></a>Theoretical Sample</h3>
+<p>Two 
+PLM Environment will be shown, explained and compared [<a href="#Fig.3d">Fig.3d</a>], 
+both based on three PLM Modelers M1, M2 and M3:</p>
+<table >
+	<caption align="center"><a name="Fig.3_a">Fig.3a</a> M1 Modeler</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllEnvironment_M1.gif"></td>
+	</tr>
+</table>
+<p>M1 illustrates a PLM Modeler where all its PLM Classes are customizable, and 
+by consequence all its PLM Instantiable Sets are equivalent to its PLM Customizations 
+(<code>Custo1M1</code>, <code>Custo2M1</code>,<code>Custo3M1</code>).</p>
+<table>
+	<caption align="center"><a name="Fig.3_b">Fig.3b</a> M2 Modeler</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllEnvironment_M2.gif"></td>
+	</tr>
+</table>
+<p>M2 illustrates a PLM Modeler containing itself two instantiable PLM Classes. 
+The first PLM Instantiable Set contains the following types {<code>RefC1M2, InstC1M2, RepRefM2, 
+	RefInstM2</code>}, and the second one {<code>RefC2M2, InstC2M2, RepRefM2, 
+	RefInstM2</code>}.</p>
+<table>
+	<caption align="center"><a name="Fig.3_c">Fig.3c</a> M3 Modeler</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllEnvironment_M3.gif"></td>
+	</tr>
+</table>
+<p>M3 illustrates a PLM Modeler whose all its PLM Classes are concrete. The PLM 
+Modeler is itself a PLM Instantiable Set. </p>
+<p>The two PLM Environment are as follows:</p>
+<table >
+	<caption align="center"><a name="Fig.3d">Fig.3d</a> Two PLM Environments</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllEnvironment_TwoPLMEnv.gif"></td>
+	</tr>
+</table>
+<p>We can said that:</p>
+<ul>
+	<li>For <a href="#Fig.3_a">Modeler M1</a></li>
+</ul>
+<blockquote>
+	<p>In the PLM Environment A, only the PLM Classes of the first PLM Instantiable 
+	Set (Custo1M1) could be instantiated {<code>RefC1M1, InstC1M1, RepRefC1M1, 
+	RefInstC1M1</code>}, and in B Environment, only the PLM Classes of the 
+	second PLM Instantiable Set could be used for an instantiation {<code>RefC2M1, 
+	InstC2M1, RepRefC2M1, RefInstC2M1</code>}.</p>
+	<p>In the PLM Environment A and B, the end user could be found any PLM object 
+	whose the type is one included in the three PLM Instantiable Set:&nbsp; {<code>RefC1M1, 
+	InstC1M1, RepRefC1M1, RefInstC1M1, RefC2M1, InstC2M1, RepRefC2M1, 
+	RefInstC2M1, RefC3M1, InstC3M1, RepRefC3M1, RefInstC3M1</code>}. But in the 
+	environment A, he has also the possibility to retrieve by one query all 
+	the PLM objects whose the type derives from the abstract class. If the type 
+	of the query is <code>RefM1</code>, will be retrieve all the PLM objects 
+	whose the type is <code>RefC1M1, RefC2M1 </code>and <code>RefC3M1.</code></p>
+	<p>Note : M1 cannot be used to define the set of authoring types, since it 
+	contains at least one abstract PLM class.</p>
+</blockquote>
+<ul>
+	<li>For <a href="#Fig.3_b">Modeler M2</a></li>
+</ul>
+<blockquote>
+	<p>In the PLM Environment A, only the PLM Classes of the first PLM Instantiable 
+	Set (Custo1M2) could be instantiated {<code>RefC1M2, InstC1M2, RepRefM2, 
+	RefInstM2</code>}, and in the B Environment, only the PLM Classes of the 
+	second PLM Instantiable Set could be used for an instantiation {<code>RefC2M2, InstC2M2, RepRefM2, 
+	RefInstM2</code>}.</p>
+	<p>In the PLM Environment A, the end user could use the following types 
+	: {<code>RefC1M2, InstC1M2, RepRefM2, 
+	RefInstM2</code>} + {<code>RefM2, InstM2</code>}. Retrieving individually 
+	the PLM objects whose the type is {<code>RefC2M2, InstC2M2</code>}<code>
+	</code>is impossible. If the type <code>RefM2, (or InstM2)</code> is used, 
+	the query can also return  <code>RefC1M2, RefC2M2 (and InstC1M2, InstC2M2)</code> PLM Objects, and not a list of PLM object whose the type is only <code>RefC2M2 (or InstC2M2)</code>.</p>
+	<p>In the PLM Environment B, the end user could only use the following types 
+	: {<code>RefC1M2, InstC1M2, RepRefM2, 
+	RefInstM2</code>}. It could never retrieve a PLM object whose the type is <code>RefC2M2 </code>
+	or <code>InstC2M2</code>. In fact this configuration is not really 
+	realistic, it is recommended to set the authoring types as usable too. </p>
+	<p>Note : M2 cannot be used to define the set of authoring types, since it 
+	contains at least one abstract PLM class.</p>
+</blockquote>
+<ul>
+	<li>For <a href="#Fig.3_c">Modeler M3</a></li>
+</ul>
+<blockquote>
+	<p>In the PLM Environment A, M3 is used to define the set of authoring types 
+	(it is possible since M3 is a concrete PLM modeler), and to define the set 
+	of usable types. In the PLM Environment B, M3 is not used.</p>
+</blockquote>
+<p>Now have a look at with a more concrete example.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+
+
+
+
+<h2><a name="PLM application Example"></a>PLM application Example</h2>
+<p>Suppose that a skateboard manufacturer wants to deploy a PLM application for 
+two of its teams: Manufacturing group and Board Designer group. The 
+responsibility of the Manufacturing group is to produce the skateboard by 
+assembling parts provided by the Board Designer group. The job of the Board 
+Designer group is limited to designing the board only.</p>
+<p>The PLM Modeler for this application is PRODUCT. Let's first see how its data 
+model (PRODUCTCFG) is 
+customized for each group. It must be noted that all PRODUCT classes: <code>
+VPMReference</code>, <code>VPMInstance</code>, <code>VPMRepReference</code>,
+<code>VPMRepInstance</code>, <code>VPMConnection</code> and <code>VPMPort</code> 
+are all abstract. As a consequence, they must be customized to be concrete.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="The Custom Data Models"></a>The Modeler Customization</h3>
+<p>The Manufacturing group defines a custom data model SKATE so that it can 
+create and manipulate a skateboard structure. This customization is shown in the 
+following figure:</p>
+<table>
+	<caption align="center"><a name="Fig.4">Fig.4</a> - The SKATE custom data model</caption>
+	<tr>
+		<td>
+<img border="0" src="images/caa_env_skate.png"></td>
+	</tr>
+</table>
+<p align="left">Please note that the custom class (<code>SKTReference</code>, 
+etc...) in [<a href="#Fig.4">Fig.4</a>] may have received new attributes.</p>
+<p>The Board Designer group also need their own custom data model BOARD, to model 
+their boards: <code>BRDReference</code>, ...</p>
+<table >
+	<caption align="center">Fig.5 - The BOARD custom data model</caption>
+	<tr>
+		<td>
+<img border="0" src="images/caa_env_board.png"></td>
+	</tr>
+</table>
+<p align="left">Finally there is the STANDARD custom data model for all the 
+standard parts (nuts, bolts, attachments etc...): <code>STDReference</code>, ...</p>
+<table >
+	<caption align="center">Fig.6 - The STANDARD custom data model
+	</caption>
+	<tr>
+		<td>
+<img border="0" src="images/caa_env_standard.png"></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="The PLM Environments"></a>The PLM Environments</h3>
+<p>The three custom data models: SKATE, BOARD and STANDARD, have to be organized 
+so that the two groups can collaborate: MANUF_ENV for the Assembly 
+department and BOARD_ENV for the Board one.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="MANUF_ENV"></a>MANUF_ENV</h4>
+<p>In this environment, the Manufacturing group should be able to create 
+skateboards. SKATE is therefore defined as authoring, allowing <code>
+SKTReference</code> and <code>SKTRepReference</code> to be created. </p>
+<p>It also needs to retrieve 
+the boards from the Board Designer Group and the standard parts to fit all the 
+pieces together. The usable types thus include: SKATE, BOARD and STANDARD. SKATE 
+will allow the Manufacturing group to query its skateboards (<code>SKTReference</code> 
+and <code>SKTRepReference</code>), BOARD all the boards designed by the Board 
+Design group (<code>BRDReference</code> and <code>BRDRepReference</code>) and 
+STANDARD for all the standard parts (<code>STDReference</code> and <code>
+STDRepReference</code>).</p>
+<table>
+	<caption align="center"><a name="Fig.7">Fig.7</a> - The MANUF_ENV environment</caption>
+	<tr>
+		<td>
+<img border="0" src="images/CAAPLMAllEnvironment_EnvAssembly.gif"></td>
+	</tr>
+</table>
+
+<h4><a name="BOARD_ENV"></a>BOARD_ENV</h4>
+<p>In this environment, the BOARD custom data model 
+is defined as authoring, allowing <code>BRDReference</code> and <code>
+BRDRepReference</code> to be created by the Board Designer group.</p>
+<p>For the usable types, only STANDARD is defined in addition to BOARD, 
+permitting <code>STDReference/STDRepReference</code> to be retrieved in addition 
+to <code>BRDReference/BRDRepReference</code>. </p>
+<table >
+	<caption align="center">Fig.8 - The BOARD_ENV environment</caption>
+	<tr>
+		<td>
+<p align="center">
+<img border="0" src="images/CAAPLMAllEnvironment_EnvBoard.gif"></p>
+		</td>
+	</tr>
+</table>
+<p>Now that we have defined the two environments MANUF_ENV and BOARD_ENV, 
+let's see how the two groups work together to construct a skateboard.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Building Boards"></a>Building Boards</h3>
+<p>Designers of the Board group select BOARD_ENV as their environment. They 
+created different designs, like ShortBoard, ready to be used by the 
+Manufacturing group:</p>
+<table>
+	<caption align="center"><a name="Fig.9">Fig.9</a> - The ShortBoard board design</caption>
+	<tr>
+		<td>
+<img border="0" src="images/CAAPLMAllEnvironment_shortboard.gif"></td>
+	</tr>
+</table>
+<p align="left">As you can see in [<a href="#Fig.9">Fig.9</a>] , <code>ShortBoard</code> is a 
+<code>BRDReference</code> aggregating an instance of the <code>BRDRef5</code> reference 
+(<code>BRDRef5.1</code>) and an instance of 
+the <code>STDRef22</code> reference (<code>STDRef22.1</code>).</p>
+<p align="left">This structure has been created as follows:</p>
+<ul>
+	<li>
+	Three PLM Objects are created in <a href="#BOARD_ENV">BOARD_ENV</a>: <code>ShortBoard</code>,
+<code>BRDRef5</code>&nbsp; (both<code> BRDReference) </code>and <code>
+BRDRepRef33 </code>(<code>BRDRepReference</code>) because we have used API of 
+	Product Modeler taken into account the current environment (<code>CreateProductReference</code> 
+	method of <i>CATIPLMPrdFactory</i>, 
+	and the <code>CreateRepresentationReferenceWithAuthoring</code> method of <i>CATIPsiPLMRepRefFactory</i>)</li>
+	<li>
+	The <code>STDRef22</code>
+<code>(STDReference)</code> created in another environment, is retrieved with a 
+	query using
+<code>STDReference</code> as type</li>
+	<li>
+	The instances <code>BRDRepInst3, BRDRef5.1</code> and <code>
+	STDRef22.1</code> are created using Product Modeler API ( <code>AddProduct</code> of <i>CATIPLMProducts</i>, and 
+	<code>AddRepInstance</code> of <i>CATIPLMRepInstances). </i>These two APIs 
+	create instances in the <i>same custo as the reference i.e. The instance is created with the custo of  ITS reference, not from its Aggregating reference</i>. It is why you 
+	can create&nbsp; <code>
+	STDRef22.1 </code>whose the type (<code>STDInstance</code>) is not authoring 
+	for <a href="#BOARD_ENV">BOARD_ENV</a>. Here you can see that &quot;authoring&quot; is 
+	just to be considered relatively to the used APIs. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3 align="left"><a name="Assembling Skateboards"></a>Assembling Skateboards</h3>
+<p align="left">Engineers of the Manufacturing group choose <a href="#MANUF_ENV">MANUF_ENV</a> for 
+their environment. They created whole skateboards by incorporating parts from 
+the Board Designer group. The following figure shows the ShortBoard skateboard 
+design:</p>
+<table >
+	<caption align="center">Fig.10 - The ShortBoard skateboard structure</caption>
+	<tr>
+		<td>
+<img border="0" src="images/CAAPLMAllEnvironment_Skatestructure.gif"></td>
+	</tr>
+</table>
+<p align="left">This structure has been created as follows:</p>
+<ul>
+	<li>
+	Two PLM Objects are created in <a href="#MANUF_ENV">MANUF_ENV</a>: <code>ShortBoard</code> 
+	and <code>SKTReference10 </code>(both<code> SKTReference) </code></li>
+	<li>
+	The other references, <code>ShortBoard</code> (a <code>BRDReference</code>) and
+<code>STDRef16</code> (a <code>STDReference</code>) are created in other 
+environments and retrieved thanks to MANUF_ENV's usable types.</li>
+	<li>The three instances <code>ShortBoard.1 </code>(a <code>BRDInstance</code>),
+	<code>STDRef16.1</code> (a <code>STDInstance</code>), and <code>SKTRef10.1</code> (a <code>SKTInstance</code>) 
+	are created in the customisation of their respective Reference. So even
+	<code>BRDInstance </code>and&nbsp; <code>STDInstance </code>are not 
+	authoring, PLM Objects of these types can be created.</li></ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Usage"></a>How to Use PLM Environment</h2>
+<p>The PLM Environment is in session an object modeler component implementing 
+the <i>CATIPLMEnvironment</i> interface. This interface contains three methods:</p>
+<ul>
+	<li>Retrieving the NLS name of the environment, the <code>GetAlias</code> 
+	method. ( as of today no NLS, this method returns the internal name of the 
+	PLM Environment)</li>
+	<li>Retrieving all the usable types of a given Modeler and for a PLM 
+	Core type : the<code> GetUsableTypes</code> method.</li>
+</ul>
+<blockquote>
+	<p>example : [<a href="#Fig.7">Fig.7</a>] , for the PRODUCT modeler, and the type PLM reference the result of this method will be {<code>SKTReference, 
+	PRDReference, STDReference</code>}</p>
+</blockquote>
+<ul>
+	<li>Retrieving the authoring type of a given Modeler and for a PLM Core 
+	type : the<code> GetAuthoringType</code> method.</li>
+</ul>
+<blockquote>
+	<p>example : [<a href="#Fig.7">Fig.7</a>] , for the PRODUCT modeler, and the type PLM reference the result of this method will be
+	<code>SKTReference</code></p>
+</blockquote>
+<p>The <code>GetUsableTypes</code> and <code>GetAuthoringType</code> methods 
+returns Object modeler components implementing <i>CATIAdpType</i>. </p>
+<p>In your code, if you want to be PLM Environment compliant, use these two 
+methods to propose valid types </p>
+<p><b>About the Query.</b></p>
+<p>API to make a query are independent of the Modeler, there are two services 
+within <i>CATPLMIntegrationAccess</i> fw (two methods of <i>CATAdpQueryServices</i> 
+class). </p>
+ 
+       <pre class="code"> public static HRESULT <b>GetElementsFromAttributes</b>( CATIAdpType*  <b>iType</b>, 
+                           const CATAdpAttributeSet&amp;  iAttributeSet, 
+                           CATLISTP(CATAdpQueryResult)&amp; oQueryResults)
+                           
+ public static HRESULT <b>GetElementByIdentificationSet</b>( CATIAdpType*  <b>iType</b>, 
+ const CATAdpIdentificationSet&amp;  iIdentifyingSet, 
+ CATIAdpPLMIdentificator*&amp;  oComponentIdentifier)  
+
+  
+</pre>
+      
+   <p>Both use as input a <i>CATIAdpType</i> interface pointer. You can use any 
+	kind of type of class, but if you want to be compliant with PLM Environment 
+	concepts, only use a type retrieved by <code> GetUsableTypes</code> method.</p>
+<p><b>About Creation</b></p>
+<p>Contrary to the query, creating a PLM object is done by API defined at Modeler 
+level. Three kind of possibilities :&nbsp; </p>
+<ul>
+	<li>The API contains the PLM Environment as input , as <code>CreateProductReference</code> 
+	method of <i>CATIPLMPrdFactory. </i></li>
+</ul>
+<blockquote>
+	<p>The API will retrieve in the input PLM Environment the authoring type to 
+	use.</p>
+</blockquote>
+<ul>
+	<li>The API contains a specific <i>CATIAdpType</i> as input&nbsp; </li>
+</ul>
+<blockquote>
+	<p>To be PLM Environment compliant you must specify the <i>CATIAdpType</i> 
+	providing from the <code>GetAuthoringType</code> method. </p>
+</blockquote>
+<ul>
+	<li>The API does not contain neither a PLM Environment, nor a CATIAdpType</li>
+</ul>
+<blockquote>
+	<p>The API chooses itself the type to create. Generally it is for the instances (of Reference and Rep Ref), 
+	but it is absolutely depending on the Modeler. </p>
+</blockquote>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>We showed how data models are 
+organized in PLM environments, allowing collaboration between multiple projects.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <tr>
+    <td >[1]</td>
+    <td><a href="CAAPLMTaAllCorePrinciples.htm">PLM Core Model Overview</a></td>
+  </tr>
+  <tr>
+    <td >[2]</td>
+    <td><a href="CAAPLMTaAllCusto.htm">Understanding PLM Modeler and 
+	Customization</a></td>
+  </tr>
+ 
+  <tr>
+    <td >[3]</td>
+    <td>DMC Tool</td>
+  </tr>
+ 
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td >Version: <strong>1</strong> [Oct 2006]</td>
+    <td >Document created</td>
+  </tr>
+  
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

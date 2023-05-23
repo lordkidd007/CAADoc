@@ -1,0 +1,254 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Using XPaths</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using XPaths</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains what XPaths are and how they are implemented in 
+		the V6 XML infrastructure.</p>
+		<ul>
+			<li><a href="#100000">Introduction to XPath</a>
+				<ul>
+					<li><a href="#110000">Paths</a></li>
+					<li><a href="#120000">Predicates</a></li>
+					<li><a href="#130000">Functions</a></li>
+					<li><a href="#140000">Expressions</a></li>
+				</ul>
+			</li>
+			<li><a href="#200000">Using XPath in V6</a>
+				<ul>
+					<li><a href="#210000">Implementations</a></li>
+					<li><a href="#220000">XPath factories</a></li>
+					<li><a href="#220000">Restrictions</a></li>
+				</ul>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Introduction to XPath</h2>
+<p>XPath is a W3C language which lets one navigate an XML document. Using XPath 
+expressions, one can easily select arbitrary nodes and evaluate simple functions 
+on XML nodes. Though XPaths can in theory be used with any kind of parser, in practice 
+they are a better fit for DOM parsers (see <a href="#Ref1">[1]</a> for an explanation 
+of DOM versus other kinds of parsers) and this document only discusses XPaths in 
+conjunction with DOM. This selection provides a brief introduction to the main elements 
+of the language. For more in depth discussions of the topic, readers should consult 
+the specification itself (see <a href="#Ref2">[2]</a>), or one of the many tutorials 
+available on the internet. To make the topic clearer, the following sample XML document 
+is used.</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;car&gt;
+	&lt;!--list of parts for a convertible minivan--&gt;
+	&lt;part name=&quot;seat&quot; quantity=&quot;8&quot;/&gt;
+	&lt;part name=&quot;wheel&quot; quantity=&quot;1&quot;/&gt;
+	&lt;part name=&quot;engine&quot; quantity=&quot;1&quot;/&gt;
+	&lt;part name=&quot;body&quot; quantity=&quot;1&quot;/&gt;
+&lt;/car&gt;</pre>
+<p>There are four main concepts in the language: paths, predicates, functions, and 
+expressions.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="110000"></a>Paths</h3>
+<p>A path indicates a way to navigate from a starting point (called the <code>context 
+node</code>) a destination (called the <code>result set</code>, ie: the set of nodes 
+you reach if you follow the path). The path itself can be decomposed as a serie 
+of individual steps from the context node towards the result nodes. Each step is 
+specified by indicating a direction (called the <code>axis</code>) and the name 
+of the node to reach. Here is an example using the sample document: imagine your 
+context node is the first <code>part</code> element and you want to go the second
+<code>part</code> element (ie: select its first sibling). This simple, one step 
+path would be written as:</p>
+<pre class="code">following-sibling::part</pre>
+<p>The <code>::</code> marker separates the axis (<code>following-sibling</code>) 
+from the element name.</p>
+<p>Here is a second, more sophisticated example: imagine your context node is the 
+document node and you want to select all the <code>part</code> elements under the 
+root <code>car</code> in the document. You would write a two steps XPath:</p>
+<pre class="code">child::car/child::part</pre>
+<p>The <code>/</code> marker separates the steps of the path. The first step selects 
+all the <code>car</code> child element of the document node. Then the second step 
+selects all the child <code>part</code> elements of these <code>car</code> elements, 
+yielding a result set of four nodes (the four <code>part</code> elements).</p>
+<p>To make things easier, an abbreviated syntax is available, so you do not have 
+to explicitely specify the most common axes. With this syntax, the above path can 
+simply be written:</p>
+<pre class="code">car/part</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="120000"></a>Predicates</h3>
+<p>Predicates let you specify boolean expressions to adorn you XPath steps. When 
+you specify predicates on a step, the result set for this step will only contain 
+the nodes for which the predicates are true.</p>
+<p>Consider the following XPath, rooted at the document element:</p>
+<pre class="code">car/part[2]</pre>
+<p>This XPath says: take all the <code>car</code> child elements under the document 
+node (first step: <code>car</code>) For each <code>car</code> element, take all 
+the <code>part</code> child elements and keep only the second child element of the
+<code>car</code> (second step: <code>part</code> with a predicate: <code>[2]</code>).</p>
+<p>One can use several predicates on a step. Consider the following XPath:</p>
+<pre class="code"> car/part[@quantity='1'][3]</pre>
+<p>It returns the third child <code>part</code> element which has an attribute quantity 
+equal to 1 (that is the <code>&lt;part name=&quot;body&quot; quantity=&quot;1&quot; 
+/&gt; element)</code>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="130000"></a>Functions</h3>
+<p>XPath contains a set of built-in functions which can be used to compute various 
+metrics. There functions operate on nodes, strings (element names, attribute names, 
+text nodes), numbers and booleans. Consider the following XPath rooted at the document 
+node:</p>
+<pre class="code">/car[count(part) &gt;= 2]</pre>
+<p>It returns all the <code>car</code> child elements of the document node which 
+have at least two <code>part</code> child elements.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="140000"></a>Expressions</h3>
+<p>It is possible to construct expressions which combine the result sets of several 
+paths. Depending on the operator used, these expressions can evaluate to a node 
+set, a single node, a string, a number or a boolean. Consider the following XPath 
+expression, which evaluates to a string:</p>
+<pre class="code">substring(//part[2]/@name, 2, 3)</pre>
+<p>It retrieves all the <code>part</code> elements in the document irrespective 
+of their depth in the tree (<code>//part</code>), takes the second one (<code>[2]</code>), 
+obtains the value of its name attribute (<code>/@name</code>), and extracts a substring 
+of three characters starting at the second character (<code>substring(&lt;string&gt;, 
+2, 3)</code>. This yields the <code>'hee'</code> string.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Using XPath in V6</h2>
+<p>This section explains how XPaths are implemented in the V6 XML infrastructure.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Implementations</h3>
+<p>The XPath implementation in the V6 XML infrastructure follows the same model 
+as the rest of the XML components of the instructure (see <a href="#Ref3">[3]</a>). 
+Depending on the platform you are using, one of several XPath engines will automatically 
+be instantiated and used, as summarized on the following table:</p>
+<table class="fill">
+	<thead>
+		<tr>
+			<th>Operating Systems</th>
+			<th>XPath engine</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>windows</td>
+		<td>Microsoft MSXML6SP2</td>
+	</tr>
+	<tr>
+		<td>macos</td>
+		<td>Xalan 1.10</td>
+	</tr>
+	<tr>
+		<td>unix/linux</td>
+		<td>Xalan 1.10</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>XPath factories</h3>
+<p>XPath in V6 are tightly related to the DOM parser, as you need to specify the 
+context node using a DOM node and obtain the result set as DOM nodes. Instantiating 
+the XPath engine and specifying the context node is all done in one line of code, 
+using smart pointers, as described in the following code sample.</p>
+<pre class="code">// To obtain an XPath factory from an XML document
+CATIDOMDocument_var document = ...;
+CATIXMLXPathFactory_var factory = document;
+
+// To obtain an XPath factory from an XML element
+CATIDOMElement_var element = ...;
+CATIXMLXPathFactory_var factory = element;</pre>
+<p>Once the factory is obtained and the context node specified, XPath expressions 
+are built.</p>
+<pre class="code">CATIXMLXPathExpression expr;
+factory-&gt;CreateExpression(&quot;&lt;xpath expression&gt;&quot;, expr);</pre>
+<p>Finally the expression is evaluated and the result set is returned.</p>
+<pre class="code">CATIDOMNodeList_var resultSet;
+expr-&gt;EvaluateAsNodeList(resultSet);</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="230000"></a>Restrictions</h3>
+<p>Due to restrictions in the MSXML underlying implementation, there are several 
+restrictions to the V6 XPath infrastructure.</p>
+<ul>
+	<li>Only version 1.0 of the XPath specification is supported.</li>
+	<li>Only XPath expressions which evaluate as a single node or a node set are 
+		supported. Expressions which evaluate to a string, a number or a boolean 
+		are not supported.</li>
+	<li>Finally, as XPath is tied to the DOM parser in V6, only expressions of moderate 
+		complexity on DOM trees of moderate size are possible. DOM is indeed very 
+		memory-intensive and the same restrictions which apply to DOM documents 
+		apply to XPaths (see <a href="#Ref4">[4]</a>)</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>XPath is a W3C language which lets one navigate an XML document. Using XPath 
+expressions, one can easily select arbitrary DOM nodes and simplify DOM code.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td><a href="CAAXmlTaIntroduction.htm#300000">Introduction to XML - XML 
+		for the Developer</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkUrl('http://www.w3.org/TR/xpath/');return false;">
+		XML Path Language (XPath) - W3C Recommendation 16 November 1999</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref3"></a>[3]</td>
+		<td><a href="CAAXmlTaOverview.htm#300000">Using XML - XML Parser Components</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref4"></a>[4]</td>
+		<td><a href="CAAXmlTaIntroduction.htm#400000">Introduction to XML - DOM 
+		Versus SAX</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2011]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

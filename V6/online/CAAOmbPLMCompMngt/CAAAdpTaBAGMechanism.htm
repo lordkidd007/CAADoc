@@ -1,0 +1,431 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding PLM Component Life Cycle</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Component Life Cycle</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article introduces the concept of a BAG object, primarily for handling 
+		the life cycle of PLM components in session. The explanation is provided 
+		through the steps detailed below</p>
+		<ul>
+			<li><a href="#Part1">Introduction</a></li>
+			<li><a href="#Part2">Physical and Logical Life Cycle</a></li>
+			<li><a href="#Part3">Life Cycle of a PLM Component within a Session of 
+				CATIA</a></li>
+			<li><a href="#Part4">The BAG Object</a></li>
+			<li><a href="#Part5">BAG Usages</a></li>
+			<li><a href="#Part6">Life Cycle Propagation</a></li>
+			<li><a href="#Part7">Recommendations for Deploying BAG in Client Code</a></li>
+			<li><a href="#Part8">CATIOmbLifeCycleOwnerNLSInfo</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Introduction</h2>
+<p>When a product model is opened in CATIA, the model gets loaded in the current 
+session. The management of the life cycle of the PLM Components in session is as 
+critical to an application as much as the C++ object management is.</p>
+<p>This article fundamentally introduces the concept of a <strong>BAG</strong> object, which 
+enables the CAA developers for effectively managing the life cycle of the PLM components 
+in session.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Physical and Logical Life Cycle</h2>
+<p>A PLM Component is physically an Object Modeler (OM) component as described by 
+the referenced article [<a href="#References">5</a>]. Like any OM component its
+<strong>physical</strong> life cycle is managed with the AddRef/Release mechanism. 
+When the counter decrements to zero the OM object is deleted from the memory. But 
+this elementary and essential life cycle management is not enough for complex and 
+big data. So we have introduced a <strong>logical</strong> life cycle. The principle 
+is simple: while a PLM Component is logically alive, you can work with it, when 
+it is logically dead, you cannot work anymore with it: the PLM Component is said &quot;unloaded' 
+from the session because we are able to remove from the session a large part of 
+the PLM Component.</p>
+<p>This management is possible thanks to the Object Modeler and the Bag mechanism. 
+Let's us explain how the two life cycles are combined to have an efficient PLM Component 
+life cycle.</p>
+<ul>
+	<li>When a PLM Component is created in session, the OM component is created 
+		and one AddRef is done internally
+		<p>Nobody can physically delete the OM Component.</p>
+	</li>
+	<li>While people need a PLM Component in session, they use a bag to &quot;add&quot; 
+		the PLM component. Each time, the logical for the PLM Component counter 
+		is increased.</li>
+	<li>When someone no longer need it , he/she removes if from its the bag. The 
+		logical counter for the PLM Component is decreased.</li>
+	<li>When the logical counter decrements to zero, the bag mechanism makes the 
+		following action:
+		<ul>
+			<li><strong>It balances</strong> the initial Addref by a <strong>release.
+				</strong>Now, the physical deletion can occur. It will be done through 
+				Object modeler mechanism when all application having made Addref 
+				on the OM component will release them.</li>
+			<li><strong>It renders invalid</strong> the OM component: thanks to 
+				an internal Object Modeler mechanism we can said that an OM component 
+				is no more valid. The consequence is that all the methods of the 
+				interface pointers on this OM will fail. You cannot anymore work 
+				with the OM component representing the PLM Component.</li>
+			<li><strong>It unloads from the session</strong> the large part of the 
+				PLM Component. It is possible thanks to the envelop/letter mechanism. 
+				The real data of the PLM component are managed by an another OM 
+				that the end user doesn't control. When you think to call methods 
+				on an OM component, in fact all the methods are re-directed on this 
+				internal OM. When the counter is zero, this internal OM is deleted, 
+				and most of the PLM component size is reduced.</li>
+		</ul>
+	</li>
+</ul>
+<p>You have seen one interest of the bag: relief the memory from large data, but 
+there are another reasons developed in this article.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>Life Cycle of a PLM Component within a Session of CATIA</h2>
+<p>A PLM Component's life cycle typically begins with the process of loading it within 
+a CATIA session. The user then performs a series of operations on the loaded model 
+based on their requirements ranging from simple navigation to actual modification 
+of the PLM data like associating Ports, aggregating Instances, modifying attributes 
+etc. The life cycle ends with unloading this PLM Component from the CATIA session.</p>
+<p>It is important to note that the user needs not be concerned about the 
+life cycle of any PLM Component other than a PLM Reference or a PLM 
+Representation Reference. This is owing to the fact that the PLM Ref and the PLM 
+Rep Ref are the only two PLM components which can exist separable. In other 
+words, these are the only two entities which have an independent existence of 
+their own. For all the remaining PLM Components namely PLM Instance, PLM Rep 
+Instance, PLM Port and PLM Connection, their life cycle is actually tied by their 
+aggregating PLM Components [<a href="#References">1</a>].</p>
+<p>Once a PLM Ref or a PLM Rep Ref is loaded in session, it behaves like a shared 
+resource accessible to all. Each command can then retrieve the list of PLM Components 
+loaded in the current session by invoking an API namely <code>CATPLMComponentInterfacesServices::GetPLMComponentsInSession</code>. 
+Thus if enough care is not taken, PLM Components loaded in the current session by 
+my application can be easily unloaded by another one, having equal privileges to 
+access it.</p>
+<p>It is recommended that application which need access to a PLM Component explicitly 
+hold that component in it's own <strong>Bag</strong>. So every application has bag 
+which is dedicated for their own use. When component is opened in CATIA Session, 
+it is kept in a bag which is dedicated for that Session. This component will be 
+removed only when the session is closed. (e.g. One component is opened in CATIA, 
+if same component is deleted or unloaded while performing any other operation in 
+Code it is still visible in CATIA's Session).</p>
+<p>Hence in order to have a better control over the life cycle of the PLM Components 
+loaded by your application, its recommended that these components are inserted in 
+a &quot;<strong>BAG</strong>&quot;, during the time these are essential for the client application. 
+A &quot;<strong>BAG</strong>&quot; is fundamentally a session object detailed in the next 
+section.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part4"></a>The BAG Object</h2>
+<p>The <strong>BAG</strong> object, as the name literally indicates holds the PLM Components 
+inserted within it, in the current session of CATIA. It is primarily a session object 
+which enables better control over the life cycle of the PLM Components loaded in 
+the current session.</p>
+<p>A BAG object is simply a C++ class (<code>CATOmbLifeCycleRootsBag</code>) 
+instantiation.</p>
+<ul>
+	<li>A <code>CATOmbLifeCycleRootsBag::InsertRoot</code> call inserts a 
+		PLM Component (provided as an argument) into the bag thus increases its 
+		reference counting.</li>
+	<li>A <code>CATOmbLifeCycleRootsBag::RemoveRoot</code> call removes a 
+		PLM Component from the bag, and thus decreases its reference counting. If 
+		the reference counter is zero, the PLM Component is unloaded from the session.
+	</li>
+</ul>
+<p>Effectively we manage the &quot;<strong>session memory</strong>&quot; which is analogous 
+to the &quot;<strong>basic memory management</strong>&quot; implemented by the <code>AddRef</code> 
+and <code>Release</code> mechanism respectively.</p>
+<p>We can have several <strong>BAG</strong> objects in the current session. What this effectively 
+implies is that within a session of CATIA, the life cycle of a PLM component could 
+be controlled from several locations (Interactive commands, batch). It is recommended 
+that all applications which need access to a PLM Component explicitly hold it in 
+a <strong>BAG</strong> dedicated for their own use.</p>
+<p>A PLM component inserted in more than one <strong>BAG</strong>, is unloaded from the session 
+only after it is removed from all the bags that hold it. This ensures that a PLM 
+Component is not unloaded prematurely from the session as long as all applications 
+which need access to it have inserted it in their BAG, and thus continue to hold 
+it in the current session.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part5"></a>BAG Usages</h2>
+<p>The <strong>BAG</strong> usage occurs from two different perspectives:</p>
+<ul>
+	<li><a href="#Part51">Ensure a Safe Handle on the PLM Component</a></li>
+	<li><a href="#Part52">Manage the Session Contents</a></li>
+</ul>
+<p>These two concepts are detailed below, and illustrated through referenced CAA 
+use cases.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part51"></a>Ensure a safe handle on the PLM Component</h3>
+<p>In batch executable, or even in a UI command, you could imagine that you are 
+alone to use a PLM Component, and therefore the bag usage is useless. You think, 
+since my application is not interruptible, once a PLM Component is loaded by myself, 
+I can use it safely. But it is not true. Your code can call DS APIs using as input 
+your PLM Component, and at the end this API will manage its session life cycle. So 
+if you have not set your PLM Component in a bag, the component could be unloaded 
+by a DS APIs.</p>
+<p><strong>Example</strong>: The &quot;<strong>Instantiating a User Feature Reference</strong>&quot; 
+[<a href="#References">2</a>] Use case. A User Feature Reference is instantiated 
+in the client code. This instantiation is an internal DS implementation which unloads 
+the UF Reference from the session having ensured that none of the other applications 
+access it. To guard our client code we insert the UF Reference in a BAG and hold 
+it in the current session as long as the UF reference plays an active role in our 
+code.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part52"></a>Manage the Session Contents</h3>
+<p>Mainly in UI command, but also in batch, you should take care that all PLM Components 
+loaded in your application are, once your code is finished, unloaded from the session 
+if they are useless. If there is no proper life cycle management, several commands 
+would load multiple PLM components in session memory but fail to unload them after 
+use. The session memory would soon get exhausted owing to all the useless PLM Components 
+held in it.</p>
+<p><strong>Example</strong>: The &quot;<strong>Generating a BOM</strong>&quot; Use case [<a href="#References">3</a>]. 
+This use case loads a PLM Product Reference and displays its BOM. Its an interactive 
+command in CATIA which ensures that the life cycle of PLM Components it accesses 
+are well-managed thanks to BAG. Once the PLM component is loaded in memory, it is 
+inserted in a newly created bag. When the dialog box displaying the BOM is closed, 
+the PLM component is removed from the bag. The PLM Component is unloaded of the 
+session. You can make a simple exercise:</p>
+<ul>
+	<li>Build the BOM use case.</li>
+	<li>Launch CATIA, and launch the Listing PLM Component in Session [<a href="#References">4</a>]
+		<p>
+		<img alt="Listing PLM Component in Session" height="360" src="images/CAAAdpBAG_GoodSessionMemMgt.jpg" width="462"/></p>
+		<p>no PLM component in session.</p>
+	</li>
+	<li>Execute the BOM use case with a Product reference.</li>
+	<li>Launch the Listing PLM Component in Session, you will see that there is 
+		still no PLM Component in session.</li>
+</ul>
+<p>Now,</p>
+<ul>
+	<li>Rebuild the BOM use case, and remove the code using the <em>CATOmbLifeCycleRootsBag</em> 
+		class.</li>
+	<li>Execute the BOM use case with a Product reference.</li>
+	<li>Launch CATIA, and launch the Listing PLM Component in Session.
+		<p>
+		<img alt="Listing PLM Component in Session" height="365" src="images/CAAAdpBAG_PoorSessionMemMgt.jpg" width="459"/></p>
+		<p>You will see that all PLM Product References loaded in the BOM use case 
+		(and all its sub-reference) are still in memory after the BOM use case execution: 
+		During a session, the memory can be quickly full for useless components.
+		</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part6"></a>Life Cycle Propagation</h2>
+<p>At this stage it would be interesting to comment on another related concept namely &quot;<strong>Life Cycle 
+Propagation</strong>&quot;.</p>
+<p>In the above scenario it was only the Root Ref namely <strong>Root---</strong> which was 
+inserted within the <strong>BAG</strong> object. But the Root Ref never exists in isolation. 
+When Root is loaded in session it invariably loads the References of its child instances 
+also in the session.</p>
+<p>Effectively this implies that the life cycle of Root gets propagated to its associated 
+PLM Components as well. Hence the term &quot;<strong>Life Cycle Propagation</strong>&quot;.</p>
+<p>Thus though it was only the Root Ref which was inserted in the BAG, you would 
+eventually find that the BAG also contains other PLM components which are associated 
+with this Root Ref, typically through two kinds of links namely.</p>
+<p>&quot;<strong>IsInstanceOf</strong>&quot; link or &quot;<strong>Referencing</strong>&quot; link which 
+normally occurs between PLM Components.</p>
+<p>An &quot;<strong>IsInstanceOf</strong>&quot; relation is depicted in the figure below. 
+[<a href="#Fig3">Fig. 3</a>]</p>
+<table>
+	<caption><a name="Fig3"></a>Fig. 3: &quot;IsInstanceOf&quot; Link between PLM 
+	Components</caption>
+	<tr>
+		<td>
+		<img alt="IsInstanceOf Link between PLM Components" height="158" src="images/CAAAdpBAGMech_InstanceOf.gif" width="416"/></td>
+	</tr>
+</table>
+<p>An &quot;<strong>IsInstanceOf</strong>&quot; relation is the one that exists between an 
+instance and its reference. In this case the BAG API's navigate through the product 
+model, beginning with Root and reaching all instances beneath it. The references 
+of each of those instances are then inserted within the BAG. The Root Ref inserted 
+is a direct inclusion while the rest are referred to as an indirect inclusions in 
+the BAG.</p>
+<p>An &quot;<strong>Referencing</strong>&quot; link is depicted in the figure below [<a href="#Fig4">Fig.4</a>].</p>
+<table>
+	<caption><a name="Fig4"></a>Fig. 4: &quot;Referencing&quot; Link between PLM 
+	Components</caption>
+	<tr>
+		<td>
+		<img alt="Referencing Link between PLM Components" height="184" src="images/CAAAdpBAGMech_Referencing.gif" width="502"/></td>
+	</tr>
+</table>
+<p>A &quot;<strong>Referencing</strong>&quot; relation is the one that exists between a PLM 
+Reference aggregating a connection (or the Port) and the target pointed to by this 
+Port. In this case, if the Root Ref is inserted within a <strong>BAG</strong>, the target 
+pointed to by the aggregated Port too finds its way to the <strong>BAG</strong>. This ensures 
+that the PLM Components loaded in session have all the links within them resolved 
+appropriately. Yet again, the Root is a direct inclusion while the pointed instances 
+are the indirect inclusions in the <strong>BAG</strong>.</p>
+<p>One more important point is when the Reference instance is instantiated under 
+one another reference which is already added in BAG. Then in this case as soon as 
+new Ref instance is added below the Reference then this newly added instance is 
+also get added in the same bag along with its Reference component.</p>
+<p>For example, Root Ref already loaded in session. Then we instantiate another Reference 
+beneath Root which is already added in BAG. In this case as soon as instantiation 
+happens the newly added reference of added instance get inserted in the same BAG 
+where Root already exists.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part7"></a>Recommendations for Deploying BAG in Client Code</h2>
+<p>As we have seen so far, we have complete control over the life cycle of PLM Components 
+held within a BAG. But if BAG is not judiciously deployed in the client code the 
+repercussions are quite serious. Here are two scenarios which illustrate the deployment 
+of BAG in the client code, in ways which are strictly forbidden.</p>
+<ul>
+	<li>A Component is loaded in the current session and we seek its pointer (<code>ptr1</code>). 
+		Another part of the program which also needs access to this component, identifies 
+		it among the list of PLM Components loaded in the current session and retrieves 
+		its pointer (<code>ptr2</code>). It then deploys a BAG and conveniently unloads 
+		this component from the session, when it is no longer accessed. The former 
+		pointer (<code>ptr1</code>) is thus rendered invalid.</li>
+	<li>A Component loaded in the current session has an Instance of the same Child 
+		Reference beneath it as the other. [<a href="#Fig5">Fig. 5</a>] below depicts 
+		one such scenario. P1 has an instance of Child1 beneath it and so does P2.
+		<p>A BAG is deployed in the client application and P1 inserted in it, as 
+		a direct inclusion. P1 is removed from the BAG, thus unloading it from the 
+		current session. Owing to life cycle propagation, Child1 whose instance exists 
+		beneath P1 also gets unloaded from the current session.</p>
+		<p>The model P2 is now rendered invalid since one of its Child Reference, 
+		no longer exists in the current session. Under these circumstances, one 
+		can never be assured of the validity of the pointers to the PLM Components 
+		retrieved earlier, which form the model P2.</p>
+		<table>
+			<caption><a name="Fig5"></a>Fig. 5 An Undesirable Way of Deploying BAG</caption>
+			<tr>
+				<td>
+				<img alt="Undesirable Way of Deploying BAG" height="470" src="images/CAAAdpBAG_Fig5.jpg" width="648"/></td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<p>To address these issues, it is recommended that each part of an application which 
+accesses a PLM Component deploy a BAG. The BAG ensures that these components remain 
+in session as long as they are being accessed.</p>
+<p>[<a href="#Fig6">Fig. 6</a>] below illustrates this approach. Yet again, we have 
+the same models as those depicted in [<a href="#Fig5">Fig. 5</a>] above. This time, 
+both P1 and P2 are inserted as direct inclusions in the BAG. Next, P1 is removed 
+from BAG, thus unloading it from the current session, as we previously did.</p>
+<p>But this time though the life cycle propagation effect through P1 dictate that 
+Child1 be unloaded from the session, this very effect through P2 (since P2 is a 
+direct inclusion in BAG, as well), ensure that Child1, an indirect inclusion in 
+BAG, remains in session as long as P2 remains loaded. Effectively, the life cycle 
+propagation effect to unload Child1 through P1 has been overridden by a similar 
+effect to keep Child1 loaded in session, through P2.</p>
+<table>
+	<caption><a name="Fig6"></a>Fig. 6 A Recommended Approach to Deploy BAG in Client 
+	Applications</caption>
+	<tr>
+		<td>
+		<img alt="Recommended Approach to Deploy BAG in Client Applications" height="329" src="images/CAAAdpBAG_Fig6.jpg" width="728"/></td>
+	</tr>
+</table>
+<p>To sum up, if BAG is not judiciously deployed in a client application, it is 
+quite likely that a component being accessed might get unloaded from the current 
+session unexpectedly, thus rendering its pointer invalid. Accessing such pointers 
+is thus forbidden, since the results can never be guaranteed. It is thus strongly 
+recommended that each part of an application which accesses a PLM Component, control 
+its life cycle completely by inserting it within a BAG deployed exclusively for it 
+in the current session.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part8"></a>CATIOmbLifeCycleOwnerNLSInfo</h2>
+<p>The <em>CATOmbLifeCycleRootsBag</em> class has a constructor with a <em>CATIOmbLifeCycleOwnerNLSInfo</em>
+pointer as argument. As of today, this constructor cannot be used. Even if you 
+implement the <em>CATIOmbLifeCycleOwnerNLSInfo</em> interface, with its adapter class
+<em>CATOmbLifeCycleOwnerNLSAdapter</em>, you could not use the component (object Modeler 
+sense). This interface is dedicated for debug purpose, but not usable in CAA context.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The article emphasizes on the management of the PLM Component Life Cycle within 
+the session memory. Application developers typically handle the C++ memory allocations 
+very effectively. But releasing the memory corresponding to the C++ pointers to 
+PLM Components does not necessarily imply that these components have been unloaded 
+from the session memory, as well.</p>
+<p>Session memory management is a subject explicitly handled, thanks to the <strong>BAG</strong> 
+object which provides complete control to the user to handle PLM Components in session 
+memory. The PLM components inserted within the <strong>BAG</strong> object can be released 
+through the calls to the <strong>BAG</strong> API's at any stage in the batch, entirely at 
+the discretion of the application developer.</p>
+<p>Lastly since Root Ref never exists in isolation, but has a set of PLM Components 
+associated with it, session memory management of Root implies that the life cycle 
+of the associated PLM Components is also governed through Root. This concept is 
+referred to as &quot;<strong>Life Cycle Propagation</strong>&quot; which typically occurs owing 
+to &quot;<strong>IsInstanceOf</strong>&quot; and &quot;<strong>Referencing</strong>&quot; links which 
+normally exists between PLM Components in the Product Modeler world.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">
+		PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>Instantiating a User Feature Reference</td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstUcGeneratingBOM.htm')">
+		Generating a BOM</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAOmbUcListPLMComponent.htm">Listing PLM Components in Session</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAOmbTaPLMCompInBatchSession.htm">Understanding PLM Component</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

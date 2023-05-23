@@ -1,0 +1,360 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Detaching PLM Components</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Detaching PLM Components</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case shows how to remove from the database the PLM Components 
+		that are not owned by the local site. The PLM Components are not deleted, 
+		they are just removed. It is always possible to import them again into the 
+		database.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a> </li>
+			<li><a href="#UseCase">The CAASrmDetachCmd Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAASrmDetachCmd Do</a> </li>
+				<li><a href="#How">How to Launch CAASrmDetachCmd </a></li>
+				<li><a href="#Where">Where to Find the CAASrmDetachCmd Code</a>
+				</li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a> </li>
+			<li><a href="#InShort">In Short</a> </li>
+			<li><a href="#References">References</a> </li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how to detach (i.e. remove) from database 
+the PLM Components that are not owned by the local site.</p>
+<h4>About Detach operation:</h4>
+<ul>
+	<li>It is propagated to all aggregated PLM Components, ie. aggregated instances 
+	(representations and products), aggregated representations, connections, ports.
+	</li>
+	<li>Detach of references (representations and products) detaches all the instances 
+	of the references. </li>
+</ul>
+<h4>After the Detach operation:</h4>
+<ul>
+	<li>Links referring to the detached PLM Components are broken. </li>
+	<li>PLM Components are physically removed from the repository. </li>
+</ul>
+<h4>Cases of error:</h4>
+<ul>
+	<li>The PLM Components to be detached are owned by local site. </li>
+	<li>Distant product is instantiated on local site(i.e. Instance is owned by 
+	local site).</li>
+	<li>Instances/ports/connections directly aggregated under the references to 
+	be detached, are owned by the local site.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAASrmDetachCmd Use Case</h2>
+<p><code><strong>CAASrmDetachCmd</strong></code> is a use case of the <code><strong>CAASRMExposedServices.edu</strong></code> 
+framework that illustrates <code><strong>PLMSRMExposedServices</strong></code> framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAASrmDetachCmd Do</h3>
+<p>This use case attempts to detach the list of PLM Components provided as input.</p>
+<p>First it retrieves the <code><strong>Identificator</strong></code> [<a href="#References">1</a>] 
+of each PLM Component and appends it to a list. The Detach API is then called on 
+this list. In case of failure, the error is retrieved with <code><strong>CATGetLastError</strong></code>. 
+Then, the list of <code><strong>Identificators</strong></code> is released.</p>
+<p>Note : To confirm that the input list of PLM Components is detached, user can 
+interactively run a query on the database, through CATIA, and confirm that those 
+PLM Components do not exist in the database anymore.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAASrmDetachCmd</h3>
+<p>To launch <code><strong>CAASrmDetachCmd</strong></code>, you will need to set up the build 
+time environment, then compile <code><strong>CAASrmDetachCmd </strong></code>along with its 
+prerequisites, set up the run time environment, and then execute the use case [<a href="#References">2</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code><strong>mkrun -c &quot;CAASrmDetachCmd <em>Repository Server User Password SecurityCtx PLMType PLM_ExternalID1 PLM_ExternalID2 PLM_ExternalID3...</em>&quot;</strong></code></p>
+<p>where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		The name of the repository</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The name and port of the server as <em>name</em>:<em>port_number</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A PLMType</td>
+	</tr>
+
+	
+	<tr>
+		<th>PLM_ExternalID1</th>
+		<td>The <code><strong>PLM_ExternalID</strong></code> of the PLM Components to be detached</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID#</th>
+		<td>The <code><strong>PLM_ExternalID</strong></code> of other PLM Components to be 
+		detached (optional)</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAASrmDetachCmd Code</h3>
+<p>The <code><strong>CAASrmDetachCmd </strong></code>use case is made of a single file located 
+in the <code><strong>CAASrmDetachCmd.m</strong></code> module of the <code><strong>CAASRMExposedServices.edu</strong></code> 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAASRMExposedServices.edu\CAASrmDetachCmd.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<ul>
+	<li><a href="#Prolog">Prologue</a> </li>
+	<li><a href="#Retrieve">Retrieve the Identificators</a> </li>
+	<li><a href="#Detach">Detach the PLM Components</a> </li>
+	<li><a href="#Release">Release the Identificator list</a> </li>
+	<li><a href="#Epilog">Epilog</a> </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Prolog"></a>Prologue </h3>
+<p>The <code><strong>CAASrmDetachCmd</strong></code> use case begins by creating a session 
+and connecting to the input repository with an appropriate role. The use case&nbsp; 
+&quot;Creating a Basic PLM Batch&quot; [<a href="#References">3</a>] deals with Opening and 
+Closing a PLM Session.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieve"></a>Retrieve the Identificators</h3>
+<p>The Detach API takes a list of <code><strong>Identificators</strong></code> [<a href="#References">1</a>] 
+corresponding to the list of PLM Components that are to be detached. </p>
+<p>This use case retrieves <code><strong>Identificators</strong></code> for <code><strong>PLMCoreReference 
+- PRODUCT</strong></code> modeler. Similarly, we can retrieve <code><strong>Identificators</strong></code> 
+for <code><strong>PLMCoreRepReference</strong></code> and other modelers.</p>
+<p>It is easy to retrieve the <code><strong>Identificators</strong></code> of the input PLM 
+Components by a call to <code><strong>CATAdpPLMQueryServices::GetElementByIdentificationSet</strong></code>. 
+This API takes the authoring type and the identification set as input. It returns 
+a <code><strong>CATIAdpPLMIdentificator*</strong></code>, which is appended to the list of
+<code><strong>Identificators</strong></code>. This list now contains the <code><strong>Identificators</strong></code> 
+of all PLM Components to be detached.</p>
+<pre class="code">...
+  CATListPtrCATIAdpPLMIdentificator detachIdentificatorList;
+  ...
+  ...
+  
+  CATString ExtID = &quot;PLM_ExternalID&quot;; 
+  
+  // Retrieve the CATIType 
+  
+   CATBoolean CustoCase = FALSE ;
+     CATIType_var spCATType;
+      RC= CATCkePLMNavPublicServices::RetrieveKnowledgeType(iStrPLMType,spCATType);
+      if  (  NULL_var ==  spCATType ) 
+      {
+         RC = CATCkePLMNavCustoAccessPublicServices::RetrieveCustoType(iStrPLMType,spCATType);
+         CustoCase = TRUE ;
+         if  (  NULL_var ==  spCATType )
+         {
+               return 1 ;
+         }
+      }
+      ....
+   if (FAILED(RC) || (NULL_var==spCATType)) return ERR_PROCESSING ;
+ 
+  CATIAdpPLMIdentificator  *poIdentificator = NULL;
+
+  int size = detachProductList.Size();
+  for (int i = 1; i &lt;= size; i++)
+  {
+    // Retrieve the element by the Identification set
+    CATAdpIdentificationSet attributeSet;
+    CATListPtrCATAdpQueryResult queryResultsList;
+    
+    IdSet1.AddAttribute (ExtID, detachProductList[i]);
+    RC = CATAdpPLMQueryServices::GetElementsFromAttributes(spCATType , attributeSet, queryResultsList);
+
+     if (S_OK==RC)
+     {
+        int querySize = queryResultsList.Size();
+        for (int j=1; j<=querySize; j++)
+        {
+           CATAdpQueryResult* queryResult =NULL;
+           queryResult =queryResultsList[j];
+           if (NULL!=queryResult)
+           {
+              RC =queryResult->GetIdentifier(poIdentificator);
+              if ((S_OK==RC) && (NULL!=poIdentificator))
+              {
+                 delete queryResult;
+                 queryResult = NULL;
+                 break; //stop at first found id
+              }
+              delete queryResult;
+              queryResult = NULL;
+           }
+        }
+     }
+
+    if (S_OK != RC)
+      cout &lt;&lt; detachProductList[i].ConvertToChar() &lt;&lt; &quot; NOT found.&quot; &lt;&lt; endl;
+    else
+      cout &lt;&lt; detachProductList[i].ConvertToChar() &lt;&lt; &quot; found.&quot; &lt;&lt; endl;
+
+    if(poIdentificator)
+    {
+      poIdentificator-&gt;AddRef();
+      detachIdentificatorList.Append (poIdentificator);
+      if (poIdentificator)
+        poIdentificator-&gt;Release();
+      poIdentificator = NULL;
+    }
+  }
+
+  ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Detach"></a>Detach the PLM Components</h3>
+<p>The main step is to detach the input PLM Components from the database. The detach 
+operation is expected to succeed or fail, based on the rules specified above.</p>
+<p>The <code><strong>CATPLMDetachServices</strong></code>::<code><strong>Detach</strong></code>&nbsp; 
+API takes the list of <code><strong>Identificators</strong></code> of all the PLM Components 
+that have to be detached, as input. In case of failure, the error details can be 
+retrieved by calling the <code><strong>CATError::CATGetLastError</strong></code> API.</p>
+<pre class="code">...
+   CATListPtrCATIAdpPLMIdentificator detachIdentificatorList;
+...
+...
+   // Call Detach API
+   HRESULT HR = CATPLMDetachServices::Detach (detachIdentificatorList);
+...
+  if (S_OK == HR)
+  {
+    cout &lt;&lt; &quot;API Returned : S_OK&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Detach API call successful&quot; &lt;&lt; endl;
+  }
+  else
+  {
+    // The API has failed
+    cout &lt;&lt; &quot;Detach API call failed&quot; &lt;&lt; endl;
+    CATError* pErr = CATError::CATGetLastError (HR);
+    if (pErr)
+    {
+      CATUnicodeString csErrMessage = pErr-&gt;GetNLSMessage();
+      cout &lt;&lt; &quot;Error Message : &quot; &lt;&lt; csErrMessage.ConvertToChar() &lt;&lt; endl;
+      cout &lt;&lt; &quot;Error Diagnostic : &quot; &lt;&lt; (pErr-&gt;GetNLSDiagnostic()).ConvertToChar() &lt;&lt; endl;
+      pErr-&gt;Release();
+    }
+    pErr = NULL;
+    RC = ERR_API;
+  }
+  ...</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Release"></a>Release the Identificator list</h3>
+<p>The last step is to release the <code><strong>Identificators</strong></code> given as input 
+to the detach API. These <code><strong>Identificators</strong></code> are still valid, though 
+the corresponding PLM Components have been detached from the database.</p>
+<pre class="code">...
+  CATListPtrCATIAdpPLMIdentificator detachIdentificatorList;
+  ...
+  // Release the input objects to the api
+  int size = detachIdentificatorList.Size();
+  for (int k = 1; k &lt;= size; k++)
+  {  
+    CATIAdpPLMIdentificator *pTmpToRelease = NULL;  
+    pTmpToRelease = detachIdentificatorList[k];
+    if (pTmpToRelease)
+      pTmpToRelease-&gt;Release();
+    pTmpToRelease = NULL;
+  }
+  detachIdentificatorList.RemoveAll();
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code><strong>CAASrmDetachCmd</strong></code> use case ends by simply closing the PLM 
+session. Since all use cases necessarily conclude by closing the PLM session, we 
+have a dedicated article on this topic namely &quot;Creating a Basic PLM Batch&quot; [<a href="#References">3</a>].
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to remove from the database the PLM Components that are 
+not owned by the local site.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm')">
+		Understanding PLM Object Identification</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Creating a Basic PLM Batch</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [July 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

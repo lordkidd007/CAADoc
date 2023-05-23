@@ -1,0 +1,339 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>C++ Error Processing Rules</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>C++ Error Processing Rules</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains how to create your own error objects and messages, 
+		and how to process the errors returned by the methods you call.</p>
+		<ul>
+			<li><a href="#10">Error Management Overview</a></li>
+			<li><a href="#20">Error Management Rules</a></li>
+			<li><a href="#30">Comparison between V6 Exceptions, C++ Native Exceptions, 
+			and HRESULT</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="10"></a>Error Management Overview</h2>
+<p>The frameworks deal with four ways of handling errors:</p>
+<ol>
+	<li>A &quot;custom&quot; returned value is used to convey the method failure to the caller 
+	by returning a NULL pointer or a non null integer</li>
+	<li>The method returns an HRESULT and uses E_FAIL or other E_codes to convey 
+	the failure to the caller. A <em>CATError</em> class instance may be associated 
+	with the HRESULT</li>
+	<li>The method throws exceptions to handle critical failures. A <em>CATError</em> 
+	class instance makes up the exception</li>
+	<li>No error management.</li>
+</ol>
+<p><strong>Notes</strong>:</p>
+<ol>
+	<li>Throwing exceptions is sometimes associated with returning an HRESULT, a 
+	pointer, an integer, etc.</li>
+	<li>The word exception used alone always means V6 exception, that is <em>CATError</em> 
+	class instances thrown using the <code>CATThrow</code> macro. When C++ exceptions 
+	are discussed, they are referred to as C++ native exceptions.</li>
+	<li>mkmk deactivates by default C++ native exceptions. If you need to use C++ 
+	native exceptions in your module, add the following flag in the Imakefile.mk 
+	file to reactivate them:<br />
+	<code>CXX_EXCEPTION=</code><br />
+	Do not add any value after the equal sign. Pay attention not to nest V5 exceptions 
+	and C++ native exceptions.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="20"></a>Error Management Rules</h2>
+<p>The following rules must be applied:</p>
+<ul>
+	<li><a href="#Rule1"><strong>Rule 1</strong></a>: Each framework border must 
+	use HRESULT to report errors and must be exception proof, even if exceptions 
+	are internally used.</li>
+	<li><a href="#Rule2"><strong>Rule 2</strong></a>: All the returned <em>CATError</em>s 
+	either using an HRESULT or an exception must be documented</li>
+	<li><a href="#Rule3"><strong>Rule 3</strong></a>: Do not include code that requires 
+	error processing in constructors and destructors</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Rule1"></a>Rule 1: Each framework border must use HRESULT to report 
+errors and must be exception proof, even if exceptions are internally used.</h3>
+<p>The framework border that must use HRESULT is made of:</p>
+<ul>
+	<li>The methods and global functions declared in frameworks&#39; PublicInterfaces 
+	directories</li>
+	<li>The interface methods implemented by implementation or extension classes 
+	declared in frameworks&#39; ProtectedInterfaces, PrivateInterfaces or LocalInterfaces 
+	directories</li>
+	<li>The precondition functions</li>
+	<li>The redefined methods of the classes declared in frameworks&#39; ProtectedInterfaces, 
+	PrivateInterfaces or LocalInterfaces directories that derive from classes declared 
+	in frameworks&#39; PublicInterfaces directories.</li>
+</ul>
+<p>The remaining part of the framework border that cannot use HRESULT is made of:</p>
+<ul>
+	<li>Constructors and destructors</li>
+	<li>Callback methods</li>
+</ul>
+<p>This rule is declined as follows:</p>
+<ul>
+	<li>HRESULT-based frameworks
+	<ul>
+		<li>All existing methods of each framework border return HRESULT possibly 
+		associated with a <em>CATError</em> to convey additional information, including 
+		the getters.</li>
+		<li>All <em>CATError</em>s returned by methods of each framework border 
+		are documented.</li>
+		<li>All new methods of Public/Protected/Private/LocalInterfaces return HRESULT 
+		possibly associated with a <em>CATError</em>, including the getters.</li>
+		<li>All CATErrors of new Public/Protected/Private/LocalInterfaces methods 
+		are documented.</li>
+	</ul>
+	</li>
+	<li>Exception-based frameworks
+	<ul>
+		<li>Same as above</li>
+		<li>All exceptions caught in methods of each framework border are changed 
+		to HRESULT possibly associated with a <em>CATError</em>, including the getters.</li>
+		<li>All other existing thrown exceptions are documented.</li>
+	</ul>
+	</li>
+	<li>Frameworks that use both HRESULT and exceptions
+	<ul>
+		<li>Same as above.</li>
+		<li>All custom errors in methods of each framework border are changed to 
+		HRESULT possibly associated with a <em>CATError</em>, including the getters.</li>
+		<li>All custom errors of existing Private/LocalInterfaces methods are documented.</li>
+	</ul>
+	</li>
+	<li>New frameworks
+	<ul>
+		<li>All methods of Public/Protected/Private/LocalInterfaces return HRESULT 
+		possibly associated with a <em>CATError</em>, including the getters.</li>
+		<li>All <em>CATError</em>s of Public/Protected/Private/LocalInterfaces are 
+		documented.</li>
+	</ul>
+	</li>
+</ul>
+<p>The error management process that this rule implies is:</p>
+<ul>
+	<li>When a method you call fails you must try in the following order:
+	<ul>
+		<li>If you know how to repair the error repair and go on.</li>
+		<li>If it is not a major error, clean up and
+		<ul>
+			<li>Either return <code>CATReturnError</code> with the received <em>
+			CATError</em> and possibly change the <em>CATError</em> message.</li>
+			<li>Or return <code>CATReturnError</code> after having released the 
+			received <em>CATError</em> and created a new <em>CATError</em> (more 
+			expensive).</li>
+		</ul>
+		<p>Even if the failure can be fixed, such as just ignoring an item in a 
+		loop, there are problems you may want to log because something wrong happens 
+		that needs to be investigated. In these cases, use <code>CATSysLogError</code>.</p>
+		</li>
+		<li>If it is a major error, use <code>CATSysLogAbend</code>. (This call 
+		will make a core dump at DS and will continue after having logged the error 
+		in the abend trace at customer&#8217;s location.) Because the call doesn&#39;t make 
+		a core dump at customer&#8217;s locations, you need to manage the error as if 
+		it were not a major error as described above.</li>
+	</ul>
+	<p>Note: there is not always a <em>CATError</em> when a method you call fails.You 
+	must check the <em>CATError</em> availabilty.</p>
+	</li>
+	<li>When catching an exception you must try in the following order:
+	<ul>
+		<li>If you know how to repair the exception, repair the error and go on 
+		(in this case you need to try/catch at each call).</li>
+		<li>If it is not a major error and
+		<ul>
+			<li>If there is no clean up to do, and if your method doesn&#39;t belong 
+			to the framework border, do nothing. At last, the exception will be 
+			converted into an HRESULT when reaching the framework border.</li>
+			<li>Otherwise, catch the exception, clean up and
+			<ul>
+				<li>If your method doesn&#39;t belong to the framework border
+				<ul>
+					<li>Either rethrow the received <em>CATError</em> while possibly 
+					having changed the <em>CATError</em> message.</li>
+					<li>Or release the received <em>CATError</em>, create a new
+					<em>CATError</em> and throws this new <em>CATError</em> (more 
+					expensive).</li>
+				</ul>
+				</li>
+				<li>If your method belongs to the framework border
+				<ul>
+					<li>Convert the exception into an HRESULT, with or without an 
+					associated <em>CATError</em>.</li>
+				</ul>
+				</li>
+			</ul>
+			</li>
+		</ul>
+		</li>
+		<li>If it is a major error, catch the exception, use <code>CATSysLogAbend</code>. 
+		(This call will make a core dump at DS and continue after having logged 
+		the error in the abend trace at customer&#8217;s location.) Because the call doesn&#39;t 
+		make a core dump at customer&#8217;s locations, you need to manage the error as 
+		if it were not a major error as described above.</li>
+	</ul>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Rule2"></a>Rule 2: All the returned CATErrors either using an HRESULT 
+or an exception must be documented</h3>
+<p>This rule implies that:</p>
+<ul>
+	<li>All methods returning or throwing <em>CATError</em>s must document the
+	<em>CATError</em>s that can be returned or thrown in their headers. This description 
+	is part of the method signature and impact analysis must be done when modifying 
+	or adding a <em>CATError</em>.</li>
+	<li>Virtual methods define the <em>CATError</em>s that can be used in all the 
+	derived class methods and all their corresponding implementations (No other
+	<em>CATError</em> class can be used).</li>
+	<li>Function pointer templates define the <em>CATError</em>s that can be used 
+	in referenced functions (No other <em>CATError</em> class can be used in these 
+	functions).</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Rule3"></a>Rule 3: Do not include code that requires error processing 
+in constructors and destructors</h3>
+<p>This rule implies to either:</p>
+<ul>
+	<li>Do in the constructors an in the destructors what can be done without managing 
+	errors, and do the remaining and manage errors in a <code>Build</code>,
+	<code>Init</code>, or <code>Start</code> method, and in a <code>Stop</code> 
+	method or in some already existing methods.
+	<pre class="code">class CATDimBoolean : public CATBaseUnknown
+{
+  CATDimBoolean();
+  virtual ~CATDimBoolean();
+  HRESULT Start();
+  HRESULT Stop();
+  HRESULT SomeExistingMethod();
+}</pre>
+	</li>
+	<li>Use a factory to do the error prone work, manage errors and call a non-exposed 
+	constructor with checked arguments.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="30"></a>Comparison between V6 Exceptions, C++ Native Exceptions, and 
+HRESULT</h2>
+<p>The following table shows differences between these three ways of managing errors.</p>
+<table class="fill">
+	<tr>
+		<th></th>
+		<th>V6 Exceptions</th>
+		<th>C++ Native Exceptions</th>
+		<th>HRESULT</th>
+	</tr>
+	<tr>
+		<td>Compatibility between Softwares</td>
+		<td>No</td>
+		<td>Weak</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Distribution Support</td>
+		<td>No/Not authorized</td>
+		<td>CORBA only/Not authorized</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Thread Support</td>
+		<td>Yes</td>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Performance</td>
+		<td>Medium</td>
+		<td>Low</td>
+		<td>High</td>
+	</tr>
+	<tr>
+		<td>Easy Programming</td>
+		<td>Yes</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Automatic Object Lifecycle Management</td>
+		<td>No</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>64-bit support</td>
+		<td>No (to do)</td>
+		<td>Depends on provider</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Traceability</td>
+		<td>Bad</td>
+		<td>No</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Signature Checked by Compiler</td>
+		<td>No</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Optimizer</td>
+		<td>No</td>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Debug</td>
+		<td>Yes</td>
+		<td>No</td>
+		<td>No</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="histoty">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2001]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

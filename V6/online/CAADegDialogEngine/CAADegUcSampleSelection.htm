@@ -1,0 +1,373 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Managing Selection</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing Selection</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to retrieve, in a state dialog command, an existing 
+		object from an end user mouse click above this object in a viewer. </p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The Plane Command Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the Plane Command Do</a></li>
+					<li><a href="#How">How to Launch the Plane Command</a></li>
+					<li><a href="#Where">Where to Find the Plane Command Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show how to retrieve, in a state dialog command, 
+an object that exists in a model displayed in a viewer onto which the end user left 
+clicks. This object can be used afterwards as input for any tasks, such as creating 
+a plane from three successive existing point selections in this example. This example 
+shows also how a dialog agent can be reused in several states.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The Plane Command Use Case</h2>
+<p>The Plane command is a use case of the CAADialogEngine.edu framework that illustrates 
+the DialogEngine framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the Plane Command Do</h3>
+<p>CAADegCreatePlaneCmd is a state dialog command that creates a plane in the 3D 
+space according to the following UML statechart diagram [<a href="#References">1</a>].</p>
+<p>
+<img alt="Plane Command State Chart" height="324" src="images/CAADegCreatePlaneStatechart.jpg" width="418"/></p>
+<p>The dialog is as follows:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePlane1.jpg" width="483" height="372"/></td>
+		<td>Select the plane command. Three points must have been created. The active 
+		state becomes GetFirstPoint.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePlane2.jpg" width="484" height="377"/></td>
+		<td>The first point is selected. The active state becomes GetSecondPoint.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePlane3.jpg" width="474" height="367"/></td>
+		<td>The second point is selected. The active state becomes GetThirdPoint.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePlane4.jpg" width="485" height="369"/></td>
+		<td>The third point is selected. The plane created passes by these three 
+		points. The plane symbol is located around the first selected point. The 
+		command is complete.</td>
+	</tr>
+</table>
+<p>The CreatePoint command is a straightforward state dialog command with three 
+sequential states to select the three points defining the plane. The selection agent 
+[<a href="#References">2</a>] is associated with the three point selection states. 
+It needs to be reinitialized in each transition before the next state becomes active. 
+To simplify the <code>BuildGraph</code> method, undo/redo [<a href="#References">3</a>] 
+is not taken into into account.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the Plane Command</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+the <cite>The CAAGeometry Sample</cite> [<a href="#References">4</a>] use case for 
+a detailed description of how this use case should be launched.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module 
+name on the command line, but type 3DEXPERIENCE instead. When the application is ready, do the 
+following:</p>
+<ul>
+    <li>Click on <strong>3D</strong>, the west quadrant of Compass.</li>
+    <li>In the <strong>3D Modeling apps</strong> section, select <strong>CAA: Create Geom</strong> app. </li>
+    <li>Create three points using the <strong>Point</strong> command in <strong>CAA Geometry Creation Section</strong> of the action bar.</li>
+    <li>Create a plane using the <strong>Plane</strong> command in the same section. Click the three to create a plane.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the Plane Command Code</h3>
+<p>The Plane command is made of a single class named <em>CAADegCreatePlaneCmd</em> 
+located in the CAADegGeoCommands.m module of the CAADialogEngine.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADialogEngine.edu\CAADegGeoCommands.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">5</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To select the second point, there are six steps:</p>
+<table>
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+		<th>Where</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td><a href="#Step1">Declare the selection agent</a></td>
+		<td>Header file</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td><a href="#Step2">Instantiate the selection agent</a></td>
+		<td><code>BuildGraph</code> method [<a href="#References">2</a>]</td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td><a href="#Step3">Assign the selection agent to the GetSecondPoint state</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td><a href="#Step4">Create a transition from the GetSecondPoint state triggered 
+		by the selection agent valuation</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>5</td>
+		<td><a href="#Step5">Retrieve the selected point for further plan creation</a></td>
+		<td>Transition action method <code>CreatePoint</code></td>
+	</tr>
+	<tr>
+		<td>6</td>
+		<td><a href="#Step6">Release the selection agent</a></td>
+		<td>Destructor or <code>Cancel</code> method</td>
+	</tr>
+</table>
+<p>The condition method is not described. It uses the same selected point retrieval 
+code than the action method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Declaring the Selection Agent</h3>
+<p>The state command class derives from CATStateCommand.</p>
+<pre class="code">class CAADegCreatePlaneCmd : public CATStateCommand
+{
+  ...
+  private :
+    CATPathElementAgent * _daPathElement;
+    ...</pre>
+<p>A pointer to the selection agent is declared as a private data member. Selection 
+agents are instances of the CATPathElement class. A single selection agent is enough 
+for the three point selections. It will be recycled after each selection to be used 
+as a brand new one.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Instantiating the Selection Agent</h3>
+<p>The selection agent is instantiated in the command <code>BuildGraph</code> method.</p>
+<pre class="code">void CAADegCreatePlaneCmd::BuildGraph()
+{
+  ...
+  _daPathElement = <strong>new</strong> <strong>CATPathElementAgent</strong>(&quot;GetPoint&quot;);
+  _daPathElement-&gt;<strong>AddElementType</strong>(&quot;CAAISysPoint&quot;);
+  ...</pre>
+<p>The character string GetPoint defined as the argument of the CATPathElementAgent 
+constructor is the selection agent identifier. This identifier can be used to assign 
+undo/redo prompts replacing the Undo and Redo items in the Edit menu. Thanks to 
+the <code>AddElementType</code> method, the selection agent is valued only when 
+an object that implements the CAAISysPoint interface is selected. The selection 
+agent remains impassive when any object that doesn't implement this interface is 
+selected.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Assigning the Selection Agent to the GetSecondPoint State</h3>
+<p>Still in the <code>BuildGraph</code> method, the GetSecondPoint state is created, 
+and the selection agent is added to this state. This makes it possible to value 
+the selection agent when this state becomes the active one.</p>
+<pre class="code">  ...
+  CATDialogState *stSecondState = <strong>AddDialogState</strong>(&quot;stSecondPointId&quot;);
+  stSecondState-&gt;<strong>AddDialogAgent</strong>(_daPathElement);
+  ...</pre>
+<p>The <code>AddDialogState</code> method creates a new dialog state and adds it 
+to the states managed by the dialog command. The <code>AddDialogAgent</code> method 
+adds the selection agent to the state.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Creating a Transition between the GetSecondPoint and GetThirdPoint 
+States</h3>
+<p>The transition between these two states is created in the <code>BuildGraph</code> 
+method. This transition is triggered when the selection agent is valued, that is 
+when the end user clicks an existing point. The guard condition is checked, and 
+if it returns True, the action is performed.</p>
+<pre class="code">  ...
+  CATDialogTransition *pSecondTransition = <strong>AddTransition</strong>
+  (
+    stSecondState,
+    stEndState,
+    <strong>AndCondition</strong>(<strong>IsOutputSetCondition</strong>(_daPathElement),
+                 <strong>Condition</strong>((ConditionMethod) &amp; CAADegCreatePlaneCmd::CheckPoint2)),
+    <strong>Action</strong>((ActionMethod) &amp; CAADegCreatePlaneCmd::CreatePoint,
+            NULL, NULL, (void *) 2) 
+  );
+  ...</pre>
+<p>The <code>AddTransition</code> method creates a transition and adds it to the 
+transitions managed by the dialog command. Pointers to the transition's source and 
+target states are the first and second arguments respectively. The transition trigger 
+is defined in the guard condition as the first condition to be checked using the
+<code>IsOutputSetCondition</code> method applied to the selection agent. This condition 
+returns True when the selection agent is valued. A second condition uses the
+<code>CheckPoint2</code> method to check that the selected point is not identical 
+with the first one. If this was the case, the plane would be undetermined. Because 
+we use <code>AndCondition</code> to create the guard condition, both condition methods 
+must return True to fire the transition. In this case, the <code>CreatePoint(void 
+* 2)</code> action method is executed. Since the same action method is used for 
+the first and second point, the point index is passed as argument to help differentiate 
+the two cases. The two <code>NULL</code> parameters are put in place of the undo 
+and redo methods.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Retrieving the Selected Point</h3>
+<p>When the end user has clicked to select a point, the transition between the GetSecondPoint 
+and GetThirdPoint states is triggered, and if the guard condition returns True, 
+the following action method executes. It first retrieves the selected object path 
+element.</p>
+<pre class="code">...
+CATBoolean CAADegCreatePlaneCmd::CreatePoint(void *iPointIndex)
+{
+  int index = (int ) iPointIndex -1;
+
+  <em>// Gets x,y,z from the selected point</em> 
+  float x,y,z ;
+
+  CATPathElement * pModelPath = _daPathElement-&gt;<strong>GetValue</strong>();
+  CATBaseUnknown * pExpectedPoint = NULL ;
+  if ( pModelPath &amp;&amp; pModelPath-&gt;GetSize() )
+  {
+    int ElementCountInPath = pModelPath-&gt;GetSize() - 1;
+    pExpectedPoint = (*pModelPath)[ElementCountInPath];
+  }
+  ...</pre>
+<p>The selection agent is valued by the end user click. The first thing to do is 
+to extract this value using the <code>GetValue</code> method. The retrieved path 
+element instance is a table whose elements contains theobjects of the path from 
+the root object to the selected object. The selected object is contained in the 
+last table element.</p>
+<p>Now from this selected object, we retrieve a pointer to the CAAISysPoint interface 
+and get the selected point coordinates that we assign to the temporary point stored 
+as a state dialog command class data member.</p>
+<pre class="code">  ...
+  if ( pExpectedPoint )
+  {
+    CAAISysPoint * pExpectedPointAsISysPoint = NULL;                
+    HRESULT rc = pExpectedPoint-&gt;<strong>QueryInterface</strong>(IID_CAAISysPoint,
+                                                (void**)&amp;pExpectedPointAsISysPoint);
+    if (SUCCEEDED(rc))
+    {
+      pExpectedPointAsISysPoint-&gt;GetCoord(x,y,z);
+      _Point[indice].SetX(x);
+      _Point[indice].SetY(y);
+      _Point[indice].SetZ(z);
+      pExpectedPointAsISysPoint-&gt;<strong>Release</strong>();
+    }
+  }
+  ...</pre>
+<p><code>QueryInterface</code> must succeed because the selected object can be selected 
+if and only if it implements CAAISysPoint. This was stated in <a href="#Step1">1</a> 
+when instantiating the dialog agent. Once the temporary point is assigned the selected 
+point coordinates, the pointer to CAAISysPoint is released.</p>
+<p>Before leaving the method, the selection agent is reinitialized. This makes it 
+possible to reuse it in a later step.</p>
+<pre class="code">  ...
+  _daPathElement-&gt;<strong>InitializeAcquisition</strong>(); 
+  return TRUE;
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Releasing the Selection Agent</h3>
+<p>A pointer to the selection agent was created in the command <code>BuildGraph</code> 
+method as a data member to be accessed and used in different methods. It should 
+be released when it becomes useless. This can be done in the command destructor, 
+as shown here. This could also be done in the <code>Cancel</code> method called 
+just before the destructor.</p>
+<pre class="code">CAADegCreatePlaneCmd::~CAADegCreatePlaneCmd()
+{
+  ...
+  if (_daPathElement) _daPathElement-&gt;RequestDelayedDestruction();
+  _daPathElement = NULL ;
+  ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows the objects involved in an end user selection: the state 
+dialog command, the statechart and its implementation in the <code>BuildGraph</code> 
+method, the states, the selection dialog agent, the transition along with its composite 
+condition and action, and the way to retrieve the selected object. It also shows 
+how to use the same dialog agent in several states.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADegTaUMLDescription.htm">How to Describe State Dialog Commands 
+		Using UML</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADegTaGraph.htm">How to Implement the Command Statechart 
+		Diagram</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAADegTaUndoRedo.htm">How to Manage Undo/Redo</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcCAAGeometryOverview.htm">
+		The CAAGeometry Sample</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Mar 2014]</td>
+		<td>Migration to 3DEXPERIENCE platform</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

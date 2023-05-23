@@ -1,0 +1,396 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Using the Single Sign-On User Exit</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using the Single Sign-On User Exit</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case explains how to implement a sample SSO (Single Sign On) 
+		user exit, and how to use the SSO client API. </p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The Single Sign-On Use Case</a>
+			<ul>
+				<li><a href="#What">What Does this Use Case Do</a></li>
+				<li><a href="#Where">Where to Find the CAAPLMSSOClientTest </a>
+				</li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case illustrates how to implement the Single Sign On user exit, 
+which is meant to provide credentials for any application; and how to call the 
+SSO client API. You will learn how to:</p>
+<ul>
+	<li>Understand credentials descriptors and create one dedicated to this use 
+	case by providing ad-hoc .credentialSet 
+	file.</li>
+	<li>Implement the SSO user exit with appropriate error management.</li>
+	<li>Understand how to use the SSO client API with a sample stand-alone C++ application 
+	printing on the standard output credentials for any application given as 
+	arguments.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The Single Sign-On Use Case</h2>
+This is a use case of the CAASecuritySSO.edu framework that illustrates
+the PLMSecuritySSOCClient framework capabilities.
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does this SSO Use Case Do</h3>
+<p>The SSO infrastructure is meant to provide credentials for any application. 
+An application is defined by its type, for example &quot;VPMV4&quot; and its instance, 
+which could be a &quot;<code>server:port</code>&quot; string, or any other identifier used 
+to differentiate instances of a same type of application. By convention, if the 
+credentials apply to any instance, then the SSO API assume a default instance 
+represented by an empty string &quot;&quot;.</p>
+<p>CAAPLMSSOClientTest consists in an executable command and an implementation 
+of the SSO user exit:</p>
+<ul>
+	<li>The executable command takes two arguments: the application type and the 
+	application instance. The usage of this command is:
+	<pre>CAAPLMSSOClientTest &lt;app type&gt; &lt;app instance&gt;</pre>
+	<p>where:</p>
+	<ul>
+		<li><code>&lt;app type&gt;</code> is the application type name. 
+		This name must match the one used in 
+		the .credentialSet file in <code>$os/resources/credentials/ 
+		folder:</code> it is the name the of the <code>applicationType</code> 
+		attribute of the <code>SSOCredentialSet</code> node.</li>
+		<li><code>&lt;app instance&gt;</code> is the application instance name.
+		Use . for the default instance.</li>
+	</ul>
+	<p>The meaning of <code>.credentialSet</code> files is explained in the next 
+	section. The command must be ran using <code>mkrun</code> (in the 
+	development environment) or using <code>catstart</code> in a deployed V6 
+	environment.</p></li>
+	<li>The sample SSO user exit contains one hard-coded credentials set for the 
+	sample application type <code>MySystem</code>, and a more generic file-based 
+	credentials set store. This sample user exit can show how to implement the
+	<code>CATIUExitCredentialsSource::GetCredentialSetForApplication</code> with 
+	proper allocation method for the output parameters and sample error 
+	management based on <code>CATError</code>.</li>
+</ul>
+<p>The SSO infrastructure is used by V6 applications only when the SSO mode is 
+activated. To activate SSO, please refer to <i>Activating Single Sign-On</i> 
+section in your product's documentation.</p>
+<p>There is no limit on the way an SSO user exit retrieves credentials: it could 
+be through a connection to market's LDAP or SSO Server, or to a proprietary 
+credential store; it could rely on the operating system in order to identify the 
+user id for which credentials are needed, or use the file system or sockets in 
+order to retrieve a local authentication token used to retrieve the credentials. 
+Finally, the SSO user exit could prompt an interactive login panel, customized 
+to one's company standards.</p>
+<p>It is important to understand that 3DLive's credential manager is one 
+implementation of the SSO infrastructure, but if the SSO user exit is 
+implemented, then 3DLive's credentials manager is not active: only the SSO user exit will be used by 3DLive in order to retrieve credentials in SSO mode.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPLMSSOClientTest Code</h3>
+<p>The CAAPLMSSOClientTest use case is made of several classes located in 
+modules of the CAASecuritySSO.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAASecuritySSO.edu\CAAPLMSSOClientTest.m\</code></p>
+<p>and</p>
+<p><code>InstallRootFolder\CAADoc\CAASecuritySSO.edu\CAASSOUserExitImpl.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the 
+directory where the API CD-ROM is installed.</p>
+<p>The <code>CAAPLMSSOClientTest.m</code> module contains the command used to 
+get and print credentials for any application, while the <code>
+CAASSOUserExitImpl.m</code> module contains the sample SSO user exit 
+implementation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are two important steps to understand the SSO use case:</p>
+<ol>
+	<li><a href="#Step1">Understanding .credentialSet Files and Their NLS 
+	Associated File</a> </li>
+	<li><a href="#Step3">Implementing the SSO User Exit </a></li>
+</ol>
+<p>Then you can refer to <a href="#Testing">Testing the Use Case</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Understanding .credentialSet Files and Their NLS 
+Associated File </h3>
+<p>In this section, we will explain you how you can leverage SSO capability to enable 
+SSO infrastructure to retrieve your own credentials, for your own System.</p>
+<p>There are two steps to achieve:</p>
+<ol>
+	<li>Define Credential Sets by writing an XML <code>.credentialSet</code> file</li>
+	<li>Create NLS for this <code>.credentialSe</code>t file</li>
+</ol>
+<h4>Understanding the XML .credentialSet file</h4>
+<p>A <code>.credentialSet</code> file represents metadata defining which credentials are required 
+to access a system. Once a <code>.credentialSet</code> file is provided it is automatically recognized 
+and usable by the Single Sign On infrastructure.</p>
+<p>Depending on the nature of installed V6 applications, you will find 
+credentials descriptors for the SSO-enabled V6 applications in <code>$install 
+path/$os/resources/credentials/</code> directory. These pre-existing files must 
+not be changed or removed, but they can be taken as reference in order to define 
+new credential descriptors for custom applications.</p>
+<p>A set of credentials has to be defined for each system you need to retrieve 
+credentials for. To perform it you have to deliver an XML file in the runtime 
+view, following this path: <code>MyWorkspace/MyFramework/CNext/resources/sso/credentials/</code>.</p>
+<p>This XML file has to be named with the name of the system and with &#8216;credentialSet&#8217; 
+extension.</p>
+<p>Here is the credential descriptor for the sample <code>MySystem</code> 
+application: (<code>MySystem.credentialSet</code> file)</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;SSOCredentialSet applicationType=&quot;MySystem&quot; &gt;
+  &lt;SSOCredentialDescriptor name=&quot;User&quot; type=&quot;String&quot; password=&quot;false&quot; hidden=&quot;false&quot; /&gt;
+  &lt;SSOCredentialDescriptor name=&quot;Password&quot; type=&quot;String&quot; password=&quot;true&quot; hidden=&quot;false&quot;/&gt;
+  &lt;SSOCredentialDescriptor name=&quot;Role&quot; type=&quot;String&quot; password=&quot;false&quot; hidden=&quot;false&quot; optional=&quot;true&quot;/&gt;
+&lt;/SSOCredentialSet&gt;</pre>
+<p><strong>Description of the XML format</strong></p>
+<p>The root object is <code>SSOCredentialSet</code><i>. </i>It describes what are the required 
+credentials to let you authenticate against a custom system. it has one required 
+attribute which is <i>applicationType</i>. This attribute must be valuated with 
+the exact name of the file. It is the ID of your system when you want to retrieve 
+credentials.</p>
+<p>The root object can embed any number of <code>SSOCredentialDescriptor</code> elements. 
+The <code>SSOCredentialDescriptor</code> element represents a credential required to authenticate against your system. Its 
+attributes are:</p>
+<ul>
+	<li><code>name</code>: the name of the credential. This must be an 
+	identifier, i.e., a string starting by an ASCII letter, an followed by any 
+	number of ASCII letters or digits. This name is used in the implementations 
+	of the <code>CATIUExitCredentialsSource::GetCredentialSetForApplication</code>
+	method, and in the credentials set returned by the SSO client API. It the 
+	credentials retrieval method is based on a user interface, it is recommended 
+	to declare NLS names for the localization of this user interface, as 
+	described in the next section.</li>
+	<li><code>password</code>: whether or not the credential is a password. This 
+	information is key when the SSO retrieval method is a user interface, in 
+	which text typed into password fields must be hidden. This attribute value 
+	must be <code>true</code> or <code>false</code>.</li>
+	<li><code>optional</code>: whether or not this credential's value can be an 
+	empty string. This information could be used by SSO retrieval methods in 
+	order to prevent unassigned value on non-optional credentials. This 
+	attribute value must be <code>true</code> or <code>false</code>.</li>
+	<li><code>type</code>: this attribute is reserved for future usage. Only 
+	possible value is currently <code>String</code>.</li>
+	<li><code>hidden</code>: this attribute is reserved for future usage. Only 
+	possible value is currently <code>false</code>.</li>
+</ul>
+<h4>Creating NLS Names for Credentials (Optional)</h4>
+<p>To display NLS names in a GUI-based SSO user exit implementation, you may provide 
+an NLS file. The NLS File must be named as follows: <code>SystemName_credentialSet.CATNls</code> 
+where <code>SystemName</code> is the application type name in the .credentialSet file. It must be delivered 
+in a <code>&lt;Workspace&gt;/&lt;Framework&gt;/CNext/resources/msgcatalog/ </code>directory.</p>
+<p>The <code>applicationType.name</code> property must be set to the NLS name of your 
+application.</p>
+<p>Then, each credential name must be declared using the following pattern:</p>
+<p><code>SSOCredential.MyCredentialName=&#8221;My NLS Message&#8221;;</code></p>
+<p>Where <code>MyCredentialName</code> is the name of the credential given in the<code> .credentialSet</code> 
+file and <i>My NLS Message</i> is the corresponding NLS message to be displayed.</p>
+<p>Here is the NLS file for the credentials descriptor of the <code>MySystem</code> 
+sample application:</p>
+<pre class="code">applicationType.name=&quot;My System&quot;;
+SSOCredential.Password=&quot;Password&quot;;
+SSOCredential.User=&quot;User Name&quot;;
+SSOCredential.Role=&quot;Security Context&quot;;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Implementing the SSO User Exit</h3>
+<p>The SSO User Exit relies on the Object Modeler mechanism of interfaces 
+and implementation. In practice, it means that an implementation of the SSO 
+User Exit involves the following artifacts:</p>
+<ul>
+	<li>Creation of shared library module containing the implementation of the
+	<code>CATIUExitCredentialsSource</code> interface.
+	<p>In the case of this use case, the module in which the SSO user exit 
+	implementation lies is <code>CAASecuritySSO.edu\CAASSOUserExitImpl.m</code>.</p>
+	</li>
+	<li>Creation of the class implementing the SSO user exit and related Object 
+	Modeler artifacts.
+	<p>For this use case, <code>CAASecuritySSO.edu\CAASSOUserExitImpl.m\src\CAASSOUserExitImpl.cpp</code> 
+	contains the implementation and <code>
+	CAASecuritySSO.edu\CAASSOUserExitImpl.m\src\CAASSOUserExitCI.cpp </code>
+	contains the <code>CATICreateInstance</code> class tied to this 
+	implementation.</p>
+	</li>
+	<li>Declaration of the class implementing the <code>CATIUExitCredentialsSource</code>
+	interface in a dictionary file.
+	<p>See <code>CAASecuritySSO.edu\CNext\code\dictionary\CAASecuritySSO.dic</code> 
+	file for the declaration of the sample SSO user exit given as part of this 
+	use case.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Testing"></a>Testing the Use Case</h3>
+<p>In order to test the use case, first run (either <code>catstart</code> or
+<code>mkrun</code>) the <code>CAAPLMSSOClientTest</code> application using the 
+hard-coded credential set for the <code>MySystem</code> application default 
+instance:</p>
+<p><code>CAAPLMSSOClientTest MySystem .</code></p>
+<p>This should print on the standard output:</p>
+<pre class="code">-== Credential Set ==-
+
+(name=User,value=john)
+(name=Password,value=s3cr3t)
+(name=Role,value=VPMDESIGNER)
+rc = 0</pre>
+<p>The other way to test the use case implementation is with other application 
+name than MySystem and using a flat credentials file. Let us call this file
+<code>ssouserexitfile.txt</code>.</p>
+<p>The syntax of the credentials flat file <code>ssouserexitfile.txt</code> is 
+the following:</p>
+<pre class="code">&lt;N : number of credentials set in this file&gt;
+&lt;application type name #1&gt;
+&lt;application instance name #1&gt;
+&lt;n1 number of credentials for this application&gt;
+&lt;credential name #1 for application type/instance #1&gt;
+&lt;credential value #1 for application type/instance #1&gt;
+...
+&lt;credential name #n1 for application type/instance #1&gt;
+&lt;credential value #n1 for application type/instance #1&gt;
+&lt;application type name #2&gt;
+&lt;application instance name #2&gt;
+&lt;n2 number of credentials for this application&gt;
+&lt;credential name #1 for application type/instance #2&gt;
+&lt;credential value #1 for application type/instance #2&gt;
+...
+&lt;credential name #n2 for application type/instance #2&gt;
+&lt;credential value #n2 for application type/instance #2&gt;
+...
+&lt;nN number of credentials for this application&gt;
+&lt;credential name #1 for application type/instance #N&gt;
+&lt;credential value #1 for application type/instance #N&gt;
+...
+&lt;credential name #nN for application type/instance #N&gt;
+&lt;credential value #nN for application type/instance #N&gt;</pre>
+<p>In practice, suppose that we want to declare credential sets for three 
+applications type-instance:</p>
+<ol>
+	<li>For the <code>mars:9080</code> instance of <code>MySystem2</code> 
+	application, credential <code>DBUser</code>=<code>db2mars</code> and <code>
+	DBPasword</code>=<code>dontread</code>.</li>
+	<li>For the default instance of <code>MySystem2</code> application, 
+	credential <code>DBUser</code>=<code>db2venus</code> and <code>DBPasword</code>=<code>dontr3ad</code>.</li>
+	<li>For the <code>pluto:9081</code> instance of <code>MySystem2</code> 
+	application, credential <code>DBUser</code>=<code>db2pluto</code> and <code>
+	DBPasword</code>=<code>d0ntr3ad</code>.</li>
+</ol>
+<p>Then, the<code> ssouserexitfile.txt</code> file should contain (note the use 
+of . for default instance name, which is translated into empty string &quot;&quot; by the 
+executable sample application):</p>
+<pre class="code">3
+MySystem2
+mars:9080
+2
+DBUser
+db2mars
+DBPassword
+dontread
+MySystem2
+.
+2
+DBUser
+db2venus
+DBPassword
+dontr3ad
+MySystem2
+pluto:9081
+2
+DBUser
+db2pluto
+DBPassword
+d0ntr3ad</pre>
+<p>Before running the <code>CAAPLMSSOClientTest</code> command against one of the 
+application type &amp; instances declared in this file, the location of this file 
+must be assigned to the <code>MYSSOUEFNAME</code> environment variable. For 
+example, on Windows:</p>
+<p><code>set</code> <code>MYSSOUEFNAME=c:\mydir\ssouserexitfile.txt</code></p>
+<p>and then (using a shell started using <code>mkrun</code> or <code>catstart</code>):
+</p>
+<pre class="code">CAAPLMSSOClientTest MySystem2 .
+
+-== Credential Set ==-
+
+(name=DBUser,value=db2venus)
+(name=DBPassword,value=dontr3ad)
+rc = 0
+
+CAAPLMSSOClientTest MySystem2 mars:9080
+
+-== Credential Set ==-
+
+(name=DBUser,value=db2mars)
+(name=DBPassword,value=dontread)
+rc = 0</pre>
+<p>Last, if the command is ran against an application type &amp; instance for which 
+no credentials set was declared, the output shall be:</p>
+<pre class="code">CAAPLMSSOClientTest MyOtherSystem .
+
+-== Credential Set ==-
+
+ERROR: Credentials not found in User Exit's open SSO file.
+rc = 1</pre>
+<p>This later error message being created through a <em>CATError</em> from the sample SSO 
+user exit implementation given as part of this use case.</p>
+<p><strong>Note:</strong> if SSO has not been activated, then the SSO client with return 
+unspecified results. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has explained how to:</p>
+<ul>
+	<li>Create credential descriptors for a custom system</li>
+	<li>Implement a SSO user exit able to retrieve credentials for that system</li>
+	<li>Retrieve credentials using SSO client API.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <strong>1</strong> [Nov 2007]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Order and Absorption Concepts</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Order and Absorption Concepts</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Hybrid Bodies and Ordered Geometrical Sets are ordered Sets. This article 
+		explains the purpose of ordered Sets and their specific behaviors.</p>
+		<ul>
+			<li><a href="#100000">Introduction</a></li>
+			<li><a href="#200000">Order Concept</a>
+				<ul>
+					<li><a href="#210000">Input Specifications in an Ordered Set</a></li>
+					<li><a href="#220000">The Current Feature</a></li>
+				</ul>
+			</li>
+			<li><a href="#300000">Absorption Concept</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Introduction</h2>
+<p>Order and Absorption concepts were introduced to help user with the design of 
+very complex geometry, for which the specification graph can become really huge.</p>
+<ol>
+	<li><a href="#200000">Order Concept</a>
+		<p>An ordered set is a set in which each feature can only reference features 
+		that are above it in the specification tree. The effect is that the order 
+		of appearance of the features in the specification graph is consistent with 
+		the steps of creation of the design, with the basic features at the top 
+		and the most complex features at the bottom. The notion of <strong>current 
+		feature</strong> helps to implement this rule.</p>
+	</li>
+	<li><a href="#300000">Absorption Concept</a>
+		<p>Some features modify other features. The visualization of the feature 
+		before its modification is not revelant for the user, only the final result 
+		is usefull. The absorption concept is the fact of not taking into account 
+		non relevant features, these are &quot;absorbed&quot;. The modified features 
+		are called <strong>absorbed</strong> features, and the modifying features 
+		are named <strong>absorbent</strong> features.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Order Concept</h2>
+<h3><a name="210000"></a>Input Specifications in an Ordered Set</h3>
+<p>In ordered sets, <strong>the input specifications of a feature can only be features 
+that are above it in the specification tree.</strong></p>
+<p>Note: this rule only applies to features that are within the same set.</p>
+<table>
+	<caption><strong>Input Specifications in an Ordered Set</strong></caption>
+	<tr>
+		<td>
+		<img alt="" height="191" src="images/CAAMmrOGSOrder.jpg" width="372"/></td>
+	</tr>
+</table>
+<p><code>Spline.1</code> has <code>Point.1</code>, <code>Point.2</code>, <code>Point.3</code> 
+and <code>Point.4 for inputs.</code> It couldn't have <code>Point.5</code> or
+<code>Point.6</code>. <code>Line.1</code> has <code>Point.4</code> and <code>Point.5</code> 
+for inputs. It could not have <code>Point.6</code>.</p>
+<p>The <em><strong>CATFeatureImportAgent</strong></em> is an agent of selection 
+dedicated to mechanical features. It takes into account the fact that in an ordered 
+set, an input feature below the current feature cannot be selected. This rule only 
+applies to features whithin the ordered set, there are no constraints on input features 
+coming from another set.</p>
+<p>The following picture shows that when editing Line.1 and trying to modify one 
+of its points, it's not possible to select a point that is below in the specification 
+tree:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" height="274" src="images/CAAMmrOGSnosele.jpg" width="442"/></td>
+	</tr>
+</table>
+<p>When trying to replace <code>Point.5</code> by <code>Point.6,</code> which is 
+below <code>Line.1</code> in the specification tree, the tool tip is displayed, 
+the point is not selectable.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>The Current Feature</h3>
+<p>The notion of <strong>current feature</strong> was introduced to help user respect 
+the order rules when designing his geometry within an ordered set. It's a status 
+on a feature that generates certain behaviors concerning new feature insertion and 
+visualization. There is always one and only one current object in a 3D Shape, it 
+appears underlined in the Specification Tree.</p>
+<p>The <em><strong>CATIMmiUsePrtPart</strong></em> interface implemented by the 
+Part Feature enables to manage the current feature. The way to set and get the current 
+feature is described in the article &quot;The Part Feature&quot; [<a href="#References">1</a>].
+</p>
+<p>Here are the different behaviors linked to the current feature:</p>
+<ul>
+	<li>
+		<p><strong>A new feature is inserted just below the current feature and 
+		automatically becomes the current feature</strong></p>
+		<p>Lets create a new point in the example just above, with Line.1 as current 
+		feature. The picture below shows that the new point, Point.7, was inserted 
+		just below <code>Line.1</code> and has become the current feature.</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" height="218" src="images/CAAMmrOGSNewFeat.jpg" width="333"/></td>
+			</tr>
+		</table>
+		<p>Note: In a non ordered surfacic feature set, <code>Point.7</code> would 
+		have been automatically aggregated at the end of the set, that is to say 
+		after Plane.1.</p>
+	</li>
+	<li>
+		<p><strong>When editing a feature, it becomes the current feature</strong></p>
+		<p>The picture below shows an example of an edited Line:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" height="360" src="images/CAAMmrOGSCurrent.jpg" width="424"/></td>
+			</tr>
+		</table>
+		<p>When <code>Line.1</code> is edited, it becomes the current feature, underlined 
+		in the specification tree.</p>
+		<p>Remark: another way to interactively set a feature as current feature, 
+		is to use the command &quot;Define in Work Object&quot;, available in the 
+		contextual menu of the selected object.</p>
+	</li>
+	<li><strong>Only the features above the current feature are visualized in the 
+		3D viewer</strong>
+		<p>The following picture shows the 3D viewer when all the elements of the 
+		ordered set are visible, the current feature being the last feature in the 
+		specification tree:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" height="299" src="images/CAAMmrOGSAllElt.jpg" width="368"/></td>
+			</tr>
+		</table>
+		<p>Now, in the same example, lets set Line.1 as current feature. The following 
+		picture shows that the features below Line.1 are not visualized:</p>
+		<table>
+			<caption>Features Below the Current Feature are not Drawn</caption>
+			<tr>
+				<td>
+				<img alt="" height="300" src="images/CAAMmrOGSCurrentLine.jpg" width="354"/></td>
+			</tr>
+		</table>
+		<p><code>Point.7</code>, <code>Point.6</code> and <code>Plane.1</code> are 
+		not drawn in the 3D Viewer.</p>
+		<p>So when editing <code>Line.1</code>, the user is not disturbed by the 
+		features located below it, and cannot select them in the 3D viewer.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Absorption Concept</h2>
+<p>Lets compare the following two pictures that represent a Split operation in an 
+non ordered set on the right and in an ordered set on the left:</p>
+<table>
+	<tr>
+		<th>Non Ordered Set</th>
+		<th>Ordered Set</th>
+	</tr>
+	<tr>
+		<td>
+		<img alt="Non Ordered Set" height="205" src="images/CAAMmrOGSPartwithGS.jpg" width="289"/></td>
+		<td>
+		<img alt="Ordered Set" height="206" src="images/CAAMmrOGSPartwithOGS.jpg" width="318"/></td>
+	</tr>
+</table>
+<p>Both pictures show the split of the surface <code>Extrude.1</code> by the plane
+<code>Plane.1</code>. The 3D visualization of the result is the same: you can only 
+see <code>Split.1</code>, and <code>Extrude.1</code> is not visible. But if you 
+look at the specification tree, you can see that on the left picture, <code>Extrude.1</code> 
+has the hidden icon, and on the right, its icon is normal. This means that if you 
+swap the visible space, <code>Extrude.1</code> of the Geometrical Set (on the left) 
+will be drawn, while <code>Extrude.1</code> inside the Ordered Set will not be.</p>
+<p>Once <code>Split.1</code> is created, <code>Extrude.1</code> has become visually 
+useless for the design. <code>Split.1</code> is said to be an <strong>absorbent</strong> 
+feature <code>and Extrude.1</code> an <strong>absorbed</strong> feature.</p>
+<p>Lets review the different behaviours linked to the absorption concept:</p>
+<ul>
+	<li><strong>Absorbed Feature Visualization</strong>
+		<p>As we have seen in the precedent paragraph, only features above the current 
+		feature are visualized. The consequence is that the visualization of the 
+		absorbed feature depends on the position of the current feature. There are 
+		three cases:</p>
+		<ol>
+			<li>The current feature is above the absorbed feature : the absorded 
+				feature is not visualized.
+				<p>The following picture illustrates this case:</p>
+				<img alt="" height="216" src="images/CAAMmrOGSAbsorbedFeatVisu.jpg" width="303"/>
+				<p>Only <code>Point.1</code>, <code>Point.2</code>, <code>Point.3</code>,
+				<code>Point.4</code> and <code>Spline.1</code> are visualized in 
+				the 3D view.</p>
+			</li>
+			<li>The current feature is in between the absorbed feature and its absorbent 
+				feature : the aborbed feature is visualized (this is the unique 
+				case where the absorbed feature is visualized).
+				<p>The following picture illustrates this case:</p>
+				<p>
+				<img alt="" height="211" src="images/CAAMmrOGSBetween.jpg" width="362"/></p>
+				<p><code>Extrude.1</code> is displayed in the 3D view. At this stage 
+				of the history of the set (<code>Plane.1</code> is the current feature),
+				<code>Extrude.1</code> has not been modified yet by <code>Split.1</code>.</p>
+			</li>
+			<li>The current feature is the absorbent feature or after, the absorbent 
+				feature is visualized and the absorbed feature isn't.
+				<p>The following picture illustrates this case:</p>
+				<img alt="" height="208" src="images/CAAMmrOGSPartwithOGS2.jpg" width="360"/>
+				<p><code>Extrude.1</code> isn't displayed, it has been absorbed 
+				by <code>Split.1</code>.</p>
+			</li>
+		</ol>
+	</li>
+	<li><strong>Absorbed Feature Selection</strong>
+		<p>It's not possible to select an absorbed feature for an operation, even 
+		if it's above the current feature.</p>
+		<p>In the precedent sample, with <code>Split.1</code> as current feature, 
+		if you try to create an offset of <code>Extrude.1</code>, you will get the 
+		following error message when trying to select <code>Extrude.1</code>:</p>
+		<table>
+			<caption>Absorbed Feature Selection</caption>
+			<tr>
+				<td>
+				<img alt="" height="326" src="images/CAAMmrOGSPartwithOGSorder.jpg" width="589"/></td>
+			</tr>
+		</table>
+		<p>The <em><strong>CATFeatureImportAgent</strong></em> interface takes into 
+		account this rule: an absorbed feature cannot be selected. Thus, selection 
+		in the specification tree is compliant with what is drawn in 3D viewer.
+		</p>
+	</li>
+	<li><strong>Absorbent Feature Insertion</strong>
+		<p>It is possible to insert an absorbent feature in between an absorbed 
+		feature and its absorbent feature. Do do that, the absorbed feature needs 
+		to be visualized, so the current feature must be a feature in between the 
+		absorbed feature and the absorbent feature. In this configuration, the absorbed 
+		feature is at a stage in the history of the specifications where it has 
+		not yet been modified by an operation.</p>
+		<p>Let's consider the precedent sample and set <code>Extrude.1</code> as 
+		current feature. Let's then create <code>Plane.2</code> and <code>Split.2</code>. 
+		These two new features are inserted before <code>Split.1</code>.</p>
+		<p>The following picture shows the result of this scenario:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="" height="235" src="images/CAAMmrOGSReroot1.jpg" width="361"/></td>
+			</tr>
+		</table>
+		<p>The consequence of this insertion is that <code>Split.1</code> relies 
+		on <code>Split</code>.<code>2</code> and no longer on<code> Extrude.1</code>.</p>
+		<p>This is shown in the two following pictures, snapshots of the Parent/Children 
+		command:</p>
+		<table>
+			<tr>
+				<th>After Insertion of Split.2</th>
+				<th>Before Insertion of Split.2</th>
+			</tr>
+			<tr>
+				<td>
+				<img alt="" height="270" src="images/CAAMmrOGSParentChild1.jpg" width="326"/></td>
+				<td>
+				<img alt="" height="270" src="images/CAAMmrOGSParentChild2.jpg" width="326"/></td>
+			</tr>
+		</table>
+		<p>This dependency modification of <code>Split.1</code> is managed by a 
+		mechanism of &quot;<strong>re-root</strong>&quot; in the ordered set. A 
+		feature cannot simply be aggregated into an ordered set, it is necessary 
+		to invoke a re-root function: <code>Insert</code> method of the<em><strong> 
+		CATIMmiUseLinearBodyServices</strong></em> interface. This method must also 
+		be invoked if you reorder features inside an ordered set, or if you change 
+		the inputs of a surfacic feature (useless for solid features). Before calling 
+		this <code>Insert</code> method, the feature must have been updated.</p>
+	</li>
+	<li><strong>The Main Input</strong>
+		<p>Some modification features can have several input specifications. In 
+		this case, one of the absorbed features is privileged. This feature has 
+		two roles:</p>
+		<ul>
+			<li>It gives the <strong>graphic properties</strong> to the absorbent 
+				feature
+				<table>
+					<tr>
+						<td>
+						<img alt="" height="268" src="images/CAAMmrPart2MainInput1.jpg" width="267"/></td>
+					</tr>
+				</table>
+				<p>The color of Feat3, a feature of modification which has two inputs, 
+				is given by its main input, here it is Feat2.</p>
+			</li>
+			<li>In case of <strong>reorder</strong> of a feature of modification, 
+				the moved feature has for new input the main input of the previous 
+				feature
+				<table>
+					<tr>
+						<td>
+						<img alt="" height="269" src="images/CAAMmrPart2MainInput2.jpg" width="261"/></td>
+					</tr>
+				</table>
+				<p>If Feat4, a feature of modification, is moved before Feat3, the 
+				input of Feat4 becomes Feat2, the main input.</p>
+			</li>
+		</ul>
+	</li>
+	<li><strong>The Result of an Ordered Set</strong>
+		<p>Absorbed features do not appear in the result of an ordered set. The
+		<code>GetResults</code> method of <strong><em>CATIBodyRequest</em></strong> 
+		interface which returns the result of a geometrical features set, does not 
+		include the absorbed (unrelevant) features.</p>
+	</li>
+	<li>
+		<p><strong>How to get information on absorbed/absorbent features</strong></p>
+		<p>The <em><strong>CATIInputDescription</strong></em> interface gives information 
+		on features.</p>
+		<ol>
+			<li>
+				<p>The type</p>
+				<p>The method <code><strong>GetFeatureType</strong></code> returns 
+				the type of a feature. There are three possible types:</p>
+				<ol>
+					<li><strong>Creation</strong>: the feature creates matter. For 
+						example, a Line is a creation feature.</li>
+					<li><strong>Modification</strong>: the feature modifies another 
+						feature. For example, a Split is a modification feature. 
+						Modification features are absorbent features.</li>
+					<li><strong>Contextual</strong>: the feature creates matter 
+						but is closely associated with a specific feature. For example, 
+						an Offset is a contextual creation feature.</li>
+				</ol>
+			</li>
+			<li>
+				<p>Information on the absorbed features of an absorbent feature</p>
+				<ol>
+					<li>The method <code><strong>GetListOfModifiedFeatures</strong></code> 
+						returns the list of absorbed features.</li>
+					<li>The method <code><strong>GetMainInput</strong></code> returns 
+						the main input.</li>
+				</ol>
+			</li>
+		</ol>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Hybrid Bodies and Ordered Geometrical Sets are ordered sets. They are characterized 
+by the order and absorption concepts :</p>
+<ul>
+	<li>
+		<p><strong>Order</strong>: a feature in an ordered set can only have input 
+		specifications above it in the Specification Tree. The current feature helps 
+		manage the positionning of features in the set and simplifies visualization.
+		</p>
+	</li>
+	<li><strong>Absorption:</strong> features modified by other features become 
+		unrevelant. In an ordered set they are neither visualized, neither selectable, 
+		they are absorbed by the modification feature.</li>
+</ul>
+<p>It is strongly recommended to use the <em><strong>CATFeatureImportAgent</strong></em> 
+class in your interactive commands: it ensures the coherence of the specifications 
+by enabling the selection of valid features only.</p>
+<p>The <em><strong>CATIInputDescription</strong></em> interface gives information 
+on features in an ordered Set.</p>
+<p>The <em><strong>CATIMmiUseLinearBodyServices</strong></em> interface manages 
+the linearity rules in an ordered set, after a modification (aggregation, input 
+change, reorder). It must be called after an update of the modified feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaContentsSpecCont0.htm">The Part Feature</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaContentsSpecCont1.htm">The Geometrical Feature Sets</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrTaContentsSpecCont2.htm">The Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrTaSpecResultForMechFeat.htm">Specification/Result Mechanism 
+		Applied to Mechanical Features</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2004]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Mar 2010]</td>
+		<td>Document updated for V6 novelties</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

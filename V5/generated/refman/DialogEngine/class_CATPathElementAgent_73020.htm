@@ -1,0 +1,580 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>DialogEngine Class CATPathElementAgent</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../DialogEngine.htm">This Framework</a>  <a href="class_CATPanelState_34253.htm">Previous</a>  <a href="class_CATStateCommand_45648.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>DialogEngine Class CATPathElementAgent</h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">System.IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">System.IDispatch</a>
+    |
+    +---<a href="../System/class_CATBaseUnknown_40786.htm">System.CATBaseUnknown</a>
+      |
+      +---<a href="../System/class_CATEventSubscriber_67510.htm">System.CATEventSubscriber</a>
+        |
+        +---<a href="../System/class_CATCommand_20100.htm">System.CATCommand</a>
+          |
+          +---<a href="../DialogEngine/class_CATDialogAgent_39138.htm">DialogEngine.CATDialogAgent</a>
+            |
+            +---<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm">DialogEngine.CATAcquisitionAgent</a>
+              |
+              +---CATPathElementAgent
+ </pre>
+<p><b>Usage: you must use this class as is. You should never derive it.</b></p>
+<hr>
+<p>
+ public class <b>CATPathElementAgent</b>
+</p>
+<p>
+<b><i> Class representing an agent dedicated to selection.</i></b><br>
+
+ <b>Role</b>: <p>A Path element agent is a specific acquisition agent which
+ retrieves the path of the object under the mouse and stores it
+ as its value. The selection can be done in 3D/2D viewers or in  
+ specification trees.</p>
+ <p>The required object can be directly under the mouse or can be in the path of the
+ object under the mouse. Here is an example to understand the path truncation:
+  <pre>
+   Suppose a Point aggregated by an Open_Body inside a Part document included in a
+   Product document. The path of the Point is as follows:
+
+   Product.1/Part.1/Open_body.2/Point.3
+   
+   In the specification tree or in 3D you select Point.3; the object under the mouse
+   is Point.3 but you can require an object of its path: Open_body.2 for example. 
+   Point.3 is the selected object whenever Open_body.2 is the required object.
+  </pre>
+ </p>
+ <p>The object filtering is based on interface implementation. There are two kinds of filtering:
+  <ol>
+   <li>With an ordered list, thanks to the <a href="#SetOrderedTypeList">SetOrderedTypeList</a> method </li>    <br>The interface's order is more important than the object's position in the selected path.
+     For each interface of the list, a <tt>QI</tt> is done for all objects of the selected path 
+     (from the leaf to the root), if one object implements the current interface, the process is 
+     ended. The required path is from the root to this object.
+   <li>With a non ordered list, thanks to the 
+<a href="#AddElementType">AddElementType</a> method</li>    <br>The object's position in the selected path is more important than the interface's 
+    order. 
+    For each object of the selected path (from leaf to root), a <tt>QI</tt> of all 
+    interfaces is done, if the current object implements one of them, the process is ended.
+    The required path is from the root to this current object.
+ </ol>
+  <pre>
+   In the previous sample, suppose that Point implements the Itf1 interface and Open_body
+   implements the itf2 interface.
+   case 1: An ordered list with itf2 then itf1.
+           The path of the agent is = Product.1/Part.1/Open_body.2/
+
+   case 2: A non ordered list with itf2 and itf1.
+           The path of the agent is = Product.1/Part.1/Open_body.2/Point.3
+  </pre>
+ </p>
+ <p>The 
+<a href="#GetValue">GetValue</a> method returns the path of the required object, in case of mono-selection, whenever the 
+<a href="#GetListOfValues">GetListOfValues</a> method returns the list of required objects in case of multi-selection. 
+ </p>
+ 
+<dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="../VisualizationBase/class_CATPathElement_39932.htm">CATPathElement</a>
+</dl>
+</p>
+<hr>
+ <h2>Constructor and Destructor Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#CATPathElementAgent(CATString&amp;,CATClassId,CATDlgEngBehavior)"><b>CATPathElementAgent</b></a>(CATString&amp;,CATClassId,CATDlgEngBehavior)
+<dd>  Constructs a path element agent.
+ <dt> o 
+    <a href="#~CATPathElementAgent()"><b>~CATPathElementAgent</b></a>()
+<dd> </dl>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#AddElementType(IID&amp;)"><b>AddElementType</b></a>(IID&amp;)
+<dd>  Sets an object type expected by the agent.
+ <dt> o 
+    <a href="#GetElementType(int)"><b>GetElementType</b></a>(int)
+<dd>  Returns an object type from those expected by the agent
+ by using the object type index.
+ <dt> o 
+    <a href="#GetElementTypeSize()"><b>GetElementTypeSize</b></a>()
+<dd>  Returns the count of object types expected by the agent.
+ <dt> o 
+    <a href="#GetElementValue()"><b>GetElementValue</b></a>()
+<dd>  Returns the selected object.
+ <dt> o 
+    <a href="#GetListOfValues()"><b>GetListOfValues</b></a>()
+<dd>  Returns the agent list of values.
+ <dt> o 
+    <a href="#GetModifier()"><b>GetModifier</b></a>()
+<dd>  Returns whether the shift and control keys have been pushed during 
+ the selection.
+ <dt> o 
+    <a href="#GetOrderedTypeList()"><b>GetOrderedTypeList</b></a>()
+<dd>  Returns the ordered list of object types expected by the agent.
+ <dt> o 
+    <a href="#GetValue()"><b>GetValue</b></a>()
+<dd>  Returns the agent value.
+ <dt> o 
+    <a href="#ResetNoSelectionCursor()"><b>ResetNoSelectionCursor</b></a>()
+<dd>  Resets the customized "No Selection" cursor.
+ <dt> o 
+    <a href="#ResetPreselectionCursor()"><b>ResetPreselectionCursor</b></a>()
+<dd>  Resets the customized "Preselection" cursor.
+ <dt> o 
+    <a href="#SetListOfValues(CATSO*)"><b>SetListOfValues</b></a>(CATSO*)
+<dd>  Sets the agent list of values.
+ <dt> o 
+    <a href="#SetMessage(CATUnicodeString,CATPathElement*)"><b>SetMessage</b></a>(CATUnicodeString,CATPathElement*)
+<dd>  Adds a message to the tooltip displayed over the selected object.
+ <dt> o 
+    <a href="#SetNoSelectionCursor(CATDialog::CATDlgHCursor)"><b>SetNoSelectionCursor</b></a>(CATDialog::CATDlgHCursor)
+<dd>  Sets a customized "No Selection" cursor.
+ <dt> o 
+    <a href="#SetOrderedTypeList(CATListOfCATString&amp;)"><b>SetOrderedTypeList</b></a>(CATListOfCATString&amp;)
+<dd>  Sets an ordered list of object types expected by the agent.
+ <dt> o 
+    <a href="#SetPreselectionCursor(CATDialog::CATDlgHCursor)"><b>SetPreselectionCursor</b></a>(CATDialog::CATDlgHCursor)
+<dd>  Sets a customized "Preselection" cursor.
+ <dt> o 
+    <a href="#SetValue(CATPathElement*)"><b>SetValue</b></a>(CATPathElement*)
+<dd>  Sets the agent value.
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Constructor and Destructor</h2> <br>
+<a name="CATPathElementAgent"></a><a name="CATPathElementAgent(CATString&amp;,CATClassId,CATDlgEngBehavior)"></a> <dt> o <b>CATPathElementAgent</b>
+
+<dt>  <table><tr><td>  public <a href="../DNBSystem/struct__0.htm"></a>  <b>CATPathElementAgent</b>(<td> const <a href="../System/class_CATString_16797.htm">CATString&amp;</a> <td><tt>iId</tt>,<tr><td></td><td>CATClassId <td><tt>iType</tt><td><tt>=NULL</tt>,<tr><td></td><td><a href="../DialogEngine/typedef_CATDlgEngBehavior_57861.htm">CATDlgEngBehavior</a> <td><tt>iBehavior</tt><td><tt>=NULL</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Constructs a path element agent.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iId</tt>
+   <dd>   The agent identifier. It is used to retrieve the undo/redo titles in 
+   the command resource file.
+ </dd>
+    <dt><tt> iType</tt>
+   <dd>   The type of the expected objects.
+   The type corresponds to an interface implemented by the object. 
+   <br><b><Legal values></b>If it is NULL, all the objects
+   are accepted.
+   <br>You can add interfaces with </dd>
+<a href="#AddElementType">AddElementType</a> or you can specified later   an ordered list thanks to the 
+<a href="#SetOrderedTypeType">SetOrderedTypeType</a> method. 
+    <dt><tt> iBehavior</tt>
+   <dd>   The behavior of the agent.
+   <br><b>Legal values</b>: The behavior is given in the form of a
+   concatenation of the facet values using the | character.
+   <br>e.g.: <code>CATDlgEngRepeat|CATDlgEngActive</code>
+   <br>If it is NULL, the agent has the default behavior value for each
+   facet.
+   <br>The facets specific to this agent are :
+   <ul>
+   <li><b>Highlight</b>: <tt>CATDlgEngWithoutSO (default)</tt>,
+   <tt>CATDlgEngWithPSO</tt>,
+   <tt>CATDlgEngWithHSO</tt>,
+   or <tt>CATDlgEngWithPSOHSO</tt>.</li>
+   <li><b>HSO manager</b>: <tt>CATDlgEngOldHSOManager (default)</tt>,
+   or <tt>CATDlgEngNewHSOManager</tt>.</li>
+   <li><b>Multi acquisition</b>: <tt>CATDlgEngMonoAcquisition (default)</tt>,
+   <tt>CATDlgEngMultiAcquisition</tt>,
+   <tt>CATDlgEngMultiAcquisitionCtrl</tt>,
+   <tt>CATDlgEngMultiAcquisitionUserCtrl</tt>,
+   <tt>CATDlgEngMultiAcquisitionSelModes</tt> or
+   <tt>CATDlgEngMultiAcquisitionCtrlNoFeedback</tt>. </li>
+   <li><b>Deep acquisition</b>: <tt>CATDlgEngWithoutDeepSel (default)</tt>,
+   <tt>CATDlgEngWithDeepSel</tt>,
+   or <tt>CATDlgEngWithDeepFirstSel</tt>.</li>
+   <li><b>Truncation</b>: <tt>NULL (default)</tt>,
+   or <tt>CATDlgEngNoSubPath</tt>.</li>
+   <li><b>Valuation from CSO</b>: <tt>CATDlgEngNotValuedFromCSO (default)</tt>,
+   or <tt>CATDlgEngValuedFromCSO</tt>.</li>
+   <li>Valuation mode</b>: <tt>CATDlgEngSimpleValuation (default)</tt>,
+   <tt>CATDlgEngWithPrevaluation</tt>,
+   <tt>CATDlgEngWithManipulation</tt>,
+   <tt>CATDlgEngWithEdit</tt>,
+   <tt>CATDlgEngWithContext</tt>,
+   or <tt>CATDlgEngWithDrag</tt>.</li>
+   <li><b>Tooltip</b>: <tt>CATDlgEngWithoutTooltip (default)</tt>,
+   or <tt>CATDlgEngWithTooltip</tt>.</li>
+   <li><b>User Selection Filter</b>: <tt>CATDlgEngWithoutUserSelectionFilter (default)</tt>,
+   or <tt>CATDlgEngWithUserSelectionFilter</tt>.</li>
+   </ul>
+   The behavior may be specified later with the </dd>
+<a href="../DialogEngine/class_CATDialogAgent_39138.htm#SetBehavior">CATDialogAgent.SetBehavior</a>    method.
+</dl>
+</dl>
+</dl>
+<a name="~CATPathElementAgent"></a><a name="~CATPathElementAgent()"></a> <dt> o <b>~CATPathElementAgent</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../DNBSystem/struct__0.htm"></a>  <b>~CATPathElementAgent</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="AddElementType"></a><a name="AddElementType(IID&amp;)"></a> <dt> o <b>AddElementType</b>
+
+<dt>  <table><tr><td>  public void  <b>AddElementType</b>(<td> const <a href="../System/typedef_IID_1488.htm">IID&amp;</a> <td><tt>iTypeIID</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets an object type expected by the agent.
+ <br><b>Role</b>: The type corresponds to an interface implemented by the 
+ object. 
+ <br>This method may be used several times: then the expected objects must
+ implement one of the given interfaces.
+ <br>However this method cancels any previous use of 
+<a href="#SetOrderedTypeList">SetOrderedTypeList</a> which is an incompatible method.
+ <br>By using a non-ordered type list, for each object in the selection path
+ the agent checks whether it adheres to one of the types until it founds one.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iTypeIID</tt>
+   <dd>   It is the identifier of an interface that the expected objects
+   must implement.
+ </dd>
+</dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="#SetOrderedTypeList">SetOrderedTypeList</a>
+</dl>
+</dl>
+<a name="GetElementType"></a><a name="GetElementType(int)"></a> <dt> o <b>GetElementType</b>
+
+<dt>  <table><tr><td>  public <a href="../CATIAApplicationFrame/typedef_CATClassId_19352.htm">CATClassId</a>  <b>GetElementType</b>(<td>int <td><tt>iIndex</tt><td><tt>=1</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns an object type from those expected by the agent
+ by using the object type index.
+ <br><b>Role</b>: This method returns the <tt>iIndex</tt>th object type
+ from those (ordered or not) expected by the dialog agent,
+ that is set using the 
+<a href="#AddElementType">AddElementType</a> or 
+<a href="#SetOrderedTypeList">SetOrderedTypeList</a> methods. 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iIndex</tt>
+   <dd>   The index of the object type .
+   <br><b>Legal values</b>: <tt>iIndex</tt> range starts with 1, which 
+   is the default.
+   Use </dd>
+<a href="#GetElementTypeSize">GetElementTypeSize</a> to get the object type count.
+</dl>
+</dl>
+</dl>
+<a name="GetElementTypeSize"></a><a name="GetElementTypeSize()"></a> <dt> o <b>GetElementTypeSize</b>
+
+<dt>  <table><tr><td>  public int  <b>GetElementTypeSize</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns the count of object types expected by the agent.
+ <br><b>Role</b>: The count of element types ranges from 1 to n
+ if one or more (ordered or not) types are expected, 0 otherwise.
+</dl>
+<a name="GetElementValue"></a><a name="GetElementValue()"></a> <dt> o <b>GetElementValue</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/class_CATBaseUnknown_40786.htm">CATBaseUnknown *</a>  <b>GetElementValue</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns the selected object.
+ <br><b>Role</b>: The returned value is the required object that is the first  
+ matching the requested type. In otherwords, it is the leaf of the path 
+ returned by the 
+<a href="#GetValue">GetValue</a> method.  <br>Moreover, the returned value depends on the 
+<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm#ValuationState">CATAcquisitionAgent.ValuationState</a>.
+ Indeed, if the agent valuation state is <tt>Valuated</tt>, the 
+ <tt>GetElementValue</tt> method returns the real value; but if the agent 
+ valuation state is <tt>PreValuated</tt>, the <tt>GetElementValue</tt> method 
+ returns the prevalue even if the agent has got a value.  
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>    The selected object.
+   <br>If the behavior of the agent 
+ ( 
+<a href="../DialogEngine/typedef_CATDlgEngBehavior_57861.htm">CATDlgEngBehavior</a> ) is not <tt>CATDlgEngMonoAcquisition</tt>, in  other words in case of multi-selection, the 
+   returned value is NULL.
+   <br><b>Lifecycle rules deviation</b>: This method doesn't AddRef the 
+   returned value.
+</dl>
+</dl>
+<a name="GetListOfValues"></a><a name="GetListOfValues()"></a> <dt> o <b>GetListOfValues</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../Visualization/class_CATSO_4242.htm">CATSO *</a>  <b>GetListOfValues</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns the agent list of values.
+ <br><b>Role</b>: This method is usable only on MultiAcquisition objects, 
+ otherwise use the 
+<a href="#GetValue">GetValue</a> method. <br>Moreover, the returned list depends on the 
+<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm#ValuationState">CATAcquisitionAgent.ValuationState</a>.
+ Indeed, if the agent valuation state is <tt>Valuated</tt>, the 
+ <tt>GetListofValues</tt> method returns the real list of values; but if
+ the agent valuation state is <tt>PreValuated</tt>, the 
+ <tt>GetListOfValues</tt> method returns the list of prevalues even if
+ the agent has got values. 
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>    The list of values.
+   <br><b>Lifecycle rules deviation</b>: This method doesn't AddRef the 
+   returned list.
+</dl>
+</dl>
+<a name="GetModifier"></a><a name="GetModifier()"></a> <dt> o <b>GetModifier</b>
+
+<dt>  <table><tr><td>  public virtual int  <b>GetModifier</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns whether the shift and control keys have been pushed during 
+ the selection.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>    The key use.
+   <br><b>Legal values</b>: Use the defined values to decode the returned
+   integer:
+   <ul>
+   <li><tt>ShiftModifierOn</tt></li>
+   <li><tt>ControlModifierOn</tt></li>
+   </ul>
+   <pre>
+   e.g.
+   #include "CATDeviceEvent.h"
+   ...
+   if (Agent->GetModifier() & ControlModifierOn)
+   ...
+   </pre>
+</dl>
+</dl>
+<a name="GetOrderedTypeList"></a><a name="GetOrderedTypeList()"></a> <dt> o <b>GetOrderedTypeList</b>
+
+<dt>  <table><tr><td>  public <a href="../System/typedef_CATListOfCATString_62888.htm">CATListOfCATString &</a>  <b>GetOrderedTypeList</b>(<td>)const  </table></dt>
+<dl>
+  <dd>
+ Returns the ordered list of object types expected by the agent.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>    The ordered type list.
+ 
+  <dt> <b>See also:</b> 
+  <dd> <a href="#SetOrderedTypeList">SetOrderedTypeList</a>
+</dl>
+</dl>
+<a name="GetValue"></a><a name="GetValue()"></a> <dt> o <b>GetValue</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../VisualizationBase/class_CATPathElement_39932.htm">CATPathElement *</a>  <b>GetValue</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns the agent value.
+ <br><b>Role</b>: The value is the path of the selected object. 
+ <br>If no type has been specified, the returned path contains all the 
+ objects from the the root object to the selected object. Otherwise, with 
+ a type query, if the selected object is a child of the required object, 
+ the returned path is a subpath, that is a path that begins with the root
+ object and truncated with the first object matching the requested type.
+ <br>Moreover, the returned value depends on the 
+<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm#ValuationState">CATAcquisitionAgent.ValuationState</a>.
+ Indeed, if the agent valuation state is <tt>Valuated</tt>, the 
+ <tt>GetValue</tt> method returns the real value; but if the agent 
+ valuation state is <tt>PreValuated</tt>, the <tt>GetValue</tt> method 
+ returns the prevalue even if the agent has got a value. 
+ 
+<dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="#AddElementType">AddElementType</a>, <a href="#SetOrderedTypeList">SetOrderedTypeList</a>
+  <dt> <b>Returns:</b> 
+  <dd>    The value.
+   <br><b>Lifecycle rules deviation</b>: This method doesn't AddRef the 
+   returned value.
+</dl>
+</dl>
+<a name="ResetNoSelectionCursor"></a><a name="ResetNoSelectionCursor()"></a> <dt> o <b>ResetNoSelectionCursor</b>
+
+<dt>  <table><tr><td>  public void  <b>ResetNoSelectionCursor</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Resets the customized "No Selection" cursor.
+ <br><b>Role</b>: This method cancels previous uses of 
+<a href="#SetNoSelectionCursor">SetNoSelectionCursor</a>.
+</dl>
+<a name="ResetPreselectionCursor"></a><a name="ResetPreselectionCursor()"></a> <dt> o <b>ResetPreselectionCursor</b>
+
+<dt>  <table><tr><td>  public void  <b>ResetPreselectionCursor</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Resets the customized "Preselection" cursor.
+ <br><b>Role</b>: This method cancels previous uses of 
+<a href="#SetPreselectionCursor">SetPreselectionCursor</a>.
+</dl>
+<a name="SetListOfValues"></a><a name="SetListOfValues(CATSO*)"></a> <dt> o <b>SetListOfValues</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetListOfValues</b>(<td><a href="../Visualization/class_CATSO_4242.htm">CATSO*</a> <td><tt>iList</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets the agent list of values.
+ <br><b>Role</b>: This method is usable only on MultiAcquisition objects,
+ otherwise use the 
+<a href="#SetValue">SetValue</a> method. <br>This method does not register an undo step.
+ <br><b>Postcondition</b>: Use the 
+<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm#SetValuation">CATAcquisitionAgent.SetValuation</a> method to make the agent accept the value list, otherwise this list is not
+ taken into account.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iList</tt>
+   <dd>   The list of values.
+   <br><b>Cyclic reference</b>: A copy of <tt>iList</tt> is kept and 
+   AddRef'ed. It is Released in the agent destructor.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetMessage"></a><a name="SetMessage(CATUnicodeString,CATPathElement*)"></a> <dt> o <b>SetMessage</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetMessage</b>(<td> const <a href="../System/class_CATUnicodeString_52958.htm">CATUnicodeString</a> <td><tt>iMsg</tt>,<tr><td></td><td> const <a href="../VisualizationBase/class_CATPathElement_39932.htm">CATPathElement*</a> <td><tt>iPath</tt><td><tt>=NULL</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Adds a message to the tooltip displayed over the selected object.
+ <br><b>Role</b>: This method enables to add a specific message
+ to the tooltip in addition to the path of the selected object. However, this
+ method is useless if the behavior of the agent ( 
+<a href="../DialogEngine/typedef_CATDlgEngBehavior_57861.htm">CATDlgEngBehavior</a> )  is <tt>CATDlgEngWithoutTooltip</tt>. 
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iMsg</tt>
+   <dd>   The message to display
+ </dd>
+    <dt><tt> iPath</tt>
+   <dd>   The path object to display.
+   This is to be used only if the preselection contains several objects.
+   <br>If it is NULL, the current path under the mouse is displayed.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetNoSelectionCursor"></a><a name="SetNoSelectionCursor(CATDialog::CATDlgHCursor)"></a> <dt> o <b>SetNoSelectionCursor</b>
+
+<dt>  <table><tr><td>  public void  <b>SetNoSelectionCursor</b>(<td>CATDialog::CATDlgHCursor <td><tt>iCursor</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets a customized "No Selection" cursor.
+ <br><b>Role</b>: This method enables to display a cursor different
+ from the standard "No Selection" one.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCursor</tt>
+   <dd>   The cursor.
+   Use </dd>
+<a href="../Dialog/class_CATDialog_16070.htm#DefineCursor">CATDialog.DefineCursor</a> to define the new cursor.
+</dl>
+</dl>
+</dl>
+<a name="SetOrderedTypeList"></a><a name="SetOrderedTypeList(CATListOfCATString&amp;)"></a> <dt> o <b>SetOrderedTypeList</b>
+
+<dt>  <table><tr><td>  public void  <b>SetOrderedTypeList</b>(<td> const <a href="../System/typedef_CATListOfCATString_62888.htm">CATListOfCATString&amp;</a> <td><tt>iOrderedTypeList</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets an ordered list of object types expected by the agent.
+ <br><b>Role</b>: A type corresponds to an interface implemented by the 
+ object. 
+ <br>This method may give several types: then the expected objects must implement
+ one of the given interfaces.
+ <br>Since an agent has only one ordered type list,
+ successive calls to <tt>SetOrderedTypeList</tt> for the same agent
+ successively overwrite the list.
+ Moreover this method cancels any previous use of 
+<a href="#AddElementType">AddElementType</a>  which is an incompatible method.
+ <br>By using an ordered type list, for each type in the list
+ the agent checks whether an object in the selection path adheres to it
+ until it founds one.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iOrderedTypeList</tt>
+   <dd>   The ordered type list.
+ </dd>
+</dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="#AddElementType">AddElementType</a>
+</dl>
+</dl>
+<a name="SetPreselectionCursor"></a><a name="SetPreselectionCursor(CATDialog::CATDlgHCursor)"></a> <dt> o <b>SetPreselectionCursor</b>
+
+<dt>  <table><tr><td>  public void  <b>SetPreselectionCursor</b>(<td>CATDialog::CATDlgHCursor <td><tt>iCursor</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets a customized "Preselection" cursor.
+ <br><b>Role</b>: This method enables to display a cursor different
+ from the standard "Preselection" one.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCursor</tt>
+   <dd>   The cursor.
+   Use </dd>
+<a href="../Dialog/class_CATDialog_16070.htm#DefineCursor">CATDialog.DefineCursor</a> to define the new cursor.
+</dl>
+</dl>
+</dl>
+<a name="SetValue"></a><a name="SetValue(CATPathElement*)"></a> <dt> o <b>SetValue</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetValue</b>(<td><a href="../VisualizationBase/class_CATPathElement_39932.htm">CATPathElement*</a> <td><tt>iValue</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets the agent value.
+ <br><b>Role</b>: The value is a path object.
+ <br>This method does not register an undo step.
+ <br><b>Postcondition</b>: Use the 
+<a href="../DialogEngine/class_CATAcquisitionAgent_74906.htm#SetValuation">CATAcquisitionAgent.SetValuation</a> method to make the agent accept the value, otherwise this value is not
+ taken into account.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iValue</tt>
+   <dd>   The value.
+   <br><b>Cyclic reference</b>: A copy of <tt>iValue</tt> is kept and  
+   AddRef'ed. It is Released in the agent destructor.</dd>
+</dl>
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>CATPathElementAgent.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>CATDialogEngine</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

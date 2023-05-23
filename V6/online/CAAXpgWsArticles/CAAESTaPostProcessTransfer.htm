@@ -1,0 +1,805 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Post-processing xPDM Transfer</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Post-processing xPDM Transfer</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+			<h2>Abstract</h2>
+			<p>This article gives you information on the basic concepts behind 
+			post-processing <b>xPDM Transfer</b> with some code example.</p>
+			<p>This post-processing allows customer to enhance the XPDMXML exchange
+			behavior by using standard CAA APIs to manipulate the PLM data.</p>
+			<p>It relies on two CAA exposed interfaces:</p>
+			<ul>
+				<li><code><strong>CATIXPDMPostProcessing</strong></code>[<a href="#References">1</a>]: this interface is a <b>CAA User Exit</b> 
+			interface called by xPDM Transfer batch after both XPDMXML import and export processing. This <b>CAA User Exit</b> 
+			interface <b>must be implemented by the customer</b> (there is no default post-processing implementation).</li>
+				<li><code><strong>CATIXPDMMappingServices</strong></code>[<a href="#References">2</a>]: this CAA interface allows to retrieve PLM
+			identifier of an object from the XPDMXML External identifier (this PLM identifier is necessary to manipulate 
+			PLM data with CAA APIs). This interface must be used 'as is' by the customer (customer doesn't need to implement it).</li>
+			</ul>
+			
+			<p>The purpose of this article is to give more details and CAA code example (with source extracts) for understanding and implementing the interface
+			 <code><strong>CATIXPDMPostProcessing</strong></code> (using interface <code><strong>CATIXPDMMappingServices</strong></code>):</p>
+			<ul>
+				<li><a href="#Glossary">Glossary</a></li>
+				<li><a href="#About">About Implementing CAA User Exit for xPDM Transfer</a></li>
+				<li><a href="#Behavior">Post-processing xPDM Transfer Behavior</a></li>
+				<li><a href="#Samples">Post-processing xPDM Transfer Implementation Code Samples</a></li>
+				<li><a href="#References">References</a></li>
+			</ul>
+		</td>
+	</tr>
+	
+	<tr>
+		<td>
+			<hr/>
+			<span class="run-in">Before you begin:</span> 
+			<ul>
+				<li>Note that according to your installation, some links in the <a href="#References">References</a> section may not work.</li>
+			</ul>
+		</td>
+	</tr>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Glossary"></a>Glossary</h2>
+<dl>
+	<dt>CAA Interface</dt>
+	<dd><p>The interface is a contract between the interface developer, the provider of
+	the component that implements the interface, and the client application
+	programmer who uses the component. The interface should not change with the
+	time, and the client applications which use these interfaces never need to be
+	rebuilt when a new version of the code which contains the interface
+	implementations is installed.</p>
+   	</dd>
+   	
+   	<dt>CAA Component</dt>
+	<dd><p>Client application programmers have usually a logical view of CAA components 
+	and see a CAA component as an object exposing interfaces. On the opposite, the 
+	component supplier has a detailed physical view of the CAA component, that is, 
+	he/she knows which C++ classes make up the component, how these C++ classes are 
+	assembled to build the component, and which interface is implemented by which class.</p>
+   	</dd>
+   	
+   	<dt>CAA Extension</dt>
+	<dd><p>The CAA object model modularity and scalability is offered through extensions.</p>
+	<p>An extension is an object that is part of a component to provide it a given behavior by implementing one or several interfaces. 
+	The extension is not seen from the client application, but is handled using a pointer to an interface it implements. 
+	An extension is also the means to add behavior to a component without modifying already existing client applications.</p>
+	<p>It can be of the following types:</p>
+	<ul>
+		<li>Data extensions, if they contain data members and methods</li>
+		<li>Code extensions, if they contain only methods and no data member.</li>
+	</ul>
+	<p>The extension class and the class it is an extension of are declared in the extension 
+	source file using the macro <code>CATImplementClass</code>. The link between the 
+	extension and the interface it implements is managed through the dictionary. The 
+	shared library which contains the code for the extension is also included.</p>
+	<p>The TIE and the BOA are the CAA technologies to implement interfaces. A class can implement 
+	many interfaces using the TIE, but only one of them can be implemented using the BOA.</p>
+   	</dd>
+	
+	<dt>PLM Bag</dt>
+	<dd><p>The <b>BAG</b> object, as the name literally indicates holds the PLM Components inserted within it, in the current PLM session. 
+	It is primarily a session object which enables better control over the lifecycle of the PLM Components loaded in the current PLM session.</p>
+   	</dd>
+   	
+   	<dt>PLM Component</dt>
+	<dd><p>A <strong>PLM Component</strong> represents a <b>PLM Object</b> in session. Be careful, while the PLM Object in database is, 
+	of course, the complete view, the PLM Component is a partial view. When a PLM Object is loaded in session only a part of its 
+	attributes are loaded.</p>
+   	</dd>
+   	
+   	<dt>XPDMXML</dt>
+   	<dd><p>The xml file type that describes PLM Meta data.</p>
+   	</dd>
+   	
+   	<dt>XPDMXML External identifier</dt>
+   	<dd><p>The PLM objects exchanged in the XPDMXML file have a stable identifier published by the External attribute of the xml 
+   	&lt;UniqueID&gt; element. These XPDMXML External identifiers are managed in PLM Mapping Tables.</p>
+   	</dd>
+   	
+   	<dt>PLM Mapping Context</dt>
+   	<dd><p>This is the string given to the PLM Mapping Table Manager to tag all the PLM Mapping Table elements created by this Manager. 
+   	So, the PLM Mapping Context Name is associated to every components transferred by a PLM Mapping Table Manager.</p>
+   	</dd>
+   	
+   	<dt>PLM Mapping Table</dt>
+   	<dd><p>Associated to a PLM Mapping Context name, a PLM Mapping Table enables, during transaction, to gather data into a defined set, isolate 
+   	or desynchronize them from data related to another PLM Mapping Context name.</p>
+   	<p>For example, if an XPDM element is imported in a given PLM Mapping Context name, its XPDMXML External identifier will be stored 
+   	for this PLM Mapping Context name. An XPDM export of this element with same PLM Mapping Context name will restore the same  
+   	XPDMXML External identifier.</p>
+   	</dd>
+	
+</dl>
+        
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="About"></a>About Implementing CAA User Exit for xPDM Transfer</h2>
+<p>CAA User Exit relies on the Object Modeler mechanism of interfaces, components and component extensions (see [<a href="#References">3</a>]).</p>
+
+<p>The feature of the CAA User Exit is that customer just need to implement a CAA interface 
+(CAA interface creation, creation and instantiation of CAA component and CAA interface call code is already provided internally; 
+see Technical articles [<a href="#References">4</a>] and [<a href="#References">5</a>] for more information about these tasks).</p>
+
+<p>In order to benefit from post-processing xPDM Transfer, customer has to implement the CAA interface <code><strong>CATIXPDMPostProcessing</strong></code> 
+(see [<a href="#References">1</a>]). Customer can refer to the following Use Cases articles ([<a href="#References">6</a>], 
+[<a href="#References">7</a>]) for more detailed steps on how to develop, declare and integrate its implementation in his PLM environment.</p>
+
+<p><b>Note</b>: since the interface contains methods which set some parameters useful for post-processing, CAA interface should be implemented 
+as a <b>DataExtension</b> (instead of CodeExtension) with data members.</p>
+
+<br/>
+
+<p>In practice, it means that an implementation of the CAA User Exit for xPDM Transfer involves the following artifacts (see section 
+<a href="#Samples">Post-processing xPDM Transfer Implementation Code Example</a> for links to concrete artifacts):</p>
+<ul>
+	<li>Creation of shared library module containing the implementation of the
+	<code><strong>CATIXPDMPostProcessing</strong></code> interface.
+		<p><b>Note</b>: Don't forget to declare in <b>IdentityCard</b> the framework <em>XPGBatchUtilityItf</em> and in 
+		<b>Imakefile</b> the module <em>XPDMPostProcessing</em>.</p>
+	</li>
+	
+	<li>Creation of the class implementing the User Exit.
+	</li>
+	
+	<li>In a <b>dictionary</b> file, declaration of the CAA component (with a <b>late type</b>) that implements the 
+	<code><strong>CATIXPDMPostProcessing</strong></code> interface (and also which library contains this implementation).
+		<p><b>Note</b>: Late type is free. CAA component will be instantiated with this late type through introspection (interface 
+		<code><strong>CATIXPDMPostProcessing</strong></code> will be searched in the dictionary).</p>
+	</li>
+</ul>
+        
+<p>In addition to these CAA development mechanisms, customer needs also to know:</p>
+	<ul>
+	    <li>PLM data models as well as their related CAA APIs in order to browse/modify the PLM data within the post-processing implementation.
+	    	<p><b>Notes</b>:</p>
+	    	<ul>
+	    		<li>When the CAA User Exit implementation is called, a PLM session already exists but customer has to manage its PLM objects 
+	    	(open, save ...) through PLM Bag (see [<a href="#References">8</a>]).</li>
+	    		<li>Since the customer has access to the PLM data in read and write mode, care must be taken by the customer about what it is executed 
+	    		in its post-processing implementation.</li>
+	    	</ul>
+		</li>
+		<li>The XPDMXML schemas
+		</li>
+		<li>xPDM Transfer batch and its parameters
+		</li>
+		<li>XML concepts, how to navigate/write in XML file, read values ...
+		</li>
+	</ul>
+     
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Behavior"></a>Post-processing xPDM Transfer Behavior</h2>
+<p>Assuming CAA interface for post-processing has been correctly implemented and deployed (a message
+is reported is no late type declaring the interface <code><strong>CATIXPDMPostProcessing</strong></code> has been found in the dictionary), 
+post-processing implementation is called in the context of xPDM Transfer 
+batch (i.e. a PLM session is available) after a successful import or export of XPDMXML file (post-processing not launched if xPDM Transfer 
+batch fails before).</p>
+
+<br/>
+
+<p>Before the post-processing execution itself, the xPDM Transfer batch calls a set of methods (of the post-processing interface implementation)
+ to give information and parameters useful for post-processing execution( e.g. path of the XPDMXML file, batch input parameters ...).</p>
+ 
+ <br/>
+ 
+ <p>After the post-processing execution, xPDM Transfer batch calls a method of the post-processing interface to get the result of the post-processing execution itself.
+ This result is the return code and a message to be reported by xPDM Transfer batch.</p> 
+ </p>
+ 
+ <p><b>Note</b>: Should the post-processing implementation result in modifying the XPDMXML file, there is no XML validation at the end of the process.</p>
+
+<p>According to the xPDM Transfer batch mode of processing (import or export), the global sequence of interface calls is described in the figures below:</p>   
+
+<br/>
+
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: Sequence of interface calls for post-processing xPDM Transfer (Import mode)</caption>
+	<tr>
+		<td><img alt="Sequence of interface calls for post-processing xPDM Transfer (Import mode)" src="images/CAAXpgCAACPostProcessImportFlow.png" width="750" height="550"/></td>
+	</tr>
+</table>
+
+<br/>
+
+<table>
+	<caption><a name="Fig.2"></a>Fig.2: Sequence of interface calls for post-processing xPDM Transfer (Export mode)</caption>
+	<tr>
+		<td><img alt="Sequence of interface calls for post-processing xPDM Transfer (Export mode)" src="images/CAAXpgCAACPostProcessExportFlow.png" width="750" height="550"/></td>
+	</tr>
+</table>
+
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Samples"></a>Post-processing xPDM Transfer Implementation Code Samples</h2>
+
+<p>Module <b>CAAXPGPostProcessorUseCase.m</b> of the <b>CAAXPGBatchUtilityItf.edu</b> framework is a <b>CAA Use Case</b> that illustrates an
+implementation of the CAA User Exit interface <code><strong>CATIXPDMPostProcessing</strong></code>.</p>
+
+<p>This module is located here:</p>
+
+<p><code>InstallRootFolder\CAADoc\CAAXPGBatchUtilityItf.edu\CAAXPGPostProcessorUseCase.m\</code></p>
+
+<p>where <code>InstallRootFolder</code> [<a href="#References">9</a>] is the directory where the API CD-ROM is installed.</p>
+
+<br/>
+
+<p>This module can be used as a basis for the development of your implementation. It contains all files necessary to build and launch this
+<b>Use Case</b>. The main artifacts are:</p>
+
+<ul>
+	<li><code>CAAXPGBatchUtilityItf.edu\IdentityCard\IdentityCard.xml</code>: 
+	declaration of the framework <em>XPGBatchUtilityItf</em> in <b>IdentityCard</b>.
+	</li>
+	
+	<li><code>CAAXPGBatchUtilityItf.edu\CAAXPGPostProcessorUseCase.m\Imakefile.mk</code>:
+	declaration of the module <em>XPDMPostProcessing</em> in <b>Imakefile</b> 
+	</li>
+	
+	<li><code>CAAXPGBatchUtilityItf.edu\CNext\code\dictionary\CAAXPGBatchUtilityItf.edu.dico</code>: <b>dictionary</b> file which 
+	declares that the CAA component with <b>late type</b> <em>CAAXPGPostProUseCase</em> implements the 
+	<code><strong>CATIXPDMPostProcessing</strong></code> interface and also that library <em>libCAAXPGPostProcessorUseCase</em> 
+	(default name for this module <b>CAAXPGPostProcessorUseCase.m</b>) contains this implementation.
+		<pre class="code">
+		CAAXPGPostProUseCase CATIXPDMPostProcessing libCAAXPGPostProcessorUseCase
+		</pre>
+	</li>
+	
+	<li><code>CAAXPGBatchUtilityItf.edu\CAAXPGPostProcessorUseCase.m\src\CAAXPGPostProcessorUseCaseImpl.cpp</code>: 
+	class implementing the CAA User Exit interface <code><strong>CATIXPDMPostProcessing</strong></code>.
+	</li>
+</ul>
+
+<p>To launch this <b>Use Case</b>, you will need to set up the build time environment, then compile <b>CAAXPGPostProcessorUseCase</b> 
+along with its prerequisites, set up the run time environment, and then execute the <b>Use Case</b> (see [<a href="#References">9</a>]).</p>
+
+<br/>
+
+<p>Here are some code extracts from this <b>Use Case</b> illustrating the different steps of the post-processing xPDM Transfer behavior 
+(see <a href="#Behavior">Post-processing xPDM Transfer Behavior</a>):</p>
+
+<ul>
+
+	<li><code>SetCATIXPDMMappingServices(...)</code>: we basically store as data member a pointer for accessing Mapping Table services through 
+	<code><strong>CATIXPDMMappingServices</strong></code> interface.
+	
+		<pre class="code">
+		...
+		CATIXPDMMappingServices  *_MappingServices;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl:: SetCATIXPDMMappingServices (CATIXPDMMappingServices  *&ipMappingServices)
+		{
+			...
+			_MappingServices=ipMappingServices;
+			...
+		}
+		</pre>
+	</li>
+	
+	<li><code>SetLoggingDirectory(...)</code>: we basically store as data member the directory used to output the post-processing logs.
+	
+		<pre class="code">
+		...
+		CATUnicodeString _LogDir;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl::SetLoggingDirectory(CATUnicodeString &iLogDir)
+		{
+			..
+			_LogDir=iLogDir;
+			...
+		}
+		</pre>
+		
+	</li>
+	
+	<li><code>SetListOfExchangeParameters(...)</code>: we basically store as data members the exchange parameters to use them later on.
+	
+		<pre class="code">
+		...
+		CATListOfCATUnicodeString _ListExchangeParamName;
+		CATListOfCATUnicodeString _ListExchangeParamValue;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl::SetListOfExchangeParameters(CATListOfCATUnicodeString &iListName, CATListOfCATUnicodeString &iListValue)
+		{
+			...
+			_ListExchangeParamName=CATListOfCATUnicodeString(iListName);
+			_ListExchangeParamValue=CATListOfCATUnicodeString(iListValue);
+			...
+		}
+		</pre>
+		
+	</li>
+	
+	<li><code>SetListOfProcessingParameters(...)</code>: we basically store as data members the processing parameters to use them later on.
+	
+		<pre class="code">
+		...
+		CATListOfCATUnicodeString _ListProcessingParamName;
+		CATListOfCATUnicodeString _ListProcessingParamValue;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl::SetListOfProcessingParameters(CATListOfCATUnicodeString &iListName, CATListOfCATUnicodeString &iListValue)
+		{
+			...
+			_ListProcessingParamName=CATListOfCATUnicodeString(iListName);
+			_ListProcessingParamValue=CATListOfCATUnicodeString(iListValue);
+			...
+		}
+		</pre>
+		
+	</li>
+	
+	<li><code>SetMetaDataFile(...)</code>: we basically store as data members the directory of the xPDM Transfer batch data and the XPDMXML file name.
+	
+		<pre class="code">
+		...
+		CATUnicodeString _WorkingDir;
+		CATUnicodeString _FileName;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl::SetMetaDataFile(CATUnicodeString &iWorkingDir, CATUnicodeString &iFileName)
+		{
+			...
+			_WorkingDir=iWorkingDir;
+			_FileName=iFileName;
+			...
+		}
+		</pre>
+		
+	</li>
+
+	<li><code>PostProcessXPDMImport(...)</code>: in this <b>Use Case</b>, we want to modify, after import in ENOVIA, the <em>V_description</em> attribute 
+	of a PLM object (known by its XPDMXML External identifier).
+	
+		<p>For that purpose, an external user text file <code>InstallRootFolder\CAADoc\CAAXPGBatchUtilityItf.edu\CAAXPGPostProcessorUseCase.m\src\Addin.txt</code> 
+	has been created to describe the object with its XPDMXML External identifier and the new value for the <em>description</em> field. Here is the content of the file:</p>
+	
+	 	<pre class="code">
+	 	# XPDMXML External identifier | New value for V_description field
+	 	...
+	 	1888B22E89E7C5200B0B22E3584CBBC60B0D66A8 Post_processed_1888B22E89E7C5200B0B22E3584CBBC60B0D66A8
+	 	...
+	 	</pre>
+	
+		<p>So first in <code>PostProcessXPDMImport()</code>, we read this file to get the XPDMXML External identifier and the new value for the V_description field 
+		(for more details, see code source in the <b>CAA Use Case</b> module):</p>
+		
+		<pre class="code">
+		HRESULT CAAXPGPostProcessorUseCaseImpl::PostProcessXPDMImport()
+		{
+			...
+			CATUnicodeString iAddinExternalID;
+			CATUnicodeString iAddinValue;
+			hr = ReadAddinFile( <em>iAddinExternalID</em>, iAddinValue);
+			...
+		</pre>
+		
+		<p>Then we need to retrieve the PLM identifier of this object based on its XPDMXML External identifier. For that, we will use 
+		the services provided by <code><strong>CATIXPDMMappingServices</strong></code> interface (see [<a href="#References">2</a>]):</p>
+		
+		<p><b>Note:</b> at that point, we are in the context of a PLM session (previously created with a given repository in the xPDM Transfer batch).</p>
+		
+		<pre class="code">	
+			...
+			CATLISTP(CATListPtrCATIAdpPLMIdentificator) oListListpAddinAdpIdent;
+			CATListOfCATUnicodeString iListAddinExternalID;
+			...
+			<em>iListAddinExternalID</em>.Append(<em>iAddinExternalID</em>);
+			hr = <b>_MappingServices->GetCATIAdpPLMIdentificatorsFromExternalIDs</b>(<em>iListAddinExternalID</em>,<em>oListListpAddinAdpIdent</em>);
+			...
+		</pre>
+		
+		<p>Once we have the PLM identifier, we can update the PLM object. To be able to modify the PLM object, we have to work in a 
+		PLM <b>Bag</b> (see [<a href="#References">8</a>]). So, we continue the code initializing a PLM <b>Bag</b> in authoring with expand 
+		mode as following (see C++ API References [<a href="#References">10</a>] and [<a href="#References">11</a>]):</p>
+			
+		<pre class="code">	
+			...
+			<b>CATOmbLifeCycleRootsBag newBag</b>;
+			CATAdpOpenParameters params(<b>CATAdpExpandParameters::OneLevelNavigation</b>);
+			
+			hr = <b>params.SetLoadingMode</b>(CATAdpOpenParameters::PLMMode);
+			<b>CATAdpOpener opener(newBag, params)</b>;
+			...
+		</pre>
+		
+		<p>We open the PLM Object from the PLM identifier (see C++ API References [<a href="#References">12</a>]):</p>
+		
+		<pre class="code">	
+			CATBaseUnknown *piRefOnRoot=NULL; 
+			CATListPtrCATIAdpPLMIdentificator *listadpid=NULL;
+			...
+			<em>listadpid</em>=<em>oListListpAddinAdpIdent[1]</em>;
+			...
+			// The first identificator is used: it is a reference, or a representation reference
+			CATIAdpPLMIdentificator *<em>adpid</em>=(*<em>listadpid</em>)[1];
+			
+			// Open the structure from the root component
+			hr= <b>opener.CompleteAndOpen</b>(<em>adpid</em>, IID_CATBaseUnknown, (void**) &<em>piRefOnRoot</em>);
+			...
+		</pre>
+		
+		<p>Then, we update the PLM Component with the new value for the <em>V_description</em> attribute 
+		(see C++ API References [<a href="#References">13</a>], [<a href="#References">14</a>], 
+		[<a href="#References">15</a>] and [<a href="#References">16</a>]):</p>
+					
+		<pre class="code">
+			...
+			// Gets the CATIPLMComponent from the object
+			CATIPLMComponent_var  <em>oPLMComponent</em>;
+		 	...
+		 	hr = <b>CATPLMComponentInterfacesServices::GetPLMComponentOf</b>(<em>piRefOnRoot</em>, <em>oPLMComponent</em>);
+		 	...
+		 	// Computes the CATIAdpPLMIdentificator from the current component
+		 	CATIAdpPLMIdentificator_var	adpid;
+		 	CATIAdpPLMIdentificator *oAdpID=NULL;
+		 	...
+		 	hr = <em>oPLMComponent</em>-><b>GetAdpID</b>(<em>oAdpID</em>);
+		 	<em>adpid</em>=<em>oAdpID</em>;
+		 	...
+		 	// Gets the list of attributes of the current loaded object
+		 	CATListValCATAttributeInfos <em>oListAttr</em>;
+		 	...
+		 	hr = <b>CATCkePLMNavPublicServices::ListAttributesFromPLMIdentificator</b>(CATCkePLMTypeAttrServices::All,<em>adpid</em>, <em>oListAttr</em>,FALSE);
+		 	...
+		 	// Modification of the V_description attribute by adding a suffix
+			CATICkeObject_var <em>spCke</em> = <em>oPLMComponent</em>;
+			...
+			for(int iatt =1;iatt&lt;=<em>oListAttr</em>.Size();iatt++ )
+			{
+				CATAttributeInfos <em>att</em> = <em>oListAttr</em>[iatt];
+				CATUnicodeString <em>attname</em> = <em>att</em>.Name();
+				
+				if(<em>attname</em>=="V_description")
+				{
+					CATUnicodeString attrNameValue;
+					
+					// Read the V_description value on the current object 
+					hr = <b>CATCkeObjectAttrReadServices::GetValueAsString</b>(<em>spCke</em>,<em>attname</em>,attrNameValue);
+					
+					// Modify the value
+					CATUnicodeString iUAttrValueInput=attrNameValue+"_PostProcessed_Ref_"+iAddinExtID+"_"+iAddinValue;
+					
+					// Write the modified PLM_ExternalID value on the current object 
+					hr = <b>CATCkeObjectAttrWriteServices::SetValueWithString</b>(<em>spCke</em>,<em>attname</em>,iUAttrValueInput);
+					break;
+				} 	  
+			}
+			...
+		</pre>
+		
+		<p>To end, we save the modification through the PLM <b>Bag</b> and we clean the PLM <b>Bag</b> 
+		(see C++ API References [<a href="#References">17</a>]):</p>
+		
+		<pre class="code">
+			// All loaded modified objects are saved here
+			CATAdpSaver saver;
+			<b>hr = saver.Save()</b>;
+			...
+			// Empty the bag
+			<b>newBag.RemoveAll()</b>;
+			...
+		}
+		</pre>
+		
+	</li>
+	
+	<li><code>PostProcessXPDMExport(...)</code>: in this <b>Use Case</b>, we want to generate, 
+	after export from ENOVIA, additional PLM information about PLM Object selected for export in an external file (other than XPDMXML file). 
+	This information must contain XPDMXML External identifier in order to retrieve the same object in the XPDMXML file. 
+	
+		<p>So first in <code>PostProcessXPDMExport()</code>, we need to read the generated XPDMXML file to get the XPDMXML External identifiers of 
+		the exported PLM Objects. For this, user has to provide its own method to parse the XPDMXML file. In the <b>Use Case</b> we provide, we call
+		the method <code>GetListOfExternalIDsFromXPDMXML(...)</code> (for more details on this method, see code source in the <b>CAA Use Case</b> module):</p>
+	
+	 	<pre class="code">
+	 	HRESULT CAAXPGPostProcessorUseCaseImpl::PostProcessXPDMExport(CATLISTP(CATIAdpPLMIdentificator) &iListSourceObjects)
+		{
+			CATListOfCATUnicodeString <em>oListAddinExternalID</em>;
+			...
+		 	hr = GetListOfExternalIDsFromXPDMXML(<em>oListAddinExternalID</em>);
+		 	...
+		 	// Get first XPDMXML External value as there is only one PLM Object exported 
+			CATUnicodeString <em>iAddinExternalID</em>=<em>oListAddinExternalID[1]</em>;
+			...
+	 	</pre>
+	 	
+	 	<p>In order to get more PLM information about the PLM Object selected for export, we need to retrieve the PLM identifier of this object. 
+	 	We can either, based on its XPDMXML External identifier, use the services provided by <code><strong>CATIXPDMMappingServices</strong></code> 
+	 	interface (see [<a href="#References">2</a>]) or use the input argument of this method giving the list of PLM Objects selected for export. We 
+	 	will use the second approach:</p>
+		
+		<p><b>Note:</b> at that point, we are in the context of a PLM session (previously created with a given repository in the xPDM Transfer batch).</p>
+		
+		<pre class="code">
+			...
+			// In this use case, there is only one selected object, so get the first identificator
+			CATIAdpPLMIdentificator	 *<em>adpid</em>=<em>iListSourceObjects</em>[1];
+			...
+		</pre>
+		
+		<p>Once we have the PLM identifier, we can get information about the PLM object. To be able to introspect the PLM object, 
+		we have to work in a 
+		PLM <b>Bag</b> (see [<a href="#References">8</a>]). So, we continue the code initializing a PLM <b>Bag</b> in authoring with expand 
+		mode as following (see C++ API References [<a href="#References">10</a>] and [<a href="#References">11</a>]):</p>
+			
+		<pre class="code">	
+			...
+			<b>CATOmbLifeCycleRootsBag newBag</b>;
+			CATAdpOpenParameters params(<b>CATAdpExpandParameters::OneLevelNavigation</b>);
+			
+			hr = <b>params.SetLoadingMode</b>(CATAdpOpenParameters::PLMMode);
+			<b>CATAdpOpener opener(newBag, params)</b>;
+			...
+		</pre>
+		
+		<p>We open the PLM Object from the PLM identifier (see C++ API References [<a href="#References">12</a>]):</p>
+		
+		<pre class="code">	
+			CATBaseUnknown *piRefOnRoot=NULL;
+			...
+			// Open the structure from the root component
+			hr= <b>opener.CompleteAndOpen</b>(<em>adpid</em>, IID_CATBaseUnknown, (void**) &<em>piRefOnRoot</em>);
+			...
+		</pre>
+		
+		<p>Then, we compute the value to output in the external file based on the XPDMXML External identifier 
+		(see C++ API References [<a href="#References">13</a>], [<a href="#References">14</a>], 
+		[<a href="#References">15</a>] and [<a href="#References">16</a>]):</p>
+					
+		<pre class="code">
+			...
+			// Gets the CATIPLMComponent from the object
+			CATIPLMComponent_var  <em>oPLMComponent</em>;
+		 	...
+		 	hr = <b>CATPLMComponentInterfacesServices::GetPLMComponentOf</b>(<em>piRefOnRoot</em>, <em>oPLMComponent</em>);
+		 	...
+		 	// Computes the CATIAdpPLMIdentificator from the current component
+		 	CATIAdpPLMIdentificator_var	adpid;
+		 	CATIAdpPLMIdentificator *oAdpID=NULL;
+		 	...
+		 	hr = <em>oPLMComponent</em>-><b>GetAdpID</b>(<em>oAdpID</em>);
+		 	<em>adpid</em>=<em>oAdpID</em>;
+		 	...
+		 	// Gets the list of attributes of the current loaded object
+		 	CATListValCATAttributeInfos <em>oListAttr</em>;
+		 	...
+		 	hr = <b>CATCkePLMNavPublicServices::ListAttributesFromPLMIdentificator</b>(CATCkePLMTypeAttrServices::All,<em>adpid</em>, <em>oListAttr</em>,FALSE);
+		 	...
+		 	// Compute value to output in external file
+			CATICkeObject_var <em>spCke</em> = <em>oPLMComponent</em>;
+			...
+			CATUnicodeString oAddinValue;
+			...
+			for(int iatt =1;iatt&lt;=<em>oListAttr</em>.Size();iatt++ )
+			{
+				CATAttributeInfos <em>att</em> = <em>oListAttr</em>[iatt];
+				CATUnicodeString <em>attname</em> = <em>att</em>.Name();
+				
+				if(<em>attname</em>=="PLM_ExternalID")
+				{
+					CATUnicodeString attrNameValue;
+					
+					// Read the PLM_ExternalID value on the current object 
+					hr = <b>CATCkeObjectAttrReadServices::GetValueAsString</b>(<em>spCke</em>,<em>attname</em>,attrNameValue);
+					
+					// Modify the value
+					<em>oAddinValue</em>=attrNameValue+"_PostProcessed_"+<em>iAddinExtID</em>;
+					break;
+				} 	  
+			}
+			...
+		</pre>
+		
+		<p>And we save the information in an external file using folder path where the XPDMXML has been generated 
+		(for more details, see code source in the <b>CAA Use Case</b> module):</p>
+		
+		<pre class="code">
+			...
+			hr = SaveAddinFile( iAddinExternalID,oAddinValue)	;
+			...
+		</pre>
+		
+		<p>To end, we clean the PLM <b>Bag</b> 
+		(see C++ API References [<a href="#References">17</a>]):</p>
+		
+		<pre class="code">
+			...
+			// Empty the bag
+			<b>newBag.RemoveAll()</b>;
+			...
+		}
+		</pre>
+		
+	</li>
+	<li><code>GetErrorInformation(...)</code>: we basically return data members corresponding to code and message error.
+	
+		<pre class="code">
+		...
+		int _RC;
+		CATUnicodeString _ErrorMsg;
+		...
+		HRESULT CAAXPGPostProcessorUseCaseImpl::GetErrorInformation(int &oRC, CATUnicodeString &oErrorMsg)
+		{
+			...
+			oRC=_RC;
+			oErrorMsg=_ErrorMsg;
+			...
+		}
+		</pre>
+		
+	</li>
+</ul>
+
+
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	
+	<tbody>
+		<tr>
+			<td valign="top">[1] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','XPGBatchUtilityItf','interface','CATIXPDMPostProcessing'); return false;">
+				C++ API Reference for CATIXPDMPostProcessing interface</a>
+			</td>
+		</tr><tr>
+			<td valign="top">[2] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','XPGBatchUtilityItf','interface','CATIXPDMMappingServices'); return false;">
+				C++ API Reference for CATIXPDMMappingServices interface</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[3] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysObjectModeler/CAASysTaOMCreatingInterfaces.htm'); return false;">
+				Creating CAA Interface</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[4] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysObjectModeler/CAASysTaOMCreatingComponent.htm'); return false;">
+				Creating Components</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[5] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysObjectModeler/CAASysTaOMUsingComponents.htm'); return false;">
+				Using Components</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[6] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysObjectModeler/CAASysUcOMCreatingCmp.htm'); return false;">
+				Implementing an Interface Using the TIE</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[7] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysObjectModeler/CAASysUcOMCreatingBOACmp.htm'); return false;">
+				Implementing an Interface Using the BOA</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[8] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm'); return false;">
+				Understanding PLM Component Life Cycle</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[9] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADocUseCases/CAADocRunSample.htm'); return false;">
+				Building and Launching a Use Case</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[10] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationUse'); return false;">
+				C++ API Reference for CATPLMIntegrationUse framework</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[11] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationUse','class','CATAdpOpenParameters'); return false;">
+				C++ API Reference for CATAdpOpenParameters class</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[12] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationUse','class','CATAdpOpener'); return false;">
+				C++ API Reference for CATAdpOpener class</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[13] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','CATPLMComponentInterfaces','class','CATPLMComponentInterfacesServices'); return false;">
+				C++ API Reference for CATPLMComponentInterfacesServices class</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[14] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIdentificationAccess','interface','CATIPLMComponent'); return false;">
+				C++ API Reference for CATIPLMComponent interface</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[15] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','PLMDictionaryNavServices','class','CATCkePLMNavPublicServices'); return false;">
+				C++ API Reference for CATCkePLMNavPublicServices class</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[16] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','KnowledgeInterfaces'); return false;">
+				C++ API Reference for KnowledgeInterfaces framework</a>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">[17] </td>
+			<td>
+				<a href="#" onclick="javascript:CAAlink('CPP','ObjectModelerBase','class','CATOmbLifeCycleRootsBag'); return false;">
+				C++ API Reference for CATOmbLifeCycleRootsBag class</a>
+			</td>
+		</tr>
+	</tbody>
+
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2013]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">    insertLinkToTop();</script>
+
+</body>
+
+</html>

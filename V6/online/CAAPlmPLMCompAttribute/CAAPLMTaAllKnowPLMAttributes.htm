@@ -1,0 +1,1282 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Accessing PLM Attributes</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Accessing PLM Attributes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The PLM dictionary [<a href="#References">1</a>] contains the 
+        definition of the PLM Attributes [<a href="#References">2</a>] 
+		associated with PLM Modelers and their customization [<a href="#References">3</a>]. 
+		Thanks to this article, you will learn that the PLM dictionary, is 
+		client side, accessible through the knowledge layer. By consequence, the 
+		first step of this article is to explain how the PLM dictionary is 
+		projected within the knowledge dictionary.</p>
+		<p>Then we are from the PLM Component point of view. How you can access 
+		to its PLM Attributes (definition and value), how you can valuate PLM 
+        attributes to create a PLM Component? There are some questions solved in 
+        the second chapter.</p>
+		<p>At last, we explain how you can retrieve from the knowledge API the 
+		PLM attributes filtered by PLM Mask [<a href="#References">6</a>].</p>
+		<ul>
+			<li><a href="#Knowledge Dictionary versus PLM Dicti">Knowledge
+			Dictionary versus 
+			PLM Dictionary</a> <ul>
+			<li><a href="#Partial PLM Dictionary Projection">A Partial Projection</a></li>
+			<li><a href="#Knowledge Dictionary">Knowlege Dictionary</a></li>
+			<li><a href="#Knowledge Package">Knowledge Package</a></li>
+			<li><a href="#Knowledge Type">Knowledge Type</a></li>
+            <li><a href="#PLM Attributes Associated with Knowledge Type">PLM 
+            Attributes Associated with Knowledge Type</a><ul>
+			<li><a href="#CATIAttributesDescription Use">Retrieving PLM 
+            Attributes, Knowledge Way</a></li>
+            <li><a href="#CATCkePLMTypeAttrServices">Retrieving PLM Attributes, 
+            PLM Way</a></li>
+		</ul>
+			</li>
+			<li><a href="#CATAttributeInfo">Knowledge Attribute (CATAttributeInfos)</a><ul>
+			<li><a href="#Attribute Type">Attribute Type</a></li>
+            <li><a href="#Default value">Default Value</a></li>
+		</ul>
+			</li>
+		</ul>
+			</li>
+			<li><a href="#PLM Component and PLM Attributes Access">PLM Component and PLM Attributes</a><ul>
+              <li><a href="#PLM Component Definition">PLM Component Definition</a></li>
+              <li><a href="#Accessing PLM Attribute Value">Accessing PLM Attribute 
+			Value</a></li>
+              <li><a href="#Unset PLM Attribute Value">Unset PLM Attribute Value</a></li>
+              <li><a href="#Knowledge Type and PLM Component Type">Knowledge Type and PLM Component Type</a></li>
+              <li><a href="#Creating PLM Attributes To Create PLM Component">Creating PLM 
+			Attributes for New PLM Component</a></li>
+            </ul></li>
+            <li><a href="#PLM Attributes Filtered By PLM Masks">PLM Attributes Filtered By PLM Mask</a><ul>
+              <li>
+              <a href="#How to retrieve PLM Attributes Filtered by PLM Mask">How to retrieve PLM Attributes Filtered by PLM Mask</a><ul>
+                <li><a href="#Help Values">Help Values</a></li>
+                <li><a href="#Authorized value">Authorized Values</a></li>
+              </ul></li>
+              <li><a href="#Using Filtered PLM Attributes">Using Filtered PLM Attributes</a></li>
+            </ul></li>
+            <li><a href="#LOCKUSER and LOCKSTATUS PLM Attributes">Limitations</a></li>
+            <li><a href="#InShort">In Short</a></li>
+            <li><a href="#References">References</a></li>
+		</ul>
+		<p>This technical article is illustrated by use cases whose links are 
+        indicated along the sections.
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Knowledge Dictionary versus PLM Dicti"></a>Knowledge Dictionary 
+versus PLM Dictionary</h2>
+<p>The PLM dictionary, server side, is a set of PLM Classes making up of PLM Attributes. Each PLM Modeler, each PLM Customization is a 
+set of PLM Classes, physically grouped together, within a file named metadata. 
+You can refer to the referenced article &quot;Understanding PLM Dictionary&quot; [<a href="#References">1</a>] 
+where all these concepts are developed. </p>
+<p>Client side, these PLM classes are projected within the 
+knowledge dictionary. A dictionary which is already used to describe the feature 
+attributes, so which is not specific to the PLM world.</p>
+<p>Have a look to the objects, and their interfaces, used by the knowledge 
+layer. </p>
+<table border="0" id="table2">
+	<caption><a name="Fig.1">Fig.1</a> Knowledge Dictionary</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllKnowPLMAttributes_Dico.gif"></td>
+	</tr>
+</table>
+<p>On the picture you can see four knowledge objects:</p>
+<ul>
+	<li><b>Type Dictionary</b> : It is the unique knowledge dictionary, the one 
+	containing the PLM Dictionary projection.</li>
+</ul>
+<blockquote>
+	<p>This knowledge dictionary does not only contain PLM attributes, it contains 
+	also the feature attribute's definition.</p>
+</blockquote>
+<ul>
+	<li><b>Package&nbsp; : </b>It is, in PLM context, an object representing the 
+	projection of the metadatas associating with a PLM Modeler and all its PLM Customization.&nbsp; </li>
+</ul>
+<ul>
+	<li><b>Type&nbsp; : </b>It represents the projection of a PLM Class . </li>
+</ul>
+ 
+<ul>
+	<li><b>CATAttributeInfos&nbsp; : </b>It represents the definition of a PLM Attribute [<a href="#References">2</a>] 
+	(name, type, mandatory/optional, ....). </li>
+</ul>
+ 
+	<p>Before to describe more precisely these objects, and their relying on 
+	APIs, we should explain that it is a <b>partial</b> projection.</p>
+ <script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Partial PLM Dictionary Projection"></a>A Partial Projection</h3>
+<p>The PLM Dictionary is partially projected in the knowledge dictionary since 
+this last one 
+only represents the <b>public</b> view of the PLM Dictionary. The knowledge dictionary only contains:</p>
+<ul>
+	<li><b>Public Packages</b></li>
+</ul>
+<blockquote>
+	<p>Those associating with&nbsp;PLM Modelers, and their customization; it 
+	does not contain the PLM Core Modeler [<a href="#References">1</a>] package, 
+    not intermediate modeler packages.</p>
+</blockquote>
+<ul>
+	<li><b>Public PLM Attributes</b><p>It is those which have the following 
+	characteristics [<a href="#References">2</a>]. <ul>
+	<li>Free </li>
+	<li>User</li>
+	<li>External Read - Only</li>
+	<li>External </li>
+</ul>
+	<p>It does not contain the &quot;server&quot; PLM attribute, those only used by the 
+	server, and nor the PLM attributes only accessible by internal PLM Modeler 
+	APIs.
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Knowledge Dictionary"></a>Knowledge Dictionary</h3>
+<p>It is a singleton, since there is an unique Knowledge dictionary for a 
+session. You retrieve it using the <b><code>GetTypeDictionary</code></b>() 
+	method of the <i>CATGlobalFunctions</i> class. It implements the <i>
+	CATITypeDictionary</i> interface. This interface enables you to scan its 
+packages, PLM or not, or to retrieve one package specifically. </p>
+<p>Take care, since the Knowledge dictionary is shared by PLM Attributes and 
+Feature Attributes, the returned packages are not necessary only PLM packages.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Knowledge Package"></a>Knowledge <b>Package&nbsp; </b></h3>
+<p>In the PLM context, there is one package by PLM Modeler.&nbsp;The package 
+name&nbsp;is by consequence the name of the PLM Modeler. For your information, 
+all modeler's names are listed inside the Former Typing Reference Dictionary [<a href="#References">4</a>].</p>
+<p>A PLM package is made of :</p>
+<ul>
+	<li>all the PLM Classes building the PLM Modeler&nbsp; (instantiable or 
+    customizable)</li>
+	<li>all the PLM Classes of all its PLM Customization (necessary instantiable for 
+	a customization)</li>
+</ul>
+<p>This picture illustrates the purpose:</p>
+<table border="0" id="table10">
+	<caption>Fig.2 PLM Package Contents</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllModeler_custo.gif"></td>
+	</tr>
+</table>
+<p>The PLM Package contains the bold and dashed PLM Classes:</p>
+<ul>
+	<li>All PLM Classes of the PLM modeler (instantiable or customizable),</li>
+    <li>All the PLM Classes issued from the PLM Modeler 
+	customization (necessary instantiable).</li>
+</ul>
+
+<p>The PLM Classes of the PLM Core Modeler, and the PLM classes of the 
+intermediate PLM modelers [<a href="#References">3</a>] are not projected within 
+the knowledge dictionary.</p>
+<p>From the <i>CATITypeDictionary</i> interface, you have a set of methods 
+	to retrieve packages. </p>
+ 
+<p>Take care, when a session is opened, the PLM Dictionary is not automatically 
+projected inside the knowledge dictionary. The packages are only loaded in the 
+knowledge dictionary when it is required. Nevertheless, when you use an API to 
+retrieve or select a PLM Environment [<a href="#References">5</a>], 
+all the packages used by this environment are automatically loaded. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Knowledge Type"></a>Knowledge <b>Type</b></h3>
+<p>The 
+Knowledge &quot;Type&quot;, figured out as &quot;Type&quot; [<a href="#Fig.1">Fig.1</a>] is 
+an object modeler component representing one PLM class.&nbsp;There are:</p>
+<ul>
+  <li>A Knowledge type object for each customized PLM classes (four bold balloons&nbsp;on 
+  [<a href="#Fig.1">Fig.2</a>] )</li>
+  <li>A Knowledge type object for each PLM Modeler classes ( four grayed 
+  balloons and one bold balloon on [<a href="#Fig.1">Fig.2</a>] )</li>
+</ul>
+<p>Each included in a Modeler package. </p>
+<p>Morever there is another type, &quot;<code>PLMEntity</code>&quot; , to represent the 
+base PLM class [<a href="#References">1</a>]. This type is not duplicated in all 
+packages. </p>
+<p><b>Knowledge Type Name</b></p>
+<p>The Knowledge Type Name is the name (type) of the projected PLM Class. The Knowledge type object implementing
+<i>CATIType, </i>the string returned by the <code>Name</code> method of <i>CATIType</i>, is 
+the knowledge type name. Some examples:</p>
+<ul>
+  <li><code>VPMReference</code> is the name of one PLM Class of the PRODUCT 
+  modeler,</li>
+  <li><code>PLMProductInstanceDS </code>is the name of one PLM Class of the 
+  PLMProductDS, a customization of the PRODUCT modeler.</li>
+</ul>
+<p>Knowledge type name are displayed in the Language Browser dialog 
+box [<a href="#Fig.3">Fig.3</a>], or inside the Former Typing Reference Dictionary [<a href="#References">4</a>].</p>
+<p>You 
+retrieve <i>a </i>knowledge type, a <i>CATIType</i> interface pointer, from its name, using methods of the
+	<i>CATITypeDictionary</i> interface (find globally to the dictionary, or 
+within a specific modeler). This name is unique among the PLM 
+	Dictionary, and of course among the Knowledge dictionary. </p>
+	<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Attributes Associated with Knowledge Type"></a>PLM Attributes 
+Associated with Knowledge Type</h3>
+<p>The PLM attributes associated with a Knowledge Type are necessary public PLM 
+Attributes. The private PLM class attributes are not projected 
+inside the knowledge dictionary. The PLM Attributes <i>directly</i> associated 
+with a Knowledge Type are:</p>
+<ul>
+  <li>For a PLM Customization class type: only those of the customization,</li>
+  <li>For a PLM Modeler Class type: those from the PLM Modeler class to the PLM 
+  Entity (not included)</li>
+  <li>For a PLM Entity type:&nbsp; those of the PLM Entity</li>
+</ul>
+<p>Nevertheless, you will see further that API retrieving PLM Attributes can 
+automatically or not, apply a recursivity. </p>
+<p>To retrieve the PLM Attributes associated with a Knowledge type there are two 
+ways:</p>
+<ul>
+	<li>&quot;Knowledge&quot; way : Using the <i><a href="#PLM Attributes Associated with Knowledge Type">CATIAttributesDescription</a></i> interface implemented by 
+    the knowledge type [<a href="#Fig.1">Fig.1</a>].&nbsp; An interface valid 
+    for PLM context or not.</li>
+	<li>&quot;PLM&quot; way : Using the <a href="#CATCkePLMTypeAttrServices">
+    <em>CATCkePLMNavCustoAccessPublicServices</em></a> or <em>CATCkePLMNavPublicServices</em> classes. Dedicated API to manage knowledge 
+    type associated with a PLM Class.</li>
+</ul>
+<p>The interface or the class, both return a list of PLM attributes, each one 
+described by the <i><a href="#CATAttributeInfo">CATAttributeInfos</a></i>&nbsp;class. The 
+use of this class is described in a next section, <a href="#CATAttributeInfo">Knowledge Attribute (CATAttributeInfos)
+</a>section. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4> <a name="CATIAttributesDescription Use"></a>Retrieving PLM Attributes, 
+Knowledge Way</h4>
+<p>This interface, implemented by any kind knowledge type (PLM or not), contains two kinds of method:</p>
+<ul>
+	<li><code>FindByNLSName </code>(from an NLS name) or <code>FindByName</code> 
+	(from an internal name), to retrieve one [PLM] Attribute associating with a 
+	knowledge type.</li>
+	<li><b><code>List</code></b> , to retrieve all [PLM] Attributes associating with 
+    a 
+	knowledge type. </li>
+</ul>
+<p>In the last case, the list method contains an optional argument &quot;<tt>recursively&quot;</tt>.
+</p>
+<ul>
+	<li>value = FALSE </li>
+</ul>
+<blockquote>
+  <p>You will retrieve only the PLM Attributes exclusively added by the PLM 
+  Class. Those providing from its derived PLM Classes are not included in the 
+	list</p>
+</blockquote>
+<ul>
+	<li>value = TRUE<p>You will retrieve all PLM Attributes of the PLM Class : 
+    from those added by the PLM class to the PLM Entity + five others (which are not PLM attributes):<ul>
+	<li>Name</li>
+    <li>Owner</li>
+    <li>Children</li>
+    <li>UserInfoComment</li>
+    <li>NamedURLs</li>
+</ul>
+    </li>
+</ul>
+<blockquote>
+  <p>You must not use the last two. Their availability is not guaranty in further 
+  releases. For the fist three you can use it, but it is more appropriate in 
+  knowledge scripting use as C++ use. Moreover, we inform you that these five 
+  attributes are not persistent.</p>
+</blockquote>
+<p>An illustration with the Language Browser dialog box:</p>
+<table border="0" id="table13">
+  <caption><a name="Fig.3">Fig.3</a> PLM Attribute List</caption>
+  <tr>
+    <td>
+    <img border="0" src="images/CAAPLMAllKnowPLMAttributes_Browser.jpg" width="191" height="651"></td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+<p>[<a href="#Fig.3">Fig.3</a>] shows the PLM Attributes associated with the
+<code>PLMProductDS</code> type, 
+a customization of the PLM Product Reference. This array explains the <b><code>List</code></b> API:</p>
+<table border="1" id="table19">
+  <tr>
+    <th>Knowledge Type</th>
+    <th>Option</th>
+    <th>Result</th>
+  </tr>
+  <tr>
+    <td><code>PLMProductDS</code> </td>
+    <td>FALSE</td>
+    <td>V_IndustryCode,V_StdNumber,V_BOM,V_SuppplierName,V_Supplier</td>
+  </tr>
+  <tr>
+    <td><code>PLMProductDS</code> </td>
+    <td>TRUE</td>
+    <td>all PLM Attributes listed by the dialog box</td>
+  </tr>
+  <tr>
+    <td height="18"><code>VPMReference</code> </td>
+    <td height="18">FALSE</td>
+    <td height="18">
+    V_IsTerminal,V_maturity,V_ApplicabilityDate,V_version,V_IsLAstVersion,V_IsVPLMControlled</td>
+  </tr>
+  <tr>
+    <td><code>VPMReference</code> </td>
+    <td>TRUE</td>
+    <td>All PLM Attributes listed by the dialog 
+  box except the first fives of <code>PLMProductDS</code></td>
+  </tr>
+  <tr>
+    <td>PLMEntity</td>
+    <td>FALSE</td>
+    <td>
+    C_created,C_modified,V_name,V_user,V_organization,V_project,PLM_ExternalID,V_description,V_discipline,V_usage,V_nature,LOCKSTATUS,LOCKUSER</td>
+  </tr>
+  <tr>
+    <td>PLMEntity</td>
+    <td>TRUE</td>
+    <td>
+    C_created,C_modified,V_name,V_user,V_organization,V_project,PLM_ExternalID,V_description,V_discipline,V_usage,V_nature,LOCKSTATUS,LOCKUSER</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="CATCkePLMTypeAttrServices"></a>Retrieving PLM Attributes, PLM Way </h4>
+<p>The class to use is <i>CATCkePLMNavCustoAccessPublicServices
+</i>( custo type ) <i>or CATCkePLMNavPublicServices
+</i>(modeler type)<i>
+</i>. This class contains two methods to retrieve PLM Attributes associated with a 
+knowledge type (If the knowledge type is not associated with a PLM class, the 
+methods fail). The two methods are:</p>
+<ul>
+	<li><code> ListAttributesFromCustoType / ListAttributesFromType </code>, returns a list of <i>CATAttributeInfos </i>
+	class without PLM Mask consideration. </li>
+	<li><code>ListFilteredAttributesFromMaskAndType /ListFilteredAttributesFromMaskAndCustoType, </code>returns a list of <i>CATAttributeInfos </i>
+	class with PLM Mask consideration. </li>
+</ul>
+<p>These methods browses recursively a knowledge type:</p>
+<ul>
+  <li>From a PLM Customization class type : all PLM attributes from the 
+  customization to the&nbsp; PLM entity class (included),</li>
+  <li>From a PLM Modeler Class type :&nbsp; all PLM attributes from the PLM 
+  Modeler Class to the&nbsp; PLM entity class (included),</li>
+  <li>From a PLM Entity type : those of the PLM Entity.</li>
+</ul>
+<p>These two methods will 
+never retrieve the five attributes (Name, Owner, Children, UserInfoComment, NamedURLs). 
+See [<a href="#Fig.3">Fig.3</a>].</p>
+<p>The <code>ListAttributesFromxxx</code> methods contain an argument to filter the kind of PLM Attributes :&nbsp; </p>
+<ul>
+	<li>all the PLM Attributes, </li>
+	<li>only the mandatory PLM Attributes,</li>
+	<li>only the identifier Set PLM Attributes,</li>
+	<li>only the optional PLM Attributes.</li>
+</ul>
+<p><code>ListFilteredAttributesFromMaskAndxxx are</code> detailed in the
+<a href="#PLM Attributes Filtered By PLM Masks">PLM Attributes Filtered By PLM Masks</a> 
+section.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><b><a name="CATAttributeInfo"></a>Knowledge Attribute (CATAttributeInfos)&nbsp; </b></h3>
+<p>This section describes how you can use this C++ class when the attribute is 
+PLM.&nbsp; If the <i>CATAttributeInfos</i>&nbsp;class is coming from a masked 
+view (see just below the previous section), this section is of course valid. In 
+the <a href="#PLM Attributes Filtered By PLM Masks">PLM Attributes Filtered By PLM Masks</a> 
+section you will have additional information relying one this specific case.</p>
+<p>Whatever the PLM Attribute, you retrieve its information by this way:</p>
+<ul>
+	<li>its name: <code>Name</code> method - This name, which can be sometimes 
+	called internal name. This name is unique through the knowledge dictionary.</li>
+    <li>its type&nbsp; : <code>Type</code> method - see
+	<a href="#Attribute Type">Attribute Type</a> section below </li>
+    <li>is it a mandatory or an optional attribute,&nbsp; <code>IsMandatory 
+	</code>method (a none mandatory attribute is optional)</li>
+    <li>is it writable or read only PLM Attribute, <code>IsWritable </code>method 
+	</li>
+    <li>its default value: <code>GetDefaultValue</code> method - see
+	<a href="#Default value">Default value</a> section below </li>
+    <li>the length of the string, in case of string PLM Attributes - <code>GetMaxLength</code> method</li>
+</ul>
+<p>For other methods, feature specific, the PLM Attribute behavior is:</p>
+<ul>
+	<li><code>IsSimple</code> returns TRUE</li>
+	<li><code>IsComputed</code> returns FALSE</li>
+	<li><code>IsComponent</code> returns FALSE</li>
+	<li><code>IsDynamic </code>returns FALSE</li>
+    <li> <code>IsVisible</code> returns TRUE</li>
+</ul>
+<p>About the NLS name of a PLM attribute, the method is <code>GetNLSName</code>, 
+a static method of the <i>CATAttributeInfos</i>&nbsp;class. </p>
+<table class="code" id="table27" width="519">
+  <tr>
+    <td>
+      <pre>
+...
+static HRESULT GetNLSName(const CATIType_var &iType,const CATAttributeInfos &iAttribute,CATUnicodeString &oNLSName);   
+...      </pre>
+    </td>
+  </tr>
+</table>
+
+<p>This method returns the NLS name of the PLM attribute, specified by the 
+second argument (<code>iAttribute)</code>, according to the first argument (<code>iType</code>) 
+which is the knowledge type of the customized PLM Class (leaf) or one of its 
+inherited PLM Class [<a href="#Fig.3">Fig.3</a>]. That you use PLMProductDS (a 
+PLM reference customization of the PRODUCT modeler) or VPMReference (PLM Class 
+PRODUCT modeler), or even PLMEntity, the result of the method can change since 
+each level can define NLS values. The method returns the first NLS value defined 
+from the input type to the top (PLM entity). Just an example:</p>
+<p>PLM Attribute X, whose the NLS name is </p>
+<ul>
+  <li>X1 for PLM entity class</li>
+  <li>nothing for Modeler class</li>
+  <li>X2 for custo class</li>
+</ul>
+<p>The method will return</p>
+<ul>
+  <li>X2, if the first argument is the custo class</li>
+  <li>X1 is the first argument is the modeler class or the PLM Entity class.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="Attribute Type"></a>Attribute Type </h4>
+<p>The following array matches the PLM Attribute type (PLM dictionary 
+definition) with the Knowledge type:</p>
+
+<table class="border1" border="1" id="table11">
+	<tr>
+		<th><b>PLM Dictionary Type</th></td>
+		<th><b>Knowledge Type (*)</th></td>
+	</tr>
+	<tr>
+		<td>string</td>
+		<td>string</td>
+	</tr>
+	<tr>
+		<td>integer</td>
+		<td>int</td>
+	</tr>
+	<tr>
+		<td>double</td>
+		<td>float</td>
+	</tr>
+	<tr>
+		<td>boolean</td>
+		<td>boolean</td>
+	</tr>
+	<tr>
+		<td>date</td>
+		<td>date</td>
+	</tr>
+	<tr>
+		<td>enumere</td>
+		<td><a href="#About enum">enum</a> name in the dictionary</td>
+	</tr>
+	<tr>
+		<td>set</td>
+		<td><a href="#About list">LIST</a> </td>
+	</tr>
+	<tr>
+		<td>list</td>
+		<td><a href="#About list">LIST</a> </td>
+	</tr>
+</table>
+<p>(*) It is the string returned by the <code>Name</code> method of the <i>
+CATIType</i> interface. A pointer interface that you retrieve from the <code>Type</code> 
+method of the <i>CATAttributeInfos</i>&nbsp;class. </p>
+<p>Attention, the <code>Type</code> 
+method of the <i>CATAttributeInfos</i>&nbsp;class returns an object Modeler component 
+implementing <i>CATIType</i>. But this kind of Object Modeler component is not 
+those representing a PLM class type (See <a href="#Knowledge Type">Knowledge Type
+</a>section), even if these last ones implement <i>CATIType</i> too.</p>
+<p><a name="About enum"></a><b>About enum type</b></p>
+<p>First, we draw the reader's attention to the fact that the <code>Name</code> method of the <i>
+CATIType </i>will return the exact name of the enumere type; the exact name 
+being the type defines in the PLM dictionary. If you&nbsp; want check that the 
+type is an&nbsp;enum whatever its exact type, you can use the <code>IsaSortOf</code> method of the <i>
+CATIType. </i> </p>
+  <blockquote>
+    </td>
+  </tr>
+<table class="code" id="table20" width="519">
+  <tr>
+    <td>
+      <pre>
+...
+ATAttributeInfos AttrInfo = ...;
+CATIType_var spAttrType = AttrInfo.<b>Type</b>();
+CATBoolean  IsAnEnum = spAttrType-><b>IsaSortOf</b>(CATCkeGlobalFunctions::GetParmDictionary()-><b>GetEnumType</b>()    
+...      </pre>
+    </td>
+  </tr>
+</table>
+
+  </blockquote>
+<p>Then, about the possible values for the enumere type. The <i>CATIType</i> object returned by the <code>Type</code> 
+method of the <i>CATAttributeInfos</i>&nbsp;class, implements also <i>CATIEnumere.</i> 
+This interface returns the enumeration values as string. </p>
+<p><a name="About list"></a><b>About list and set type</b></p>
+<p>For remember a set PLM attributes is a non ordered list and without double 
+value {1,4,3}. List is an ordered list accepting double values [&quot;titi&quot;,&quot;toto&quot;,&quot;tiiti&quot;]. 
+But Knowledge API does not differentiate set and list PLM Attributes: 
+both are considered as LIST knowledge type. It means that knowledge APIS will 
+not checked that you add an existing element in a set PLM attributes.&nbsp; </p>
+<p>To know the type of the element inside a list or a set, you must retrieve the 
+knowledge parameter returned by the <code>GetDefaultValue</code> method. This parameter (a <i>CATICkeParm</i>) implements <i>CATIList too</i>, and the <code>
+GetListType</code> method of this interface returns the type of the element.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="Default value"></a>Default value</h4>
+<p>The <code>GetDefaultValue</code> method returns E_FAIL if the attribute is not a PLM Attribute, 
+otherwise it always returns S_OK.</p>
+<ul>
+  <li>The default values coming from the PLM Dictionary</li>
+</ul>
+<blockquote>
+  <p><code>GetDefaultValue</code> returns a volatile knowledge parameter, an 
+  object implementing <i>the CATICkeParm</i> interface.&nbsp; Before to work 
+	with the 
+  default value returned by <code>GetDefaultValue</code> , you must check if the default value exists. This check is made with the <code>IsSet</code> method of 
+  <i>CATICkeParm</i>. When the method returns false, (<code>CATCke::False</code>) 
+  there is no default value. This array sums up the three possible cases: </p>
+  <table class="border1" id="table14" >
+    <tr>
+      <th><b>Knowledge Type</th></td>
+      <th>Possible IsSet returned values</th>
+      <th>Explanation</th></td>
+	</tr>
+    <tr>
+      <td rowspan="2">string, date</td>
+      <td><code>CATCke::True </code>&nbsp;</td>
+      <td>There is a default value defined by the PLM dictionary, and the value is necessary those inside the metadata since empty string 
+      (default of default) is considered as non-valuated value.</td>
+    </tr>
+    <tr>
+      <td> <code>CATCke::False</code></td>
+      <td>There is no default value defined by the PLM dictionary.</td>
+    </tr>
+    <tr>
+      <td>int, float, enum boolean</td>
+      <td>always <code>CATCke::True</code></td>
+      <td>There is always a default value (<a href="#*DefaultValue">*</a>)</td>
+    </tr>
+    <tr>
+      <td>LIST</td>
+      <td>do not use the method</td>
+      <td>There is never default values for a LIST. The knowledge parameter 
+      returned by <code>GetDefaultValue</code> must only be used through the <i>
+      CATIList</i> interface to retrieve the list element type</td>
+    </tr>
+  </table>
+  <p><code>(<a name="*DefaultValue">*</a>)</code>Default values coming from the PLM Dictionary are described by the 
+  referenced article [<a href="#References">2</a>]. </p>
+  <p>When you are sure that the parameter, the<i> CATICkeParm </i>object 
+  returned by <code>GetDefaultValue </code>method<i>, </i>is valuated, you can 
+  reach the default value. There are two possibilities:</p>
+  <ul>
+    <li>Use the <code>Value </code>method<code> </code>of the <i>CATICkeParm</i> 
+    interface.&nbsp; The method returns a <i>CATICkeInst</i> element. This 
+    interface contains method to retrieve the default value as string, as real, 
+    as double.</li>
+    <li>Make a QueryInterface with CATIValue interface on the parameter:</li>
+  </ul>
+  <blockquote>
+    </td>
+  </tr>
+<table class="code" id="table18" width="519">
+  <tr>
+    <td>
+      <pre>
+...
+CATAttributeInfos MyAttrInfo ;
+CATICkeParm_var TheDefaultValueAsCkeParm ;
+MyAttrInfo-&gt;<b>GetDefaultValue</b>(TheDefaultValueAsCkeParm);
+<b>CATIValue</b>_var TheDefaultValueAsCATIValue = TheDefaultValueAsCkeParm ;     
+...      </pre>
+    </td>
+  </tr>
+</table>
+
+    <p>Use <code>Value </code>method or retrieve the <i>CATIValue</i> will 
+    depend on the context. </p>
+  </blockquote>
+</blockquote>
+<ul>
+  <li>The default values coming from PLM Masks</li>
+</ul>
+<blockquote>
+  <p>The behavior of the <code>GetDefaultValue</code>&nbsp; is like just above. 
+  If the mask does not define default values, the <code>GetDefaultValue</code> 
+  returns the value of the none masked attribute. </p>
+</blockquote>
+<p>For those which are not aware with knowledge APIs, you must know that objects 
+implementing <i>CATICkeParm</i> , implement also <i>CATICkeParamFrame</i>. It 
+means that you can build a frame containing an editor to edit the knowledge 
+parameter.</p>
+<p>The use of the <i>CATAttributeInfos </i>class, and how to retrieve the 
+information on each PLM Attribute is illustrated by the use case "Retrieving PLM Class Attribute Information" [<a href="#References">8</a>] </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="PLM Component and PLM Attributes Access"></a>PLM Component and PLM Attributes</h2>
+<p>Now we are from the PLM Component point of view. </p>
+<h3><a name="PLM Component Definition"></a>PLM Component Definition</h3>
+<p>For remember, a PLM Component is the client view of a PLM Object [<a href="#References">7</a>], 
+in turn an instance of an instantiable (or concrete) PLM Class, like it is sum up by this picture:</p>
+<table border="0" id="table5">
+	<caption><a name="Fig.4">Fig.4</a> PLM Component Definition</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllKnowPLMAttributes_PLMComp.gif"></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.4">Fig.4</a>]
+just above shows that a PLM Component: </p>
+<ul>
+	<li>is an Object Modeler component implementing the <i>
+	CATIPLMComponent</i> interface. </li>
+	<li>is a concretization of a PLM Class: it contains all PLM 
+	Attributes defining the PLM Class. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Accessing PLM Attribute Value"></a>Accessing PLM Attribute Value</h3>
+<p>The next picture focuses on the PLM Component contents:</p>
+<table border="0" id="table6">
+	<caption><a name="Fig.5">Fig.5</a> PLM Component Attributes Access</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllKnowPLMAttributes_CATICkeObjet.gif"></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.5">Fig.5</a>] just above shows a PLM Component implementing the <i>CATICkeObject</i> interface 
+(take care the implementation is modeler dependant). 
+This interface is the link with the knowledge layer.&nbsp;This interface enables you, 
+from a PLM component, 
+to </p>
+<ul>
+	<li>Valuate one of its PLM Attribute through the <i>CATCkeObjectAttrWriteServices</i> 
+	class</li>
+	<li>Retrieve the value of one of its PLM Attribute through the <i>
+	CATCkeObjectAttrReadServices</i> class,</li>
+</ul>
+<p>These two classes provides methods where the first two input arguments are </p>
+<ul>
+	<li>A <i>CATICkeObject</i> interface pointer</li>
+	<li>The name (internal) of the PLM Attribute</li>
+</ul>
+<p>The third argument is the value of the PLM Attribute, either as input for <i>CATCkeObjectAttrWriteServices</i> 
+	, or as output for <i>
+	CATCkeObjectAttrReadServices</i>.</p>
+<p>The input or the output PLM Attribute value can be expressed by :</p>
+<ul>
+	<li>a <i><a href="#Get and Set through a CATIValue">CATIValue</a></i>,</li>
+	<li>a <a href="#Get and Set through Specific Methods">specific format</a>: as string, as integer, as boolean, as real. </li>
+</ul>
+
+<p>According to the format (CATIValue, string, integer...) of the value, the two 
+classes, <i>CATCkeObjectAttrReadServices</i> 
+	and <i>CATCkeObjectAttrWriteServices,</i> 
+	contain dedicated methods. </p>
+<p>The use of the <i>CATCkeObjectAttrReadServices</i> 
+	and <i>CATCkeObjectAttrWriteServices</i> 
+	classes is illustrated by the use case "Accessing PLM Attributes of PLM Component" [<a href="#References">9</a>] and 
+the use case "Modifying PLM Attributes of PLM Component" [<a href="#References">10</a>] 
+respectively.</p>
+<h4><a name="Get and Set through Specific Methods"></a>Get and Set through 
+Specific Methods</h4>
+
+<p>The methods using a <i>CATIValue </i>can be used whatever the type of the PLM 
+Attribute, but often the dedicated methods are simplest to use. The next arrays 
+describes the appropriate methods according to the PLM attribute type.</p>
+
+<table border="1" id="table21" border="1">
+	<tr>
+		<th height="19" rowspan="2"><b>Knowledge Type</th>
+		<th height="10">GetValueAsString</th>
+		<th height="10">GetValueAsInteger</th>
+		<th height="10">GetValueAsReal</th>
+		<th height="10">GetValueAsBoolean</th>
+		<th height="10">GetValueAsTime</th>
+	</tr>
+	<tr>
+		<th height="9" style="text-align: center">SetValueWithString</th>
+		<th height="9">SetValueWithInteger</th>
+		<th height="9">SetValueWithReal</th>
+		<th height="9">SetValueWithBoolean</th>
+		<th height="9">SetValueWithTime</th>
+	</tr>
+	<tr>
+		<td>string</td>
+		<td align="center"><b>Yes</b></td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+	</tr>
+	<tr>
+		<td>int</td>
+		<td align="center">No</td>
+		<td align="center"><b>Yes</b></td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+	</tr>
+	<tr>
+		<td>float</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center"><b>Yes</b></td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+	</tr>
+	<tr>
+		<td>boolean</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center"><b>Yes</b></td>
+		<td align="center">No</td>
+	</tr>
+	<tr>
+		<td>date</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center"><b>Yes</b></td>
+	</tr>
+	<tr>
+		<td>enum</td>
+		<td align="center"><b>Yes</b></td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+	</tr>
+	<tr>
+		<td>LIST</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+		<td align="center">No</td>
+	</tr>
+</table>
+<p>You can see that </p>
+<ul>
+  <li>for a LIST, the only one possibility is to use the method with a <i>
+  CATIValue</i> as argument. </li>
+  <li>an Enumere can only be valuated by a string. </li>
+</ul>
+<p>Please note that this array shows the minimal and safe use of these methods. 
+If you remark that, for example, <i>SetValueWithString</i> works when you try to 
+valuate a PLM Attribute whose the type is integer,&nbsp; it is not guarantee for 
+the future.</p>
+<h4><a name="Get and Set through a CATIValue"></a>Get and Set through a 
+CATIValue</h4>
+<p>There are generic APIs, <code>SetValue</code> (<i>CATCkeObjectAttrWriteServices</i> 
+	class) and <code>GetValue</code> (<i>CATCkeObjectAttrReadServices </i>class<i>) </i>
+to work with any kind of PLM Attribute's types. </p>
+<p>Have a look to the <code>SetValue</code> method.</p>
+<table class="code" id="table25" width="519">
+  <tr>
+    <td>
+      <pre>
+<b>CATIValue</b>_var MyPLMAttribute_Value = ... ;
+<b>CATCkeObjectAttrWriteServices::SetValue</b>(piCkeObjectOnMyComp,&quot;MyPLMAttribute_Name&quot;,MyPLMAttribute_Value)</pre>
+    </td>
+  </tr>
+</table>
+
+<p>Generally, it requires to create previously a <i>CATIValue</i>. </p>
+<table class="code" id="table26" width="519">
+  <tr>
+    <td>
+      <pre>
+<b>...
+CATICkeParmFactory</b>_var parmFactory = CATCkeGlobalFunctions::<b>GetVolatileFactory</b>();
+CATUnicodeString newAttrValue ="Myvalue" ;
+<b>CATICkeParm</b>_var parmValue = parmFactory-><b>CreateString</b>("AttributeName",newAttrValue);
+<b>CATIValue</b>_var MyPLMAttribute_Value = parmValue ;					     
+... </pre>
+    </td>
+  </tr>
+</table>
+
+<p>Just above you have the piece of code to create a volatile knowledge 
+parameter that you could use for the <code>SetValue</code> method. </p>
+<p>But take care, the choice of the method on the parameter factory is depending 
+on the knowledge type of the PLM Attribute. The next table 
+lists the <i>CATICkeParmFactory </i>methods to use to create the right knowledge 
+parameter:</p>
+
+<table border="1" id="table22" border="1">
+	<tr>
+		<th height="19"><b>Knowledge Type</th>
+		<th height="19">CATICkeParmFactory methods</th>
+	</tr>
+	<tr>
+		<td>string</td>
+		<td align="left">CreateString</td>
+	</tr>
+	<tr>
+		<td>int</td>
+		<td align="left">CreateInteger</td>
+	</tr>
+	<tr>
+		<td>float</td>
+		<td align="left">CreateReal</td>
+	</tr>
+	<tr>
+		<td>boolean</td>
+		<td align="left">CreateBoolean</td>
+	</tr>
+	<tr>
+		<td>date</td>
+		<td align="left">CreateDate</td>
+	</tr>
+	<tr>
+		<td>enum</td>
+		<td align="left">CreateEnumere (with a string for the value)</td>
+	</tr>
+	<tr>
+		<td>LIST</td>
+		<td align="left">CreateList</td>
+	</tr>
+</table>
+<p>If you do not use the right method, the <code>SetValue</code> method of <i>CATCkeObjectAttrWriteServices</i> 
+	will fail.</p>
+<p>In all these method there is one argument, the parameter name, in the 
+CreateString method it is the first argument, see just above. The name of the 
+parameter can be whatever, since the knowledge parameter is a volatile one. The <code>SetValue</code> method contains the PLM 
+attribute name. </p>
+<h4>&nbsp;<a name="Protection Flag meaning"></a>Protection Flag Meaning</h4>
+<p>Attention, if <code>Getxxx</code> methods are always accessible, <code>Setxxx</code> are depending on the protection flag of the PLM Attribute :</p>
+<table class="border1" id="table24" style="border-width: 1px">
+	<tr>
+		<th height="24">Protection Flag</th>
+		<th height="24">Get</th>
+		<th height="24">Set</th>
+	</tr>
+	<tr>
+		<td>Free</td>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>User</td>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>External</td>
+		<td>Yes</td>
+		<td>NO ,only modifiable by Modeler API</td>
+	</tr>
+	<tr>
+		<td>ExternalRO</td>
+		<td>Yes</td>
+		<td>NO, never modifiable (RO = read only)</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Unset PLM Attribute Value"></a>Unset PLM Attribute Value</h3>
+<p>When you get the value of an attribute, (a <i>CATIValue)</i>,&nbsp; 
+according to the PLM attribute type it is recommended to check if the attribute 
+is valuated. The checking method is
+<code>GetIsSet</code> of the <i>CATIValue</i> interface. </p>
+  <table "border1" id="table15" border="1">
+    <tr>
+      <th><b>PLM Attribute Type</th></td>
+      <th>Use GetIsSet method&nbsp; </th>
+      </td>
+	</tr>
+    <tr>
+      <td>date (*)</td>
+      <td>Yes, this kind of attribute can be none valuated.</td>
+    </tr>
+    <tr>
+      <td>int, float, boolean, string, enum</td>
+      <td>No, since there is always a value for this kind of type, at least the 
+      default defined by the PLM dictionary layer [<a href="#References">2</a>]. </td>
+    </tr>
+      <tr>
+      <td>LIST</td>
+      <td>The method will always answer yes, but the list can be empty or not. 
+		The method is not relevant </td>
+    </tr>
+
+    </table>
+<p>(*) If you use <code>GetValueAsTime</code>, in case of unset value, the method 
+returns S_FALSE, and the returned <em>CATTime value</em> is the special value: &quot;01 January 1970 01:00:00&quot;. </p>
+ 
+<p>If you use the <code>Unset</code> method of the <i>CATIValue</i> interface, 
++ SetValue with the unset value, it means:</p>
+<ul>
+  <li>For date, its unset the value (<code>GetIsSet</code> of the <i>CATIValue </i> 
+  will return <code>FALSE</code><i>)</i></li>
+	<li>For string , it comes back to the default value (the one in PLM 
+	dictionary), and if any, the empty string.</li>
+	<li>For int, float, boolean,&nbsp;enum it comes back to the default value (those 
+  defined by the PLM dictionary layer)</li>
+  <li>For LIST, it is irrelevant</li>
+</ul>
+      <p>An example to unset a value:</p>
+      <pre class="code">
+...
+CATIValue_var spValueOnAttribute ;      
+hr = CATCkeObjectAttrReadServices::<strong>GetValue</strong>(piCkeObjectOnInputComp,iUAttrName,spValueOnAttribute);
+spValueOnAttribute-&gt;<strong>Unset</strong>();
+hr = CATCkeObjectAttrWriteServices::<strong>SetValue</strong>(piCkeObjectOnInputComp,iUAttrName,spValueOnAttribute);  
+...												</pre>
+  
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Knowledge Type and PLM Component Type"></a>Knowledge Type and PLM Component Type</h3>
+<p>It is logically the same thing, but there are representing in session by two different 
+objects:</p>
+<ul>
+	<li>Knowledge view : It is an Object Modeler object implementing the <i>
+	CATIType</i> interface [<a href="#Fig.1">Fig.1</a>]</li>
+	<li>Component view : it is an Object Modeler object implementing the <i>
+	CATIAdpType</i> interface</li>
+</ul>
+<p>In both cases it represents the PLM Class type [<a href="#References">1</a>].</p>
+<p>The link between the two objects is given by the <code>GetKweTypeFromAdpType</code> 
+method of the <i>CATPLMTypeServices</i> class. </p>
+<p>Here is a piece of code to retrieve a <i>CATIType</i> interface pointer from a PLM Component:</p>
+   
+<table class="code" id="table7" width="519">
+  <tr>
+    <td>
+      <pre>CATIPLMComponent *pIComp= ... ;
+<b>CATIAdpType </b>*piAdpPLMComp = NULL;
+hr = pIComp-gt;<b>GetAdpType</b>(piAdpPLMComp);
+<b>CATIType</b> * TypeKnowledgeOfComp = NULL;
+hr = CATPLMTypeServices::<b>GetKweTypeFromAdpType</b>(piAdpPLMComp,TypeKnowledgeOfComp);  </pre>
+    </td>
+  </tr>
+</table>
+
+<p>From this <i>CATIType</i> interface pointer, you have access to the knowledge 
+APIs described in the first section, in&nbsp;other words you are able to retrieve <i>
+CATAttributeInfos 
+class for</i></p>
+<ul>
+	<li>One PLM Attribute using <i>
+    <a href="#PLM Attributes Associated with Knowledge Type">CATIAttributesDescription</a></i> 
+	</li>
+	<li>All PLM Attributes using <i>
+	<a href="#CATCkePLMTypeAttrServices">CATCkePLMNavCustoAccessPublicServices or CATCkePLMNavPublicServices</a></i> </li>
+</ul>
+<p><strong>But the best way</strong> to retrieve the&nbsp; <i>
+CATAttributeInfos </i>from a PLM component is as follows:</p>
+<ul>
+	<li>From a PLM component (implementing<em> CATICkeObject</em>)</li>
+	<ul>
+		<li>Use CATCkePLMNavPublicServices::ListAttributesFromObject/ 
+		FindAttributeFromObject </li>
+	</ul>
+	<li>From a PLM Identificator (<em>object implementing CATIAdpPLMIdentificator</em>)</li>
+	 <ul>
+		<li>Use&nbsp; CATCkePLMNavPublicServices::ListAttributesFromPLMIdentificator
+		</li>
+	</ul>
+ 
+</ul>
+
+<p><em>CATCkePLMNavPublicServices</em> and <em>CATCkePLMNavCustoAccessPublicServices</em> 
+are two classes of the PLMDictionaryNavServices framework.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Creating PLM Attributes To Create PLM Component"></a>Creating PLM 
+Attributes for New PLM Component</h3>
+<p>Up now, we have accessed PLM Attributes from an existing PLM Component, but 
+now the question is how to associate PLM Attributes with a PLM Component to be 
+created. </p>
+<p>APIs to create PLM Component require a list of
+<i>CATICkeParm</i> object to valuate the PLM Attributes associated with the type 
+of the PLM Component to create. </p>
+<p>One example: The PRODUCT modeler API to create a Product Representation Reference. </p>
+<table class="code" id="table9" width="519">
+  <tr>
+    <td>
+      <pre>class CATIPsiPLMRepRefFactory : public CATBaseUnknown
+{
+  virtual HRESULT CreateRepresentationReferenceWithAuthoring 
+        (<b>CATListValCATICkeParm_var& iPublicListValues</b>, 
+            CATListValCATICkeParm_var& iUselessListValues, 
+            CATIAdpEnvironment * ipEnv,
+            const CATUnicodeString& iAuthoringType , 
+            CATIPsiRepresentationReference *& oRepRef)=0;
+}  </pre>
+    </td>
+  </tr>
+</table>
+
+<p>The first argument of this method is the list of
+<i>CATICkeParm</i> object to valuate the PLM Attributes.</p>
+<p>To create these <i>CATICkeParm</i> objects you can use two methods of <i>CATCkeObjectAttrWriteServices</i> 
+	:</p>
+<ul>
+	<li>
+	
+	CreateListOfValuesFromListOfStrings , to create a list of
+<i>CATICkeParm</i> </li>
+	<li>
+	
+	CreateValueFromString, , to create one&nbsp;
+<i>CATIValue ( =CATICkeParm</i> ) [<a href="#Fig.4">Fig.4</a>]</li>
+</ul>
+<p>The objective of these methods is simple: you give </p>
+<ul>
+	<li>the internal name of a PLM Attribute (or a list of internal name), </li>
+	<li>the value as a string (or a list of string)</li>
+</ul>
+<p>and the method returns a list of <i>CATICkeParm</i>, or one<i> CATIValue</i>. The 
+two methods <i>have taken into account the PLM Attributes type to create a CATIValue 
+with the appropriate type</i>.</p>
+<p>If you fill up a list of
+
+<i>CATICkeParm_var</i> having previously created the knowledge parameter, you 
+must yourself take into account the PLM attribute type to create the right 
+knowledge type. See the <a href="#Get and Set through a CATIValue">Get and Set through a 
+CATIValue</a> section.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="PLM Attributes Filtered By PLM Masks"></a>PLM Attributes Filtered By PLM Masks</h2>
+<p>PLM Attributes are defined in the PLM Dictionary, a definition shared by 
+everybody. Nevertheless for UI and security reasons, it is possible to apply mask on this 
+&quot;static&quot; definition. These masks, fully explained in the referenced article [<a href="#References">6</a>], 
+enable an administrator to modulate the PLM Attribute use by PLM mask types and 
+by the context of the connected people:</p>
+<ul>
+	<li>It can change the mandatory/optional state (see the [<a href="#References">6</a>] 
+	for details) ,</li>
+	<li>it can propose new default values, (not those of the PLM Dictionary),</li>
+    <li>it can set it as none visible,</li>
+	<li>it can propose help values. </li>
+</ul>
+<p>have a look to the knowledge view. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="How to retrieve PLM Attributes Filtered by PLM Mask"></a>How to retrieve PLM Attributes Filtered by PLM Mask</h3>
+<p>The CATCkePLMNavPublicServices/ CATCkePLMNavCustoAccessPublicServices classes 
+retrieve the list of <i>CATAttributeInfos</i> for a given PLM mask. The 
+definition of these PLM mask is explained in the referenced article [<a href="#References">6</a>]. </p>
+<ul>
+	<li>From a type&nbsp; (implementing CATIType)<ul>
+		<li>A&nbsp; custo type: CATCkePLMNavCustoAccessPublicServices::ListFilteredAttributesFromMaskAndCustoType
+		<li>Otherwise: CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndType
+
+	</ul>
+	<li>From a PLM component ( <em>implementing CATICkeObject</em>)</li>
+	<ul>
+		<li>Use CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndObject</li>
+	</ul>
+	<li>From a PLM Identificator (<em>object implementing CATIAdpPLMIdentificator</em>)</li>
+	 <ul>
+		<li>Use&nbsp; CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndPLMIdentificator
+		</li>
+	</ul>
+ 
+</ul>
+<p>The <code>ListFilteredAttributesFromMaskxxxx</code> do not return the PLM 
+attributes which are none visible. It is why the <code>IsVisible</code> method 
+of <i>CATAttributeInfos</i> always returns TRUE (for a PLM attribute)</p>
+<p><b>Take care</b> : When you retrieve an instance of the <i>CATAttributeInfos</i> 
+by the&nbsp; <code>ListFilteredAttributesFromMaskxxx</code> methods, the contents of 
+this instance can be different of the contents of an instance returned by the 
+<i>CATIAttributesDescription</i> 
+interface, or by the <code>ListAttributesFromObject/ListAttributesFromType/ListAttributesFromType </code>&nbsp;of the 
+<em>CATCkePLMNavPublicServices</em> 
+class or <code> ListAttributesFromCustoType&nbsp;</code>from CATCkePLMNavCustoAccessPublicServices</p>
+<p>What can change:</p>
+<ul>
+	<li>The mandatory/ optional state,&nbsp; <code>IsMandatory 
+	</code>method </li>
+	<li>The writable / read-only state, <code>IsWritable </code>method 
+	</li>
+	<li>The default value: <code>GetDefaultValue</code> method - see
+	<a href="#Default value">Default value</a> section for details </li>
+	<li>The length of the string, in case of string PLM Attributes - <code>GetMaxLength</code> method</li>
+</ul>
+<p>What is specific to the filtered attributes are the &quot;<a href="#Help Values">help</a>&quot; 
+and &quot;<a href="#Authorized value">authorized</a>&quot; values. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="Help Values"></a>Help Values</h4>
+<p>These 
+values are returned by the <code>GetHelpValues </code>method.&nbsp; There are 
+two signatures:</p>
+<ul>
+	<li>With<i> CATListOfCATUnicodeString</i> (for all type)</li>
+	<li>With<i> CATListOfDouble</i> (only valid for knowledge types supporting 
+    double format).</li>
+</ul>
+<p>Nb : these methods return empty lists for a none masked attribute or if no 
+help values.</p>
+<p>What is the difference between an help values and authorized values: ? suppose 
+an integer attribute. </p>
+<ul>
+	<li>If you set help values {1,2,3}, the value can be 4 . </li>
+	<li>If the authorized values are {1,2,3}, the value can only be one of these 
+	three values.</li>
+</ul>
+<p>By consequence, you cannot have both help value and authorized values.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h4><a name="Authorized value"></a>Authorized Values</h4>
+<p>The attribute valuation, PLM or not, can be constraint. The authorized value(s) are associated with the knowledge parameter <i>(CATICkeParm</i>) coming 
+from the <code>GetDefaultValue</code> method. The <code>Manipulator</code> method 
+of <i>CATICkeParm </i>interface<i> </i>returns an object implementing the <i>CATIParmManipulator</i> 
+	interface. This object enables you to retrieve the authorized values using the
+<code>GetEnumerateValues</code> method:</p>
+<p>The <code>GetEnumerateValues</code> returns either a pointer on a:</p>
+<ul>
+	<li><i>CATListOfCATUnicodeString</i> , if the default values are string,</li>
+	<li><i>CATListOfDouble</i> otherwise.</li>
+</ul>
+<p>Note: If you use the editor created by <i>CATICkeParamFrame,</i> the 
+authorized values will be automatically take into account. </p>
+<p>Authorized values are not valid for PLM Attributes coming from the PLM 
+Dictionary. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+
+<h3><a name="Using Filtered PLM Attributes"></a>Using Filtered PLM Attributes</h3>
+<p>Imagine you want create an UI Application, this application requires that you 
+take into account the filtered PLM Attributes. What is the process ?</p>
+<ul>
+	<li>You retrieve the filtered PLM Attributes using the <code>ListFilteredAttributesFromMaskAndObject</code> 
+	method of <em>CATCkePLMNavPublicServices</em> class</li>
+	<li>You retrieve the default value(s), help value(s) or authorized value()&nbsp; 
+	and build the valid UI dialog object </li>
+</ul>
+<blockquote>
+	<p>Think to use the <i>CATICkeParamFrame </i>interface, to create an editor 
+	managing the parameter.</p>
+</blockquote>
+<p>When the temporary parameter is modified or created, use the <i>
+CATCkeObjectAttrWriteServices</i> to modify (or create) the parameter to 
+associate with the PLM Component. The name of the attribute will be necessary.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="LOCKUSER and LOCKSTATUS PLM Attributes"></a>Limitations </h2>
+<p>There are two limitations</p>
+<ul>
+  <li>When you use an API to list the PLM Attributes (<em>CATCkePLMNavPublicServices/ CATCkePLMNavCustoAccessPublicServices </em>or <i>CATIAttributesDescription</i>) you find two PLM attributes which are not 
+displayed in the Data Model References pages [<a href="#References">4</a>]: 
+<b>LOCKUSER</b> and <b>LOCKSTATUS</b>. These two PLM attributes are not defined in metadata, 
+there are system PLM Attributes. They are nevertheless projected (run time) in 
+the PLM Dictionary. </li>
+  <li>Although, <b>V_usage</b> appears as a public PLM Attributes within Data 
+  Model References pages [<a href="#References">4</a>] , it is a deprecated one. 
+  Do not use it anyway. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>The PLM dictionary is projected in client view within the Knowledge API. Only 
+the customization and PLM Modeler PLM Classes, and their public attributes 
+(free/user/external/external read-only) are projected. If you want to create an 
+UI application, you must only use the PLM Attributes filtered by the PLM mask. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td valign="top">[1]</td>
+		<td><a href="../CAAPLMAllConcepts/CAAPLMTaAllPLMDictionary.htm">Understanding PLM Dictionary</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[2]</td>
+		<td><a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">Understanding PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[3]</td>
+		<td><a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">Understanding PLM Modeler and PLM Customization</a> </td>
+	</tr>
+	<tr>
+		<td valign="top" height="14">[4]</td>
+		<td height="14">
+		Former Typing Reference Dictionary</td>
+	</tr>
+	<tr>
+		<td valign="top">[5]</td>
+		<td><a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">Understanding PLM Environment</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[6]</td>
+		<td><a href="../CAAPLMAllConcepts/CAAPLMTaAllMask.htm">Understanding PLM Mask</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[7]</td>
+		<td>PLM Object versus PLM Component</td>
+	</tr>
+	<tr>
+		<td valign="top">[8]</td>
+		<td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmPLMCompAttribute/CAAAdpUcPLMAttributes.htm')">
+Retrieving PLM Class Attribute Information</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[9]</td>
+		<td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmPLMCompAttribute/CAAAdpUcPLMComponentAttributesAccess.htm')">
+Accessing PLM Attributes of PLM Component</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[10]</td>
+		<td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmPLMCompAttribute/CAAAdpUcModifyingPLMComponentAttribute.htm')">
+Modifying PLM Attributes of PLM Component</a></td>
+
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <b>2</b> [Mar 2008]</td>
+		<td valign="top">Document updated</td>
+	</tr>
+	<tr>
+		<td valign="top">Version: <b>1</b> [Dec 2007]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

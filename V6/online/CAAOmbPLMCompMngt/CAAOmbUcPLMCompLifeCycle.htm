@@ -1,0 +1,627 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Managing PLM Component Life Cycle</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing PLM Component Life Cycle</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>The CAAOmbPLMCompLifeCycle use case is a batch command which manages 
+		the life cycle of PLM Components (PLM Reference and PLM Rep Ref) loaded in 
+		the current session.</p>
+		<p>It demonstrates an actual deployment of a &quot;<b>BAG</b>&quot; object, 
+		as done in the application code. A <b>BAG</b> is a session object which 
+		enables an end-user to have complete control over the life cycle of a PLM 
+		Component. As long as a component is held within a BAG it remains loaded 
+		in the current authoring session. A client application deploys BAG, as long 
+		as it needs access to various PLM Components. When access is no longer required, 
+		the components are removed from BAG, thus unloading them from the current 
+		session.</p>
+		<p>A dedicated technical article namely &quot;<strong>BAG Mechanism</strong>&quot; 
+		[<a href="#References">1</a>] exists on this subject.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAOmbPLMCompLifeCycle Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAOmbPLMCompLifeCycle Do</a></li>
+					<li><a href="#How">How to Launch CAAOmbPLMCompLifeCycle</a></li>
+					<li><a href="#Where">Where to Find the CAAOmbPLMCompLifeCycle 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case fundamentally teaches us the significance of the BAG mechanism to 
+effectively control the life cycle of a PLM Component in the current session. This 
+learning is especially critical when a single PLM Component loaded in the current 
+session is being accessed across several client applications. Here it is important 
+to ensure that the component remains loaded in session, as long as the client needs 
+access to it.</p>
+<p>In the process, user gets familiar with the <em>CATOMBLifeCycleRootsBag</em>
+(BAG) APIs, belonging to the ObjectModelerBase framework family.</p>
+<p>The user also learns a few fundamental concepts associated with the BAG mechanism. 
+These are:</p>
+<ul>
+	<li>Control life cycle of a PLM Component through several Client Applications 
+		using dedicated BAGs.</li>
+	<li>Propagation of life cycle of a parent PLM Component to the Children beneath 
+		it using BAG.</li>
+	<li>Overriding life cycle propagation by inserting Children as Direct Inclusions 
+		in BAG.</li>
+</ul>
+<p>Finally to get an Interactive feel of the significance of the BAG mechanism, 
+the &#8220;<strong>Managing PLM Component Life Cycle In Session</strong>&#8221; 
+[<a href="#References">2</a>], an interactive use case is recommended for study 
+and replay.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAOmbPLMCompLifeCycle Use Case</h2>
+<p>CAAOmbPLMCompLifeCycle is a use case of the CAAObjectModelerBase.edu framework 
+that illustrates the ObjectModelerBase framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAOmbPLMCompLifeCycle Do</h3>
+<p>The Use Case executes a scenario to illustrate the following concepts associated 
+with the BAG mechanism</p>
+<ul>
+	<li><a href="#What1">Unloading a PLM Component from the Current Session Using 
+		BAG</a></li>
+	<li><a href="#What2">Controlling Life Cycle of a PLM Component through Several Client 
+		Applications Using Dedicated BAGs</a></li>
+	<li><a href="#What3">Propagating Life Cycle of a Parent PLM Component to All 
+		Children beneath It</a></li>
+	<li><a href="#What4">Overriding Life Cycle Propagation by Inserting Children 
+		as Direct Inclusions in BAG</a></li>
+</ul>
+<p>We have run this Use Case on the product models depicted below.</p>
+<p>[<a href="#Fig1a">Fig. 1.a</a>] is a Root Component namely. CAAOmbPLMCompLifeCycleRootP0, 
+hereafter referred to as P0 for simplicity. P0 can have 0 or more children beneath 
+it.</p>
+<p>[<a href="#Fig1b">Fig. 1.b</a>] represents a Root Component namely. CAAOmbPLMCompLifeCycleRootP1 
+(hereafter referred to as P1) which has a single child beneath it namely. CAAOmbPLMCompLifeCycleRootP1_Child1.1, 
+an instance of CAAOmbPLMCompLifeCycleRootP1_Child1 (hereafter referred to as
+<code>Child1</code>.</p>
+<table>
+	<caption><a name="Fig1a"></a>Fig. 1.a: Input PLM Model P0</caption>
+	<tr>
+		<td>
+		<img alt="Input PLM Model P0" src="images/CAAOmbPLMCompLifeCycle_InputModelP0.jpg"/></td>
+	</tr>
+</table>
+<table>
+	<caption><a name="Fig1b"></a>Fig. 1.b: Input PLM Model 1</caption>
+	<tr>
+		<td>
+		<img alt="Input PLM Model 1" src="images/CAAOmbPLMCompLifeCycle_InputModelP1.jpg"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="What1"></a>Unloading a PLM Component from the Current Session using 
+BAG</h4>
+<p>The Use Case demonstrates unloading a PLM Component selectively using BAG. The 
+execution traces below are for this case.</p>
+<pre class="code">Case 1: Unloading a PLM Component from Session with BAG:
+
+P0 loaded and inserted in BAG
+P0 removed from BAG
+
+0 Components loaded in the current session
+Thus P0 unloaded from the session
+Please note there is no Close API to unload components from session
+The BAG approach is the only way to selectively unload PLM Components
+from the session</pre>
+<p>At this stage of the Use Case execution, P0 is loaded in the current session. 
+The API loading the root in session, inserts it in the provided BAG.</p>
+<p>The next step is to remove it from the BAG.</p>
+<p>At the end, you'll find that there are no components loaded in the current session.</p>
+<p>The Use Case thus illustrates the simplicity of actually managing the life 
+cycle 
+of PLM Components in session using BAG.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="What2"></a>Controlling Life Cycle of a PLM Component through Several Client 
+Applications Using Dedicated BAGs</h4>
+<p>The Use Case begins with a scenario which illustrates controlling the life 
+cycle 
+of a PLM Component through several BAGs. A component, if inserted in several BAGs 
+continues to remain loaded in the current session, as long as it is owned by at 
+least one BAG. The component is finally unloaded from the session only after it 
+is released from all BAGs.</p>
+<p>The output traces of this scenario are seen below:</p>
+<pre class="code">Case 2: Life cycle control of a single PLM Component by
+various Client Applications through dedicated BAGs
+
+0 Components loaded in the Current Session
+P1 Loaded and inserted in BAG1
+x=2. P1 and Children beneath it loaded in the current session
+P1 inserted in BAG2
+
+P1 Removed from Bag1
+y=2 components loaded in session
+P1 still loaded, since BAG2 still owns P1
+P1 removed from BAG2
+
+0 Components loaded in the Current Session
+P1 Unloaded from current session, only when it was removed from both BAGs</pre>
+<p>There are no components loaded in the current session, to begin with.</p>
+<p>P1 is loaded and inserted in the first BAG. The insertion is realized by the 
+open API.</p>
+<p>Since P1 has a child beneath it, two components are loaded in the current session. 
+(x=2)</p>
+<p>P1 is next inserted in a second bag, BAG2. Effectively, this implies the life 
+cycle 
+of P1 is being controlled with two BAGs.</p>
+<p>P1 is removed from BAG1. We still have two components in session (y=2), since 
+P1 is still owned by BAG2.</p>
+<p>Finally, P1 is removed from BAG2, as well. Since P1 is no longer owned by any 
+BAG in the current session, P1 gets unloaded from the current session.</p>
+<p>The Use Case thus demonstrates controlling the life cycle of a PLM Component through 
+several BAGs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="What3"></a>Propagating Life Cycle of a Parent PLM Component to All 
+Children beneath It</h4>
+<p>The Use Case next illustrates the propagation of life cycle through PLM Components, 
+as handled by the BAG mechanism. A parent is inserted within a BAG as its direct 
+inclusion. Its then removed from the BAG, thus unloading it from the current session.
+</p>
+<p>Now since the children beneath this parent are contained in the BAG as associated 
+indirect inclusions, these children are also unloaded with their parent from the 
+current session. Thus lifespan of the children in the session is governed by the 
+parent that aggregates them.</p>
+<p>The traces of the execution of this case occur below.</p>
+<pre class="code">Case 3: Life cycle of a PLM Component propagates from a Parent to its Child
+
+P0 loaded and inserted in BAG
+x=1 components loaded in session
+P1 loaded and inserted in BAG
+y=3 components loaded in the current session</pre>
+<pre>
+P0 &amp; P1 exist as direct inclusions in BAG.
+P1 removed from BAG
+
+z=1 components loaded in the current session
+Only P0 remains loaded in the current session
+P1 unloaded, since it was a direct inclusion removed from the BAG
+Children beneath P1 unloaded, since life cycle of a PLM Component propagates
+from a Parent to its Child
+1 child of P1 is an indirect inclusions in the BAG</pre>
+<pre>P0 removed from BAG</pre>
+<p>P0 is loaded in the current session. The count of the components in session is 
+now one. (x=1)</p>
+<p>P1 is then loaded in the current session. Since P1 has a child beneath it, two 
+additional components are loaded in the current session. (y=1+2=3)</p>
+<p>Both root are loaded and inserted in the same bag, BAG. Thus, we have two direct 
+inclusions in BAG.</p>
+<p>P1 is removed from BAG. Though only P1 is removed, the child beneath P1, an indirect 
+inclusion in the BAG1 also gets unloaded from the current session.</p>
+<p>Hence, finally we have only P0 loaded in the current session. Hence the count 
+of the components finally in session is one. (z=1).</p>
+<p>The last step is to remove P0 from BAG, thus unloading it from the current session.</p>
+<p>The Use Case thus depicts the way a BAG object handles the propagation of the 
+life cycle of a parent PLM Component (a direct inclusion in BAG) to the children 
+beneath it (associated indirect inclusions in BAG).</p>
+<p>It is this effect of life cycle propagation through a product model which needs 
+to be taken into account, while deploying BAG in the client code. An end user has 
+to judiciously select a component in the current session, which is inserted within 
+a BAG, which now controls its life cycle. The technical article on BAG [<a href="#References">1</a>] 
+delves deeper into this subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="What4"></a>Overriding Life Cycle Propagation by Inserting Children 
+as Direct Inclusions in BAG</h4>
+<p>In an earlier section we spoke about the effect of life cycle propagation to unload 
+a Child component from the current session, when its parent is unloaded from the 
+session, thanks to a BAG which controls its life cycle.</p>
+<p>The current case illustrates overriding this effect, to assure that the Child 
+continues to remain in session, though the parent unloads. Yet again, this overriding 
+effect is due to the life cycle propagation through PLM Components, handled by a
+<b>BAG</b>.</p>
+<p>The traces below, represent the execution of this scenario in the Use Case.</p>
+<pre class="code">CASE - 4 Overriding life cycle propagation by inserting Children as 
+	 Direct Inclusions in BAG
+
+P0 loaded and inserted in Bag
+x=1 components loaded in the current session
+P1 loaded and inserted in Bag
+y=3 components loaded in the current session
+ 
+The only Child Reference directly beneath P1 inserted in BAG
+3 direct inclusions in BAG
+These are P0, P1 and a direct Child beneath P1
+P1 removed from BAG
+
+z=2 components loaded in the current session
+Only P1 unloaded, not its direct Child Reference, since the child 
+is a direct inclusion in the BAG
+Life cycle of a Parent does not propagate to its Child, if the child
+is a direct inclusion in BAG
+
+The only direct Child Reference beneath P1 removed from BAG
+
+xx=1 components loaded
+Child explicitly unloaded, owing to its direct insertion in BAG.
+So only P0 exists in session
+
+P0 removed from BAG
+
+All direct inclusions in BAG were removed. So no components exist in session</pre>
+<p>The case begins by loading P0. There is one component loaded in the current session. 
+(x=1)</p>
+<p>Next it loads P1, as well. The only child below P1, too gets loaded in the session. 
+We thus have three components loaded in the current session. (y=3)</p>
+<p>The Reference of the Child beneath P1 is retrieved. This Child is inserted in 
+same BAG as one used to load P0 and P1.</p>
+<p>Now we remove P1 from the BAG, thus unloading it from the current session. The 
+count of the components in session (z=2) confirms this. It includes P0 and the child 
+beneath P1.</p>
+<p>Did you notice that the life cycle propagation effect has been overridden here 
+? The Child beneath P1, a direct inclusion in the BAG, still exists in the current 
+session while P1, its parent no longer exists. This precisely is the core essence 
+of the current scenario.</p>
+<p>We proceed to remove the Child Reference from the BAG. It thus unloads from the 
+session, thus leaving only P0, in the current session. The count is one. (xx=1)</p>
+<p>Finally, P0 is also removed from the BAG. It unloads from the session, leaving 
+no components loaded in the current session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAOmbPLMCompLifeCycle</h3>
+<p>To launch CAAOmbPLMCompLifeCycle , you will need to set up the build time environment, 
+then compile CAAOmbPLMCompLifeCycle along with its prerequisites, set up the run 
+time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot;CAAOmbPLMCompLifeCycle Repository Server User Password SecurityCtx 
+PLMType PLM_ExternalID_P0 V_version_P0 PLM_ExternalID_P1 V_version_P1</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The name and port of the server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Reviewer</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String representing A PLMType</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID_P0</th>
+		<td>The PLM_ExternalID of a PLM Reference or PLM Representation Reference 
+		PLM Component referred as P0 (*)in the code</td>
+	</tr>
+	<tr>
+		<th>V_version_P0</th>
+		<td>The V_version of a PLM Reference or PLM Representation ReferencePLM 
+		Component referred as P0 (*)in the code</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID_P1</th>
+		<td>The PLM_ExternalIDvalue of the input PLM Component referred as P1(*) 
+		in the code</td>
+	</tr>
+	<tr>
+		<th>V_version_P1</th>
+		<td>The V_version value of the input PLM Component P1(*)</td>
+	</tr>
+</table>
+<p>* The input model for P0 is retrieved by importing the CAAOmbPLMCompLifeCycleP0.3dxml 
+file from the CAAObjectModelerBaser.edu fwk.</p>
+<p><code>InstallRootFolder\CAADoc\CAAObjectModelerBaser.edu\InputData\CAAOmbPLMCompLifeCycleP0.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML filecontains the <b>Root Reference</b> with the following attributes:</p>
+<ul>
+	<li>PLM_ExternalID: <code>CAAOmbPLMCompLifeCycleRootP0</code></li>
+	<li>Version: ---</li>
+</ul>
+<p>A similar exercise will have to be done to retrieve input model P1 by importing 
+the CAAOmbPLMCompLifeCycleP1.3dxml file to the repository from the CAAObjectModelerBaser.edu 
+fwk. It exists at the same location where the earlier 3D XML file has been provided.</p>
+<p>This 3D XML file contains the <b>Root Reference</b> with the following attributes:</p>
+<ul>
+	<li>PLM_ExternalID: <code>CAAOmbPLMCompLifeCycleRootP1</code></li>
+	<li>Version: ---</li>
+</ul>
+<p><b>Attention</b>: Please refer to the document [<a href="#References">3</a>] 
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAOmbPLMCompLifeCycle Code</h3>
+<p>The CAAOmbPLMCompLifeCycle use case is located in the CAAOmbPLMCompLifeCycle.m 
+module of the CAAObjectModelerBaser.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAObjectModelerBase.edu\CAAOmbPLMCompLifeCycle.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">31</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in CAAOmbPLMCompLifeCycle :</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Controlling the Life Cycle of a PLM Components through 
+		Several Client Applications Using Dedicated BAGs</a></li>
+	<li><a href="#Step2">Propagating the Life Cycle of a Parent PLM Component to 
+		All Children beneath It</a></li>
+	<li><a href="#Step3">Unloading a PLM Component from the Current Session using 
+		a BAG</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAOmbPLMCompLifeCycle use case begins by creating a session and connecting 
+to the Input Repository. This, being the most fundamental prerequisite for all batch 
+use cases, it is the first step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with the Reviewer 
+Role (since we are not modifying PLM data but only retrieving it from the database). 
+There are other parameters as well, details of which can be found in the &quot;<b>Creating 
+a Basic PLM Batch</b>&quot; use case article [<a href="#References">4</a>].</p>
+<p>This article primarily deals with Opening and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Controlling the Life Cycle of a PLM Components through Several 
+Client Applications Using Dedicated BAGs</h3>
+<p>It is possible that several client applications access the same PLM Component 
+loaded in the current session. This typically happens, when several commands in 
+CATIA, work on the same component loaded in the current session.</p>
+<p>In situations like these, it is extremely critical that the component being accessed 
+be loaded in the current session, as long as the client needs access to it. This 
+is accomplished by holding the component in a BAG dedicated to each client and unloading 
+the component only when it is released from all BAGs which own it. This ensures 
+that the component remains valid as long as the client accesses it.</p>
+<p>The two BAGs in the code below are within our single Use Case, while in reality 
+these typically belong to two different client applications.</p>
+<pre class="code">...
+   CATOmbLifeCycleRootsBag Bag1, Bag2;   
+   CATAdpOpener opener(Bag1);
+   CATBaseUnknown *piCBUOnRootP1 = NULL;
+   hr= opener.<strong>CompleteAndOpen</strong>(opiIDComp1,IID_CATBaseUnknown, (void**) &amp; piCBUOnRootP1)
+...
+   Bag2.<strong>InsertRoot</strong>(piCBUOnRootP1);
+...
+   int iCurrentCompCountWithP1Loaded = 0;
+   hr = <b>ListCompInSession</b>(iCurrentCompCountWithP1Loaded);
+...</pre>
+<p>The <code>CompleteAndOpen</code> method of <em>CATAdpOpener</em> loads and inserts 
+in the input bag the root PLM component. The &quot;<b>Querying, Expanding and Opening 
+PLM Components</b>&quot; [<a href="#References">5</a>] article deals further on 
+this subject.</p>
+<p>The <em>ListCompInSession</em> routine outputs the count of the components loaded 
+in the current session. This function is based on the <code>GetPLMComponentsInSession</code> 
+method of <em>CATPLMComponentInterfacesServices</em> which actually lists the components 
+in the current session. The &quot;<b>Listing PLM Components in Session</b>&quot; 
+Use Case [<a href="#References">6</a>] is dedicated exclusively to illustrate the 
+relevance and application of this call.</p>
+<p>P1 is inserted in Bag1 through <code>CompleteAndOpen</code> , and Bag2 with a 
+call to the <code>InsertRoot</code> method of <em>CATOmbLifeCycleRootsBag</em>, 
+which takes the PLM Component pointer as an input.</p>
+<p>Next, the code unloads P1 from the current session, but as long as at least one 
+BAG within the session owns P1, it continues to remain loaded in the current session.</p>
+<pre class="code">   hr = <b>Bag1</b>.<b>RemoveRoot</b>(piCBUOnRootP1);
+   ...
+   int iNbrOfCompsInSessionAfterP1RemovedFromBAG1 = 0;
+   hr = <b>ListCompInSession</b>(iNbrOfCompsInSessionAfterP1RemovedFromBAG1);
+   ...
+   hr = <b>Bag2</b>.<b>RemoveRoot</b>(piCBUOnRootP1);
+   ...
+   int iFinalCompCountAfterP1Unloaded = 0;
+   hr = <b>ListCompInSession</b>(iFinalCompCountAfterP1Unloaded);
+</pre>
+<p>The <code>CATOmbLifeCycleRootsBag::RemoveRoot</code> API removes the PLM Component 
+input, from the BAG and in the process unloads it from the current session. This 
+is subject to the condition that none of the BAGs in the current session own P1.</p>
+<p>The <code>ListCompInSession</code> calls, yet again outputs the count of the 
+components in session at various stages of the execution.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Propagating the Life Cycle of a Parent PLM Component to 
+All Children beneath It</h3>
+<p>A PLM Component can aggregate children beneath it. It can also refer to other 
+PLM Components.</p>
+<p>Thus when a component is loaded, based on the expand mode selected while loading, 
+either all or a subset of the components it aggregates are loaded in the current 
+session. The Use Case &quot;<b>Query, Expand and Open a PLM Reference with various 
+Expand Modes</b>&quot; [<a href="#References">7</a>] illustrates a scenario depicting 
+the relevance of various expand modes while loading a PLM Reference in the session.</p>
+<p>This reveals a link between the life cycle of PLM Components in session. The BAG 
+mechanism takes this into account by holding direct inclusions (parent components) 
+as well as associated indirect inclusions (children below this parent) within it. 
+When a direct inclusion unloads from the session, the associated indirect inclusions 
+follow. Thus the life cycle of the Component propagates from a parent to its children.</p>
+<pre class="code">
+  hr= <strong>opener</strong>.CompleteAndOpen(piIDComp0,IID_CATBaseUnknown, (void**) &amp; piCBUOnRootP0);
+  int iNbrCompInSessionInitialWithP0Loaded = 0;
+  hr = <b>ListCompInSession</b>(iNbrCompInSessionInitialWithP0Loaded);
+
+  hr= <strong>opener</strong>.CompleteAndOpen(opiIDComp1,IID_CATBaseUnknown, (void**) &amp; piCBUOnRootP1);
+  ...
+  int iNbrOfCompsInSessionWithP0AndP1Loaded = 0;
+  hr = <b>ListCompInSession</b>(iNbrOfCompsInSessionWithP0AndP1Loaded);
+  ...</pre>
+<p>P0 is loaded in session. The ListCompInSession routine reveals the count of components 
+in session with only P0 loaded.</p>
+<p>P1 is loaded in session. We now get the count of components in session with both 
+P0 and P1 loaded.</p>
+<pre class="code">...	
+  CATListPtrCATBaseUnknown oListOfRoots;
+  int iDirectInclusionCount = 0;
+  hr = Bag1.<b>GetRoots</b>(oListOfRoots);
+...
+  <b>iDirectInclusionCount</b> = oListOfRoots.Size();
+
+  hr = Bag1.<b>RemoveRoot</b>(piCBUOnRootP1);
+
+  int iNbrCompInSessionAfterP1Unloaded = 0;
+  hr = <b>ListCompInSession</b>(iNbrCompInSessionAfterP1Unloaded);
+...
+</pre>
+<p>CATOmbLifeCycleRootsBag::GetRoots API returns the list of direct inclusions in 
+the BAG. We confirm the count of direct inclusions as one, only to make sure that 
+P1 is the only component inserted as a direct inclusion in the BAG. The children 
+beneath P1, are actually the associated indirect inclusion which unload from the 
+session, owing to the life cycle propagation rules.</p>
+<p>Next a call to CATOmbLifeCycleRootsBag::RemoveRoot removes P1 from the BAG and 
+thus unloads it from the current session.</p>
+<p>Finally, we check for the count of the components in session and find that only 
+P0 remains in session. P1 and all children beneath it were unloaded, thus demonstrating 
+the life cycle propagation rules as implemented by the BAG mechanism.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Unloading a PLM Component from the Current Session using 
+a BAG</h3>
+<p>The BAG mechanism provides an extremely simple way of accomplishing the selective 
+unloading. The user simply inserts the component in a BAG, thus letting the BAG 
+handle its life cycle thereafter. On removing the component from the BAG, it unloads 
+from the current session.</p>
+<pre class="code">...
+  hr = Bag1.<b>InsertRoot</b>(piCBUOnRootP0);
+...
+  hr = Bag1.<b>RemoveRoot</b>(piCBUOnRootP0);
+...</pre>
+<p>CATOmbLifeCycleRootsBag::InsertRoot call inserts P0 in BAG. The BAG now controls 
+its life cycle.</p>
+<p>CATOmbLifeCycleRootsBag::RemoveRoot call removes P0 from the BAG. P0 is unloaded 
+from the current session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAOmbPLMCompLifeCycle use case ends by simply closing the PLM session. Since 
+all use cases necessarily conclude by closing the PLM session, we have a dedicated 
+article on this topic namely &quot;<b>Creating a Basic PLM Batch</b>&quot; [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Use Case demonstrates the concepts related to the BAG mechanism explained 
+in the &quot;BAG Mechanism&quot; [<a href="#References">1</a>] article. It actually 
+executes a scenario which primarily illustrates:</p>
+<ul>
+	<li>Life cycle of a PLM Component could be controlled from several client application 
+		through dedicated BAGs. So a client can ensure that a component is loaded 
+		in the current session as long as it needs access to it. A component is 
+		unloaded only after it is removed from all BAGs which own it, in the current 
+		session</li>
+	<li>The BAG mechanism implements the propagation of life cycle of a PLM Component 
+		from a parent to its child. Thus, when a parent is removed from the BAG, 
+		its children invariably follow. This happens since for every direct inclusion 
+		in the BAG (parent), we have associated indirect inclusions in it (the children)</li>
+	<li>Finally these life cycle propagation rules can easily be overridden by simply 
+		inserting the children as direct inclusions in the BAG. In this case the 
+		child is unloaded only if it is removed from the BAG. This is particularly 
+		relevant when we have two parents sharing the same child. When one of the 
+		parent unloads from the current session, its child is also removed from 
+		the session. The other parent is then rendered invalid, with links to a 
+		child which no longer exists in the session. A situation like this might 
+		result in a core dump.</li>
+</ul>
+<p>The Use Case has primarily calls to the CATOMBLifeCycleRootsBagAPIs belonging 
+to the ObjectModelerBase framework.</p>
+<p>To have an interactive feel of the BAG mechanism, its recommended that the user 
+study and replay the <b>Managing PLM Component's Life Cycle In Session</b>&#8221; 
+[<a href="#References">2</a>] Use Case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAdpTaBAGMechanism.htm">Understanding PLM Component Life 
+		Cycle</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAOmbUcManagePLMComponentLC.htm">Managing PLM Component 
+		Life Cycle In Session</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Creating a Basic PLM Batch</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAOmbUcListPLMComponent.htm">Listing PLM Components in Session</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbUcListPLMComponent.htm')">
+		Browsing a PLM Data Model</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

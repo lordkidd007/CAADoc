@@ -1,0 +1,433 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Customizing Bar Search Types</title>
+<link rel="stylesheet" type="text/css" href="caav5.css"/>
+<script type="text/javascript" src="submit.js">/* */</script>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Customizing Bar Search Types</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes how to define new predefined queries and define 
+		the syntax to be used in Bar Search to launch a specific predefined query.</p>
+		<ul>
+			<li><a href="#Intro">Introduction</a></li>
+			<li><a href="#FileLoc">File Location</a></li>
+			<li><a href="#CATRscSyntax">CATRsc File Syntax</a></li>
+			<li><a href="#DefExt">Define Queries on Extensions</a></li>
+			<li><a href="#ComplexCrit">Define Complex Criterion for Attributes</a></li>
+			<li><a href="#OverloadPQ">Overload Predefined Queries</a></li>
+			<li><a href="#CATNlsSyntax">Define Recognized Syntax</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Intro"></a>Introduction</h2>
+<p>You can fully customize the queries you want to plug to the Bar Search. You can 
+specify the combinations of attributes to be used for all searches on main types. 
+You can also modify predefined queries delivered with the product and define new 
+predefined queries.</p>
+<p>To be able to specify the predefined query to trigger among all queries, a special 
+syntax is needed. Basically, the user will have to type the name of predefined query 
+or an abbreviation associated with the predefined query before the criteria using 
+&quot;:&quot; as separator. For example, considering the predefined query &quot;Product&quot;, the user 
+should type:</p>
+<p><code>&quot;Product: my_criteria&quot; </code>or <code>&quot;prd: my_criteria&quot; </code>because 
+&quot;prd&quot; has been defined as an abbreviation for predefined query &quot;Product&quot;.</p>
+<p>They will be available in the Search Results window via buttons. Clicking on 
+a button will perform a new search using this customized query using the same criteria. 
+Results are displayed in a new tab page.</p>
+<p>A predefined query supports following characteristics:</p>
+<ul>
+	<li>Mono-type: you can define a query on Type1. Type1 can be a type or a custom 
+	type, extended or not.</li>
+	<li>Multiple attributes: several attributes can be specified (the &quot;OR&quot; condition 
+	is applied between attributes)</li>
+	<li>Identification: The predefined query has an internal key for identification 
+	and an NLS alias. The alias is the name of the predefined query that will be 
+	visible in query buttons of the result window.</li>
+	<li>Syntax used in resources files enable the customer to specify a predefined 
+	query with valuated criteria, i.e. criteria = attribute + operator + value.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FileLoc"></a>File Location</h2>
+<p>You can deliver resource files specific for each connector. For this purpose 
+following file tree structure is proposed for resources files:</p>
+<p>
+<img alt="Resources File Tree" src="custo_plmtoolbar01NLS.gif" width="449" height="282"/></p>
+<p>All the *.CATRsc files are found in the directories pointed by the official environment 
+variable CATInstallPath concatenation. Typically for a 3DLive installation:</p>
+<pre>CATInstallPath=C:\Program Files\Dassault Systemes\3DLive\custo\intel_a;C:\Program Files\Dassault Systemes\3DLive\intel_a</pre>
+<p>To simplify, let&#39;s set CATInstallPath=path1;path2<br />
+Resources files are specific for each connector. Considering a connection to a Live 
+3D XML data source, then the following paths will be parsed looking for valid predefined 
+queries definitions:</p>
+<ul>
+	<li>path1\resources\plmsearch\plmtoolbar\DXP</li>
+	<li>path2\resources\plmsearch\plmtoolbar\DXP</li>
+</ul>
+<p>Of course path2\resources\plmsearch\plmtoolbar\DXP may not exist; it will be 
+skipped.</p>
+<p>It is <strong>strongly recommended to the customer to deliver its own customization 
+files in custo directory</strong> path1 and not to modify the files delivered by 
+Dassault Systèmes in path2.</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning:</span> The order in which 
+		the directories are parsed can be determined, but for each directory we 
+		cannot predict the order in which the files are parsed. In addition, the 
+		parsing of the CATRsc files is not ordered either.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATRscSyntax"></a>CATRsc File Syntax</h2>
+<p>Here is the minimum syntax to declare a predefined query:</p>
+<pre class="code">My_Predefined_Query_Id.Accessibility = &quot;[plmtoolbar] [links]&quot;;
+My_Predefined_Query_Id.Definition = &quot;Custo_Id.Modeler_Id.CoreType&quot;;
+My_Predefined_Query_Id.Attributes = &quot;Attr1_Id Attr2_Id ... AttrY_Id&quot;;
+My_Predefined_Query_Id.AdvConditions = &quot;CI LV&quot;;
+My_Predefined_Query_Id.CATNls = &quot;File_Name&quot;;</pre>
+<p>(Repeat for each predefined query ...)</p>
+<ul>
+	<li>Accessibility key is mandatory. Valid values are plmtoolbar and links. If 
+	plmtoolbar is found the predefined query will be accessible from PLM toolbar 
+	search. If links is found predefined query will be visible in query buttons 
+	of the result window. Both values can be set. Strings should be concatenated 
+	with a space between: XXX.Accessibility = &quot;plmtoolbar links&quot;; The value of the 
+	Accessibility key can be empty (XXX.Accessibility = &quot;&quot;) to deactivate predefined 
+	queries declared in other files. This use is detailed in section
+	<a href="#OverloadPQ">Overload Predefined Queries</a>.</li>
+	<li>Definition key is obviously mandatory. You must respect the pattern Custo_Id.Modeler_Id.CoreType 
+	with &quot;.&quot; separator. To define a type without customization you should keep first 
+	&quot;.&quot; and write &quot;.Modeler_Id.CoreType&quot;. For UnifiedTyping, 
+	the Definition Key format is explained later.</li>
+	<li>Attributes key is mandatory. Space is the separator to be used between attributes 
+	identifiers. The attributes should belong to query mask.</li>
+	<li>AdvConditions is optionnal. It allows us to determine if the search should 
+	be Case Insensitive (CI) or Case Sensitive (CS), if it shoud return only latest version (LV)
+	and if it should be a Full Text Search query (FTS)</li>
+	<li>CATNls key is mandatory. It references the name of the CATNls file without 
+	extension &quot;.CATNls&quot; where the NLS information (title, abbreviations and short 
+	help) related with the predefined query is declared. See
+	<a href="#CATNlsSyntax">Define Recognized Syntax</a> section.</li>
+</ul>
+<p>For declaring a predefined query for UnifiedTyping, all keys shall retain the 
+earlier format, except the Definition key, as below:</p>
+<pre class="code">My_Predefined_V2_Query_Id.Definition = &quot;Knowledge Type&quot;;</pre>
+<p>In case Knowledge Type contains space/hyphen characters, they shall be 
+retained as so.</p>
+<p>Since the attributes in UnifiedTyping, are permitted to contain spaces, the 
+Attributes key can be specified enclosed in single quotes, as below:</p>
+<pre class="code">My_Predefined_V2_Query_Id.Attributes = &quot;Attr1_Id `Attr2 c<span class="style1">ontains spaces` `Another attribute` </span>... AttrY_Id&quot;;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="DefExt"></a>Define Queries on Extensions</h2>
+<p>If you want to define queries on extensions, you should add following declaration:</p>
+<pre class="code">My_Predefined_Query_Id.ExtensionsNb = &quot;N&quot;;
+My_Predefined_Query_Id.Extension1.Definition = &quot;Modeler_Id.TypeId&quot;;
+My_Predefined_Query_Id.Extension1.Attributes = &quot;Attr1_Id... &quot;</pre>
+<p>(Repeat for each extension ...)</p>
+<pre class="code">My_Predefined_Query_Id.ExtensionN.Definition = &quot;Custo_Id.Modeler_Id.CoreType&quot;;
+My_Predefined_Query_Id.ExtensionN.Attributes = &quot;Attr1_Id Attr2_Id ... AttrZ_Id&quot;;</pre>
+<p>Some remarks on extensions declaration:</p>
+<ul>
+	<li>When adding &quot;.Extension1.&quot; keys on Type1, you query only the objects Type1 
+	that have an extension Extension1 and fit criteria on extension attributes (if 
+	any). If the key &quot;Extension1.Attributes&quot; is not defined, it means that you want 
+	to query object that do have the extension but without imposing any criteria 
+	on extension attributes. Else you can give the attributes of the extension you 
+	want to check against the user entry putting the list of attributes in the key 
+	&quot;Extension1.Attributes&quot;.</li>
+	<li>Notice that extensions are defined only by a modeler identifier (because 
+	an extension cannot be customized) and the type identifier.</li>
+	<li>Currently, the number of extensions (ExtensionsNb) is limited to 1.</li>
+</ul>
+<p>For declaring a predefined query for extensions in UnifiedTyping, all keys shall retain the 
+earlier format, except the Definition key, as below:</p>
+<pre class="code">My_Predefined_Query_Id.Extension1.Definition = &quot;Extension Name&quot;;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ComplexCrit"></a>Define Complex Criterion for Attributes</h2>
+<p>To define a complex criterion for an attribute, you should append to the attribute 
+identifier AttrN_Id the followings keys:</p>
+<pre class="code">&quot;... AttrN_Id|AttrN_Op|AttrN_Value|AttrN_EndValue ...&quot;;</pre>
+<ul>
+	<li>&quot;|&quot;: is the separator to be used.<br />
+	Notice that the key &quot;AttrN_Id|AttrN_Op|AttrN_Value|AttrN_EndValue&quot; should NOT 
+	contain any space.</li>
+	<li>AttrN_Op: the operator to be used. Notice that case must be respected.
+	<table>
+		<tr>
+			<td colspan="2"></td>
+			<th colspan="12">Operators (syntax in CATRsc files)</th>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td class="code2" style="color: #111199">NULL</td>
+			<td class="code2" style="color: #111199">NOT_<br />
+			NULL</td>
+			<td class="code2" style="color: #111199">EQ</td>
+			<td class="code2" style="color: #111199">NOT_<br />
+			EQ</td>
+			<td class="code2" style="color: #111199">GT</td>
+			<td class="code2" style="color: #111199">GTEQ</td>
+			<td class="code2" style="color: #111199">LT</td>
+			<td class="code2" style="color: #111199">LTEQ</td>
+			<td class="code2" style="color: #111199">LIKE</td>
+			<td class="code2" style="color: #111199">NOT_<br />
+			LIKE</td>
+			<td class="code2" style="color: #111199">BETWEEN</td>
+			<td class="code2" style="color: #111199">NOT_<br />
+			BETWEEN</td>
+		</tr>
+		<tr>
+			<th rowspan="4">T<br />
+			y<br />
+			p<br />
+			e</th>
+			<th style="background-color: #F2F2F2; color: #111199;">String</th>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+		</tr>
+		<tr>
+			<th style="background-color: #F2F2F2; color: #111199; font-weight: 400">
+			Int</th>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #7D7D7D"></td>
+			<td class="code2" style="background-color: #7D7D7D"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+		</tr>
+		<tr>
+			<th style="background-color: #F2F2F2; color: #111199; font-weight: 400;">
+			Double</th>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #7D7D7D;"></td>
+			<td class="code2" style="background-color: #7D7D7D;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+			<td class="code2" style="background-color: #00FF00;"></td>
+		</tr>
+		<tr>
+			<th style="background-color: #F2F2F2; color: #111199; font-weight: 400">
+			Boolean</th>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #00FF00"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+			<td class="code2" style="background-color: #808080"></td>
+		</tr>
+	</table>
+	<table>
+		<tr>
+			<td class="code2" style="background-color: #00FF00">&nbsp;</td>
+			<td class="code2" style="background-color: #FFFFFF">available for type/operator 
+			combination</td>
+		</tr>
+		<tr>
+			<td class="code2" style="background-color: #808080">&nbsp;</td>
+			<td class="code2" style="background-color: #FFFFFF">not applicable for 
+			type/operator combination</td>
+		</tr>
+	</table>
+	<table class="Remark">
+		<tr>
+			<td class="Remark"><span class="run-in">Warning:</span> For the operators, 
+			the case must be respected.</td>
+		</tr>
+	</table>
+	</li>
+	<li>AttrN_Value: the value of the attribute. Notice that it must be not specified 
+	for unary operators NULL and NOT_NULL. If the value is &quot;$USER&quot;, it will be replaced 
+	by the connected user&#39;s login<br />
+	owner|EQ|$USER is the same as owner|EQ|XXX if XXX is connected. </li>
+	<li>AttrN_EndValue: for ternary operators ONLY (BETWEEN and NOT_BETWEEN, the 
+	end value of the attribute. This value must be greater than AttrN_Value.</li>
+</ul>
+<p>Valuated attributes are processed differently:</p>
+<ul>
+	<li>An &quot;AND&quot; condition is used between each valuated criteria whereas a &quot;OR&quot; 
+	condition is used between the other attributes. This &quot;AND&quot; cannot be customized.
+	</li>
+	<li>An &quot;AND&quot; condition is used between the block of valuated criteria and the 
+	block of non-valuated criteria. This &quot;AND&quot; cannot be customized.</li>
+</ul>
+<p>Here is a concrete usage of valuated attributes. It enables to define a predefined 
+query to search for all the Product references John is responsible for:</p>
+<pre class="code">
+//John&#39;s Products
+(...)
+JohnPrd.Definition = &quot;.PRODUCT.PLMCoreReference&quot;;
+JohnPrd.Attributes = &quot;PLM_ExternalID V_description owner|EQ|John&quot;;
+(...)</pre>
+<p>Considering that end-user typed &quot;myProduct*&quot; in Bar text filed, above definition will 
+be interpreted by the system as:</p>
+<p>Search for &quot;Product(abstract)&quot; matching: {Name Like myProduct* OR Description Like myProduct*} 
+AND {Responsible = John}</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="OverloadPQ"></a>Overload Predefined Queries</h2>
+<p>Predefined queries are defined in several files. It may appear that a predefined 
+query with the same identifier already exists when parsing it. In this case only 
+the first definition is kept.</p>
+<p>Considering that you are connected to Live 3D XML connector (DXP):</p>
+<p>You have defined in path1\resources\plmsearch\plmtoolbar\DXP\PQ_Sample1.CATRsc</p>
+<pre class="code">Sample1.Accessibility = &quot;plmtoolbar links&quot;;
+Sample1.Definition = &quot;CUSTO1.MODELER1.PLMCoreReference&quot;;
+Sample1.Attributes = &quot;Attr1&quot;;
+Sample1.CATNls = &quot;PQ_Sample&quot;;
+
+Sample2.Accessibility = &quot;&quot;;</pre>
+<p>You have defined in path2\resources\plmsearch\plmtoolbar\DXP\PQ_Sample2.CATRsc</p>
+<pre class="code">Sample1.Accessibility = &quot;plmtoolbar links&quot;;
+Sample1.Definition = &quot;CUSTO1.MODELER1.PLMCoreReference&quot;;
+Sample1.Attributes = &quot;Attr1 Attr2&quot;;
+Sample1.CATNls = &quot;PQ_Sample&quot;;
+
+Sample2.Accessibility = &quot;plmtoolbar links&quot;;
+Sample2.Definition = &quot;CUSTO1.MODELER1.PLMCoreRepReference&quot;;
+Sample2.Attributes = &quot;Attr1&quot;;
+Sample2.CATNls = &quot;PQ_Sample&quot;;</pre>
+<p>The file PQ_Sample1.CATRsc is parsed first; its definition of Sample1 replaces 
+the Sample1 of PQ_Sample2.CATRsc and Sample2 of PQ_Sample2.CATRsc is totally deactivated 
+and will not be accessible at all.</p>
+<p>This mechanism can be used by the customer to &quot;overload&quot; or even deactivate predefined 
+queries delivered with the product.</p>
+<p>For example: a customer wants to overload the predefined query &quot;Product&quot; to map 
+its customized type and deactivate the predefined query &quot;Representation&quot; delivered 
+with the product because he does not want to have its representations &quot;queriable&quot; 
+from the Bar Search.</p>
+<p>Here is how predefined queries related with Product model (Product, Representation) 
+are written in file $installpath\intel_a\resources\plmsearch\plmtoolbar\PLM1\PQ_PRODUCT.CATRsc</p>
+<pre class="code">
+(...)
+
+//Definition of Product Reference
+Part.Accessibility = &quot;plmtoolbar links&quot;;
+Part.Definition = &quot;.PRODUCT.PLMCoreReference&quot;;
+Part.Attributes = &quot;PLM_ExternalID V_description owner&quot;;
+Part.CATNls = &quot;PQ_PRODUCT&quot;;
+
+//Definition of Representation Reference
+Representation.Accessibility = &quot;plmtoolbar links&quot;;
+Representation.Definition = &quot;.PRODUCT.PLMCoreRepReference&quot;;
+Representation.Attributes = &quot;PLM_ExternalID V_description owner&quot;;
+Representation.CATNls = &quot;PQ_PRODUCT&quot;;
+
+(...)</pre>
+<p>He has to create the file PQ_MyProductCusto.CATRsc in this directory $installpath\custo\intel_a 
+as below:</p>
+<pre class="code">// Deactivation of Representation Reference
+Representation.Accessibility = &quot;&quot;;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATNlsSyntax"></a>Define Recognized Syntax</h2>
+<p>You can fully customize the queries you want to plug to the Bar Search. The list 
+of commands proposed can now be modified and enriched by the customer. To enable 
+the user to specify the predefined query he wants to trigger, special syntax is 
+needed.</p>
+<p>Basically, the user will have to type the name of predefined query or an abbreviation 
+associated with the predefined query before the criteria using &quot;:&quot; as separator. 
+For example, considering the predefined query &quot;Product&quot;, the user should type:</p>
+<p><code>&quot;Product: my_criteria&quot;</code> or <code>&quot;prd: my_criteria&quot;</code> because 
+&quot;prd&quot; has been defined as an abbreviation for predefined query &quot;Product&quot;.</p>
+<p>If the user does not type a recognized syntax (the comparison is case sensitive), 
+the last-used predefined query will be executed. Initially (no setting or preference 
+found), the first predefined query of the list is used.</p>
+<p>Titles and Abbreviations are defined with following syntax in a CATNls file:</p>
+<pre class="code">My_Predefined_Query_Id.Title = &quot;My_Predefined_Query_Alias&quot;;
+My_Predefined_Query_Id.Abbreviations = &quot;Abbr1|Abbr2| ... |AbbrY&quot;;</pre>
+<p>(Repeat for each predefined query ....)</p>
+<p>Notice that each abbreviation is separated with &quot;|&quot;. That means that an abbreviation 
+can contain a space but it is obviously recommended to keep abbreviations as concise 
+as possible.</p>
+<p>The Title is the text displayed as a kind of hyperlink displayed in result tab 
+page when a search is triggered from the Bar Search. The associated ShortHelp is 
+the message displayed in the tooltip when the cursor is on these buttons:</p>
+<pre class="code">My_Predefined_Query_Id.ShortHelp = &quot;...&quot;;</pre>
+<p>These CATNls files should be delivered in the standard directory to ensure standard 
+translation process: <kbd>$installpath\intel_a\resources\msgcatalog</kbd>.
+It is strongly recommended to have the same name for CATRsc and CATNls files but 
+this is not mandatory. Two predefined queries declared in the same CATRsc file can 
+reference two different CATNls files. Reciprocally, different predefined queries 
+declared in several files can reference a unique CATNls file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Writing just two resources files (a CATRsc and a CATNls) with simple syntax and 
+putting them in custo-dedicated directory of its installation, customer can enrich 
+the list of predefined queries he is able to trigger from the Bar Search.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <b>1</b> [Jan 2007]</td>
+		<td>Document created</td>
+	</tr>
+    <tr>
+		<td>Version: <b>2</b> [Sep 2014]</td>
+		<td>Document modified</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Product Modeler Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Product Modeler Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<table class="abstract" id="table1">
+			<tr>
+				<td>This article lists the modifications, and their migration path 
+				in the Product Modeler domain. To take fully advantage of this article, 
+				the reader will be advised to read first all the articles relying 
+				to the new PLM concepts.</td>
+			</tr>
+		</table>
+		<ul>
+			<li><a href="#What">What Has Changed?</a><ul>
+				<li><a href="#ProductModel">Product Data Model</a></li>
+				<li><a href="#PartInstance">Part Instance and PLM Representation 
+				Reference</a></li>
+				<li><a href="#Multi-representation">Multi-Representation</a></li>
+				<li><a href="#PartNumber">Part Number</a></li>
+				<li><a href="#Persistency">No more File Persistency</a></li>
+				<li><a href="#Applicative">Applicative Data Integration</a></li>
+			</ul>
+			</li>
+			<li><a href="#Path">Path of Migration</a></li>
+			<li><a href="#CATPrsWorkModeServices">Replacing CATPrsWorkModeServices</a></li>
+			<li><a href="#CATIPrdHandleImpactsOnInstance">Replacing CATIPrdHandleImpactsOnInstance</a></li>
+			<li><a href="#CATIPrdHandleImpactsOnReference">Replacing CATIPrdHandleImpactsOnReference</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>What Has Changed?</h2>
+<p>The V5 Product Modeler relies on the Feature modeler. The V6 Product Modeler, 
+such as any V6 PLM modelers, relies on the PLM Core Modeler [<a href="#References">1</a>]. 
+This picture shows the V6 model.</p>
+<table>
+	<caption>Fig.1: V6 Product Model</caption>
+	<tr>
+		<td>
+		<img alt="V6 Product Structure" src="images/CAACenProductStructureUML.jpg" width="495" height="306"/></td>
+	</tr>
+</table>
+<p>This <strong>V6 Product model</strong> is detailed in this referenced article 
+[<a href="#References">2</a>].</p>
+<ul>
+	<li>Each Product model object is a <strong>specific object</strong>: there is 
+	no more a confusion, in terms of late type, between Product Instance and Product 
+	Reference (which are both ASMProduct objects in V5). There are six PLM Core 
+	objects:
+	<ul>
+		<li>PLM Reference</li>
+		<li>PLM Instance</li>
+		<li>PLM Representation Reference</li>
+		<li>PLM Representation Instance</li>
+		<li>PLM Port</li>
+		<li>PLM Connection.</li>
+	</ul>
+	</li>
+	<li>You <strong>handle</strong> these six objects <strong>with</strong>
+	<strong>interfaces,</strong> such as in V5. There are two kinds of interfaces:
+	<ul>
+		<li>Product Modeler: interfaces of the ProductStructureInterfaces and CAT3DPhysicalRepInterfaces 
+		frameworks.</li>
+		<li>Generic (available whatever the modeler): interfaces of the CATPLMComponentInterfaces 
+		framework.</li>
+	</ul>
+	</li>
+</ul>
+<p>This article, in the <a href="#Path">Path of Migration</a> section, 
+presents the migration of the de-exposed APIs, but in most cases, not only the model, 
+but the concepts behind have changed too, so there is not always a one-to-one migration. 
+Nevertheless, if there is not a direct replacement, an article describing the new 
+concept is referenced.</p>
+<p>But before to start with the APIs, showing the great changes.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="ProductModel"></a>Product Data Model</h3>
+<p>
+<img alt="Product Data Model" src="images/CAACenPstP1P2Migration_model.png" width="321" height="58"/></p>
+<p>On the above picture, you have a simple Product model.</p>
+<ul>
+	<li><code>&#39;CAAPstSkate ---</code>&#39;, the root product, is a PLM Product Reference</li>
+	<li><code>&#39;AxleAssembly.Front</code>&#39; is a PLM Product Instance of the <code>
+	&#39;CAAPstAxleAssembly ---</code>&#39; PLM Product Reference.</li>
+</ul>
+<p>The PLM Product Reference is created according to the current authoring customization. 
+When you handle this PLM Product Reference, in fact, you handle a &quot;customized&quot; PLM 
+Product Reference.</p>
+<p>
+<img alt="PLM Product Reference" src="images/CAACenPstP1P2Migration_ModelRef.gif" width="361" height="150"/></p>
+<p>The customized PLM Product Reference implements:</p>
+<ul>
+	<li>Product interfaces: CATIPLMProducts and CATIPrdRepInstances (for example).</li>
+	<li>Generic interfaces: CATIPLMNavReference &amp; CATIPLMNavEntity.</li>
+</ul>
+<p>Of course, that is valid for all PLM Product objects.</p>
+<p>This section presents quickly the data model customization. Refer to the generic 
+article about the PLM Modeler customization [<a href="#References">3</a>] for more 
+details.</p>
+<h5>PLM Attributes</h5>
+<p>Each PLM Core Object that you handle has its set of attributes. These attributes 
+comes from three levels:</p>
+<ol>
+	<li>PLM Core Modeler</li>
+	<li>Product Modeler</li>
+	<li>Customization.</li>
+</ol>
+<p>Just below, the attributes of a &quot;customized&quot; PLM Product Reference are:</p>
+<p>
+<img alt="PLM Product Reference Attributes" src="images/CAACenPstP1P2Migration_Attributes.png" width="237" height="317"/></p>
+<p>Among these attributes:</p>
+<ul>
+	<li>A lot come from the PLM Core Modeler (those in italic).</li>
+	<li>No comes from the Product Modeler itself.</li>
+	<li>Some come from the customization itself (V_BOM, V_IndustryCode, etc.).</li>
+</ul>
+<p>The article &quot;PLM Attributes&quot; [<a href="#References">4</a>] details the concept.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PartInstance"></a>Part Instance and PLM Representation Reference</h3>
+<p>First a description of the V5 model of a CATPart including in a Product</p>
+<p>
+<img alt="V5 Part and Product Architecture" src="images/CAACenPstP1P2Migration_Phase1a.gif" width="594" height="179"/></p>
+<ul>
+	<li><strong>On the left</strong>, the CATPart document (also named Part document) 
+	containing:<ul>
+		<li>Product information (inside the Part object) such as the Part number. 
+		The Part object is a Product (a Product reference).</li>
+		<li>Geometry information (inside the Shape object).</li>
+		<li>Applicative information (inside the Shape object).</li>
+	</ul>
+	</li>
+	<li><strong>On the right,</strong> the product (ProductRoot) contains two sub-products 
+	which are two instances of the Part object containes in the Part Document (CATPart 
+	file) on the left.</li>
+</ul>
+<p>The V6 model is the following:</p>
+<p>
+<img alt="V6 Part and Product Architecture" src="images/CAACenPstP1P2Migration_Phase2a.gif" width="742" height="233"/></p>
+<ul>
+	<li><strong>On the left,</strong> the V6 implementation of the V5 Part document:<ul>
+		<li>The Part object becomes a PLM Reference containing an instance of a 
+		PLM Representation Reference [<a href="#References">5</a>]</li>
+		<li>The PLM Representation Reference points to a 3D Shape [<a href="#References">6</a>]</li>
+	</ul>
+	</li>
+	<li><strong>On the right,</strong> the &quot;ProductRoot&quot; Product (a PLM Reference). 
+	Each sub product is an instance of the PLM Reference (Part).</li>
+</ul>
+<p>Here is an example:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="PLM Representation Reference" src="images/CAACenPstP1P2Migration_RepRef3Dshape.png" width="250" height="173"/></td>
+		<td>
+		<img alt="PLM Reference" src="images/CAACenPstP1P2Migration_RepRefchild.png" width="256" height="173"/></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<img alt="PLM Reference" src="images/CAACenPstP1P2Migration_RepRefRoot.png" width="273" height="265"/></td>
+	</tr>
+</table>
+<ul>
+	<li>Top, on the left: the PLM Representation Reference is <code>&quot;CAARepRef&quot;</code>. 
+	It contains the cylinder definition.</li>
+	<li>Top, on the right: the PLM Reference aggregating an instance of <code>&quot;CAARepRef&quot;</code> 
+	is <code>&quot;CAARefChild&quot;</code></li>
+	<li>Bottom: <code>&quot;CAARefRoot&quot;</code> is the PLM Reference aggregating two instances 
+	of <code>&quot;CAARefChild&quot; (CAARefChild.1 and CAARefChild.2)</code></li>
+</ul>
+<p>But, in fact, this model a be simplified as follows:</p>
+<p>
+<img alt="PLM Representation References and Instances" src="images/CAACenPstP1P2Migration_Repref.gif" width="576" height="191"/></p>
+<p><strong>On the right</strong>, the product &quot;ProductRoot&quot; directly aggregates 
+instances of the PLM Representation Reference (PLM Representation Instance).</p>
+<p>
+<img alt="PLM Product Reference Aggregating PLM Representation Instances" src="images/CAACenPstP1P2Migration_RepRefRoot2.png" width="252" height="193"/></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Multi-representation"></a>Multi-Representation</h3>
+<p>Now, it is possible to aggregates beneath a Product Reference a set of PLM Representation 
+Instances.</p>
+<table>
+	<tr>
+		<td colspan="2">
+		<img alt="Piping Model" src="images/CAACenPstMultiRep_MultiTubing.gif" width="425" height="217"/></td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="Exact Representation" src="images/CAACenPstMultiRep_Vanne.png" width="236" height="217"/></td>
+		<td>
+		<img alt="Simplified Representation" src="images/CAACenPstMultiRep_VanneSimple.png" width="196" height="218"/></td>
+	</tr>
+</table>
+<p>The root CAAPstTubing, a PLM Product Reference, aggregates two PLM Representation 
+Instances:</p>
+<ul>
+	<li>The first one is an instance of the exact design (the CAAPstExactView - 
+	left picture)</li>
+	<li>The second one is a instance of the simplified design (the CAAPstSimplifiedView 
+	- right picture).</li>
+</ul>
+<p>This new concept is fully presented in a dedicated article [<a href="#References">7</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PartNumber"></a>Part Number</h3>
+<p>In V5, the internal name of a Product Reference is the Part Number, an unique 
+string. In V6, the concept of internal name is based on identifier set attributes: 
+there is not necessarily one attribute forming the internal name of the PLM Product 
+Reference, but it can be a set. It is also valid for the PLM Representation Reference.</p>
+<p>This new concept is fully presented in a dedicated article [<a href="#References">8</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Persistency"></a>No File Persistency</h3>
+<p>The PLM Product Model is saved in a CATProduct file in V5, but in a database 
+in V6.</p>
+<ul>
+	<li>To create a PLM Product object, use the APIs explained in the referenced 
+	article [<a href="#References">9</a>].</li>
+	<li>To open or save a PLM Product object, use the QEOPS APIs - See the referenced 
+	article [<a href="#References">10</a>].</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Applicative"></a>Applicative Data Integration</h3>
+<p>You could have two reasons to integrate applicative data in a Product model: 
+either to add you own data (such as a camera or a measure), or to extend the Product 
+(ASMProduct feature). In both cases, in V5, you add the data in an applicative container 
+contained by the Product document.</p>
+<p>In V6, applicative containers are saved inside a special PLM Representation Reference: 
+the PLM Technological Representation [<a href="#References">11</a>]. But nevertheless, 
+it can only work for simple features. ASMProduct extensions are not replaced.</p>
+<p>This V6 technology introduces a migration in your code creating / retrieving 
+the applicative containers, and in the code managing the UI/model integration (Provider 
+mechanism). For the first point, refer to the File Persistency migration article 
+[<a href="#References">12</a>], and for the second one, read the technical article 
+describing the Provider mechanism [<a href="#References">13</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Path"></a>Path of Migration</h2>
+<p>This array sums up all the deprecated interfaces/classes.</p>
+<table class="fill">
+	<tr>
+		<th>APIs</th>
+		<th>Short Explanations</th>
+	</tr>
+	<tr>
+		<td>CATIAsmNavigateStruct</td>
+		<td>Use CATINavigateObject.</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIBlockMovable">CATIBlockMovable</a></td>
+		<td>Except one method with a migration path, all other APIs are no more 
+		valid now.</td>
+	</tr>
+	<tr>
+		<td>CATIContextualProduct</td>
+		<td>Context is no more exposed at the Product level.</td>
+	</tr>
+	<tr>
+		<td>CATICustoIconProduct</td>
+		<td>The ASMProduct can not any more extended.</td>
+	</tr>
+	<tr>
+		<td>CATICustomName</td>
+		<td>To customize the name of a product, refer to the article dealing with 
+		the Product naming , internal naming [X], or external Naming [X].</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIPrdObjectPublisher">CATIPrdObjectPublisher</a></td>
+		<td>Use Publication APIs.</td>
+	</tr>
+	<tr>
+		<td>CATIPrdPLMPersistency</td>
+		<td>Interface not valid because the PDM integration is native.</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIPrdProperties">CATIPrdProperties</a></td>
+		<td>Use Knowledge APIs [<a href="#References">17</a>], but with some precautions.</td>
+	</tr>
+	<tr>
+		<td>CATIPrdReferenceDocStatus</td>
+		<td>File Persistency [<a href="#References">13</a>] is no more valid.</td>
+	</tr>
+	<tr>
+		<td>CATIPrdTransactionalEventMgt</td>
+		<td>The product event model is not yet exposed.</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIProduct">CATIProduct</a></td>
+		<td>Most of methods have a migration path.</td>
+	</tr>
+	<tr>
+		<td>CATIProductFileSelection</td>
+		<td>File Persistency [<a href="#References">13</a>] is no more valid.</td>
+	</tr>
+	<tr>
+		<td>CATIProductInSession</td>
+		<td>File Persistency [<a href="#References">13</a>] is no more valid.</td>
+	</tr>
+	<tr>
+		<td>CATIProductSelection</td>
+		<td>File Persistency [<a href="#References">13</a>] is no more valid.</td>
+	</tr>
+	<tr>
+		<td>CATPrdCommonFileSelection</td>
+		<td>File Persistency [<a href="#References">13</a>] is no more valid.</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIPrdProductChildren">CATIPrdProductChildren</a></td>
+		<td>Review your code.</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIPrdInstance">CATIPrdInstance</a></td>
+		<td>Review your code.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIPrdObjectPublisher"></a>CATIPrdObjectPublisher</h3>
+<table class="fill">
+	<tr>
+		<th>Methods</th>
+		<th>Replacements</th>
+	</tr>
+	<tr>
+		<td>FindPublication</td>
+		<td>CATIPLMPublications::GetByName</td>
+	</tr>
+	<tr>
+		<td>GetDirectObject</td>
+		<td>CATIPLMPublications::GetByName + CATIPLMPublication::GetPointed (FALSE)</td>
+	</tr>
+	<tr>
+		<td>GetFinalObject</td>
+		<td>CATIPLMPublications::GetByName+ CATIPLMPublication::GetPointed (TRUE)</td>
+	</tr>
+	<tr>
+		<td>MakeInverseLink<br />
+		RemoveInverseLink</td>
+		<td>Not applicable to the PLM model.</td>
+	</tr>
+	<tr>
+		<td>IsFinallyPublished<br />
+		IsPublished</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>ListPublications</td>
+		<td>CATIPLMPublications::Iterator</td>
+	</tr>
+	<tr>
+		<td>Publish</td>
+		<td>CATIPLMPublications::Add</td>
+	</tr>
+	<tr>
+		<td>Rename</td>
+		<td>Not applicable to the PLM model.</td>
+	</tr>
+	<tr>
+		<td>Unpublish</td>
+		<td>CATIPLMPublications::Remove / CATIPLMPublications::RemoveByName</td>
+	</tr>
+	<tr>
+		<td>Unvaluate</td>
+		<td>CATIPLMPublications::GetByName + CATIPLMPublication::SetPointed(NULL)</td>
+	</tr>
+	<tr>
+		<td>Valuate</td>
+		<td>CATIPLMPublications::GetByName + CATIPLMPublication::SetPointed(value)</td>
+	</tr>
+</table>
+<ul>
+	<li>CATIPLMPublications and CATIPLMPublicationAPIs are detailed in the Understanding 
+	Publication article [<a href="#References">14</a>].</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIPrdProperties"></a>CATIPrdProperties</h3>
+<table class="fill">
+	<tr>
+		<td><strong>Methods</strong></td>
+		<td><strong>Replacements</strong></td>
+	</tr>
+	<tr>
+		<td>GetActivateBOM<br />
+		SetActivateBOM<br />
+		CheckPartNumber<br />
+		CheckInstanceName<br />
+		GetUserProperties<br />
+		FilterPropertiesByName<p></p>
+		</td>
+		<td>Not applicable to the PLM model.</td>
+	</tr>
+	<tr>
+		<td>GetRevision<br />
+		SetRevision</td>
+		<td rowspan="6">Use Knowledged APIs [<a href="#References">17</a>] - <em>
+		CATCkeObjectAttrReadServices </em>and <em>CATCkeObjectAttrWriteServices
+		</em>classes</td>
+	</tr>
+	<tr>
+		<td>GetSource<br />
+		SetSource</td>
+	</tr>
+	<tr>
+		<td>GetDefinition<br />
+		SetDefinition</td>
+	</tr>
+	<tr>
+		<td>GetNomenclature<br />
+		SetNomenclature</td>
+	</tr>
+	<tr>
+		<td>GetDescriptionInst<br />
+		SetDescriptionInst</td>
+	</tr>
+	<tr>
+		<td>GetDescriptionRef<br />
+		SetDescriptionRef</td>
+	</tr>
+	<tr>
+		<td>GetInstanceName<br />
+		SetInstanceName</td>
+		<td>See PLM Product naming articles for more details.</td>
+	</tr>
+	<tr>
+		<td>GetPartNumber<br />
+		SetPartNumber</td>
+		<td>The part number is not the identifier of the product, as in V5. In V6, 
+		they are the attributes of the identifier set. See PLM Product naming articles 
+		for more details.</td>
+	</tr>
+</table>
+<p>About the PLM product object naming, there are two articles:</p>
+<ul>
+	<li>Internal naming &quot;Understanding Product Component Internal Naming&quot; [<a href="#References">8</a>].</li>
+	<li>external naming &quot;Representing Product Components Textually&quot; [<a href="#References">16</a>].</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIBlockMovable"></a>CATIBlockMovable</h3>
+<table class="fill">
+	<tr>
+		<th>Methods</th>
+		<th>Replacements</th>
+	</tr>
+	<tr>
+		<td>FindFirstInstance</td>
+		<td>CATIPLMNavOccurrence::GetRelatedOccurrence</td>
+	</tr>
+	<tr>
+		<td>Other methods</td>
+		<td>They are not applicable to the new PLM Product Model.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIProduct"></a>CATIProduct</h3>
+<table class="fill">
+	<tr>
+		<th>Methods</th>
+		<th>Replacements</th>
+	</tr>
+	<tr>
+		<td>AddProduct(CATIProduct_var&amp;, ...)<br />
+		AddProduct(const CATUnicodeString&amp;, ...)</td>
+		<td>Create a PLM Product Reference using either CATIPrdReferenceFactory, 
+		CATIPrd3DPartReferenceFactory or CATIPrdReferenceFactory [<a href="#References">X</a>] 
+		+ <br />
+		CATIPLMProducts::AddProduct</td>
+	</tr>
+	<tr>
+		<td>AddProducts</td>
+		<td>CATIPLMProducts::AddProducts</td>
+	</tr>
+	<tr>
+		<td>AddShapeRepresentation(CATILinkageObject_var&amp;,...)</td>
+		<td>Create a PLM Product Representation Reference using either CATIPrdAggregatedRepresentations 
+		or CATIPrdRepresentationReferenceFactory[<a href="#References">X</a>] +
+		<br />
+		CATIPLMRepInstances::AddRepInstance</td>
+	</tr>
+	<tr>
+		<td>AddShapeRepresentation(const CATUnicodeString&amp;, ...)</td>
+		<td>Create a PLM Product Representation Reference using either CATIPrdAggregatedRepresentations 
+		or CATIPrdRepresentationReferenceFactory[<a href="#References">X</a>] +
+		<br />
+		CATIPLMRepInstances::AddRepInstance</td>
+	</tr>
+	<tr>
+		<td>FindInstance</td>
+		<td>CATIPrdObject::FindInstance</td>
+	</tr>
+	<tr>
+		<td>GetAllChildren</td>
+		<td>CATIPrdObject::GetAllInstances</td>
+	</tr>
+	<tr>
+		<td>GetChild</td>
+		<td>CATIPLMProducts::GetProductByName</td>
+	</tr>
+	<tr>
+		<td>GetChildren</td>
+		<td>CATIPLMProducts::Iterator</td>
+	</tr>
+	<tr>
+		<td>GetChildrenCount</td>
+		<td>CATIPLMProducts::Count</td>
+	</tr>
+	<tr>
+		<td>RemoveProduct</td>
+		<td>CATIPLMProducts::RemoveProduct</td>
+	</tr>
+	<tr>
+		<td>RemoveShapeRep</td>
+		<td>CATIPLMRepInstances::RemoveRepInstance</td>
+	</tr>
+	<tr>
+		<td>ReplaceProduct</td>
+		<td>Create a PLM Product Reference using CATIPLMProducts::ReplaceProduct<br />
+		</td>
+	</tr>
+	<tr>
+		<td>RemoveContext<br />
+		RemoveObjectFromContext</td>
+		<td rowspan="6">Not exposed, such as in V5.</td>
+	</tr>
+	<tr>
+		<td>GetObjectsFromContext</td>
+	</tr>
+	<tr>
+		<td>AddContext</td>
+	</tr>
+	<tr>
+		<td>AddObjectToContext</td>
+	</tr>
+	<tr>
+		<td>GetContext</td>
+	</tr>
+	<tr>
+		<td>GetContextCount</td>
+	</tr>
+	<tr>
+		<td>GetFatherProduct</td>
+		<td>CATIPrdObject::GetFatherProduct</td>
+	</tr>
+	<tr>
+		<td>GetNamingReference</td>
+		<td>Not exposed, such as in V5.</td>
+	</tr>
+	<tr>
+		<td>GetReferenceProduct</td>
+		<td>CATIPrdObject::GetReferenceObject</td>
+	</tr>
+	<tr>
+		<td>GetRepresentation</td>
+		<td>CATIPLMRepInstances::GetRepInstanceByName</td>
+	</tr>
+	<tr>
+		<td>GetShapeRep</td>
+		<td>Not exposed, such as in V5.</td>
+	</tr>
+	<tr>
+		<td>IsAssociatedToShape</td>
+		<td>CATIPLMRepInstances::Count</td>
+	</tr>
+	<tr>
+		<td>IsReference</td>
+		<td>CATIPrdObject::IsReference</td>
+	</tr>
+	<tr>
+		<td>ListShapeRep</td>
+		<td>CATIPLMRepInstances::Iterator +<br />
+		CATIAlias::GetAlias</td>
+	</tr>
+	<tr>
+		<td>SetDefaultRep</td>
+		<td>Not applicable to the PLM model<br />
+		(No more notion of Default Representation)</td>
+	</tr>
+	<tr>
+		<td>GetDefaultRepName</td>
+		<td>Not applicable to the PLM model<br />
+		(No more notion of Default Representation)</td>
+	</tr>
+	<tr>
+		<td>GetPartNumber</td>
+		<td rowspan="2">The part number is no more the identifier of the product, 
+		now they are the attributes of the identifier set. see PLM Product Internal 
+		naming article for more details. [<a href="#References">X</a>]</td>
+	</tr>
+	<tr>
+		<td>SetPartNumber</td>
+	</tr>
+	<tr>
+		<td>GetPrdInstanceName</td>
+		<td rowspan="2">see PLM Product Internal naming article for more details</td>
+	</tr>
+	<tr>
+		<td>SetPrdInstanceName</td>
+	</tr>
+	<tr>
+		<td>GetScanId- SetScanId</td>
+		<td>No replacement.</td>
+	</tr>
+	<tr>
+		<td>AddConnector<br />
+		GetConnector</td>
+		<td>No replacement.</td>
+	</tr>
+	<tr>
+		<td>GetDiscipline</td>
+		<td rowspan="3">Not exposed, such as in V5.</td>
+	</tr>
+	<tr>
+		<td>AddDiscipline</td>
+	</tr>
+	<tr>
+		<td>ListDisciplines</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIPrdInstance"></a>CATIPrdInstance</h3>
+<p>Most APIs are of no use, and especially <code>GetAllVisualizedInstances.</code> 
+Thanks to the MVC patterns [<a href="#References">18</a>], this API is of no use. 
+The UI is automatically informed when the model is changed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIPrdProductChildren"></a>CATIPrdProductChildren</h3>
+<p>Most API are of no use, and especially <code>GetAllVisualizedChildren.</code> 
+Thanks to the MVC patterns [<a href="#References">18</a>], this API is of no use. 
+The UI is automatically informed when the model is changed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATPrsWorkModeServices"></a>Replacing CATPrsWorkModeServices</h2>
+<p>This class is replaced by the <em>CATIPsiRepresentationLoadMode</em> interface. 
+This interface implemented by the PLM Representation Reference enables you to pilot 
+its loading mode. The referenced article details the new loading mode [<a href="#References">5</a>]. 
+The array just below gives you the correspondence between the V5 and V6 modes:</p>
+<table class="fill">
+	<tr>
+		<th>V5</th>
+		<th>V6</th>
+	</tr>
+	<tr>
+		<td>WM_PRODUCT</td>
+		<td>VisuMode</td>
+	</tr>
+	<tr>
+		<td>WM_BREP</td>
+		<td>LinkableMode</td>
+	</tr>
+	<tr>
+		<td>WM_DESIGN</td>
+		<td>EditMode</td>
+	</tr>
+	<tr>
+		<td>WM_DEFAULT</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>WM_VISUALIZATION</td>
+		<td>NA</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIPrdHandleImpactsOnInstance"></a>Replacing CATIPrdHandleImpactsOnInstance</h2>
+<p>The method <code>RenameInstance</code> can be replaced by modifying the PLMExternal_ID 
+value of the instance. Use Knowledge APIs (CATICkeObject and CATCkeObjectAttrWriteServices) 
+to change the instance name.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIPrdHandleImpactsOnReference"></a>Replacing CATIPrdHandleImpactsOnReference</h2>
+<p>There is no means to replace RenamePublication. Interactively, it consists in 
+deleting the publication, and creating a new one.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm');">
+		PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaProductModelIntro.htm');">
+		Product Modeler Behaviors</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCusto.htm');">
+		Understanding PLM Modeler and Customization</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm');">
+		Understanding PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm');">
+		PLM Representation Reference Overview</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrTa3DShape.htm')">
+		From the PLM Representation to the 3D Shape</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaMultiRep.htm');">
+		Product Multi Representation</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaProductInternalNaming.htm');">
+		Product Component Internal Naming</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>Creating Product Components</td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcQueryOpen.htm');">
+		Querying, Expanding and Opening PLM Object</a> -
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcSave.htm');">
+		Saving PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstTaTechnoRep.htm');">
+		Understanding Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstTaProviders.htm');">
+		Understanding Applicative Container Integration</a></td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="CAACenPLMTaAllDocumentRemoval.htm">File Persistency Removal 
+		Impacts</a></td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaPublication.htm');">
+		PLM Publication</a></td>
+	</tr>
+	<tr>
+		<td>[16]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaRepresentingOccurrences.htm');">
+		Representing Product Components Textually</a></td>
+	</tr>
+	<tr>
+		<td>[17]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmPLMCompAttribute/CAAPLMTaAllKnowPLMAttributes.htm');">
+		Accessing PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[18]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaProductModels.htm');">
+		Product Modeler Presentation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

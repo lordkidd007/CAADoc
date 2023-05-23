@@ -1,0 +1,483 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<link rel="stylesheet" type="text/css" href="../CAAShrResources/caav5.css"/>
+<script type="text/javascript" src="../CAAShrResources/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAAShrResources/submit.js">/* */</script>
+<title>Simulation Modeler Description &amp; Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Simulation Modeler Description &amp; Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This article presents the Simulation modeler, and explains how to customize 
+		it.</p>
+		<ul>
+			<li><a href="#Description">Description</a>
+			<ul>
+				<li><a href="#Object Model">Object Model</a></li>
+				<li><a href="#PLM Packages">PLM Packages</a></li>
+				<li><a href="#Business Logic Description">Business Logic</a></li>
+			</ul>
+			</li>
+			<li><a href="#Customization">Customization</a>
+			<ul>
+				<li><a href="#Modeler PLM Package Customization">PLM Package Customization</a></li>
+				<li><a href="#UI mask customization">UI Mask Customization</a></li>
+				<li><a href="#Business Logic Customization">Business Logic Customization</a></li>
+			</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Description</h2>
+<p>This section first presents the objects representing the Simulation modeler. 
+Then it describes how this object model view has been translated towards PLM objects 
+based on PLM Core Modeler objects. You will see the description of each PLM package 
+defining these PLM objects.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Object Model"></a>Object Model</h3>
+<p>The simulation modeler is composed of two main parts: objects used to define 
+a simulation, its categories and its contents, and a connection to the simulated 
+model.</p>
+<p>This is summarized in the following UML schema:</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Simulation UML Model</caption>
+	<tr>
+		<td><img alt="Object" src="CAASimulation_PLMModeler.jpg"/></td>
+	</tr>
+</table>
+<ul>
+	<li><strong>Simulation Object</strong>: is the root of the simulation. It aggregates 
+	3 categories : Model, Scenario and Result.</li>
+	<li><strong>Category</strong>: is an object that allows to classify data into 
+	3 categories : Model, Scenario and Result. This object can not be customizable. 
+	Into each category different types of PLM object can be classified.<ul>
+		<li>Under Model category, several External documents and one System connection 
+		can be aggregated.</li>
+		<li>Under Scenario category, several External documents, one Scenario Representation 
+		can be aggregated.</li>
+		<li>Under Result category, several External documents, one Result representation, 
+		several non V5 representation and several Published result can be aggregated.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PLM Packages"></a>PLM Packages</h3>
+<p>Simulation modeler is described through four modeler PLM packages:</p>
+<ul>
+	<li>SIMObjSimulationGeneric</li>
+	<li>SIMObjSimulationCategoryAndProdCnx</li>
+	<li>SIMObjSimulationV5Generic</li>
+	<li>SIMObjSimulationPublishedResultCnx</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>SIMObjSimulationGeneric</h4>
+<p>All simulations are implemented using the SIMObjSimulationObjectGeneric class 
+of SIMObjSimulationGeneric PLM Package. It is the V_discipline attribute of this 
+PLM class that is used to sub-type the simulation. Currently the existing discipline 
+values are:</p>
+<ul>
+	<li>Kinematics</li>
+	<li>GenerativeStress</li>
+	<li>DesignSight</li>
+	<li>ManufacturingSimulation</li>
+	<li>LogicalSimulation</li>
+	<li>ProductionSystem</li>
+	<li>CAASimulationSample.</li>
+</ul>
+<p>Non V5 representation is implemented using the SIMObjSimulationRepReferenceGeneric 
+and SIMObjSimulationRepInstanceGeneric classes of the PLM package SIMObjSimulationGeneric. 
+They can contain for instance results of the computations of the solver.</p>
+<table>
+	<caption><a name="Fig.2"><strong>Fig.2</strong></a> <strong>SIMObjSimulationGeneric 
+	UML model</strong></caption>
+	<tr>
+		<td><img alt="UML" src="CAASimulation_SimuObject.jpg"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMCoreReference</td>
+		<td>
+		SIMObjSimulationObjectGeneric</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepReference</td>
+		<td>
+		SIMObjSimulationRepReferenceGeneric</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepInstance</td>
+		<td>
+		SIMObjSimulationRepInstanceGeneric</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>SIMObjSimulationCategoryAndProdCnx</h4>
+<p>Simulation categories are implemented using the SIMObjSimulationCategoryReference 
+and SIMObjSimulationCategoryInstance classes of the PLM Package SIMObjSimulationCategoryAndProdCnx. 
+It is the V_discipline attribute of this PLM class that is used to type the category. 
+Currently the existing values for the references are:</p>
+<ul>
+	<li>dsc_Model_Category_Ref</li>
+	<li>dsc_Scenario_Category_Ref</li>
+	<li>dsc_Result_Category_Ref</li>
+</ul>
+<p>System connection is implemented using the SIMObjSimulationSystem class of the 
+PLM Package SIMObjSimulationCategoryAndProdCnx. this class can point to either a 
+physical, logical or PPR product.</p>
+<table>
+	<caption><a name="Fig.3"><strong>Fig.</strong></a><strong>3</strong> <strong>
+	SIMObjSimulationCategoryAndProdCnx</strong><strong> UML model</strong></caption>
+	<tr>
+		<td><img alt="" src="CAASimulation_Category.jpg"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMCoreReference</td>
+		<td>
+		SIMObjSimulationCategoryReference</td>
+	</tr>
+	<tr>
+		<td>PLMCoreInstance</td>
+		<td>
+		SIMObjSimulationCategoryInstance</td>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>
+		SIMObjSimulationSystem</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_implement1"></a>SIMObjSimulationV5Generic</h4>
+<p>V5 rep representation is implemented using the SIMObjSimulationV5RepReferenceGeneric 
+and SIMObjSimulationV5RepInstanceGeneric classes of the PLM Package SIMObjSimulationV5Generic. 
+It contains all the features needed for the simulation : excitations, probes, scenarios, 
+results, sub-results, etc.</p>
+<table>
+	<caption><a name="Fig.4"></a>Fig.4 Package SIMObjSimulationV5Generic UML Model</caption>
+	<tr>
+		<td><img alt="" src="CAASimulation_V5Generic.jpg"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMRepReference</td>
+		<td>
+		SIMObjSimulationV5RepReferenceGeneric</td>
+	</tr>
+	<tr>
+		<td>PLMRepInstance</td>
+		<td>
+		SIMObjSimulationV5RepInstanceGeneric</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_implement2"></a>SIMObjSimulationPublishedResultCnx</h4>
+<p>V5 rep representation is implemented using the SIMObjectSimulationPublishedResultCnx 
+class of the PLM Package SIMObjSimulationPublishedResultCnx. It is used to connect 
+features results with non V5 or V5 representation.</p>
+<table>
+	<caption><a name="Fig.5"></a>Fig.5 Package SIMObjSimulationPublishedResultCnx 
+	UML Model</caption>
+	<tr>
+		<td><img alt="" src="CAASimulation_PublishResult.jpg"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>
+		SIMObjectSimulationPublishedResultCnx
+		</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Description"></a>Business Logic</h3>
+<p>This section lists and describes the PLM Opening ID implemented by the following 
+PLM classes of the Simulation modeler.</p>
+<ul>
+	<li>PLMImportExportAttributesValuation, this business logic is used for File 
+	Base Design Import.</li>
+	<li>PLMIdentificationInitialization, this business logic is used for PLM New.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Customization"></a>Customization</h2>
+<p>Customization first deals with the modeler PLM package customization [<a href="#References">2</a>]. 
+It consists in to create a new package containing new PLM classes for each &quot;Customizable&quot; 
+PLM class of the modeler PLM package. Then, you should take into account the UI 
+masks creation to create either a new security mask file, or to update the default 
+one [<a href="#References">3</a>]. Finally, you can integrate your own business 
+logic on each new PLM classes by implementing provided PLM opening ID [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modeler PLM Package Customization"></a>PLM Package Customization</h3>
+<p>This part consist in to create a new package when the modeler PLM package must 
+be customized.</p>
+<ul>
+	<li>SIMObjSimulationGeneric, contains at least one &quot;ToBeCustomized&quot; PLM class, 
+	it have to be customized to be used.</li>
+	<li>SIMObjSimulationCategoryAndProdCnx, only contains instantiable PLM classes, 
+	no customization can be done.</li>
+	<li>SIMObjSimulationV5Generic, only contains instantiable PLM classes, no customization 
+	can be done.</li>
+	<li>SIMObjSimulationPublishedResultCnx, only contains instantiable PLM classes, 
+	no customization can be done.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P3_custo"></a>SIMObjSimulationGeneric</h4>
+<p>
+SIMObjSimulationGeneric must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>SIMObjSimulationObjectGeneric</td>
+		<td>Yes</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>SIMObjSimulationRepReferenceGeneric</td>
+		<td>Yes</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>SIMObjSimulationRepInstanceGeneric</td>
+		<td>Yes</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UI mask customization"></a>UI Mask Customization</h3>
+<p>When a PLM attribute is defined (inside modeler PLM package) some features like 
+its editability criteria, mandatory/optional option, can be overwriten by UI mask. 
+You can say this PLM attribute is not writable in Query context, this PLM attribute 
+is mandatory in Create context, this user PLM attribute is not never visible and 
+so one. A set of UI masks form a security mask file. We say security mask because 
+it is associated with these files security information. For a people, and a given 
+context can be associated a security mask.</p>
+<p>For each customized Modeler PLM package, at least one UI mask file must be created 
+(for the default security mask), since it must contain the new PLM Attributes. 
+When you use the tool to create a customization, a default UI mask file is provided 
+taken into account the added PLM attributes. You can modify the default file to 
+introduce your change.</p>
+<p>If you want create a new security mask file, you should provide a UI mask for 
+all the &quot;AsIs&quot; modeler PLM packages and for each customization of the &quot;Customizable&quot; 
+modeler PLM package.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Rules to respect for a new UI mask creation</h4>
+<p>To create a UI mask you should respect the following rules :</p>
+<ul>
+	<li>No particular rules.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Customization"></a>Business Logic Customization</h3>
+<p>You can yourself integrate your business logic for each customization of:</p>
+<ul>
+	<li><strong>SIMObjSimulationObjectGeneric</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>PLMImportExportAttributesValuation</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	<p>&nbsp;</p>
+	</li>
+	<li>
+	<p><strong>SIMObjSimulationRepReferenceGeneric</strong></p>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>
+			<p>ManageNavRep</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>
+			<p>PLMIdentificationInitialization</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>
+			<p>ManageNavRep</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+	<li>
+	<p><strong>SIMObjSimulationV5RepReferenceGeneric</strong></p>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>
+			<p>PLMIdentificationInitialization</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+	<li>
+	<p><strong>SIMObjSimulationRepReference</strong></p>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>
+			<p>PLMIdentificationInitialization</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+	<li>
+	<p><strong>SIMObjSimulationCategoryReference</strong></p>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>
+			<p>PLMIdentificationInitialization</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>
+			<p>ManageNavRep</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+	<li><strong>SIMObjSimulationObject</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>
+			<p>PLMIdentificationInitialization</p>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		PackageExternalName1</td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>Modeler PLM Package Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>UI Mask Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>Business Logic Openness Infrastructure Reference, in the DS Product 
+			Documentation Portal, Client Collaborative Platform, Virtual Product 
+			Modeling, VPM Knowledge Standardization, PLM Openings</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Fev 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

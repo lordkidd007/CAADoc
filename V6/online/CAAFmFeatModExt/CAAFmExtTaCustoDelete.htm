@@ -1,0 +1,264 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding Delete Protocol Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Delete Protocol Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how you can customize the delete operation. It is 
+		strongly recommended to have first read the article &quot;Understanding 
+		Feature Life Cycle&quot; [<a href="#References">1</a>] </p>
+		<ul>
+			<li><a href="#Delete">Delete Operation</a></li>
+			<li ><a href="#BeforeRemove">BeforeRemove</a></li>
+			<li ><a href="#CanDelete">CanDelete</a></li>
+			<li ><a href="#Common Recommendations">Common Recommendations</a></li>
+			<li><a href="#In Short">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Delete"></a>Delete Operation</h2>
+<p>The Delete operation can occur interactively with the Delete command, and by 
+CAA API. The more obvious methods are:</p>
+<ul>
+	<li><code>DeleteSelf</code> of the<em> CATFmFeatureFacade </em>class</li>
+	<p>A method only valid for your own feature since it requires credentials 
+	[<a href="#References">2</a>].</p>
+	<li><code>Delete</code> of the <em>DataCommonProtocolServices</em> 
+	class</li>
+	<p>A method only valid if the owner of the feature has authorized its usage 
+	[<a href="#References">3</a>], but if it is the case, no credentials are 
+	required. </p>
+</ul>
+<p>But another methods can invoke a deletion, for example, the <code>RemovePosition</code> 
+method of the<em> CATFmFeatureFacade </em>class on a component attribute - this method 
+deletes the aggregated feature.&nbsp; </p>
+<p>For reminder [<a href="#References">1</a>], the deletion of a feature by Feature modeler means the deletion 
+of the feature itself, as all its aggregated features (recursively), and all its 
+	extensions. This protocol can be customized. Before to delete a feature, 
+Feature modeler gives you the hand through the <code>BeforeRemove</code> method 
+	of the <em>CATIFmFeatureBehaviorCustomization. </em>This method is an entry 
+point to do what Feature modeler 
+cannot do for you because it doesn't know your logic. It is the subject of the 
+next chapter, <a href="#BeforeRemove">BeforeRemove</a>. This protocol of 
+deletion including the call to <code>BeforeRemove</code> 
+is hereafter called &quot;Basic Feature modeler deletion 
+protocol&quot;.</p>
+<p>Now there are another customizations around the delete operations. What is 
+following introduces them, and sums-up what occurs when you call a method which 
+directly, or indirectly, leads to the deletion of a feature.&nbsp; </p>
+ 
+<ul>
+	<li>For the Delete command , since it is based on the Cut protocol, have a look to the 
+Understanding CCP Customization article [<a href="#References">4</a>] for its 
+customization.</li>
+	<li>The <code>Delete</code> method of the <em>DataCommonProtocolServices</em> 
+	class starts by calling the method <code>CanDelete</code> of the same class, 
+	and then realizes the deletion if the <code>CanDelete</code> method is successful<ul>
+		<li>The default implementation of <code>CanDelete</code> only prevents the 
+		deletion of an aggregated feature. You can re-inforce or by-pass this 
+		rule by implementing the <code>CanDelete</code> method of the <em>CATIFmFeatureBehaviorCustomization.
+		</em>It is the subject of the last chapter <a href="#CanDelete">
+		CanDelete</a><code>.</code></li>
+		<li>The way the feature is deleted is depending on the <code>Delete</code> 
+		method implementation<ul>
+			<li>For a CAA feature created from scratch, the basic Feature 
+			modeler deletion is invoked. </li>
+			<li>for a CAA feature deriving from a DS feature, it is depening on 
+			the DS implementation. Only the documentation about the derived DS 
+			feature can teach you the implemented protocol. </li>
+		</ul>
+		</li>
+	</ul>
+	</li>
+	<li>For the <code>DeleteSelf </code>method, after credential check, the 
+	basic Feature modeler deletion is invoked. </li>
+	<li>For other methods leading indireclty to a feature deletion, the basic 
+	Feature modeler deletion is invoked. </li>
+</ul>
+
+<p><a name="BeforeRemove"></a>So, now lets us describe what can contain, and 
+cannot contain, these two methods <code>BeforeRemove</code> and <code>CanDelete. </code>
+But before leaving this first chapter, we can add an formation shared by the two 
+methods. The interface <em>CATIFmFeatureBehaviorCustomization </em>
+is implemented on the latetype [<a href="#References">5</a>] of the StartUp.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>BeforeRemove</h2>
+<p>The feature modeler engine gives you the possibility to be called BEFORE the 
+deletion of a feature. This entry point is the <code>BeforeRemove</code> method of the <em>CATIFmFeatureBehaviorCustomization </em>
+interface. The objective of this implementation is to realize what the Feature 
+model cannot do for you, what is specific to your application in addition of the 
+Feature modeler deletion. </p>
+<p>For reminder, the <code>BeforeRemove</code> method is called whatever the 
+mecanims leading to the feature deletion: Delete command, Cut, DeleteSelf, 
+RemovePosition, ....</p>
+<h3>The Contents</h3>
+<p>The contents of the <code>BeforeRemove</code> method can be any kind 
+modification model like feature deletion, attribute modification, link update, etc... Let's us illustrate by a basic example what 
+you can do with this method.</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Basic Model</caption>
+	<tr>
+		<td><img src="images/CAAFmExtDeleteCusto.png"></td>
+	</tr>
+</table>
+<p >The deletion of <code>FeatA </code>leads to the deletion of <code>FeatB</code> 
+(aggregated feature), but by default
+<code>FeatC </code>(just pointed to) remains alive. But if you implement <code>BeforeRemove</code> 
+for <code>FeatA </code>you can do some operations on <code>FeatC</code>: you can ask its deletion, or you can change one of its attributes. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3 >What to know</h3>
+<p>When you are called on this method the status of the feature being deleted 
+is as follows:</p>
+<ul>
+	<li>Itself is still alive, its attributes (and their values) are accessible</li>
+	<li>Its aggregated features and extension features are still alive</li>
+	<li>The links to its parent is deleted. You cannot use GetParent or 
+	GetRootParent methods</li>
+	<li>The features referencing it still do it. </li>
+</ul>
+<p >The model operations are not limited to the attributes of the feature to be 
+deleted. You can change a feature which is not directly linked to the feature to 
+delete. </p>
+<p >The <code>BeforeRemove</code> implementation can delete features which will 
+be deleted. Have a look to this picture:</p>
+<table>
+	<caption><a name="Fig.2">Fig.2</a> pointed to and aggregated by same feature</caption>
+	<tr>
+		<td><img src="images/CAAFmExtDeleteCusto2.png"></td>
+	</tr>
+</table>
+ <p>The deletion of <code>FeatA </code>leads to the deletion of <code>FeatB</code>, 
+	and
+<code>FeatC </code>since it is aggregated by <code>FeatB. </code>But if in your 
+	implementattion you ask the deletion of
+<code>FeatC</code>, it wont be an issue.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CanDelete"></a>CanDelete</h2>
+<p>An application/modeler in charge of features (StartUp) can decide to expose 
+the deletion of its features (instances) to every body (i.e. without credentials), as 
+it is explained in 
+the Common Protocol Integration article [<a href="#References">3</a>]. 
+Therefore, we could freely use the <code>CanDelete
+</code>method, and<code> Delete</code> method of the <em>DataCommonProtocolServices</em> 
+	class</li>. The latter calling the <code>CanDelete
+</code>method to check if the delete can be done. </p>
+<p>The default implementation of the <code>CanDelete
+</code>method is simple and unique: an aggregated feature 
+cannot be deleted. In order to re-inforce or by-pass this rule, you can implement the <code>CanDelete
+</code>method of the <em>CATIFmFeatureBehaviorCustomization. </em>The 
+implementation will replace the default code of the <code>CanDelete.</code></p>
+<p>Example [<a href="#Fig.2">Fig.2</a>]: Suppose you&nbsp;can call the Delete 
+method on <code>FeatC</code> 
+	, by default it will be not deleted, but an implementation 
+	of <code>CanDelete</code> on the StartUp of <code>FeatC</code> , can decide that according 
+	to the aggregating feature or whatever other conditions the deletion is 
+	possible or not.</p>
+ 
+<p>Note: Conversely to the <code>BeforeRemove</code> method, the implementation <strong>must not contain 
+model changes</strong>. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Common Recommendations"></a>Common Recommendations</h2>
+<p>In the methods <code>CanDelete</code> or <code>BeforeRemove</code> do not 
+invoke :</p>
+<ul>
+	<li>View operations. For example don't call <em>CATIRedrawEvent</em> ( to 
+	update the spec tree) or <em>CATIModelEvents (</em>to update viewers)</li>
+	<li>CATThrow protocole to raise an error, use the <em>CATError</em> protocol
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="In Short"></a>In Short</h2>
+<p>This article has detailed how you can customize the deletion of any feature 
+of your Startups. It requires to 
+implement the <code>BeforeRemove</code> methods of the <em>CATIFmFeatureBehaviorCustomization </em>interface 
+on your StartUp type. This method is called before Feature modeler finally 
+realizes the deletion.</p>
+<p>Moreover, when your feature can be deleted by the <code> Delete</code> method of the <em>DataCommonProtocolServices</em> 
+	class</li>, it is possible thanks an explicit declaration [<a href="#References">3</a>], 
+you 
+can overwrite the condition triggering the deletion by implementing the <code>CanDelete
+</code>methods of the <em>CATIFmFeatureBehaviorCustomization </em>
+interface.</p>
+<p>We encourage the reader to pursue with the provided use case&nbsp; [<a href="#References">6</a>] &nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td ><a href="CAAFmExtTaFeatureLifeCycle.htm">
+		Understanding Feature Life Cycle</a></td>
+	</tr>
+	<tr>
+		<td>[1]</td>
+		<td ><a href="CAAFmExtTaUnderstandingCredentials.htm">Understanding Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td ><a href="CAAFmExtTaCCPCustomization.htm">
+		Understanding CCP Customization</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td ><a href="CAAFmExtTaCommonProtocol.htm">
+		Common Protocol Integration</a></td>
+	</tr>
+
+<tr>
+		<td>[5]</td>
+		<td ><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+
+<tr>
+		<td>[6]</td>
+		<td ><a href="CAAFmExtUcCustomizingDeleteProtocol.htm">Customizing Delete Operation</a></td>
+	</tr>
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

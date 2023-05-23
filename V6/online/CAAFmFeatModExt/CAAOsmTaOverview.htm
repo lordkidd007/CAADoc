@@ -1,0 +1,417 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Feature Modeler Extension Concepts</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Feature Modeler Extension Concepts</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Abstract"></a>Abstract</h2>
+		<p>This article presents the basic concepts of the feature modeler. </p>
+		<ul>
+			<li><a href="#Introduction">The Characteristics of the Feature Modeler</a>
+			</li>
+			<li><a href="#HighLevelOO">A High-Level Object-Oriented Model</a><ul>
+				<li><a href="#DataModel">Data Model</a></li>
+				<li><a href="#inheritance">Inheritance</a></li>
+				<li><a href="#Linking Features">Linking Features</a></li>
+				<li><a href="#BehaviorModel">Behavior Model</a></li>
+				<li><a href="#featext">Feature Extension</a></li>
+			</ul>
+			</li>
+			<li><a href="#PrototypeInstance">A Prototype/Instance Object Model</a>
+			<ul>
+				<li><a href="#Prototypes">Prototypes</a> </li>
+				<li><a href="#Instances">Instances</a> </li>
+			</ul>
+			</li>
+			<li><a href="#SpecResult">A Spec/Result Model</a>
+			<ul>
+				<li><a href="#AttrQual">Attributes Quality</a></li>
+				<li><a href="#UpdateBuild">The Build/Update Protocol</a></li>
+			</ul>
+			</li>
+			<li><a href="#Characteristics">Other Characteristics</a>
+			<ul>
+				<li><a href="#persistency">The Persistency Model</a></li>
+				<li><a href="#Transactional">Transactional Model </a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a> </li>
+			<li><a href="#References">References</a> </li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>The Characteristics of the Feature Modeler</h2>
+<p>The Feature Modeler combines in fact three models:</p>
+<ol>
+	<li>A <a href="#HighLevelOO">high-level object-oriented data model</a> in the 
+	sense that it allows the creation and management of objects, supporting inheritance 
+	and modularity</li>
+	<li>A <a href="#PrototypeInstance">Prototype/Instance model</a> because any 
+	instance can be modified so that it itself serves as a prototype for the creation 
+	of yet other instances</li>
+	<li>A <a href="#SpecResult">Spec/Result model</a> in that it allows the creation 
+	of a network of related objects to be automatically updated as the &quot;Result&quot; 
+	of objects whose &quot;Spec&quot; has been modified</li>
+</ol>
+<p>Each of these models will now be covered in their own section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="HighLevelOO"></a>A High-Level Object-Oriented Model</h2>
+<h3><a name="DataModel"></a>Data Model</h3>
+<p>A feature object data is described by its attributes. Attributes are like &quot;slots&quot; 
+attached to feature objects in which data is stored. Attributes contain two main 
+types of data:</p>
+<ol>
+	<li>Simple data corresponding to standard C++ types such as integer, double, 
+	string, etc</li>
+	<li>Feature data which is a feature object</li>
+</ol>
+<p>An attribute is essentially defined by its:</p>
+<ul>
+	<li><strong>Name</strong>: this name must be unique to the feature object to 
+	which the attribute is attached. In other words, the same name cannot be given 
+	to another attribute of the same feature object</li>
+	<li><strong>Type</strong>: this is the kind of data the attribute can contain 
+	(i.e., simple data of type integer, double, etc., or feature data).</li>
+	<li><strong>Quality</strong>: this is a keyword (<em>IN </em>, <em>OUT </em>
+	or <em>NEUTRAL </em>) used by the Feature Modeler during an update operation 
+	(see the <a href="#SpecResult">Spec/Result model</a> section.</li>
+</ul>
+<p>Let&#39;s look at a simple example, where a feature called &quot;Point2D&quot; is defined to 
+represent a point on a plane. This feature would have at least two attributes corresponding 
+to the coordinates of a point:</p>
+<p><img src="images/CAAOsmAttrPoint1.png" alt=""></p>
+<p>The &quot;X&quot; and &quot;Y&quot; attributes are of the &quot;simple&quot; type: double floating point values.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="inheritance"></a>Inheritance</h3>
+<p>A simple form of inheritance is supported by the Feature Modeler. For example, 
+a &quot;Point3D&quot; feature representing a point in space, could be defined by deriving 
+&quot;Point2D&quot;. It will only need its own &quot;Z&quot; attribute for the third coordinate, as 
+the two others &quot;X&quot; and &quot;Y&quot; are inherited from &quot;Point2D&quot;.</p>
+<p><img src="images/CAAOsmAttrPoint2.png" alt="" height="258" width="93"></p>
+<p>&quot;Point3D&quot; inherits all the attributes of &quot;Point2D&quot; which is called its
+<strong>supertype</strong>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Linking Features"></a>Linking Features<a name="linking"></a></h3>
+<p>Now that we have represented a point in space with &quot;Point3D&quot;, we could use it 
+to define a line in space: &quot;Line3D&quot;. This feature would have two attributes representing 
+the starting point (StartPoint) and the ending point (EndPoint):</p>
+<p><img src="images/CAAOsmAttrLine.png" alt="" height="139" width="371"></p>
+<p>In contrast to &quot;Point2D&quot; or &quot;Point3D&quot;, the attributes of &quot;Line3D&quot; are not of 
+the simple type but features. This is called <em>linking </em><em>features </em>
+since we have two feature objects that are related (&quot;Line3D&quot; and &quot;Point3D&quot;). There 
+is not a single type of link but three, each one with its own semantics:</p>
+<ol>
+	<li>The<strong> specobject</strong> or <strong>referenced </strong>link. The 
+	target feature object can be referenced as an attribute by any number of feature 
+	objects. It exists independently of the feature object to which it is attached.</li>
+	<li>The<strong> component</strong> or <strong>aggregated </strong>link. The 
+	target feature object can be aggregated by one feature object only to which 
+	it <strong>belongs</strong> henceforward. The aggregating feature object is 
+	said to be the <strong>parent</strong> of the aggregated feature object is called 
+	the <strong>child</strong>. Once it has been aggregated, the existence of a 
+	child feature object is directly related to the existence of its parent (if 
+	the parent is deleted, the child also gets deleted). There can be only one
+	<em>component </em>link between two features but this does not prevent the
+	<em>aggregated </em>feature from being <em>referenced </em>by others.</li>
+	<li>The<strong> external </strong>link. Feature objects are created inside PLM 
+	components. Specobject or component links allow a feature to point to another 
+	one of the same PLM component, while the external link is reserved for feature 
+	objects that belong to different PLM components.</li>
+</ol>
+<p>Please refer to the <em>Linking Features</em> article [<a href="#References">7</a>] 
+for a more detailed coverage on this subject.</p>
+<p>Here is a complete schematic view of the different types of attributes:</p>
+<p><img src="images/CAAOsmAttrType.gif" alt="" height="181" width="324"></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="BehaviorModel"></a>Behavior Model</h3>
+<p>Behavior can be associated to a feature object type. In the case of &quot;Line3D&quot; 
+feature, it is obvious that one of the required operations is to draw it. We would 
+therefore have to define an interface (CATILine) containing a method by which the 
+line can be drawn:</p>
+<p><img src="images/CAAOsmLineProto.png" alt="" height="118" width="341"></p>
+<p>Any feature object type deriving from &quot;Line3D&quot; will also inherit the &quot;CATILine&quot; 
+interface, allowing its behavior to be reused.</p>
+<p>One major benefit of the Feature Modeler is that it provides a set of generic 
+mechanisms that are natively integrated to the DS environment. In other words, each 
+feature object created type is treated as a native DS object, thus benefiting from 
+elaborate services automatically:</p>
+<ul>
+	<li>Transactions: allowing the &quot;Undo&quot; of modifications applied to a feature 
+	object</li>
+	<li>Cut, copy and paste feature objects</li>
+	<li>Persistency: save and retrieve (stream/unstream) a feature object within 
+	the container of the stream descriptor in which it exists</li>
+	<li>Link Management: referencing any feature object a stable way</li>
+	<li>Introspection: list the attributes of a feature object (see the
+	<em>Accessing Feature Attributes</em> article [<a href="#References">4</a>])</li>
+	<li>Navigation: position a feature object in a feature inheritance tree</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="featext"></a>Feature Extension</h3>
+<p>Derivation is not the only way to extend a feature object behavior. There exists 
+another powerful mechanism called Feature Extension. A Feature Extension is a complete 
+feature definition with either data and behavoir or both. A Feature Extension can 
+then be used to enrich any other feature.</p>
+<p>A Feature Extension does not <em>override </em>any data or behavior of a Feature 
+object but <strong>extends</strong> it. This is in contrast to what happens in a 
+derivation, where behavior can be redefined to override an existing one.</p>
+<p>Please refer to the <em>Understanding Feature Extension</em> 
+article [<a href="#References">8</a>] for more information.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="PrototypeInstance"></a>A Prototype/Instance Object Model</h2>
+<h3><a name="Prototypes"></a>Prototypes</h3>
+<p>Any feature object is a potential prototype since it can be instantiated to create 
+a new feature object. A feature prototype is called a <strong>StartUp </strong>which 
+provides:</p>
+<ul>
+	<li>A data structure through its <strong>attributes</strong></li>
+	<li><strong>Behaviors</strong> that are associated to it</li>
+</ul>
+<p>A StartUp is used at run-time to instantiate a new feature object. When this 
+happens, the StartUp is called the &quot;reference&quot; and the new feature object created 
+is called the &quot;instance&quot;. This new object receives both the data structure, i.e., 
+the attributes assigned to the StartUp, as well as the behavior associated to it, 
+i.e., the interfaces defined for this feature type. You can see, then, how useful 
+prototypes can be because they can be re-used, i.e., retrieved any number of times 
+in order to create new feature objects from them.</p>
+<p><img src="images/CAAOsmLineInst_0.png" alt="" height="97" width="353"></p>
+<p>Let&#39;s consider the feature objects &quot;Line3D&quot; and &quot;Point3D&quot; (defined in the
+<a href="#HighLevelOO">A High-Level Object-Oriented Data Model</a> section) as StartUps. 
+One could create three instances as illustrated below: &quot;Line3D.1&quot; (from &quot;Line3D&quot;) 
+and &quot;Point3D.1&quot;, &quot;Point3D.2&quot; (from &quot;Point3D&quot;).</p>
+<p><img src="images/CAAOsmLineInst.png" alt="" height="201" width="243"></p>
+<p>The &quot;Line3D.1&quot; instance will of course benefit the behavoir of CATILine that 
+is associated to the &quot;Line3D&quot; StartUp.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Instances"></a>Instances</h3>
+<p>Any &quot;instance&quot;, however, can also become a &quot;reference&quot; when itself is instantiated 
+to create another new feature object. In this case, the new &quot;instance&quot; created also 
+inherits the actual values stored in the attributes. Actually, all feature objects 
+are instances originally since they are created by instantiation.</p>
+<p>An instance is said to be strongly tied to its reference if few attributes of 
+the reference have been overridden (i.e. having their value modified). It is said 
+to be lightly tied to its reference if many attributes of the reference have been 
+overridden.</p>
+<p>When an instance is created from its reference, by default, the reference attributes 
+are repeated in the instance. You can add new attributes to an instance and you 
+can modify the value of an existing attribute as well.</p>
+<p>When an attribute value is modified in a reference, the modification is propagated 
+downstream to the instances. However, at the same time, the modified feature has 
+become distinct from its references upstream.</p>
+<p><img src="images/CAAOsmPointInstRef.png" alt="" height="97" width="534"></p>
+<p>Above is an example of instantiation showing 3 Point2D features: Point2D.1, Point2d.2 
+and Point2D.3. The first, Point2D.1, by instantiating the StartUp Point2D, the second 
+by instantiating Point2D.1 and the third by instantiating Point2D.2. The &#39;=&#39; symbol 
+is used to indicated that an attribute has been assigned a value while the &#39;:&#39; symbol 
+shows that its value is propagated from its reference.</p>
+<p>Thus Point2D.2 is both the instance of the Point2D.1 reference and the reference 
+of the Point2D.3 instance. If the attribute &quot;X&quot; were modified in Point2D.2, the 
+change would be propagated to Point2D.3:</p>
+<p><img src="images/CAAOsmPointInstRef_1.png" alt="" height="97" width="533"></p>
+<p>At the same time, Point2D.2 would become separated from its reference, Point2D.1: 
+any changes in the &quot;X&quot; attribute of Point2D.1 would not be propagated to Point2D.2:</p>
+<p><img src="images/CAAOsmPointInstRef_2.png" alt="" height="97" width="533"></p>
+<p>However, if the value of Y in Point2D.1 were modified, this change would be propagated 
+to Point2D.2 and Point2D.3:</p>
+<p><img src="images/CAAOsmPointInstRef_3.png" alt="" height="102" width="534"></p>
+<p>It must be noted that an attribute can also be <strong>unset</strong>, in which 
+case its value will be the same as its reference upstream.</p>
+<p>As you can see, the Prototype/Instance Model allows for data extension through 
+the instantiation mechanism (reference -&gt; instance). In summary, it has the following 
+characteristics:</p>
+<ul>
+	<li>The Prototype/Instance Model is based on the ability to find good enough 
+	instances (prototypes) and to make variations from them.</li>
+	<li>Instances are created by cloning a prototype. A modified instance can in 
+	turn be a prototype leading to new generations of instances.</li>
+	<li>The Prototype/Instance Model is very good for making incremental design 
+	variations starting from a validated instance. It allows for automatic change 
+	propagation across generations of instances.</li>
+</ul>
+<p>The major difference between instantiation and derivation is the resulting feature 
+object type. You can add new attributes in both cases, but with instantiation, the 
+feature object type is unchanged. In the case of derivation however, the feature 
+object type is a new one allowing inherited behavior to be redefined.</p>
+<p>The following figure shows Instantiation versus Derivation</p>
+<p><img src="images/CAAOsmGeneralInstRef.png" alt="" height="262" width="535"></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SpecResult"></a>A Spec/Result Model</h2>
+<p>In real world applications, feature objects are seldom static and isolate objects. 
+A given feature might have an attribute that depends on other ones. The latters 
+are called the <strong>Specs</strong> while the former is named the <strong>Result</strong>, 
+hence the &quot;Spec/Result&quot; model. So whenever a Spec changes, the &quot;Result&quot; must be 
+updated accordingly.</p>
+<p>For instance, if we add to the &quot;Point3D&quot; feature an attribute &quot;Distance&quot; representing 
+the distance from the origin to the point, it&#39;s obvious that this attribute must 
+be updated each time any coordinate changes.</p>
+<p><img alt="" src="images/CAAOsmSpecResult_00.png" width="107" height="109"></p>
+<p>The &quot;X&quot;, &quot;Y&quot; and &quot;Z&quot; attributes are thus the Specs of &quot;Point3D&quot; while &quot;Distance&quot; 
+is the Result. This is a simple example, where the dependency is local to a feature. 
+But things can get complicated if a feature&#39;s Specs in turn depend on other feature&#39;s 
+Result as we will see in the rest of this section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="AttrQual"></a>Attribute Quality</h3>
+<p>Attributes must thus be labeled as &quot;Spec&quot; or &quot;Result&quot; so that the Feature Modeler 
+can figure out whether a feature object is out of date and should be refreshed. 
+This is done by giving a <strong>quality</strong> to each attribute:</p>
+<ul>
+	<li><strong>IN</strong> for &quot;Spec&quot; attributes</li>
+	<li><strong>OUT</strong> for &quot;Result&quot; attributes</li>
+	<li><strong>NEUTRAL</strong> for attributes that are neither IN nor OUT</li>
+</ul>
+<p>The &quot;Point3D&quot; feature would be defined as:</p>
+<p><img src="images/CAAOsmSpecResult_01.png" alt="" height="108" width="139"></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="UpdateBuild"></a>The Build/Update Protocol</h3>
+<p>Let&#39;s consider a network of inter-related feature objects: a feature object whose 
+attributes depend on another&#39;s attributes one and so on. It is obvious that such 
+network must be kept consistent at all times: if an attribute value is modified 
+in a given feature object, all the related ones must be rebuilt to reflect this 
+change. </p>
+<p>The problem is not only finding out which feature objects should be rebuilt but 
+also in which order they must be updated. Thanks to the Feature Modeler, applications 
+are relieved from this chore. However, it is the responsibility of each feature 
+object to rebuild itself appropriately when asked by the Feature Modeler. This is 
+the <strong>Build</strong> operation, where the feature object must update its &quot;Results&quot; 
+from its &quot;Specs&quot; which are ensured to be up to date.</p>
+<p>Let&#39;s suppose that the &quot;Y&quot; attribute of our &quot;Point3D&quot; now depends on the &quot;Attr2&quot; 
+attribute of another &quot;Feature2&quot; feature:</p>
+<p><img alt="" src="images/CAAOsmSpecResult_1.png" width="475" height="115"></p>
+<p>Now suppose that &quot;Feature2&quot; is outdated. This implies that &quot;Point3D&quot; is also 
+out of date. As we are working on &quot;Point3D&quot;, we would like to refresh it, by requesting 
+the <strong>Update</strong> operation on &quot;Point3D&quot;:</p>
+<p><img src="images/CAAOsmSpecResult_2.png" alt="" height="136" width="476"></p>
+<p>The Feature Modeler will see that &quot;Point3D&quot; depends on &quot;Feature2&quot; (Thanks to 
+the &quot;Y&quot; attribute). It will first request <strong>Build</strong> on &quot;Feature2&quot; to 
+ensure that it is up to date:</p>
+<p><img src="images/CAAOsmSpecResult_3.png" alt="" height="137" width="475"></p>
+<p>Once &quot;Feature2&quot; is up to date, the Feature Modeler will then request <strong>
+Build</strong> on &quot;Point3D&quot;:</p>
+<p><img src="images/CAAOsmSpecResult_4.png" alt="" height="137" width="476"></p>
+<p>Both features are now up to date, thanks to the <strong>Build</strong> operations 
+in response to the <strong>Update</strong> request, hence the name of Build/Update 
+protocol.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Characteristics"></a>Other Characteristics</h2>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="persistency"></a>The Persistency Model</h3>
+<p>Before proceeding to other articles, there is one implementation detail that 
+can help you better understand the Feature Modeler: it is where the StartUps and 
+Features are stored.</p>
+<p>StartUps are kept in files called <strong>catalogs</strong> [<a href="#References">9</a>]. 
+These catalogs are deployed in the run-time view, like shared libraries and other 
+resources.</p>
+<p>Features on the other hand are instantiated from the StartUps and get stored 
+in <strong>containers</strong> [<a href="#References">10</a>]. The containers are 
+persistent structures that are created inside PLM components.</p>
+<p><img alt="" src="images/CAAOsmConcepts_1.png"></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Transactional"></a>Transactional Model</h3>
+<p>As of today the model is not transactional. It means that when an error occurs 
+during a model operations, Feature modeler is not able to come back to a safe model&#39;s 
+state (which should be the last closed transaction). Indeed, if during a model operations 
+like creation, deletion, CCP, or whatever implying a model modification, an error 
+stops the process, the data model can be partially modified, and so leading to an 
+unsafe data model. So to prevent such a situation Feature modeler prohibits the 
+save operation. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Feature Modeler supports in fact three models: a high-level object-oriented 
+data model, a prototype/instance object model and a spec/result model.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaWorkingWithDSFeatures.htm">Working with DS Features</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAFmExtTaCreatingOwnFeatures.htm">Getting Started with your 
+		Own Features</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAFmExtUcAppliCont.htm">Creating Features</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAFmExtUcSimpleAttr.htm">Working with Features</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtUcSimpleAttr.htm">Accessing Feature Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAOsmTaModelingStartUps.htm">Modeling StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAFmExtUcBuildUpdate.htm">The Build/Update Protocol</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAFmExtTaLinkingFeatures.htm">Linking Features</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAFmExtTaFeatureExtension.htm">Understanding Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAFmExtTaUnderstandingCatalogs.htm">Understanding StartUp 
+		Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="CAAFmExtTaApplicativeContainer.htm">Understanding Applicative 
+		Container</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

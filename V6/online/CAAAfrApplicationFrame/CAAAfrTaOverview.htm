@@ -1,0 +1,628 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Wintop Frame Overview</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<p><br />
+</p>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Wintop Frame Overview</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains which paradigms CAA uses to show objects and let 
+		end users play with them.</p>
+		<ul>
+			<li><a href="#100000">The Anatomy of a Typical CAA Application Frame</a></li>
+			<li><a href="#200000">The Application Frame</a></li>
+			<li><a href="#ModelWindow">The Model Tabs</a></li>
+			<li><a href="#Compound">Compound Models - UI Active Object Definition</a></li>
+			<li><a href="#400000">Apps</a></li>
+			<li><a href="#500000">Interactive Commands and Command Headers</a></li>
+			<li><a href="#Commands">How Commands are Presented to the End User</a></li>
+			<li><a href="#Behavior">Providing the Interactive Behavior</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>The Anatomy of a Typical CAA Application Frame</h2>
+<p>The CAA application frame is the host for CAA apps associated with data models. 
+As an MDI application , it can display several models at the same time as tabs, 
+one model tab being active at the time. Lets have a look at the screen shot below.</p>
+<p style="width: 970px; height: 587px;">
+<img alt="" height="565" src="images/CAAAfrWintopFrameWindow.png" width="834"/></p>
+<p>It shows an application frame that contains two tabs. It also shows some of the 
+tools available to work on the active model. This is a Physical Product, and its 
+tab contains the 3D Part with the product&#39;s tree as a 2D graph immersed into 
+the work area. The active model being a Product Representation, the tools available 
+are those dedicated to product representations and specific to the current app, which 
+here is <strong>Part Design</strong> (the current app appears clearly in the top 
+bar, on the right hand side of the Compass). The Part Design commands are organized 
+in sections of&nbsp; the action bar. Here, it&#39;s the <strong>Model</strong> section 
+that is active, it contains commands to create geometry.&nbsp; The active command 
+being dedicated to pad definition, it displays a dialog box to enable the end user 
+to modify the pad being edited.</p>
+<p>Which are the objects that make all we have described above work, and how do 
+they relate to each other? Which interfaces should they implement? This is the purpose 
+of this article. These main objects are:</p>
+<ul>
+	<li><a href="#200000">The Application Frame</a></li>
+	<li><a href="#ModelWindow">The Model Tab</a></li>
+	<li><a href="#400000">The Apps</a></li>
+	<li><a href="#500000">The Interactive Commands, their Command Headers</a></li>
+	<li><a href="#Commands">The Action Bar</a></li>
+	<li><a href="#Behavior">The Model Controller, in Other Words the Editor</a></li>
+	<li><a href="#Objects">The Interactive Objects to Manage the Highlight, the 
+		Temporary Object Visualization, etc.</a></li>
+</ul>
+<p>Most of these objects are detailed in the technical article entitled &quot;Understanding 
+the Wintop Frame Layout&quot; [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>The Application Frame</h2>
+<p>The application frame is fully described in the &quot;IFWE Compass User Experience&quot; 
+guide [<a href="#References">2</a>].</p>
+<p>The application frame is not customizable and is simply retrieved and used as 
+is by CAA apps, for example to set it as the parent of model tabs and dialog boxes 
+[<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ModelWindow"></a>The Model Tabs</h2>
+<p>They are displayed inside the application frame and provide a view, also called 
+presentation, of the model. Several tabs can be displayed at the same time, some 
+of them possibly displaying the same model, but only one tab is active at the time.</p>
+<p>The tab is the locus where the model can be edited. As a result, if several tabs 
+display the same model, modifying the model in one of them modifies the others, 
+thanks to the MVC (Model View Controller) paradigm implemented by CAA.</p>
+<p>Default tab classes are supplied: <em>CATGraphAnd2DWindow</em> for 2D models, 
+and <em>CATGraphAnd3DWindow</em> for 3D models. They can display a tree in addition 
+to the 2D or 3D view. A customized tab can be created [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Compound"></a>Compound Models - UI Active Object Definition</h2>
+<p>As for any MDI application, the CAA application frame can contain several tabs 
+to several models, compared to a SDI application whose application frame can contain 
+only one window at a time. But rather than supporting monolithic models, CAA supports 
+also compound models, that is models containing other models. This means that models 
+can be pointed (linked), or contained (embedded) by other models of different types, 
+and can themselves point to or contain other models. For example, a Product can 
+contain several Product Representations, placed in space at appropriate locations 
+and linked together to play their role in the product representation&#39;s assembly.</p>
+<p>When you open an existing Product model, the Product model&#39;s commands making 
+up the current app are made available, such as product edition commands available 
+in the <kbd>Product Edition</kbd> section of the action bar.</p>
+<p>
+<img alt="" height="593" src="images/CAAAfrWintopProduct2.jpg" width="852"/></p>
+<p>When you double click on one of the product representations making up the assembly, 
+the selected product representation becomes the <strong>UI-active</strong> object. 
+The commands change to those dedicated to Product Representation models, such as 
+commands to create geometry, and you can work on this product representation using 
+these tools.</p>
+<p>
+<img alt="" height="603" src="images/CAAAfrWintopRep.jpg" width="873"/></p>
+<p>You can see that the active model is a Product displayed in a Product tab, but 
+inside this tab, the active object is a Product Representation and since this active 
+object is a model, the current Product app is replaced by the default Product Representation 
+app. The Product Representation is called the UI-active object in the Product model, 
+UI standing for User Interface. Any model that can be included into another model 
+is a UI-activable object, but there is one UI-active object at a time.&nbsp; Moreover, 
+some objects which are not models can be UI-activable. This is for example the case 
+for sketches, which can neither be created directly, nor opened from or saved to 
+a component. Nevertheless, when you double click on a sketch, or when you create 
+a new sketch by clicking on the Sketcher icon, the sketcher app is made active and 
+replaces the Product Representation app, even though the sketch is not a model.</p>
+<p>When you double click on a sketch in this product representation, you change 
+the 3D view into a 2D sketch view, and change the Product Representation model commands 
+to the sketch commands.</p>
+<p><img alt="" height="603" src="images/CAAAfrWintopSketch2.jpg" width="883"/></p>
+<p>The Product and Product Representation models, as well as the sketch, load their 
+own editing tools when you request to edit them, rather than opening another tab. 
+This is qualified as model-centric since the model remains displayed in the same 
+tab, and the editing tools change around the model to adapt to the type of the object 
+being edited, even if this object is another model. This is to be opposed to the 
+application-centric representation in which the data to be edited is brought to 
+another application for editing and is then taken back in its genuine context. With 
+the model-centric representation, the model remains displayed, and you edit a linked 
+or contained model in the context of the linking or containing model without opening 
+another tab. For this reason, this is called edit-in-context. (OLE calls this in-place 
+activation, and OpenDoc calls it in-place editing.)</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Apps</h2>
+<p>A data model is associated with its own editing tools gathered in
+<a href="#410000">apps</a>. Some standard tools are independent from the type of 
+the active model and automatically inherited by all apps. When a model is activated, 
+its own editing commands become available in addition to these standard commands. 
+Changing the active model changes the active app if the new active model has a different 
+type from the previous active one. To perform the appropriate
+<a href="#Transitions">transition</a> between two apps of two different models the 
+application should know what to do. <a href="#440000">Add-ins</a> allow you to add 
+commands to apps without rebuilding their shared libraries and DLLs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="410000"></a>Apps</h3>
+<p>An app is a set of commands for performing specific tasks. In a complex 
+application, a same data model can be associated with several apps, each app 
+providing a given usage configuration dedicated to a specific process. Changing 
+the app changes the available set of commands. Apps are launched from the 
+Compass, where they are organized by domain. When creating an app, you need to specify 
+in which quadrant it should be added. </p>
+<p>Within an app, most commands are intended to be located in the action bar, where 
+they are grouped in sections, each section dedicated to a type of task and one section 
+being active at the time. The idea is to organize commands in a way that gives the 
+best efficiency when performing a specific ask. Commands should be organized into sections 
+in such a way that an end user has at hand the necessary commands at the right moment. 
+The left hand side of the action bar is a fixed area dedicated to standard commands 
+such as Copy/Paste and Undo/Redo. There are also some standard sections that are 
+automatically provided for all apps, the <kbd>View</kbd> and the <kbd>Tools</kbd> 
+sections. It is possible to add commands in these sections, as well as adding 
+commands in your own new sections.</p>
+<p>Commands that deal with options and properties are located in two dedicated panels,
+<kbd>App Mode</kbd> and <kbd>Object Properties</kbd>, in which you can insert your 
+commands if it&#39;s appropriate.</p>
+<p>To create an app, refer to the use case &quot;Creating an App&quot; [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="440000"></a>Add-ins</h3>
+<p>Apps can be extended by add-ins. An add-in is made of commands added to the app 
+after it was created. This enables smooth extensions, without the need to rebuild 
+any shared library or DLL, except the one for the add-in. Once created, the add-in 
+is part of the app that it extends.</p>
+<p>There are three different levels for add-ins:</p>
+<ul>
+	<li>App add-in: enables to add commands to an app.</li>
+	<li>Data model add-in: enables to add commands for a specific data model, making 
+		them automatically available for all the apps associated with the data model.</li>
+	<li>General add-in: enables to create general commands that are independent 
+		of the active model and available for all apps.</li>
+</ul>
+<p>Creating an add-in is described in the use case &quot;Creating an Add-in&quot; 
+[<a href="#References">5</a>].</p>
+<p>The following picture shows the structure of apps and which commands are available 
+when an app is active. White boxes indicate that the commands defined for the level 
+are available, the grey boxes indicate the the commands defined for the level are 
+not available.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" height="513" src="images/CAAAfrAppStructure.png" width="341"/></td>
+		<td>
+		<ul>
+			<li>
+				<p>General App: contains global commands such as Copy/Paste and 
+				Undo/Redo. They are independent of the active model and are automatically 
+				available for all apps.</p>
+			</li>
+			<li>
+				<p>General App add-in: enables you to add model independent commands 
+				that will be available for all apps.</p>
+			</li>
+			<li>
+				<p>Model App: contains commands that are defined for a data model, 
+				making them available for all the apps associated with the data 
+				model.</p>
+			</li>
+			<li>
+				<p>Model dependant add-in: enables you to add commands that will 
+				be available for all the apps associated with the data model.</p>
+			</li>
+			<li>
+				<p>App: gathers a set of commands for a specific process.</p>
+			</li>
+			<li>
+				<p>App add-in: enables you to add commands to an app. These commands 
+				will become available as soon as the app is activated. The figure 
+				illustrates the fact that when App2 is active, its three add-ins 
+				are available. At the same time, App1 is not available and neither 
+				are its two add-ins.</p>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<p>The final result is that the level at which a command has been defined makes 
+no difference for the end user. All he sees are the apps and the commands available 
+when an app is active, that is to say all the commands the app inherits from, its 
+own commands and the commands of its eventual add-ins.</p>
+<p>For more details, you can refer to the following use cases:</p>
+<ul>
+	<li>Illustrates the creation of an app: &quot;Creating an App&quot; [<a href="#References">4</a>]</li>
+	<li>Illustrates the creation of an app add-in: &quot;Creating an Add-in&quot; 
+		[<a href="#References">5</a>]</li>
+	<li>Illustrates the creation of a general add-in: &quot;Making Your Model Independent 
+		Command Available in All Apps&quot; [<a href="#References">7</a>]</li>
+	<li>Illustrates the creation of a model add-in: &quot;Creating a Combo Command 
+		Header&quot; [<a href="#References">8</a>]</li>
+</ul>
+<p><strong>Note</strong>: for historical reasons, some interface and methods 
+names contain the words &quot;workshop&quot; and &quot;workbench&quot;. &quot;Workshop&quot; corresponds to 
+what we designated as "Model App" in the precedent graph. It designates the gathering of 
+commands directly associated with a data model. &quot;Workbench&quot; designates 
+an app. A Workbench is necessarily attached to a Workshop. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Transitions"></a>Transitions Between Apps</h3>
+<p>The compass provides the list of available apps for the end user. Some are part 
+of Dassault Syst&#232;mes products and solutions, others are provided by third-parties, 
+others can be home-made. From the end user viewpoint, it doen&#39;t make any difference. 
+An app is launched by a simple selection in the compass, and what happens depends 
+on the active model and app at the moment of the selection. To perform the appropriate 
+transition between two apps, apps need to know what to do. This information is provided 
+by implementing the <em>CATIWorkbenchTransition</em> interface, either for the app, 
+either directly for the data model.</p>
+<p>There are different scenarios for transitions between apps depending on if there 
+is or not a link between the model to activate and the one already active. In some 
+cases a new model will need to be created in a new tab, as if the end user was creating 
+an object from the <kbd>&quot;Add</kbd> services&quot; of the top bar. In other 
+cases, it might be necessary to retrieve from the active object&#39;s hierarchy 
+an object corresponding to the type of model needed for the selected app. These 
+scenarios are detailed below:</p>
+<ul>
+	<li>
+		<p>The active model type and the model type of the selected app cannot be 
+		connected:</p>
+		<ul>
+			<li>
+				<p>Transition between two apps that are associated with the same 
+				data model: the end user intent is to select another set of commands 
+				to work on the same model.</p>
+				<p>For example, an end user working on a Product Representation 
+				with PartDesign app swaps to the Free Style app: since the Free 
+				Style and Part Design apps are both dedicated to Product Representation 
+				models, the active model isn&#39;t changed.</p>
+			</li>
+			<li>
+				<p>Transition to the same app: a new model of the same type is created 
+				in a new tab, as if using Add Services of the top bar.</p>
+			</li>
+			<li>
+				<p>Transition to an app associated with a model type that can neither 
+				point to nor be pointed by the active model type: a new model of 
+				the required type for the selected app is created in a new tab. 
+				The end user&#39;s intent is to create such a model, as with Add 
+				services of the top bar.</p>
+				<p>For example, assume the active model is a Product Representation 
+				and the active app is Part Design. The end user selects the Material 
+				Library app, which is for CATMaterial models. Since a 3D Shape model 
+				cannot contain, or be contained by a CATMaterial model, a new empty 
+				CATMaterial model is created in another tab, and the selected app 
+				is activated.</p>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<p>The active model type and the model type of the selected app can be connected:</p>
+		<ul>
+			<li>
+				<p>Transition to an app corresponding to a model type that can be 
+				pointed to by the active model.</p>
+				<p>For example, assume that the active model is a Product and the 
+				active app is Assembly Design. The end user selects the Part Design 
+				app. It is associated to a Product Representation, usually pointed 
+				to or contained by a Product. Two following sub-cases may arise:</p>
+				<ul>
+					<li>
+						<p>There is a selection in the active model. From this selection, 
+						the app attempts to create or open a model of the required 
+						type. In both cases, the app attempts first to create or 
+						open the model in context, and if this fails, creates another 
+						tab, and activates the selected app. If the model to activate 
+						is already opened in another tab, it is activated in that 
+						tab, thus not in context.</p>
+					</li>
+					<li>
+						<p>There is no selection in the active model. the application 
+						creates a new empty model in another tab, and activates 
+						the selected app.</p>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<p>Transition to an app corresponding to a model type that can point 
+				to the active model.</p>
+				<p>For example, assume that the active model is a Product Representation 
+				model and the active app is Part Design. The end user selects the 
+				Assembly Design app. It is associated to a Product model, which 
+				usually points to Product Representation models. The following sub-cases 
+				may arise:</p>
+				<ul>
+					<li>
+						<p>The active model is edited in context. The containing 
+						model and the selected app are activated.</p>
+					</li>
+					<li>
+						<p>The active model is not edited in context. If there is 
+						a pointing model that the app is able to retrieve, this 
+						model is activated if already opened, or opened from its 
+						component. If there is no pointing model, or if the app 
+						doesn&#39;t succeed to locate and open it, a new empty model 
+						is created in another tab, and the selected app is activated.</p>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<p>You should consider these cases when you create a new app, and figure 
+		out the different cases that can happen depending on the type of the model 
+		the app is associated with. As you can see, the associated model types are 
+		a key point, and the transition behaviors between apps can be implemented 
+		at the data model level, involving all the apps associated with the data 
+		model. In this case you may have nothing to do at the level of your app.</p>
+		<p>Transitions from and to your app should be designed knowing that the 
+		apps involved in the transition are called in the following order:</p>
+		<ol>
+			<li>The active app.</li>
+			<li>The active data model.</li>
+			<li>The selected app.</li>
+			<li>The data model associated with the selected app.</li>
+		</ol>
+		<p>Any of them can decide what to do when a transition occurs. They are 
+		called in that order until one of them decides. Its followers are then not 
+		called. If none decides, the transition manager deducts that the selected 
+		app belongs to the current data model.</p>
+		<p>To manage transitions between apps, each app should specify all its incoming 
+		transitions, even when it already is the active app and is selected by the 
+		end user. In addition, if your app is dedicated to a model type which can 
+		be pointed or contained by the model type to which the active model belongs, 
+		you should also implement the outgoing transitions to that app.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="500000"></a>Interactive Commands and Command Headers</h2>
+<p>Any command you want to make available in your app must have a command header 
+[<a href="#References">6</a>]. The command header holds the necessary information 
+to load the command, such as the command identifier, the name of the shared library 
+in which the command's executable code is located, the name of the command class, 
+and the data to pass to the command's code when this command becomes the current 
+one. The command header has resources for each command to display, such as the command 
+name shown to the end user, its tooltip displayed in a balloon, its help message, 
+and its icon. This enables an app to be displayed, that is to say loaded in memory, 
+without any of its commands being loaded, sparing memory space and improving performance. 
+The end user can see the command icons and can ask for help on a given command, 
+without the command being loaded. It's only when a command is selected that its 
+code is actually loaded. In addition, the command header can manage the command 
+availability with respect to what the end user does or what exists in the model.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Commands"></a>How Commands Are Presented to the End User</h2>
+<h3><a name="What1"></a>What Does the End User See?</h3>
+<h4>The Action Bar</h4>
+<p>Most of your commands are meant to be organized in the action bar as illustrated 
+below:</p>
+<p><img alt="" height="344" src="images/CAAAfrWintopAccess1.png" width="706"/></p>
+<p>Lets go through the different aspects of the organization of commands in the 
+action bar:</p>
+<ul>
+	<li>Sections:
+		<p>Commands are organized in sections, one section being active at the time. 
+		When the end user changes the current section, the set of commands displayed 
+		in the action bar are swaped for a new set of commands. Within a section, 
+		commands can be organized into groups of commands, distinguished by separators.</p>
+	</li>
+	<li>Fixed Area:
+		<p>Standard commands common to all apps are located on the left hand side 
+		of the action bar. This area is called the fixed area seeing it is stable 
+		whatever the current app and the active section.</p>
+	</li>
+	<li>Command Icons:
+		<p>Commands in the action bar are represented by an icon. The icon is colored 
+		when the command is available and greyed out if not. A command is launched 
+		by clicking on its icon.</p>
+	</li>
+	<li>Flyouts:
+		<p>Flyouts enable to combine very similar commands. The flyout is represented 
+		by the icon of the first command of the series or the last command used. 
+		Commands in a flyout are organized from the most used at the top to the 
+		least used at the bottom. An arrow pointed downwards on the right of the 
+		icon box enables to expand the flyout and select any of its commands.</p>
+	</li>
+</ul>
+<h4>Contextual Menus</h4>
+<p>Commands can also be added in contextual menus, as illustrated in the picture 
+below:</p>
+<p><img alt="" height="489" src="images/CAAAfrCtxMenu.png" width="462"/></p>
+<h4>Properties and App Options panels</h4>
+<p>Commands that deal with object properties and app options can be added into two 
+dedicated panels, the <kbd>Object Properties</kbd> and the <kbd>App Options</kbd> 
+panels. These panels can host complex commands such as combos.</p>
+<p><img alt="" height="301" src="images/CAAAfrOptions.png" width="712"/> </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What2"></a>What Are the Command Exposition Underlying Objects?</h3>
+<p>When you want to arrange commands to propose them appropriately to the end user, 
+you need to create either an&nbsp; app [<a href="#References">4</a>], either an 
+add-in to an existing app [<a href="#References">5</a>]. When you create such objects, 
+you are going to define a structure of chained commands by creating objects called
+<strong>accesses</strong> for which the base class is <em>CATCmdAccess</em>. The 
+objects that contain other objects are <strong>containers</strong> and are instances 
+of the <em>CATCmdContainer</em> class. The first level of container is the data 
+model or the app, and is an instance of the <em>CATCmdWorshop</em> or <em>CATCmdWorkbench</em> 
+classes respectively, which both derive from <em>CATCmdContainer</em> class.&nbsp; 
+The containers can in turn contain other containers, such as a section in the action 
+bar, and a group of commands in a section.</p>
+<p>At the lowest levels of this tree structure, you define the accesses for the 
+commands. They are objects able to start the commands as soon as the end user clicks 
+on the icon, and are therefore named <strong>command starters</strong>. Each command 
+starter is associated with a <strong>command header</strong> that holds the appropriate 
+information about the command resources, such as the icon displayed in the action 
+bar, the name of the command, whether the command is available, and in which shared 
+library the command code is located.</p>
+<p><img alt="" height="343" src="images/CAAAfrWintopAccess3.png" width="701"/></p>
+<p>A container/contained tree structure is built. This tree structure represents 
+both the way objects are related to each other, and how they are arranged in the 
+application frame. The figure above shows these objects in the action bar. The Part 
+Design app creates it's own container (<em>CATCmdWorkbench</em>) that contains the 
+Model section container (<em>CATCmdContainer</em>). The model section container 
+contains both command starters (<em>CATCmdStarter</em>) and other containers, such</p>
+<p>as the Pad flyout which in turn contains command starters.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Behavior"></a>Providing the Interactive Behavior</h2>
+<p>In the Model View Controller paradigm:</p>
+<ul>
+	<li>M = Model.</li>
+	<li>V = <a href="#ModelWindow">Window</a>.</li>
+	<li>C = <strong>Editor</strong>.</li>
+</ul>
+<p>The editor is described by the <em>CATFrmEditor</em> class [<a href="#References">1</a>]. 
+This class manages the <strong>interactivity</strong> of the model.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Objects"></a>The Objects Providing the Interactive Behavior</h3>
+<ul>
+	<li>The <strong>CSO</strong>, for Current Set of Objects: contains the current 
+		object(s). The selected objects are placed in the CSO, and the CSO can be 
+		used by any command to retrieve the selected objects. The Cut &amp; Paste, 
+		Copy &amp; Paste, and Drag &amp; Drop use the CSO as input. The CSO is known 
+		by the current command. Objects contained in the CSO have usually their 
+		graphical representation highlighted.</li>
+	<li>The <strong>SDO</strong>, for Set of Dialog Objects: contains objects to 
+		be placed in toolbars such as input fields.</li>
+	<li>The <strong>ISO</strong> , for Interactive Set of Objects: used to contain 
+		interactive objects, that is objects that are not part of the model, but 
+		which are displayed to enable their model object handling, such as manipulator 
+		handles. A command can itself be put in the ISO, or an object it aggregates. 
+		Such objects should implement the <em>CATI2DGeoVisu</em> or <em>CATI3DGeoVisu</em> 
+		interface. The classes <em>CATIExtGeo2DVisu</em> and <em>CATIExtGeo3DVisu</em> 
+		provide basic implementations of these interfaces respectively.</li>
+	<li>The <strong>CATSO</strong>, for Set of Objects.</li>
+	<li>The <strong>CATXSO</strong>, specialized by the following objects, known 
+		by the viewer:
+		<ul>
+			<li>The <strong>HSO</strong>, for Highlighted Set of Objects: the objects 
+				that the command highlights. Each object in the CSO is also in the 
+				HSO.</li>
+			<li>The <strong>PSO</strong>, for Prehighlighted Set of Objects: the 
+				objects that are handled by a manipulator set by the current command, 
+				and that are preactivated and moved.</li>
+		</ul>
+	</li>
+</ul>
+<p>All these objects are created by the <em>CATFrmEditor</em> class instance associated 
+with the model.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="420000"></a>Context</h3>
+<p>An app is at a given time in a given context. What does this mean? Let&#39;s 
+take an example to illustrate this. Imagine the active model is an empty Product 
+Representation model, as shown by the following figure.</p>
+<p>
+<img alt="" height="513" src="images/CAAAfrWintopPartWindow2.jpg" width="787"/></p>
+<p>At this moment, the Pocket icon is displayed grayed and cannot be clicked. This 
+is because no free sketch exists in the model that can be used to create a pocket, 
+and thus this command is unusable. It's safe then to make them unavailable. On the 
+opposite, the Pad icon is colored, meaning that the Pad command is available, since 
+you can create a sketch from the pad definition dialog box displayed by the Pad 
+command. Grayed and colored icons show clearly which commands are not available 
+and which commands can be used at a given moment, depending on the model's context, 
+that is often depending on what it contains. This prevents from mistakes and end 
+user errors the client application should handle with additional code and error 
+messages. When you change the active model, the app retrieves the model&#39;s context 
+and displays as grayed the icons of the unavailable commands in this context.</p>
+<p>This behavior is managed by the <em>CATFrmEditor</em> class instance associated 
+with the model. This object contains the list of all the command headers defined 
+for a type of UI-active objects. Refer to the &quot;Life Cycle Management&quot; 
+section in the article [<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The CAA application frame includes commands which are common to all models. Each 
+model type is associated with commands which are added to the standard commands. 
+Several apps can be associated with a data model. Each app gathers commands dedicated 
+to specific tasks, added to standard commands and to the commands associated with 
+the model. One app only can be active at a time. Changing the active model to another 
+model changes the active app if the new active model's type is different from the 
+type of the previous model. </p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrTaLayoutV5.htm">Understanding the Wintop Frame Layout</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAAfrEXP3DBasicsUserMap/exp3dbasics-c-ov.htm">IFWE 
+		Compass User Experience Overview</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAfrUcSampleCustomWindow1.htm">Creating a Model&#39;s Tab 
+		- Part 1</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAAfrUcSampleWorkbench.htm">Creating an App</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAAfrUcSampleAddin.htm">Creating an Add-in</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAAfrTaCommandHeaders.htm">Understanding the Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAAfrUcSampleGeneralWksAddin.htm">Making Your Model Independent 
+		Command Available in All Apps</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAAfrUcSampleComboHdr.htm">Creating a Combo Command Header</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Fev 2003]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Jan 2007]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>4</strong> [Jan 2014]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

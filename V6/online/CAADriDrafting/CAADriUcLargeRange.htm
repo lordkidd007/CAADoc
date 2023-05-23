@@ -1,0 +1,746 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>CAADriUcLargeRange</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1" style="height: 32px">
+		<h1><a name="Top"></a>Generating a Drawing from a Large Range scale 
+		CATPart</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td style="height: 184px">
+		<h2>Abstract</h2>
+		<p>This article describes an example of how to generate a Large Range Scale drawing containing a front view and a 
+		clipped section view from a 3D bridge. To achieve such a drawing, the 
+		session Scale Parameters will be checked and changed if necessary. </p>
+				<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAADrwCreateDraftingLR Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAADrwCreateDraftingLR Do</a></li>
+				<li><a href="#How">How to Launch CAADrwCreateDraftingLR</a></li>
+				<li><a href="#Where">Where to Find the CAADrwCreateDraftingLR Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+				</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This Use Case is 
+intended to show you how to access the Scale Services available through the 
+CATLifSpecs interface within the &quot;KnowledgeInterfaces&quot; framework. These Scale 
+Services control the CATIA session default Scale Preference, which is 
+permanently assigned to parts when they are created.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADrwCreateDraftingLR Use Case</h2>
+<p>CAADrwCreateDraftingLR is a Use Case of the CAADraftingInterfaces.edu framework that 
+demonstrates 
+CAADraftingInterfaces[<a href="#References">2</a>] framework 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADrwCreateDraftingLR Do</h3>
+<p>The Scale Preference is verified and changed to Large Range if necessary, after which a Drawing and Sheet are created.</p>
+<p>The 3D bridge model is opened and a Front view and clipped Section View are generated from it.</p> 
+<p>The drawing is saved and the Scale Preference is restored to its initial value if it has been changed at any point.</p> 
+<p>&nbsp;</p>
+<p><img alt="Bridge 3D model" src="images/CAADrwCreateDraftingLR2.jpg"/></p>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADrwCreateDraftingLR</h3>
+<p>To launch CAADrwCreateDraftingLR, you will need to set up the build time environment, then 
+compile CAADrwCreateDraftingLR along with its prerequisites, set up the run time environment, 
+and then execute the Use Case [<a href="#References">1</a>].</p>
+<pre>mkrun -c &quot;CAADrwCreateDraftingLR Repository Server Username Password SecurityCtx PLMExternalIDValue Version&quot;</pre>
+<p>with arguments as described below:</p>
+
+<table class="fill">
+	<colgroup align="center" span="1">
+	</colgroup>
+	<tr>
+		<th style="height: 32px">Position</th>
+		<th style="height: 32px">Description</th>
+		<th style="height: 32px">Example</th>
+		<th style="height: 32px">Category</th>
+	</tr>
+	<tr>
+		<td style="height: 32px">1</td>
+		<td style="height: 32px">PLM repository</td>
+		<td style="height: 32px">PLM1</td>
+		<td rowspan="5">Connection</td>
+	</tr>
+	<tr>
+		<td style="height: 32px">2</td>
+		<td style="height: 32px">PLM server</td>
+		<td style="height: 32px"> The name and port of the server as <em>name</em>:<em>port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<td style="height: 32px"> 3</td>
+		<td style="height: 32px"> Username</td>
+		<td style="height: 32px"> The user name</td>
+	</tr>
+	<tr>
+		<td style="height: 32px"> 4</td>
+		<td style="height: 32px"> Password</td>
+		<td style="height: 32px"> The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<td style="height: 32px">5</td>
+		<td style="height: 32px">SecurityCtx</td>
+		<td style="height: 32px">A string representing the security context (Role.Organization.Collaborative Space). 
+		Choose Role as Designer (as the use case modifies the PLM data)</td>
+	</tr>
+	<tr>
+		<td style="height: 32px"> 6</td>
+		<td style="height: 32px"> Product Root</td>
+		<td style="height: 32px"> CAADrwCreateDraftingLR</td>
+		<td rowspan="2">Component Attribute</td>
+	</tr>
+	<tr>
+		<td style="height: 32px"> 7</td>
+		<td style="height: 32px"> Version</td>
+		<td style="height: 32px"> A</td>
+	</tr>
+</table>
+
+<p>&nbsp;</p>
+<p><strong>Import PLM Data:</strong> The Use Case may require input PLM Data: PLM Reference or PLM Representation Reference.
+This data is stored in 3D XML files, whose extension is "3dxml". You must import these PLM Data in the database using the PLM Access / Import As 3D XML command prior to launching the Use Case.
+The "3dxml" file is supplied in the CAADraftingInterfaces.edu framework: InstallRootFolder\CAADoc\CAADraftingInterfaces.edu\InputData\CAADrwCreateDraftingLR where InstallRootFolder [<a href="#References">1</a>] is the folder where the API CD-ROM is installed.
+This "3dxml" file contains the representation reference with the following attributes:</p>
+<ul>
+<li><strong>PLMExternalIDValue</strong>: CAADrwCreateDraftingLR</li>
+<li><strong>Version</strong>: A</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>&nbsp;<a name="Where"></a>Where to Find the CAADrwCreateDraftingLR Code</h3>
+<p>The CAADrwCreateDraftingLR Use Case is made of several classes/a single file located in the 
+CAADrwCreateDraftingLR.m module of the CAADraftingInterfaces.edu framework: <code>InstallRootFolder\CAADoc\CAADraftingInterfaces.edu\CAADrwCreateDraftingLR.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are two logical steps in CAADrwCreateDraftingLR:</p>
+<ol>
+	<li><a href="#Step1">Checks the input arguments</a></li>
+	<li><a href="#Step2">Creates a PLM session and connect to the input repository</a></li>
+	<li><a href="#Step3">Open the Root Reference</a></li>
+	<li><a href="#Step4">Check the Open Product Design limits</a></li>
+	<li><a href="#Step5">Read Design limits from Preferences</a></li>
+	<li><a href="#Step6">Set Design limits to Large Range if necessary</a></li>
+	<li><a href="#Step7">Drawing Creation with Large Range mode</a></li>
+	<li><a href="#Step8">Retrieves the Drawing root from the Drawing Representation Reference</a></li>
+	<li><a href="#Step9">Retrieves the current sheet</a></li>
+	<li><a href="#Step10">Creates a link between the Generated Views and their 3D Geometry in the Product Structure</a></li>
+	<li><a href="#Step11">Creates the Generative Front View</a></li>
+	<li><a href="#Step12">Creates the Generative Section View from the Front View</a></li>
+	<li><a href="#Step13">Creates a rectangle clipping of part of the Section</a></li>
+	<li><a href="#Step14">Save the Data</a></li>
+	<li><a href="#Step15">Restore Design Limits in Preferences</a></li>
+	<li><a href="#Step16">Bag Emptying Operation</a></li>
+	<li><a href="#Step17">Close the PLM session</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Checks the input arguments</h3>
+<pre class="code"><span class="keyword">int</span> main(<span class="keyword">int</span> iargc, char *iargv[])
+{
+
+	<span class="keyword">HRESULT </span>hr;
+	<span class="keyword">int</span> rc = 0;
+	<span class="keyword">cerr</span> &lt;&lt; <span class="string">"CAADrwCreateDraftingLR started"</span> &lt;&lt; endl;
+
+	<span class="comment">// 1. Checks the input arguments
+	// =========================</span>
+	<span class="keyword">if</span> (8 != iargc) {
+		rc = 1;
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Usage: &quot;</span> &lt;&lt; iargv[0] &lt;&lt; <span class="string">&quot; &lt;repository&gt;  &lt;server&gt;  &lt;user&gt;  &lt;password&gt;  &lt;SecurityCtx&gt;  &lt;PLM External Id Product&gt; &lt;version&gt; &quot; </span>&lt;&lt; endl;
+		return rc;
+	}
+
+	<span class="keyword">const</span> <span class="keyword">char</span>* repository		= iargv[1];
+	<span class="keyword">const</span> <span class="keyword">char</span>* server			= iargv[2];
+	<span class="keyword">const</span> <span class="keyword">char</span>* user			= iargv[3];
+	<span class="keyword">const</span> <span class="keyword">char</span>* password		= iargv[4];
+	<span class="keyword">const</span> <span class="keyword">char</span>* SecurityCtx		= iargv[5];
+	<span class="keyword">const</span> <span class="keyword">char</span>* comp_externalId		= iargv[6];
+	<span class="keyword">const</span> <span class="keyword">char</span>* version		= iargv[7];
+	</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2">Creates a PLM session and connect to the input repository</a></h3>
+<pre class="code" >	<span class="comment">// 2. Creates a PLM session and connect to the input repository
+	// ============================================================</span>
+	<span class="keyword">CATBoolean</span> traceok = TRUE;
+	hr = ::CAAAdpCreateSession(repository,server,user,password,SecurityCtx,traceok);
+
+	<span class="keyword">if</span> (SUCCEEDED(hr))
+	{
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"The Session has been opened"</span> &lt;&lt; endl;
+	}
+	<span class="keyword">else</span>
+	{
+		rc = 2;
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Failed to create session &amp; connect to input repository"</span> &lt;&lt; endl;
+		return rc;
+	}
+
+	<span class="comment">// 2.1/ Retrieve the ScalesServices</span>
+	<span class="keyword">CATICkeScalesServices_var</span> hScaleServices = CATCkeGlobalFunctions::GetScalesServices();
+	
+	<span class="comment">// 2.2 Get initial scale from Preferences</span>
+	<span class="keyword">CATCkeScale</span> createSessionPreferenceScale = CATExtraSmallScale;
+	hr = createSessionPreferenceScale = hScaleServices -&gt; GetCurrentScale();
+	<span class="keyword">if</span> (FAILED(hr))
+	{
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Failed to retrieve Scales from Preferences"</span> &lt;&lt; endl;
+		rc = 7;
+	}
+	<span class="keyword">else</span>
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scales in Preferences at start of batch : "</span>;
+	<span class="keyword">switch</span> (createSessionPreferenceScale)
+	{
+	<span class="keyword">case</span> 1: cout &lt;&lt; <span class="string">"NormalScale"</span> &lt;&lt; endl; break;
+	<span class="keyword">case</span> 2: cout &lt;&lt; <span class="string">"LargeScale"</span> &lt;&lt; endl; break;
+	<span class="keyword">case</span> 3: cout &lt;&lt; <span class="string">"ExtraLargeScale"</span> &lt;&lt; endl; break;
+	<span class="keyword">case</span> 4: cout &lt;&lt; <span class="string">"SmallScale"</span> &lt;&lt; endl; break;
+	<span class="keyword">case</span> 5: cout &lt;&lt; <span class="string">"ExtraSmallScale"</span> &lt;&lt; endl; break;
+	}</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Open the Root Reference</h3>
+<pre class="code">	<span class="comment">// 3. Open the Root Reference
+	// ==========================
+	// Open Product in Authoring mode</span>
+	<span class="keyword">CATIPLMRepInstances</span>* piRepInstOnRoot = NULL;
+
+	<span class="comment">// Entire product model is loaded for the generative view creation</span>
+	<span class="keyword">CATBoolean </span>ExpandAllMode = TRUE;
+	<span class="keyword">CATOmbLifeCycleRootsBag </span>Bag;
+
+	hr = ::<span class="keyword">CAAOpenPLMComponent</span>("VPMReference",comp_externalId,version,
+		IID_CATIPLMRepInstances,(void **)&amp;piRepInstOnRoot,Bag,ExpandAllMode);
+
+	<span class="keyword">if</span>(FAILED(hr) || (NULL==piRepInstOnRoot))
+	{
+		rc = 3;
+		<span class="keyword">cerr</span> &lt;&lt; &quot;ERROR Product Opening &quot; &lt;&lt;endl;
+		return rc;
+	} </pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Check the Open Product Design limits</h3>
+<pre class="code">	<span class="comment">// 4. Check the Open Product Design limits
+	// =======================================</span>
+	<span class="keyword">CATIPLMNavReference </span>* pReference = NULL;
+	<span class="keyword">CATBaseUnknown </span>* pUnkRootInst = NULL;
+
+	hr = piRepInstOnRoot-&gt;QueryInterface(IID_CATBaseUnknown, (void**) &amp;pUnkRootInst);
+
+	<span class="keyword">if</span>(FAILED(hr) || (NULL==pUnkRootInst))
+	{
+		rc = 4;
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Retrieving CATBaseUnknown interface from root instance Product Rep"</span> &lt;&lt;endl;
+		return rc;
+	}
+
+	<span class="keyword">CATIPrdObject_var</span> hRepInstOnRootInstPrd;
+
+	<span class="keyword">if</span> (SUCCEEDED(hr) &amp;&amp; pUnkRootInst)
+	{
+		hRepInstOnRootInstPrd = pUnkRootInst;
+		...
+	}
+
+	<span class="keyword">CATBaseUnknown</span> * pIUnkRepInstOnRootInstRef = NULL;
+
+	<span class="keyword">CATCkeGlobalFunctions </span>* RootInstPrdCkeGlobalFunctions = NULL;
+
+	<span class="keyword">if</span> (NULL_var != hRepInstOnRootInstPrd)
+	{
+		<span class="comment">// 4.1/ Retrieve the reference of the root instance Product Rep</span>
+		hr = hRepInstOnRootInstPrd-&gt;GetReferenceObject(pIUnkRepInstOnRootInstRef);
+
+		<span class="keyword">if</span>(FAILED(hr) || (NULL==pIUnkRepInstOnRootInstRef))
+		{
+			rc = 5;
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Retrieving Reference Object from root instance Product Rep"</span> &lt;&lt;endl;
+			return rc;
+		}
+	}
+
+	<span class="keyword">CATBaseUnknown_var</span> hIUnkRepInstOnRootInstRef;
+
+	<span class="keyword">if</span>(SUCCEEDED(hr) &amp;&amp; pIUnkRepInstOnRootInstRef)
+	{
+		hIUnkRepInstOnRootInstRef= pIUnkRepInstOnRootInstRef;
+		...
+	}
+
+	<span class="comment">// 4.2/ Retrieve the ScalesServices</span>
+
+	<span class="keyword">CATCkeScale </span>productScale = CATNormalScale;
+	<span class="keyword">CATCkeScale </span>initialPreferenceScale = CATNormalScale;
+
+	<span class="keyword">if</span> (NULL_var != hScaleServices)
+	{
+		<span class="comment">// 4.3/ Get the scale in which the product was created</span>
+		hr = hScaleServices -&gt; GetScaleFromObject(hIUnkRepInstOnRootInstRef,  productScale);
+		<span class="keyword">if</span> (FAILED(hr) || NULL == productScale)
+		{
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Failed to retrieve the opened product's Scales"</span> &lt;&lt; endl;
+			rc = 6;
+		}
+		<span class="keyword">else</span> 
+		{
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Input product was created in "</span>;
+			<span class="keyword">switch</span>(productScale)
+			{
+			<span class="keyword">case</span> 1: cout &lt;&lt; <span class="string">"NormalScale"</span> &lt;&lt; endl; break;
+			<span class="keyword">case</span> 2: cout &lt;&lt; <span class="string">"LargeScale"</span> &lt;&lt; endl; break;
+			<span class="keyword">case</span> 3: cout &lt;&lt; <span class="string">"ExtraLargeScale"</span> &lt;&lt; endl; break;
+			<span class="keyword">case</span> 4: cout &lt;&lt; <span class="string">"SmallScale"</span> &lt;&lt; endl; break;
+			<span class="keyword">case</span> 5: cout &lt;&lt; <span class="string">"ExtraSmallScale"</span> &lt;&lt; endl; break;
+			}
+		}</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step5"></a>Read Design limits from Preferences</h3>
+<pre class="code">		<span class="comment">// 5. Read Design limits from Preferences
+		// ======================================
+
+		// 5.1 Get initial scale from Preferences</span>
+		hr = initialPreferenceScale = hScaleServices -&gt; GetCurrentScale();
+		<span class="keyword">if</span> (FAILED(hr))
+		{
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Failed to retrieve Scales from Preferences"</span> &lt;&lt; endl;
+			rc = 7;
+		}
+		<span class="keyword">else</span>
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scales in Preferences at start of batch : "</span>;
+		<span class="keyword">switch</span>(initialPreferenceScale)
+		{
+		<span class="keyword">case</span> 1: cout &lt;&lt; <span class="string">"NormalScale"</span> &lt;&lt; endl; break;
+		<span class="keyword">case</span> 2: cout &lt;&lt; <span class="string">"LargeScale"</span> &lt;&lt; endl; break;
+		<span class="keyword">case</span> 3: cout &lt;&lt; <span class="string">"ExtraLargeScale"</span> &lt;&lt; endl; break;
+		<span class="keyword">case</span> 4: cout &lt;&lt; <span class="string">"SmallScale"</span> &lt;&lt; endl; break;
+		<span class="keyword">case</span> 5: cout &lt;&lt; <span class="string">"ExtraSmallScale"</span> &lt;&lt; endl; break;
+		}</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step6"></a>Set Design limits to Large Range if necessary</h3>
+<pre class="code">		<span class="comment">// 6. Set Design limits to Large Range if necessary
+		// ================================================
+
+		// 6.1 Set scale to Large Range if it isn't already</span>
+		<span class="keyword">if</span> (CATLargeScale != initialPreferenceScale)
+		{
+				hr = hScaleServices -&gt; <strong>SetCurrentScale</strong>(CATLargeScale);
+			<span class="keyword">	if</span> (FAILED(hr))
+				{
+			<span class="keyword">		cerr</span> &lt;&lt; <span class="string">"ERROR Failed to set Scales in Preferences to Large Range"</span> &lt;&lt; endl;
+					rc = 8;
+				}
+			<span class="keyword">else</span>
+			<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scales in Preferences set to Large Range"</span> &lt;&lt; endl;
+		}
+		<span class="keyword">else</span>
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scales in Preferences are already set to Large Range"</span> &lt;&lt; endl;
+	} 
+	<span class="keyword">else</span> 
+	<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Failed to retrieve the ScalesServices"</span> &lt;&lt; endl;
+	</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step7"></a>Drawing Creation with Large Range mode</h3>
+<pre class="code">	<span class="comment">// 7. Drawing Creation with Large Range mode
+	// =========================================</span>
+	<span class="keyword">CATIPsiRepresentationReference</span> *piDrawingRepRef = NULL;
+	<span class="keyword">CATListOfCATUnicodeString</span> lstStd;
+
+  	 <span class="comment">// 7.1 Searchs a standard in the standards list
+   	// ============================================</span>
+   <span class="keyword">	if</span> (SUCCEEDED(CATDftDrawingPLMServices::<strong>GetAvailableDrawingStandards</strong>(lstStd)))
+   	{
+      <span class="keyword">	cerr</span> &lt;&lt; <span class="string">"nb std in the environment = "</span> &lt;&lt; lstStd.Size() &lt;&lt; endl;
+      <span class="keyword">	for</span> ( <span class="keyword">int</span> indice = 1 ; indice  &lt;= lstStd.Size()  ; indice ++ )
+         <span class="keyword">cerr</span> &lt;&lt; <span class="string">"lstStd ("</span>&lt;&lt; indice &lt;&lt; <span class="string">&quot;) = &quot;</span> &lt;&lt; lstStd[indice].ConvertToChar() &lt;&lt; endl;
+   	}
+	 <span class="keyword">CATUnicodeString</span> myStd = "ANSI-ASME";
+   <span class="keyword">	cerr</span> &lt;&lt; <span class="string">" myStd = "</span> &lt;&lt; myStd.ConvertToChar() &lt;&lt; endl;
+
+   <span class="comment">	// 7.2 Searchs a sheet style from the choosen standard
+   	// ===================================================</span>
+   <span class="keyword">	CATListOfCATUnicodeString</span> lstSheetStyle;
+   <span class="keyword">	if</span> (SUCCEEDED(CATDftDrawingPLMServices::<strong>GetListOfSheetStyles</strong>(myStd,lstSheetStyle)))
+   	{
+   <span class="keyword">	for</span> (<span class="keyword">int</span> indice = 1 ; indice  &lt;= lstSheetStyle.Size()  ; indice ++ )
+      <span class="keyword">	cerr</span> &lt;&lt; <span class="string">"lstSheetStyle ("</span>&lt;&lt; indice &lt;&lt; <span class="string">") = "</span> &lt;&lt; lstSheetStyle[indice].ConvertToChar() &lt;&lt; endl;
+   	}
+
+   <span class="comment">	// 7.3 The second sheet style is choosen 
+   	// =====================================</span>
+   <span class="keyword">	CATUnicodeString</span> mySheetStyle = lstSheetStyle[2];
+   <span class="keyword">	cerr</span> &lt;&lt; <span class="string">" mySheetStyle = "</span> &lt;&lt; mySheetStyle.ConvertToChar() &lt;&lt; endl;
+
+	 <span class="comment">// 7.4 Creates the Drawing representation reference
+	 // ================================================</span>
+	 <span class="keyword">if</span> (SUCCEEDED(CATDftDrawingPLMServices::CreateDrawingRepReference(&amp;piDrawingRepRef,myStd,mySheetStyle)))
+	 {
+		 <span class="keyword">cerr</span> &lt;&lt;&quot;The Drawing representation is created &quot; &lt;&lt; endl;
+		 </pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step8"></a>Retrieves the Drawing root from the Drawing Representation Reference</h3>
+<pre class="code">		 <span class="comment">// 8. Retrieves the Drawing root from the Drawing representation reference
+		 // =======================================================================</span>
+		 <span class="keyword">CATIDftDrawing</span> *piDftDrawing = NULL;
+		 <span class="keyword">CATIDftSheet</span>  *piDftSheet = NULL;
+
+		 <span class="keyword">CATIDftGenViewFactory</span> *piDftGenViewFact = NULL;
+
+		 <span class="keyword">if</span> (SUCCEEDED(CATDftDrawingPLMServices::<strong>GetDrawingRoot</strong>(piDrawingRepRef,&amp;piDftDrawing)))
+		 {</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step9"></a>Retrieves the current sheet</h3>
+<pre class="code"> 			<span class="comment">// 9. Retrieves the current sheet
+			// ==============================</span>
+
+			 <span class="keyword">wchar_t</span> *pSheetName= <span class="string">"MyNewSheet"</span>;
+			 hr = piDftDrawing-&gt;<strong>AddSheet</strong>(&amp;piDftSheet,pSheetName);
+		 }
+
+		 <span class="comment">// 9.1 Retrieve the generative views factory from the active sheet</span>
+		 <span class="keyword">if</span> (SUCCEEDED(hr) &amp;&amp; piDftSheet)
+		 {
+			 hr = SUCCEEDED(piDftSheet-&gt;QueryInterface(IID_CATIDftGenViewFactory,(void **)&amp;piDftGenViewFact));
+			 ...
+		 }
+</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step10"></a>Creates a link between the Generated Views and their 3D Geometry in the Product Structure</h3>
+<pre class="code">		<span class="comment">// 10. Creates a link between the Generated Views and their 3D Geometry in the product structure
+		// =============================================================================================</span>
+
+		 <span class="comment">//10.1 Creates a CATOmbObjectInContext on the Product spPrdObjOnRoot</span>
+		 <span class="keyword">CATOmbObjectInContext</span> * OmbObjCtx = NULL;
+		 <span class="keyword">CATIPrdObject_var</span> spPrdObjOnRoot(piRepInstOnRoot);
+		 <span class="keyword">if</span> (NULL_var != spPrdObjOnRoot)
+		 {
+			 <span class="comment">// Empty list, Product is a 3D Part, not several levels</span>
+			 <span class="keyword">CATListPtrCATIPLMComponent</span> ComponentList; 
+
+			 <span class="keyword">CATOmbObjectInContext</span>::<strong>CreateObjectInContext</strong>(ComponentList, NULL, spPrdObjOnRoot, OmbObjCtx);
+		 }
+
+		 <span class="comment">//10.2 Add CATOmbObjectInContext on the Product spPrdObjOnRoot to a CATIUnknownList</span>
+		 <span class="keyword">CATIUnknownList</span> * ListOmbLink = NULL;
+
+		 <span class="keyword">if</span> (OmbObjCtx)
+		 {
+			 <span class="keyword">CATIUnknownListImpl</span> * ListImpl = new CATIUnknownListImpl();
+			 hr = ListImpl-&gt;QueryInterface(IID_CATIUnknownList, (void**)&amp;ListOmbLink);
+			 ...
+			 <span class="keyword">if</span> (SUCCEEDED(hr))
+			 {
+				 ListOmbLink-&gt;<strong>Add</strong>(0, (IUnknown*)OmbObjCtx);
+			 }
+		 }</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step11"></a>Creates the Generative Front View</h3>
+<pre class="code">		<span class="comment">// 11. Creates the Generative Front View
+		// =====================================</span>
+		 <span class="keyword">CATIDftView</span> *piDftFrontView = NULL;
+		 <span class="keyword">if</span> (ListOmbLink)
+		 {
+			 <span class="comment">//11.1 Defines the view anchor point</span>
+			 <span class="keyword">double</span> ptOrigin[2] = {1000.0,1000.0};
+
+			 <span class="comment">//11.2 Defines the view projection plane</span>
+			 <span class="keyword">CATMathVector</span> iNormal = CATMathVector(1.0,0.0,0.0);
+			 <span class="keyword">CATMathPlane</span> viewProjPlane = CATMathPlane(ptOrigin,iNormal);
+
+			 <span class="comment">//11.3 Defines the view style</span>
+			 <span class="keyword">CATUnicodeString</span> viewStyle=<span class="string">" "</span>;
+			 <span class="keyword">if</span>(piDftGenViewFact)
+				 hr = piDftGenViewFact-&gt;<strong>CreateFrontView</strong> (ptOrigin,  viewProjPlane,  ListOmbLink, &amp;piDftFrontView,viewStyle);
+			 <span class="keyword">if</span> (SUCCEEDED(hr) &amp;&amp; piDftFrontView) 
+			 {
+				 <span class="keyword">cerr</span> &lt;&lt; <span class="string">"The Front view was successfully created"</span> &lt;&lt; endl;
+			 }
+			 ...
+		 }</pre>
+<p>&nbsp;</p>
+<p><img alt="Bridge 3D model" src="images/CAADrwCreateDraftingLR1.jpg"/></p>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step12"></a>Creates the Generative Section View from the Front View</h3>
+<pre class="code"> 		<span class="comment">// 12. Creates the Generative Section View from the Front View
+		// ==========================================================</span>
+		 <span class="keyword">if</span> (piDftFrontView) 
+		 {
+			 <span class="comment">//12.1 Define the list of points that form the cutting profile :
+			 //For the bridge example the profile is a vertical line encompassing the full height of the bridge</span>
+			 <span class="keyword">CATListPtrCATMathPoint2D</span> listOfPoints;
+			 <span class="keyword">double</span> ptCoord1[2] = {1000000.0,300000.0};
+			 <span class="keyword">CATMathPoint2D</span> *<strong>tmpPointStart</strong> = new CATMathPoint2D (ptCoord1[0],ptCoord1[1]);
+
+			 listOfPoints.Append(tmpPointStart);
+			 <span class="keyword">double</span> ptCoord2[2] = {1000000.0,450000.0};
+			 <span class="keyword">CATMathPoint2D</span> *<strong>tmpPointEnd</strong> = new CATMathPoint2D (ptCoord2[0],ptCoord2[1]);
+			 listOfPoints.Append(tmpPointEnd);
+
+			 <span class="comment">//12.2 Normal vector which defines the side of cutting the profile to keep: The direction is perpendicular to the first segment of the cutting profile.</span>
+			 <span class="keyword">CATMathDirection</span> <strong>iDir</strong>(0.0,1.0,0.0);			
+
+			 <span class="keyword">CATIDftView</span> *piDftSectionView = NULL;
+
+			 <span class="comment">//12.3 Defines the view anchor point</span>
+			 <span class="keyword">double</span> <strong>ptOriginSect</strong>[2] = {-10000000000.0,100.0};
+
+			 <span class="comment">//12.4 Defines the view style</span>
+			 <span class="keyword">CATUnicodeString</span> viewStyle=" ";
+
+			 <span class="keyword">if</span>(piDftGenViewFact)
+				 hr = piDftGenViewFact-&gt;<strong>CreateSectionView</strong> (ptOriginSect, CATDftSectionOffset, listOfPoints, iDir, piDftFrontView,&amp;piDftSectionView,viewStyle);
+			 <span class="keyword">if</span> (SUCCEEDED(hr) &amp;&amp; piDftSectionView) 
+			 {
+				 <span class="keyword">cerr</span> &lt;&lt; <span class="string">"The Section view was successfully created"</span> &lt;&lt; endl;
+
+				 <span class="keyword">double</span> iX = -1000000.0;
+				 <span class="keyword">double</span> iY = 4600.0;
+
+				 hr = piDftSectionView-&gt;<strong>SetAxisData</strong>( iX, iY );			
+
+				 <span class="keyword">if</span>(FAILED(hr)) cout &lt;&lt; <span class="string">"Failed to relocate Section View"</span> &lt;&lt; endl;
+				 </pre>
+<p>&nbsp;</p>
+<p><img alt="Bridge 3D model" src="images/CAADrwCreateDraftingLR4.jpg"/></p>
+<p>&nbsp;</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step13"></a>Creates a rectangle clipping of part of the Section</h3>
+<pre class="code"> 				<span class="comment">// 13. Creates a rectangle clipping of part of the Section
+				// =======================================================</span>
+
+				 <span class="keyword">CATDftDetailType</span> iViewType = DftGenRelimit3D;
+				 <span class="keyword">CATListPtrCATMathPoint2D</span> iListOfPoints;
+			
+				 <span class="keyword">double </span>ptCoord1[2] = {550000.0,460000.0};
+				 <span class="keyword">CATMathPoint2D </span>*<strong>tmpCornerTopLeft</strong> = new CATMathPoint2D (ptCoord1[0],ptCoord1[1]);
+				 iListOfPoints.Append(tmpCornerTopLeft);
+
+				 <span class="keyword">double </span>ptCoord2[2] = {750000.0,460000.0};
+				 <span class="keyword">CATMathPoint2D </span>*<strong>tmpCornerTopRight</strong> = new CATMathPoint2D (ptCoord2[0],ptCoord2[1]);
+				 iListOfPoints.Append(tmpCornerTopRight);
+
+				 <span class="keyword">double </span>ptCoord3[2] = {750000.0,280000.0};
+				 <span class="keyword">CATMathPoint2D </span>*<strong>tmpCornerBottomRight</strong> = new CATMathPoint2D (ptCoord3[0],ptCoord3[1]);
+				 iListOfPoints.Append(tmpCornerBottomRight);
+
+				 <span class="keyword">double </span>ptCoord4[2] = {550000.0,280000.0};
+				 <span class="keyword">CATMathPoint2D </span>*<strong>tmpCornerBottomLeft</strong> = new CATMathPoint2D (ptCoord4[0],ptCoord4[1]);
+				 iListOfPoints.Append(tmpCornerBottomLeft);
+
+				 <span class="keyword">CATBoolean </span>iComputeUpdate = TRUE;
+
+				 hr = piDftSectionView-&gt;<strong>Activate</strong>();
+
+				 <span class="keyword">CATIDftGenViewModification </span>* piDftGenViewModification = NULL;
+
+				 <span class="keyword">if</span>(SUCCEEDED(hr))
+					 hr = piDftSectionView-&gt;<strong>GetApplicativeExtension</strong>(IID_CATIDftGenViewModification, (IUnknown**) &amp;piDftGenViewModification); 
+
+				 <span class="keyword">if</span> (FAILED(hr)) <span class="keyword">cerr</span> &lt;&lt; <span class="string">"2"</span> &lt;&lt; endl;
+				 <span class="keyword">if</span> (piDftGenViewModification == NULL) <span class="keyword">cerr</span> &lt;&lt; <span class="string">"3"</span> &lt;&lt; endl;
+
+				 <span class="keyword">if</span>(SUCCEEDED(hr) &amp;&amp; piDftGenViewModification)
+				 {
+					 hr = piDftGenViewModification-&gt;<strong>AddClippingWithProfile</strong> (iViewType, iListOfPoints, iComputeUpdate);
+					 <span class="keyword">if</span> (FAILED(hr))
+						 <span class="keyword">cerr</span> &lt;&lt; <span class="string">"4"</span> &lt;&lt; endl;
+
+					...
+	 }</pre>
+<p>&nbsp;</p>
+<p><img alt="Bridge 3D model" src="images/CAADrwCreateDraftingLR3.jpg"/></p>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step14"></a>Save the Data</h3>
+<pre class="code">	<span class="comment">// 14. Save the Data
+	//=================</span>
+	<span class="keyword">CATListPtrCATBaseUnknown</span> pListToSave ;
+	pListToSave.Append(piDrawingRepRef);
+	<span class="keyword">CATAdpSaver</span> saver;
+	<span class="keyword">if</span> (FAILED(saver.<strong>Save</strong>(&amp;pListToSave)))
+	{
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR saving PLM Data"</span> &lt;&lt; endl;
+		rc = 9;
+	}
+	<span class="keyword">else</span>
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"PLM Data saved"</span> &lt;&lt; endl;
+
+	...</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step15"></a>Restore Design Limits in Preferences</h3>
+<pre class="code">	<span class="comment">// 15. Restore Design Limits in Preferences
+	//=========================================</span>
+
+	<span class="keyword">if</span> (NULL_var != hScaleServices)
+	{
+
+		<span class="comment">// 15.1 Get current Scale in Preferences</span>
+		<span class="keyword">CATCkeScale</span> currentPreferenceScale = hScaleServices -&gt; <strong>GetCurrentScale</strong>();
+
+		<span class="comment">// 15.2 Reset Scale back to initial value if different from current</span>
+		<span class="keyword">if</span> (currentPreferenceScale != initialPreferenceScale)
+		{
+			<span class="keyword">if</span>(SUCCEEDED(hScaleServices -&gt; <strong>SetCurrentScale</strong>(initialPreferenceScale))) <span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scale setting in Preferences reset to initial Design Limit Range value"</span> &lt;&lt; endl ;
+
+			<span class="keyword">else</span> {rc = 10; <span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Unable to revert back to initial Design Limit Preferences"</span> &lt;&lt; endl;}
+		}
+		<span class="keyword">else</span> {rc = 11; <span class="keyword">cerr</span> &lt;&lt; <span class="string">"Scale setting in Preferences is identical to initial value"</span> &lt;&lt; endl;}
+	}
+	<span class="keyword">else</span> {rc = 12; <span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR ScaleServices not available"</span> &lt;&lt; endl;}
+	</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step16"></a>Bag Emptying Operation</h3>
+<pre class="code">	<span class="comment">// 16. Bag Emptying Operation 
+	//===========================</span>
+	<span class="keyword">if</span> (SUCCEEDED(<strong>Bag</strong>.<strong>RemoveAll</strong>()))
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"Bag Emptied"</span> &lt;&lt; endl;
+	<span class="keyword">else</span>
+	{
+		rc = 13;
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR Empting the Bag"</span> &lt;&lt; endl;
+	}
+</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step17"></a>Close the PLM session</h3>
+<pre class="code">	<span class="comment">// 17. Close the PLM session
+	//==========================</span>
+	hr = ::<strong>CAAAdpCloseSession</strong>();
+	<span class="keyword">if</span> (FAILED(hr))	{
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"ERROR closing PLM session"</span> &lt;&lt; endl;
+		rc = 14;   
+	}
+	<span class="keyword">else</span>
+		<span class="keyword">cerr</span> &lt;&lt; <span class="string">"PLM session closed"</span> &lt;&lt; endl;
+
+	<span class="keyword">cerr</span> &lt;&lt; <span class="string">"CAADrwCreateDraftingLR  ended"</span> &lt;&lt; endl;
+
+	return rc;
+}</pre>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>Above all this Use Case shows how to set the Scale Preference to Large Range. 
+Preferences should always be returned to their intial value before 
+the end of any implentation.</p>
+<p>Creating a Drawing then a Sheet containing Front and Section Views with a 
+Clipping Box applied to it, serves as a plausible application of the Large Range 
+Scale.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a><br />
+		</td>
+	</tr>
+		<tr>
+		<td style="height: 13px">[2]</td>
+		<td style="height: 13px">
+		<a href="CAADriTaDraftingOverView.htm">
+		Drafting Modeler Overview</a><br />
+		</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jul 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

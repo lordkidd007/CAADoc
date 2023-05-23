@@ -1,0 +1,325 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating a Persistent Filter associated to a Product Root
+</title>
+<style type="text/css">
+.style1 {
+	background-color: #F2F2F2;
+}
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Mofidy a Persistent Filter associated to a Product Root</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This Use Case illustrates the steps involved in the CAA Customization 
+		to modify a Persistent Filter</p>
+		<p>A &quot;<strong>Persistent Filter</strong>&quot; is a PLM Core Reference 
+		type, specialized by the <code>PLMWspPVS</code> Modeler [<a href="#References">1</a>]. 
+		It is a PLM Equivalent of a Filter which an end-user interactively builds 
+		in CATIA with the &quot;<strong>Filter</strong>&quot; command available 
+		in the <strong>&quot;VPM Navigator&quot;</strong> toolbar/workbench. A Filter 
+		consists of the filter criteria and a link to the Root Product, on which 
+		the filter is to be applied. To modify an existing filter, we have to 
+		create a new ExpandSpecification criteria and rebuild the existing 
+		Filter.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAWSPModifyFilters Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAWSPModifyFilters Do</a></li>
+					<li><a href="#How">How to Launch CAAWSPModifyFilters</a></li>
+					<li><a href="#Where">Where to Find the CAAWSPModifyFilters Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>User learns the <code>PLMWorkspaceInterfaces</code> framework capabilities to 
+build a CAA Customization to create Persistent Filter using APIs of class CATPLMPersistentFilterServices. 
+The basic functionality illustrated in this Use-case is</p>
+<ul>
+	<li><strong>Modifying</strong> a Persistent Filter using API. This modified Filter 
+	is associated to a Product root. The Product Structure under this 
+	root is filtered according to the Filtering Criteria provided through new XML 
+	file in code</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAWSPModifyFilters Use Case</h2>
+<p><code>CAAWSPModifyFilters</code> is a use case of the <code>CAAWorkspaceInterfaces.edu</code> 
+framework that illustrates the <code>PLMWorkspaceInterfaces</code> framework 
+capabilities. The module used to showcase the Filter modeler capability is <strong>
+CAAWSPModifyFilters.m </strong> of CAAWorkspaceInterfaces.edu Framework</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAWSPModifyFilters Do</h3>
+<p>The Use-case illustrates the steps to modify an existing Persistent Filter 
+present in database. </p>
+<p>To begin with, the UC retrieves the Root product from an underlying database 
+with the <strong>V_Name</strong> and <strong>majorrevision</strong> 
+attribute value set, its unique identification in the database. Then we build an 
+XML with new Filter criteria to be applied. Then we create a CATAdpPLMExpandSpecification 
+object with the new criteria. Then we retrieve the existing Persistent Filter 
+object from database and modify it using the ModifyPersistentFilter API.</p>
+<p>Since the UC is a batch executable it modifies the Persistent Filter object and 
+saves it in the database. By launching CATIA interactively and querying the 
+Filter object, you can observe that the Root (<strong>CAAFiltersRoot_Assembly)</strong> is 
+Filtered according to the new criteria.</p>
+<p><strong>Note:</strong> You may also retrieve the Root Physical Product by 
+using <strong>PLM_ExternalID</strong> and <strong>majorrevision</strong> as the 
+identification set attributes. This will also guarantee its unicity</p>
+
+<p>We, next see the steps involved to launch the Use Case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAWSPModifyFilters</h3>
+<p>To begin with, import the 3DXML provided with this Framework <code>
+CAAFiltersRootAssembly.3dxml</code>. It contains a Root Product 
+Model as depicted in Fig.1. </p>
+<table>
+	<caption>Fig.1. Product Model</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAWspTaProductModel.jpg" width="394" height="181"/></td>
+	</tr>
+</table>
+<p>To launch <code>CAAWSPModifyFilters</code>, you will need to set up the build 
+time environment, compile <code>CAAWSPModifyFilters</code> along with its prerequisites, 
+set up the runtime environment, and then execute the use case [<a href="#References">1</a>].</p>
+<pre class="code">mkrun -c &quot;CAAWSPModifyFilters Repository Server User password SecurityCtx PLMType V_name majorrevision PLMType2 PLM_ExternalID2&quot;</pre>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		PLM Database/Repository</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host::port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>The PLMType of Physical Product</td>
+	</tr>
+	<tr>
+		<th>V_name</th>
+		<td>A <code>V_name</code> attribute of the Product stored</td>
+	</tr>
+	<tr>
+		<th>majorrevision </th>
+		<td>Version value of the product </td>
+	</tr>
+	<tr>
+		<th>PLMType2</th>
+		<td>The PLMType of Persistent Filter object: PLMWspPVS</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID2</th>
+		<td>A <code>PLM_ExternalID</code> of the Persistent Filter i<span class="style1">n 
+		database which is to be modified</span></td>
+	</tr>
+
+	</table>
+<p>The <code>CAAWSPCaptureQuery_Filter.3dxml</code> file occurs in the <a>
+<code>CAAWorkspaceInterfaces.edu</code></a> fwk. *, at the location</p>
+<p><code>InstallRootFolder\CAADoc\CAAWorkspaceInterfaces.edu\InputData\CAAFiltersRootAssembly.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed. Please refer to document [<a href="#References">1</a>] 
+for how to import such a 3dxml in your PLM repository.</p>
+<p>The details of the Root Product in the 3DXML are listed below:</p>
+<ul>
+	<li><a><code>V_name</code></a>: CAAFiltersRoot_Assembly</li>
+	<li><a><code>majorrevision</code></a>: A</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAWSPModifyFilters Code</h3>
+<p>The <code>CAAWSPModifyFilters</code> use case is made of a class/file located 
+inside <code>InstallRootFolder\CAADoc\CAAWorkspaceInterfaces.edu\CAAWSPModifyFilters.m </code>module</p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are four logical steps in <code>CAAWSPModifyFilters</code>:</p>
+<ol>
+	<li><a href="#Step1">Prolog</a></li>
+	<li><a href="#Step2">Retrieving the Product Root to which the Filter is 
+attached</a></li>
+	<li><a href="#Step3">Build Filter XML</a></li>
+	<li><a href="#Step4">Create Expand specification: To attach Expand Filter to the Product Root</a></li>
+	<li><a href="#Step5">Retrieve Persistent Filter Identificator</a></li>
+	<li><a href="#Step6">Modify Persistent Filter</a></li>
+	<li><a href="#Step7">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Prolog</h3>
+<p>The <code>CAAWSPModifyFilters</code> use case begins by creating a session and 
+connecting to the Input Repository. This, being the most fundamental prerequisite 
+for all batch use cases, it is the first step in their execution.</p>
+<p>In this case, we may connect with the Leader Role (since we are modifying PLM 
+data). There are other parameters as well, details 
+of which can be found in the &quot;<strong>Creating a Basic PLM Batch</strong>&quot; 
+use case article [<a href="#References">2</a>]. This article primarily deals with 
+Opening and Closing a PLM session.</p>
+<p>Further, it also retrieves the PLM Type defined for a <code>PLMCoreReference</code> 
+by the <code>PLMWspPVS</code> Modeler.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the Product Root to which the Filter is 
+attached</h3>
+<p>The PLM type and the Identification Set attribute 
+values together, uniquely identifies a 'Physical Product' in the database.
+</p>
+<pre class="code">
+...
+ 	CATUnicodeString iPLM_ExternalIDValue(iargv[7]);
+	CATUnicodeString imajorrevisionValue(iargv[8]);
+	
+	iListAttributeName.Append("V_name");
+	iListAttributeName.Append(CATCkePLMNavPublicServices::GetMajorRevisionAttributeName(NULL_var).CastToCharPtr());
+	
+	iListAttributeValue.Append(iPLM_ExternalIDValue);
+	iListAttributeValue.Append(imajorrevisionValue);
+	
+ 	CATIAdpPLMIdentificator* opiIDComp = NULL;
+
+	hr = ::CAARetrieveIDofUniquePLMObject (iListAttributeName,iListAttributeValue,														
+							iStrPLMType,opiIDComp);
+...
+</pre>
+<p>The call to <strong>CAARetrieveIDofUniquePLMObject</strong> returns the PLM Identificator 
+of the 'Physical Product'. The Use Case &quot;Querying, Expanding and 
+Opening PLM Components&quot; [<a href="#References">4</a>] details this call further.</p>
+<p>Its input argument <code>spCATType</code>, a <code>CATIType</code>* type, represents 
+the PLM type specialized for a &quot;<code>PLMCoreReference</code>&quot; by the &quot;<code>PLMWspPVS</code>&quot; 
+Modeler.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Build New Filter XML</h3>
+<pre class="code">
+...
+	hr = pPLMExpandFilter.BuildFromXMLExpression( ifilter_string );
+	if (SUCCEEDED(hr)) cout &lt;&lt; "Build XML succeeded..!" &lt;&lt; endl;
+...</pre>
+<p>The call to BuildFromXMLExpression() API builds a CATAdpPLMExpandFilter 
+object with the filter criteria mentioned in the XML string.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Create Expand specification: To attach new Expand Filter to the Product Root</h3>
+<pre class="code">
+...
+	CATAdpPLMExpandSpecification * ipAdpPLMExpandSpecification = new CATAdpPLMExpandSpecification (opiIDComp, pPLMExpandFilter);
+	if (ipAdpPLMExpandSpecification -&gt; IsValid())
+		cout &lt;&lt; "Expand Specification built correctly " &lt;&lt; endl;
+...</pre>
+<p>The CATAdpPLMExpandSpecification object attaches the Expand Filter to the 
+Product Root. It means that the filter criteria is attached to the root. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step5"></a>Retrieve Persistent Filter Identificator</h3>
+<pre class="code">
+...
+	cout &lt;&lt; "  Filter object to be queried : " &lt;&lt; iFilterNameValue.ConvertToChar() &lt;&lt; endl;
+
+	CATIAdpPLMIdentificator* opiPLMIDFilter = NULL;
+	hr = ::CAARetrieveIDofUniquePLMObject (iListAttributeName,iListAttributeValue,														
+					   iStrPLMTypeFilter, opiPLMIDFilter);
+...</pre>
+<p>The call to <strong>CAARetrieveIDofUniquePLMObject</strong> returns the PLM Identificator 
+of the 'Persistent Filter'. This Filter definition needs to be 
+changed.</p>
+<h3><a name="Step6" ></a>Modify Persistent Filter</h3>
+<pre class="code">
+...
+	hr = CATPLMPersistentFilterServices :: ModifyPersistentFilter ( opiPLMIDFilter, ipIAdpPLMExpandSpecification );
+	if (SUCCEEDED (hr))
+		cout &lt;&lt; "	ModifyPersistentFilter succeeded ..!" &lt;&lt; endl;
+...
+</pre>
+<p>The call to ModifyPersistentFilter() API takes existing Filter's 
+PLMIdentificator and new ExpandSpecification as input and modifies the Filter.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Step7"></a>Prolog</h3>
+<p>The Usecase ends with the session closure.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>A batch usecase to illustrate modification of Filter definition.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [July 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+</body>
+
+</html>

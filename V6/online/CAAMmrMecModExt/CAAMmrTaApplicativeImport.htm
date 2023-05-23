@@ -1,0 +1,401 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Managing Applicative Mechanical Imports</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing Applicative Mechanical Imports</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains what are the Mechanical Imports, how to create 
+		them in order to retrieve information on them.</p>
+		<ul>
+			<li><a href="#100000">What Is a Mechanical Import</a></li>
+			<li><a href="#200000">Doing a Mechanical Import by Code</a></li>
+			<li><a href="#300000">Characteristics of an Import</a></li>
+			<li><a href="#400000">Retrieving the Import Characteristics</a></li>
+			<li><a href="#500000">CATIMmiMechanicalImportApplicative Usage</a></li>
+			<li><a href="#600000">Exception</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What is A Mechanical Import?</h2>
+<p>A mechanical import is a mechanical feature which is the result of the copy of 
+another mechanical feature. You know [<a href="#References">1</a>] that in the general 
+case, there are three kinds of copy:</p>
+<ul>
+	<li>Copy inside the same 3D Shape.</li>
+	<li>Copy between two 3D Shape in Assembly context.</li>
+	<li>Copy between two 3D Shape without Assembly context.</li>
+</ul>
+<p>The wording &quot;mechanical import&quot; comes from that the conditions of copy 
+are the following:</p>
+<ul>
+	<li>Copy between two 3D Shapes.</li>
+	<li>Copy with the option &quot;copy as result with link&quot;.</li>
+</ul>
+<p>It means that in the target 3D Shape, the copied feature (the mechanical import) 
+has a link to the original feature which is inside another 3D Shape.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Doing a Mechanical Import by Code</h2>
+<p>By CAA code, there are two means to create a Mechanical Import:</p>
+<ul>
+	<li>Using <em>CATIMmiUseCreateImport</em> interface.</li>
+	<li>Using a specific selection agent, the <em>CATFeatureImportAgent</em> class.</li>
+</ul>
+<p>If you use the <em>CATIMmiUseCreateImport</em> interface, do not forget to use</p>
+<ul>
+	<li>Always <code>SetLinkMode</code> with TRUE option.</li>
+	<li>Optionally <code>SetProducts</code> in case of assembly context.</li>
+</ul>
+<p>The Mechanical Import feature is the result of the copy. Generally it is the 
+feature returned by the <code>Run</code> method. It is true for the following mechanical 
+features : point, line, plan, curve. But it is not true for the following cases:</p>
+<ul>
+	<li>When you copy a PartBody, the <code>Run</code> method returns a Body feature, 
+		but the Mechanical Import is the solid feature.
+		<table>
+			<tr>
+				<td>
+				<img alt="" height="199" src="images/CAAMmrApplicativeImportBodyAvant.jpg" width="175"/></td>
+				<td>
+				<img alt="" height="59" src="images/CAAMmrApplicativeImportBodyApres.jpg" width="105"/></td>
+			</tr>
+		</table>
+		<p>Here <code>Body.2</code> , on the right, is the copy of PartBody, on 
+		the left. <code>Body.2</code> will be the feature returned by the <code>
+		Run</code> method, but the real result of the copy is the feature <code>
+		Solid.1</code>. <code>Solid.1</code> is the Mechanical Import.</p>
+	</li>
+	<li>When you copy a Geometrical Set or Ordered Geometrical Set, the <code>Run</code> 
+		method returns a set feature, but this set is not the Mechanical Import 
+		feature, it is all the elements inside the copied set.
+		<table>
+			<tr>
+				<td rowspan="2">
+				<img alt="" height="321" src="images/CAAMmrApplicativeImportGSAvant.jpg" width="191"/></td>
+				<td>
+				<img alt="" height="62" src="images/CAAMmrApplicativeImportOGSApres.jpg" width="171"/></td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="" height="83" src="images/CAAMmrApplicativeImportGSApres.jpg" width="134"/></td>
+			</tr>
+		</table>
+		<p>On the right-top, <code>Ordered Geometrical Set</code> is the result 
+		of the copy of <code>Orderered Geometrical Set</code>, on le left. <code>
+		Ordered Geometrical Set</code> is the feature returned by the <code>Run</code> 
+		method, but the Mechanical import features are features contained inside
+		<code>Geometrical Set</code> (here one but it can several).</p>
+		<p>On the right-bottom, <code>Geometrical Set</code> is the copy of
+		<code>Geometrical Set</code>, on the left. <code>Geometrical Set</code> 
+		is the feature returned by the <code>Run</code> method, but the Mechanical 
+		import features are features contained inside <code>Geometrical Set</code>.</p>
+	</li>
+	<li>When you copy a sketch feature, the <code>Run</code> method returns a sketch 
+		feature, but it is not the Mechanical Import feature, see below.
+		<p>
+		<img alt="" height="101" src="images/CAAMmrApplicativeImportSketch.jpg" width="137"/></p>
+		<p>Here <code>Sketch.3</code> is the copy of another sketch. <code>Sketch.3</code> 
+		will be the feature returned by the <code>Run</code> method, but the Mechanical 
+		Import is the feature <code>Copy.1</code>.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Characteristics of an Import</h2>
+<p>The characteristics of a mechanical import are:</p>
+<ul>
+	<li>The pointed element.
+		<p>It is the original feature, those which has been copied.</p>
+	</li>
+	<li>The pointed product instance in case of copy in assembly context.
+		<p>Consider this example:</p>
+		<p>
+		<img alt="" height="391" src="images/CAAMmrApplicativeImport2.gif" width="509"/></p>
+		<p>You make a copy of one feature contained inside the 3D Shape of the
+		<code>CAAMmrApplMecImport_RepFeat1</code> PLM Representation Reference [<a href="#References">2</a>] 
+		to the 3D Shape of the <code>CAAMmrApplMecImport_RepFeat2</code> PLM Representation 
+		Reference. If the copy is in assembly context you have used the <code>SetProducts</code> 
+		method on the <em>CATIMmiUseCreateImport</em> interface to specify the target 
+		and source product instance:</p>
+		<ul>
+			<li>The source product instance can be InstChild3 or instChild4.</li>
+			<li>The target product instance can be InstChild1 or instchild2.</li>
+		</ul>
+		<p>The pointed product instance is the source product instance.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Retrieving the Import Characteristics</h2>
+<p>These information can be retrieved thanks <em>CATIMmiMechanicalImportApplicative</em> 
+interface.</p>
+<ul>
+	<li><code>GetPointedElement</code> method, for the pointed element.</li>
+	<li><code>GetSourceProduct</code> method , for the pointed product instance 
+		(occurrence model [<a href="#References">8</a>]).</li>
+</ul>
+<p>But you cannot retrieve these two information if you are not authorized to retrieve 
+them. The authorization mechanism is simple:</p>
+<ul>
+	<li>Either you know the identifier of the startup file (the CATfct file) [<a href="#References">3</a>] 
+		where the copied feature (the original feature) is defined,</li>
+	<li>Or you know the identifier which has been associated with the copy at its 
+		creation step.</li>
+</ul>
+<p>In the both cases, you cannot call the <code>GetPointedElement</code> or the
+<code>GetSourceProduct</code> methods without calling a specific method of the
+<em>CATIMmiMechanicalImportApplicative</em> interface for an authentication step. 
+It is detailed just below.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>The Startup File Identifier</h3>
+<p>The specific method to be able to retrieve the import information is<code> SetPointedElementClientId</code> 
+method. The argument of this method is a string which is the key to open the startup 
+(in the feature catalog) which defines the original feature. This key is defined 
+when the catalog is created [<a href="#References">3</a>]. Here is an extract of 
+the use case creating the Combined Curve catalog:</p>
+<pre class="code">...
+$ CATfctEditorAssistant -update-catalog -catalog-name CAAMmrCombinedCurveCatalog.CATfct 
+-with-client-id SAMPLES -with-osm $PWD/CAAMmrCombinedCurveCatalog.osm
+ -into-directory $PWD
+...</pre>
+<p><code>SAMPLES</code> is the key to be able to open the catalog. It is the same 
+key that you use with <code>SetPointedElementClientId</code>.</p>
+<pre class="code">...
+CATUnicodeString ClientId = "SAMPLES";
+CATIMmiMechanicalImportApplicative * pIFeatureResult = ... ;
+pIFeatureResult-&gt;<strong>SetPointedElementClientId</strong>(ClientId);                     
+...</pre>
+<p>This methodology is illustrated by the referenced use case [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Identifier on the Copy</h3>
+<p>There is another way when we are not the owner of the Startup catalog, or you 
+do not know its identifier. The application copying features can &quot;expose&quot; 
+a special identifier. This identifier is a GUID [<a href="#References">5</a>] . 
+This identifier is associated with the copy when it is created. The process is the 
+following:</p>
+<ul>
+	<li><strong>The application creates a GUID</strong>.
+		<pre class="code">...
+<strong>GUID</strong> MyApplicativeImportID = { 
+    0x7c7b3737,
+    0x5358,
+    0x0000,
+    {0x02, 0x80, 0x02, 0x0b, 0x3e, 0x00, 0x00, 0x00}
+  };               
+...</pre>
+		<p>This definition is set in a header file, <code>MyApplicativeImportID.h</code> 
+		file.</p>
+	</li>
+	<li><strong>The application creates mechanical import with this GUID</strong> 
+		as identifier using the <code>SetImportApplicativeId</code> method.
+		<p>Case with CATIMmrUseCreateImport:</p>
+		<pre class="code">...
+#include &quot;MyApplicativeImportI.h&quot;
+<strong>CATIMmrUseCreateImport</strong> *pIInterPartCopy = ...
+
+pIInterPartCopy.<strong>SetImportApplicativeId</strong>(MyApplicativeImportID);
+
+...
+CATIMmiMechanicalFeature_var ResultCopy ;
+pIInterPartCopy-&gt;<strong>Run</strong>(ResultCopy );
+...</pre>
+		<p>Case with selection agent:</p>
+		<pre class="code">...
+#include &quot;MyApplicativeImportI.h&quot;
+myStateCommand::<strong>BuildGraph</strong>(...)
+{
+    ...
+   CATFeatureImportAgent* pSelectionAgent   = new <strong>CATFeatureImportAgent</strong> ( ...) ;
+    ...
+   pSelectionAgent-&gt; <strong>SetImportApplicativeId</strong>(MyApplicativeImportID);
+
+}          
+...</pre>
+	</li>
+	<li><strong>Then you are able to retrieve the information</strong> using the 
+		GUID and the <code>SetApplicativeId</code> of <em>CATIMmiMechanicalImportApplicative</em>.
+		<pre class="code">...
+#include &quot;MyApplicativeImportI.h&quot;
+CATIMmiMechanicalImportApplicative * pIFeatureResult = ... ;
+pIFeatureResult-&gt;<strong>SetApplicativeId</strong>(MyApplicativeImportID);                     
+...</pre>
+		<p>This methodology is illustrated by the referenced use case [<a href="#References">6</a>].</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="500000"></a>CATIMmiMechanicalImportApplicative Usage</h2>
+<p>This interface is implemented on the GeometricalElement3D feature which are coming 
+from a copy. It is the feature considered as Mechanical Import which implements 
+this interface. You have the detail in the <a href="#200000">Doing a Mechanical 
+Import by Code</a> section.</p>
+<p>The <em>CATIMmiMechanicalImportApplicative</em> interface contains three kinds 
+of method:</p>
+<ul>
+	<li><strong>Authentication</strong>- Those to be authorized to retrieve the 
+		Mechanical import characteristic. See <a href="#300000">Characteristics 
+		of an Import</a>.
+		<p><code>SetApplicativeId</code> or <code>SetPointedElementClientId</code>.</p>
+		<p>If one of these two methods is not called firstly, all the other methods 
+		of the interface will fail.</p>
+		<p>About <code>SetPointedElementClientId</code>: attention, this method 
+		will fail if the original feature is not accessible in session. But you 
+		cannot use the <a href="#Tools">Tools</a> methods to do a check or load 
+		the pointed element. You must explicitly load in edit mode the PLM Representation 
+		Reference containing the pointed element.</p>
+	</li>
+	<li>Retrieving <strong>Mechanical import characteristic</strong>
+		<p><code>GetPointedElement</code> . This method returns the original feature. 
+		This method will fail if:</p>
+		<ul>
+			<li><code>SetApplicativeId</code> or <code>SetPointedElementClientId</code> 
+				not previously called.</li>
+			<li>The PLM Representation Reference is not loaded in memory.</li>
+			<li>The 3D Shape is not loaded ( PLM Rep Ref is PLM Mode), or in a mode 
+				[<a href="#References">2</a>] which is not valid to retrieve features.</li>
+		</ul>
+		<p><code>GetSourceProduct</code>. To retrieve the Product instance. This 
+		method will fail if:</p>
+		<ul>
+			<li><code>SetApplicativeId</code> or <code>SetPointedElementClientId</code> 
+				not previously called.</li>
+			<li>The copy has been done without assembly context.</li>
+			<li>The Product assembly is not loaded in memory.</li>
+		</ul>
+		<p>The retrieved Product instance is an occurrence [<a href="#References">9</a>]. 
+		To retrieve the instance (from the instance/reference model) from the occurrence, 
+		use <code>GetRelatedInstance</code> method of <em>CATIPLMNavOccurrence</em>, 
+		an interface implemented by the object returned by <code>GetSourceProduct</code>.</p>
+	</li>
+	<li><strong><a name="Tools"></a>Tools</strong>
+		<p>There are the first two methods: <code>IsPointedElementLoaded</code> 
+		and <code>LoadPointedElement</code>. These two methods are only usable if 
+		you use an applicative GUID as authentication process.</p>
+		<p><code>IsPointedElementLoaded</code> enables you to know if the pointed 
+		feature is accessible, in other words, it enables you to check, before to 
+		call <code>GetPointedElement,</code> if the pointed element could be returned. 
+		If the pointed element is not loaded, you can call the <code>LoadPointedElement
+		</code>method. This method will do the necessary to load in memory the Part 
+		document. After a successful call to the <code>LoadPointedElement</code> 
+		method, the <code>GetPointedElement</code> must success.</p>
+		<p>And there is the <code>BreakExternalLink</code> method. This method isolates 
+		the Mechanical Import feature, in other words this feature becomes a datum 
+		[<a href="#References">7</a>].</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="600000"></a>Exception</h2>
+<p>On all mechanical imports created before V5R17, you can retrieve the link information 
+without authentication. <code>SetApplicativeId</code>/<code>SetPointedElementClientId
+</code>are useless, but the other methods of the <em>CATIMmiMechanicalImportApplicative</em> 
+interface can be used. Up to V5R17, mechanical imports need to be applicative to 
+retrieve information on them.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>An applicative mechanical import is an import which is tagged or which points 
+an applicative object. The tag or catalog client id is used to obtain information 
+on the import (such as the pointed element).</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrUcInterPartCopy.htm">
+		Copying Mechanical Features</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPstProductModeler/CAAPstTaProductRepRef.htm">
+		PLM Product Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAOsmUcCatalogSU.htm">
+		Creating StartUps in Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrUcImportWithClientId.htm">Retrieving Mechanical Import 
+		Information using ClientID</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysQrOMGUID.htm">
+		About Globally Unique IDentifiers</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAMmrUcApplicativeImport.htm">Retrieving Mechanical Import 
+		Information using GUID Mechanism</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont2.htm">
+		The Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAAPstProductModeler/CAAPstTaProductModels.htm">
+		Product Modeler Presentation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jan 2011]</td>
+		<td>Document updated for V6 modifications</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

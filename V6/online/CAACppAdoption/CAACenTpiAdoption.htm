@@ -1,0 +1,159 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>3D Functional Tolerancing &amp; Annotation Modeler Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>3D Functional Tolerancing &amp; Annotation Modeler Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article lists the CAA PLM SOA modifications, and their adoption 
+		path in the Functional Tolerancing &amp; Annotation domain.</p>
+		<ul>
+			<li><a href="#Introduction">What Has Changed?</a></li>
+			<li><a href="#Retrieving">Creating or Retrieving the 
+			Annotation Set in a 3D Shape Representation Reference</a></li>
+			<li><a href="#Changes">Other Changes</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>What Has Changed?</h2>
+<p>The modifications in the Functional Tolerancing &amp; Annotation APIs, or in APIs 
+applied to FT&amp;A objects are due to two reasons:</p>
+<ol>
+	<li>No more file persistency.
+	<p>FT&amp;A data is now included in a 3D Shape Representation Reference.</p>
+	</li>
+	<li>Product model transformation.
+	<p>The <em>CATIProduct</em> interface is no more exposed. As of today, there 
+	is no way to create a Product Annotation Set.</p>
+	</li>
+</ol>
+<p><strong>PLM Representation Reference</strong> [<a href="#References">2</a>] is 
+a PLM Core type saved in the PLM database.</p>
+<p><strong>In terms of APIs</strong>, the file persistency removal implies that 
+you can no longer use the <em>CATDocument</em> implementation. It means that you 
+cannot use <em><a href="#Retrieving">CATITPSDocument</a></em>,
+<em><a href="#Retrieving">CATIEditor</a></em> on the CATPart files.</p>
+<p>The Functional Tolerancing &amp; Annotation (FT1) openness is based on several Frameworks:</p>
+<ul>
+	<li>CATTPSUseItf and CATTPSBaseUseItf: These two frameworks contains interfaces 
+	to manage FT&amp;A annotations</li>
+	<li>CATTTRSUseItf: This framework contains interfaces to manage TTRS objects.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Retrieving"></a>Creating or Retrieving the Annotation 
+Set in a 3D Shape Representation Reference</h2>
+<p>The Annotation Set is the root object of the FT&amp;A application. You can retrieve 
+all FT&amp;A features from this object [<a href="#References">1</a>].</p>
+<p><strong>With CAA V5</strong>, you retrieve the Annotation Set as follows.</p>
+<pre class="code">...
+<strong>CATDocument</strong>* pDoc = ...;
+CATInit_var spInitOnDoc(pDocPart);
+if(NULL_var != spInitOnDoc)
+{
+  //  Retrieves the Annotation Set from the document
+  //================================================
+  CATITPSDocument *piTPSDoc= NULL;
+  CATITPSSet *piTPSSet = NULL;
+  if (SUCCEEDED(spInitOnDoc-&gt;QueryInterface(IID_CATITPSDocument,(void **)&amp;piTPSDoc)) &amp;&amp; piTPSDoc)
+  {
+    CATITPSList *piTPSList = NULL;
+    if (SUCCEEDED(piTPSDoc-&gt;GetSets(&amp;piTPSList)) &amp;&amp; piTPSList)
+...</pre>
+<p><strong>With CAA PLM SOA</strong>, you cannot access the <em>CATDocument</em> 
+pointer anymore. The way to retrieve the Annotation Set becomes:</p>
+<pre class="code">...
+<strong>CATIPsiRepresentationReference</strong> * piPSIRepRef= ...;
+CATITPSServicesContainers *piTPSServ = NULL;
+if (SUCCEEDED(CATTPSInstantiateComponent (DfTPS_ItfTPSServicesContainer, (void**) &amp; piTPSServ)))
+{
+  // Retrieves the Annotation Set from the Representation Reference
+  // ==============================================================
+  CATITPSSet *piTPSSet = NULL;
+  piTPSServ-&gt;GetSet(piPSIRepRef,&amp;piTPSSet);
+  if (piTPSSet)
+...</pre>
+<p><code>piPSIRepRef</code> is a pointer to a 3D Shape Representation Reference
+<strong>already loaded</strong> in the session.</p>
+<p>The use case Retrieving 3D Annotations from 3D Shape Representation Reference 
+shows you how to retrieve the Annotation Set from the 3D Shape Representation Reference 
+[<a href="#References">1</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Changes"></a>Other Changes</h2>
+<p>The following methods are removed from the
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATTPSBaseUseItf', 'interface', 'CATITPSCapture'); return false;">
+CATITPSCapture</a> interface:</p>
+<ul>
+	<li>GetPartInstAndBody</li>
+	<li>SetPartInstAndBody</li>
+	<li>GetManageHideShowBody</li>
+	<li>SetManageHideShowBody</li>
+</ul>
+<p>The <em>CATITPSAxisStraightness</em> interface is removed. Its implementation 
+cannot not be reached in V5, so you should never have been able to use it.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Most important API&#39;s modifications are due to the <em>CATDocument</em> removal, 
+and the Product Model transformations. Below the Annotation Set, all others APIs 
+are still valid.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAATpiTolerancing/CAATpiUcAccessAnnotation.htm'); return false;">
+		Retrieving 3D Annotations from 3D Shape Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm'); return false;">
+		PLM Representation Reference Overview</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

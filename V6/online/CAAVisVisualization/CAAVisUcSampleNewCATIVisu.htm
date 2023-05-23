@@ -1,0 +1,473 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Making a Component Displayable With Your Own Interface</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Making a Component Displayable With Your Own Interface</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the CAAVisManager use case. This use case explains 
+		how to create and implement a specific visualization interface for geometric 
+		components, how to make the visualization manager aware of this interface 
+		to display these components, and how to catch the visualization notification 
+		to manage the PSO and HSO contents. This article focuses on the specific 
+		visualization interface implementation. </p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAVisManager Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAVisManager Do</a></li>
+					<li><a href="#How">How to Launch CAAVisManager</a></li>
+					<li><a href="#Where">Where to Find the CAAVisManager Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>Geometric components usually implement the visualization interfaces supplied 
+by the Visualization framework, namely <em>CATI3DGeoVisu</em> and <em>CATI2DGeoVisu</em> 
+[<a href="#References">1</a>]. This use case is intended to show how to create and 
+implement a visualization interface of your own to make a geometric component displayable 
+in a 3D viewer, and how to make the visualization manager aware of this interface 
+to display this component. Companion articles of this use case deal with the use 
+of the visualization manager [<a href="#References">2</a>], and with catching visualization 
+notifications [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAVisManager Use Case</h2>
+<p>CAAVisManager is a set of use cases of the CAAVisualization.edu framework that 
+illustrates CATIA Visualization framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAVisManager Do</h3>
+<p>CAAVisManager contains a series of modules that make up a small application. 
+This article focuses on the <em>CAAIVis2DGraphVisu</em> interface, and shows how 
+to create it, and how to implement it for a base geometric component from which 
+derived geometric components, such as a sphere, a cuboid, and a component set, will 
+inherit. It also shows how to implement <em>CATIModelEvents</em> for this base component.</p>
+<p><em>CAAIVis2DGraphVisu</em> provides methods for 3D components that already implement
+<em>CATI3DGeoVisu</em> to also have a 2D graphic representation used to display 
+each object as a labeled box to build a 2D graph in the 3D window. (<em>CATI2GeoVisu</em> 
+could be used instead of creating a new interface.) <em>CAAIVis2DGraphVisu</em> 
+derives from the <em>CATIVisu</em> interface. This is to make the visualization 
+manager aware of your own interface in addition to <em>CATI3DGeoVisu</em> or <em>
+CATI2DGeoVisu</em>. For this reason, never derive your visualization interfaces 
+from <em>CATI3DGeoVisu</em> or <em>CATI2DGeoVisu.</em></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the CAAVisManager</h3>
+<p>To launch CAAVisManager, you will need to set up the build time environment, 
+then compile the four CAAVisManager modules along with their prerequisites, set 
+up the run time environment, and then execute the use case [<a href="#References">4</a>]. 
+You cannot launch CAAVisManager itself. CAAVisManager is simply used by the CAAVisManagerAppli 
+use case. Type CAAVisManagerAppli instead of CAAVisManager to display the interactive 
+application along with a viewer that displays the CAAVisManagerDefaultDocument.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAVisManager Code</h3>
+<p>CAAVisManager code is located in the CAAVisualization.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAVisualization.edu\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">4</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>CAAVisManager includes the following modules:</p>
+<table>
+	<colgroup span="2" valign="top">
+	</colgroup>
+	<tr>
+		<td>CAAVisManagerAppli.m</td>
+		<td>Contains the interactive application, the windows and the documents</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerComp.m</td>
+		<td>Contains the geometric components to display</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerImpl.m</td>
+		<td>Contains the extension classes required to make the geometric components 
+		displayable</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerInt.m</td>
+		<td>Contains the interfaces implemented by the geometric components, especially 
+		the visualization interface. Their header files are located in the PrivateInterfaces 
+		directory</td>
+	</tr>
+</table>
+<p>CAAVisManager includes the following files to create and implement a customized 
+visualization interface:</p>
+<table>
+	<tr>
+		<th>PrivateInterfaces Folder</th>
+	</tr>
+	<tr>
+		<td>CAAIVis2DGraphVisu.h</td>
+		<td>Header file for the customized visualization interface <em>CAAIVis2DGraphVisu</em></td>
+	</tr>
+</table>
+<p>In CAAVisManagerInt.m</p>
+<table>
+	<tr>
+		<th>src Folder</th>
+	</tr>
+	<tr>
+		<td>CAAIVis2DGraphVisu.cpp</td>
+		<td>Source file for the customized visualization interface <em>CAAIVis2DGraphVisu</em></td>
+	</tr>
+</table>
+<p>In CAAVisManagerImpl.m</p>
+<table>
+	<tr>
+		<th>LocalInterfaces Folder</th>
+	</tr>
+	<tr>
+		<td>CAAEVis2DGraphVisuForObject.h</td>
+		<td>Header file for the extension class that implements <em>CAAIVis2DGraphVisu</em></td>
+	</tr>
+	<tr>
+		<td>CAAEVisModelEventsuForObject.h</td>
+		<td>Header file for the extension class that implements <em>CATIModelEvents</em></td>
+	</tr>
+	<tr>
+		<td><strong>CAAVisManagerImpl.m/src directory</strong></td>
+	</tr>
+	<tr>
+		<td>CAAEVis2DGraphVisuForObject.cpp</td>
+		<td>Source file for the extension class that implements <em>CAAIVis2DGraphVisu</em></td>
+	</tr>
+	<tr>
+		<td>CAAEVisModelEventsuForObject.cpp</td>
+		<td>Source file for the extension class that implements <em>CATIModelEvents</em></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To implement <em>CATI3DGeoVisu</em> and <em>CATIModelEvents</em>, there are four 
+main steps:</p>
+<ol>
+	<li><a href="#Step1">Creating the CAAIVis2DGraphVisu Interface</a></li>
+	<li><a href="#Step2">Implementing the CAAIVis2DGraphVisu Interface</a></li>
+	<li><a href="#Step3">Implementing the BuildRep Method of CAAIVis2DGraphVisu</a></li>
+	<li><a href="#Step4">Implementing the CATIModelEvents Interface</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the CAAIVis2DGraphVisu Interface</h3>
+<p>The <em>CAAIVis2DGraphVisu</em> interface is intended to display the set, cuboid, 
+and sphere components in a tree showing the document tree structure. Each component 
+is displayed as a colored box with its type written in the box.</p>
+<ol>
+	<li>The <em>CAAIVis2DGraphVisu</em> header file is located in the PrivateInterfaces 
+		directory.
+		<pre class="code">#include &quot;CATIVisu.h&quot;
+#include &quot;CAT3x3Matrix.h&quot;
+#include &quot;CAAVisManagerInt.h&quot;
+
+extern  ExportedByCAAVisManagerInt IID IID_CAAIVis2DGraphVisu;
+
+class  ExportedByCAAVisManagerInt CAAIVis2DGraphVisu : public CATIVisu
+{
+  CATDeclareInterface;
+  public:
+    virtual CAT3x3Matrix &amp; GetPositioningMatrix()=0;
+    virtual void IncrementPositioningMatrix()=0;
+};</pre>
+		<p><em>CAAIVis2DGraphVisu</em> derives from the <em>CATIVisu</em> interface. 
+		As for any interface, its header file includes the <code>CATDeclareInterface</code> 
+		macro. Its methods are:</p>
+		<table>
+			<colgroup span="2" valign="top">
+			</colgroup>
+			<tr>
+				<td><code>BuildRep</code></td>
+				<td>Inherited from <em>CATIVisu</em>, it builds and returns the 
+				representation associated with the geometric component to display 
+				in a viewer</td>
+			</tr>
+			<tr>
+				<td><code>GetPositioningMatrix</code></td>
+				<td>Returns the representation positioning matrix</td>
+			</tr>
+			<tr>
+				<td><code>IncrementPositioningMatrix</code></td>
+				<td>Computes the representation positioning matrix</td>
+			</tr>
+		</table>
+	</li>
+	<li>The <em>CAAIVis2DGraphVisu</em> source file is located in CAAVisManagerInt.m.
+		<pre class="code">#include &quot;CAAIVis2DGraphVisu.h&quot;
+
+IID IID_CAAIVis2DGraphVisu =  { 
+   0x2ccd5540,
+   0xd884,
+   0x11d3,
+   {0x9e, 0xd6, 0x00, 0x50, 0x8b, 0x12, 0x96, 0xfa} 
+};
+
+CATImplementInterface(CAAIVis2DGraphVisu, <strong>CATBaseUnknown</strong>);</pre>
+		<p>The source file contains the interface IID [<a href="#References">5</a>], 
+		and the <code>CATImplementInterface</code> macro to state that <em>CAAIVis2DGraphVisu</em> 
+		OM-derives [<a href="#References">6</a>] from <em>CATBaseUnknown</em>.</p>
+		<table class="Remark">
+			<tr>
+				<td class="Remark"><span class="run-in">Warning</span>: Note that 
+				even if <em>CAAIVis2DGraphVisu</em> C++-derives from <em>CATIVisu</em>, 
+				it's useless to make it also OM-derive from <em>CATIVisu</em>, and 
+				much safer to OM-derive it from <em>CATBaseUnknown</em>. This satisfies 
+				the Determinism principle in case of your component OM-derives from 
+				another one, or if your component implements several visualization 
+				interfaces that all must C++-derive from CATIVisu.</td>
+			</tr>
+		</table>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Implementing the CAAIVis2DGraphVisu Interface</h3>
+<p>The <em>CAAEVis2DGraphVisuForObject</em> header file is as follows.</p>
+<pre class="code">
+#include &quot;CAAVis2DGraphVisuAdapter.h&quot;
+
+class CAAEVis2DGraphVisuForObject : public CAAVis2DGraphVisuAdapter
+{
+  <strong>CATDeclareClass</strong>;	
+  public :
+
+    CAAEVis2DGraphVisuForObject();
+    virtual ~CAAEVis2DGraphVisuForObject();
+
+    <strong>CATRep * BuildRep();</strong>
+
+  private:
+    CAAEVis2DGraphVisuForObject(const CAAEVis2DGraphVisuForObject &amp;iObjectToCopy);
+
+};</pre>
+<p><em>CAAEVis2DGraphVisuForObject</em> derives from <em>CAAVis2DGraphVisuAdapter</em>, 
+that provides the code for the non described <code>GetPositioningMatrix</code> and
+<code>IncrementPositioningMatrix</code> methods. <em>CAAVis2DGraphVisuAdapter</em> 
+derives from the <em>CATExtIVisu</em> class that provides the methods of <em>CATIVisu</em> 
+that don't need to be redefined. The <code>BuildRep</code> method is the method 
+for making object displayable. As any class that makes up a component, its header 
+file includes the <code>CATDeclareClass</code> macro. Note that the copy constructor 
+is declared as private, and is not implemented. This prevents the compiler from 
+creating a public one without you know. This is to prevent clients from creating 
+instances from an existing one, that they normally should not handle, except using 
+interface pointers.</p>
+<p>The <em>CAAEVis2DGraphVisuForObject</em> source file is as follows.</p>
+<pre class="code">
+...
+#include &quot;TIE_CAAIVis2DGraphVisu.h&quot;
+<strong>TIE_CAAIVis2DGraphVisu(CAAEVis2DGraphVisuForObject);</strong>
+
+<strong>CATImplementClass</strong>(CAAEVis2DGraphVisuForObject,
+                  <strong>DataExtension</strong>,
+                  CATBaseUnknown,
+                  <strong>CAAVisModelObject</strong>);
+
+CAAEVis2DGraphVisuForObject::CAAEVis2DGraphVisuForObject() {}
+
+CAAEVis2DGraphVisuForObject::~CAAEVis2DGraphVisuForObject() {}
+
+<strong>CATRep *</strong> CAAEVis2DGraphVisuForObject::<strong>BuildRep</strong>()
+{
+  ...
+}</pre>
+<p>The main points of this source file are:</p>
+<ul>
+	<li><em>CAAEVis2DGraphVisuForObject</em> implements the <em>CAAIVis2DGraphVisu</em> 
+		interface: this is expressed thanks to the <code>TIE_CAAIVis2DGraphVisu</code> 
+		macro</li>
+	<li><em>CAAEVis2DGraphVisuForObject</em> implements the <em>CAAIVis2DGraphVisu</em> 
+		interface for the <em>CAAVisModelObject</em> component as a data extension. 
+		This is expressed using the <code>CATImplementClass</code> macro</li>
+	<li>The <code>BuildRep</code> method is the only redefined method of <em>CATIVisu</em>. 
+		It should return a pointer to the component representation, that is, a pointer 
+		to a <em>CAT2DRep</em> in this case.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Implementing the BuildRep Method of CAAIVis2DGraphVisu</h3>
+<p>The <code>BuildRep</code> method is implemented using three sub steps.</p>
+<ol>
+	<li>Declaring the representation to return
+		<pre class="code">CATRep * CAAEVis2DGraphVisuForObject::<strong>BuildRep</strong>()
+{
+  <strong>CAT2DBagRep</strong> * pCurrentObjectBagRep = NULL;
+  ...</pre>
+		<p>The <em>CAT2DBagRep</em> class can contain any kind of 2D representation.</p>
+	</li>
+	<li>Creating the box representation
+		<pre class="code">  ...
+  CAAIVisModelObject *PtrVMO=NULL;
+  HRESULT rc = QueryInterface(IID_CAAIVisModelObject,(void **)&amp;PtrVMO);
+  if ( SUCCEEDED(rc) )
+  {
+    char * Type = NULL;
+    PtrVMO-&gt;GetType(&amp;Type);
+
+    pCurrentObjectBagRep = new CAAVis2DGraphBoxRep(Type);
+
+    delete [] Type;
+    ...</pre>
+		<p>The box displays the component type. To retrieve this type, a pointer 
+		to the <em>CAAIVisModelObject</em> interface is needed, with which we can 
+		call the <code>GetType</code> method that returns this type as a character 
+		string. A specific representation, the <em>CAAVis2DGraphBoxRep</em>, is 
+		instantiated.</p>
+	</li>
+	<li>Positioning the representation box in the tree
+		<p>This code is specific to the example. It is not described here and uses 
+		the methods of the adapter.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Implementing the CATIModelEvents Interface</h3>
+<p><em>CAAVisModelEventsForObject</em> implements the <em>CATIModelEvents</em> interface 
+by deriving from the <em>CATExtIModelEvents</em> adapter.</p>
+<ol>
+	<li>Create the header file.
+		<pre class="code">#include &quot;CATExtIModelEvents.h&quot;
+
+class CAAEVisModelEventsForObject : public <strong>CATExtIModelEvents</strong>
+{
+  <strong>CATDeclareClass</strong>;
+  public :
+    CAAEVisModelEventsForObject();
+    virtual ~CAAEVisModelEventsForObject();
+  private :
+  CAAEVisModelEventsForObject(const CAAEVisModelEventsForObject &amp;iObjectToCopy);
+};</pre>
+		<p>As any class that makes up a component, its header file includes the
+		<code>CATDeclareClass</code> macro. None of the <em>CATIModelEvents</em> 
+		methods needs to be redefined. Note that the copy constructor is declared 
+		as private, and is not implemented. This prevents the compiler from creating 
+		a public one without you know. This is to prevent clients from creating 
+		instances from an existing one, that they normally should not handle, except 
+		using interface pointers.</p>
+	</li>
+	<li>Create the source file.
+		<pre class="code">#include &quot;CAAEVisModelEventsForObject.h&quot;
+
+#include &quot;TIE_CATIModelEvents.h&quot;
+TIE_CATIModelEvents(CAAEVisModelEventsForObject);
+
+CATImplementClass(CAAEVisModelEventsForObject,
+                  <strong>DataExtension</strong>,
+                  CATBaseUnknown,
+                  <strong>CAAVisModelObject</strong>);
+
+CAAEVisModelEventsForObject::CAAEVisModelEventsForObject() {}
+
+CAAEVisModelEventsForObject::~CAAEVisModelEventsForObject() {}</pre>
+		<p>The main points of this source file are:</p>
+		<ul>
+			<li><em>CAAEVisModelEventsForObject</em> implements the <em>CATIModelEvents</em> 
+				interface: this is expressed thanks to the <code>TIE_CATIModelEvents</code> 
+				macro</li>
+			<li><em>CAAEVisModelEventsForObject</em> implements the <em>CATIModelEvents</em> 
+				interface for the <em>CAAVisModelObject</em> component as a data 
+				extension. This is expressed using the <code>CATImplementClass</code> 
+				macro</li>
+			<li>The adapter provide the code for the <em>CATIModelEvents</em> methods.</li>
+		</ul>
+	</li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to implement an visualization interface of your own, 
+named <em>CAAIVis2DGraphVisu</em>. It is intended to display a geometric component 
+as a labeled box in an object tree.<em> </em><em>CAAIVis2DGraphVisu</em> is implemented 
+by an extension class of the base graphic component and so applies to all derived 
+graphic component, since the representations differ only by the type printed in 
+the box. The <code>BuildRep</code> method creates and returns the 2D representation 
+that stands for the geometric component in the component tree. The geometric component 
+also implements <em>CATI3DGeoVisu</em> to display in the 3D viewer.</p>
+<p>To enable the representation of the geometric component to be refreshed when 
+the component is modified, the component should implement the <em>CATIModelEvents</em> 
+interface. This is done also using an extension class of the base geometric component, 
+and any derived geometric component inherits the implementation of this interfaces. 
+Usually, deriving from the <em>CATExtIModelEvents</em> adapter is enough, and no 
+method needs to be redefined.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAVisUcSampleCATIVisu.htm">Making a Component Displayable 
+		With CATI3DGeoVisu</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAVisUcSampleVisManager.htm">Using the Visualization Manager</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAVisUcSampleCatchNotifications.htm">Catching the Visualization 
+		Notifications</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysQrOMGUID.htm">
+		About Globally Unique IDentifiers</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMInheritance.htm">
+		Object Modeler Inheritances</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

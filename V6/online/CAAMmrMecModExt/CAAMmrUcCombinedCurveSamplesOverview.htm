@@ -1,0 +1,672 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating a New Geometrical Feature: the Combined Curve</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating a New Geometrical Feature: the Combined Curve</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This use case explains how to create and integrate a <strong>new geometrical 
+		feature</strong>: the <strong>Combined Curve</strong>.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#CombinedCurve">What Is a Combined Curve</a></li>
+			<li><a href="#UseCase">The Combined Curve Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the Combined Curve Use Case Do</a></li>
+					<li><a href="#Overview">Overview of the Combined Curve Use Case 
+						Articles</a></li>
+					<li><a href="#How">How to Launch the Combined Curve Use Case</a></li>
+					<li><a href="#Where">Where to Find the Combined Curve Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step-by-Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case illustrates the section entitled &quot;Creating a New Mechanical 
+Feature&quot; of 
+the Mechanical Modeler chapter. Its main intent is to help you to make your first 
+steps in creating a <strong>new geometrical feature,</strong>&nbsp; a geometrical feature 
+being a mechanical feature with a geometrical result [<a href="#References">1</a>].</p>
+<p>You will learn how to:</p>
+<ul>
+	<li><strong>Create</strong> a new geometrical feature.
+		<p>How to create a new StartUp, how to store it in a feature's catalog and 
+		how to instantiate it. For this part, you can refer to the &quot;Creating 
+		a New StartUp Deriving from a Mechanical StartUp&quot; technical article 
+		[<a href="#References">2</a>] for details.</p>
+	</li>
+	<li><strong>Integrate</strong> it in standard DS Behavior.
+		<p>A feature is completely described by a set of behaviors, in other words 
+		interfaces. Some are inherited from the mechanical feature StartUp, but 
+		some need to be implemented. Among them, there are the mandatory interfaces 
+		(<em>CATIFmFeatureBehaviorCustomization</em> for example) and the Dassault 
+		Syst&#232;mes behavior interfaces to be fully integrated. The technical article 
+		entitled &quot;Integrating a New Mechanical Feature&quot; 
+		gives you an overview of these interfaces [<a href="#References">3</a>].</p>
+	</li>
+</ul>
+<p>The Combined Curve use case forms a set of articles, each describing the creation 
+or the integration. All of these articles illustrate how to integrate some components 
+coming from various DS frameworks, such as the Feature Modeler framework, the Geometric 
+Modeler frameworks or the Dialog and DialogEngine frameworks. Their intent is to 
+focus on the use of the Mechanical Applications platform frameworks: <strong>CATMecModUseItf</strong>,
+<strong>CATMecModLiveUseItf</strong>, <strong>CATMecModUIUseItf</strong>,
+<strong>CATMecModExtendItf</strong>, and <strong>CATMecModUIExtendItf</strong>. 
+A prerequisite knowledge of other frameworks may be required to fully understand 
+this use case, some links with other CAA use cases will help you navigate among 
+them.</p>
+<p>Before getting to the use case, it is important understand&nbsp;
+<strong>what is a Combined Curve</strong>. This is the goal of the next section. 
+You can skip it if you are already familiar with this concept.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CombinedCurve"></a>What Is a Combined Curve</h2>
+<p><em><strong>A Combined Curve is a curve resulting of the intersection of two surfaces</strong></em>, 
+each of them being extruded from a curve along a direction.</p>
+<p>Consequently, a Combined Curve has <strong>two input curves</strong> also named 
+profiles and <strong>two input directions</strong>.</p>
+<table>
+	<caption><a name="Fig1">Fig.1</a>:Combined Curve Inputs</caption>
+	<tr>
+		<td>
+		<img alt="Combined Curve Inputs" height="371" src="images/CombinedCurveDefinition.gif" width="523"/></td>
+	</tr>
+</table>
+<p>The two extruded surfaces are only <em>temporary</em> <em>hidden support</em> objects.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The Combined Curve Use Case</h2>
+<p>The Combined Curve is a use case of the CAAMechanicalModelerExtend.edu framework 
+that illustrates the Mechanical Modeler extended capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the Combined Curve Use Case Do</h3>
+<p>The final intent of this use case is to create a wireframe feature of the 
+Generative Shape 
+Design app. It can be divided into several steps:</p>
+<ol>
+	<li>Creating the Combined Curve <strong>StartUp catalog</strong> -
+		<a href="CAAMmrUcCombCrvCatalog.htm">Creating Combined Curve's Catalog</a>
+		<p>Here is an image of the &quot;CAAMmrCombinedCurveCatalog&quot; feature's 
+		catalog containing the CombinedCurve StartUp. You can note the input specifications: 
+		two curves and two directions, four features.</p>
+		<table>
+			<caption><a name="Fig2">Fig.2</a>: The CombinedCurve StartUp</caption>
+			<tr>
+				<td>
+				<img alt="" height="136" src="images/CAAMmrCombinedCurveStartUp.jpg" width="226"/></td>
+			</tr>
+		</table>
+		<p>The CombinedCurve is a mechanical feature and more precisely a geometrical 
+		feature, so the StartUp hierarchy is the following:</p>
+		<table>
+			<caption><a name="Fig3">Fig.3</a>: The StartUps Hierarchy</caption>
+			<tr>
+				<td>
+				<img alt="" height="337" src="images/CAAMmrCombinedCurveStartUps.jpg" width="182"/></td>
+			</tr>
+		</table>
+	</li>
+	<li>Creating an <strong>interface to instantiate</strong> the new Combined Curve 
+		StartUp - <a href="CAAMmrUcCombinedCurveFactory.htm">Creating Combined Curve's 
+		Factory Interface</a>
+		<p>To create instances of the CombinedCurve StartUp, you should create and 
+		implement a factory interface on the specification container [<a href="#References">8</a>]. 
+		This interface creates a new instance but do not set the newly instance 
+		in a geometrical features set [<a href="#References">7</a>].</p>
+		<table>
+			<caption><a name="Fig4">Fig.4</a>: The CAAIMmrCombCrvFactory Interface</caption>
+			<tr>
+				<td>
+				<img alt="" height="51" src="images/CAAMmrCombinedCurveFactoryInterface.jpg" width="388"/></td>
+			</tr>
+		</table>
+		<p>CATPrtCont is the container containing all the specifications of the 
+		Part feature. This factory interface uses the &quot;CAAMmrCombinedCurveCatalog&quot; 
+		catalog file created in the first step.</p>
+	</li>
+	<li>Creating an interface to <strong>modify or retrieve the input specifications</strong> 
+		of the Combined Curve instances.-
+		<a href="CAAMmrUcCombinedCurveInterface.htm">Creating Combined Curve's Interface 
+		of Type</a>
+		<p>In the <em>CATIFmFeaturebehaviorCustomization</em> implementation, or in 
+		the Combined Curve edition command, it is mandatory to have an access to 
+		the input specifications of the new feature. It is the role of the <em>CAAIMmrCombinedCurve</em> 
+		interface.</p>
+		<table>
+			<caption><a name="Fig5">Fig.5</a>: The CAAIMmrCombinedCurve Interface</caption>
+			<tr>
+				<td>
+				<img alt="" height="62" src="images/CAAMmrCombinedCurveInterfaceType.jpg" width="423"/></td>
+			</tr>
+		</table>
+		<p>With this interface you can retrieve or modify the two curves and the 
+		two directions.</p>
+	</li>
+	<li><strong>Integrating the Combined Curve</strong>
+		<p>The technical article [<a href="#References">3</a>] explains that for 
+		a feature deriving from the GeometricalElement3D StartUp -
+		<a href="#Fig3">Fig.3</a> - the interfaces to take into account to integrate 
+		it in DS behaviors can be classified in three cases:</p>
+		<ul>
+			<li>The mandatory interfaces<ul>
+				<li><strong><em>CATIFmFeatureBehaviorCustomization</em></strong> -
+					<a href="CAAMmrUcCombinedCurveBuild.htm">Building Combined Curves</a>
+					<p>This interface enables you to build the result of the feature. 
+					Reading this technical article [<a href="#References">4</a>] 
+					is strongly recommended before getting to the use case.</p>
+				</li>
+				<li><strong><em>CATIReplace</em></strong>-
+					<a href="CAAMcaUcReplace.htm">Modifying Combined Curve Specifications</a>
+					<p>This interface enables you to define the available elements 
+					for a replacement, and makes the replacement. The way to implement 
+					it is to use the adaptor class CATMmrReplaceAdapter.</p>
+				</li>
+				<li><strong><em>CATIMf3DBehavior</em></strong> -
+					<a href="CAAMmrUcCombinedCurveMf3DBehavior.htm">Defining the Combined Curve's Type</a>
+					<p>This interface enables you specify that the CombinedCurve 
+					StartUp is a surfacic feature. Without this implementation, 
+					you will have wrong behaviors for instances aggregated in a 
+					solid and surfacic features set.</p>
+				</li>
+				<li><strong><em>CATInputDescription</em></strong> -
+					<a href="CAAMmrUcCombinedCurveInputDescription.htm">Integrating
+					 Combined Curves inside Ordered Sets</a>
+					<p>This interface enables you to aggregate the instances of 
+					the CombinedCurve StartUp into ordered sets: in other words: 
+					Ordered Geometrical Set features and Body features.</p>
+				</li>
+				</ul>
+			</li>
+			<li>The Dassault Syst&#232;mes Behavior interfaces<ul>
+				<li><strong><em>CATIMechanicalProperties</em></strong> -
+					<a href="CAAMmrUcCombinedCurveCATIMechPop.htm">Enabling the Build Deactivation</a>
+					<p>This interface enables you to manage the build's activation 
+					status of the combined curve. The <em>CATIFmFeatureBehaviorCustomization</em> 
+					implementation takes the activation status of the combined curve 
+					into account before generating the result. Interactively you 
+					can propose to the end user to choose the state, if you insert 
+					a switch into the contextual menu; It will be explained in the
+					<a href="CAAMmrUcCombinedCurveConSubMenu.htm">Adding a Contextual 
+					Sub-Menu</a> article. See <a href="#Fig7">Fig.7</a></p>
+				</li>
+				<li><strong><em>CATIEdit</em></strong> -
+					<a href="CAAMmrUcCombinedCurveCATIEdit.htm">Editing Combined 
+					Curves</a>
+					<p>This interface of the ApplicationFrame framework enables 
+					editing a Combined Curve instance. It launches the <code>CAAMmrCombCrvPanelStCmd
+					</code>state dialog command. This command can be used in the 
+					creation mode and in the edition mode. For this last mode, refer 
+					to the &quot;<a href="#Instances">Creating 
+					Interactively Instances&quot;</a> step.</p>
+					<p>The <code>CAAMmrCombCrvPanelStCmd</code> state dialog command 
+					uses a dialog box to help the end user enter/modify the input.</p>
+					<p>
+					<table>
+						<caption><a name="Fig6">Fig.6</a>: The Combined Curve Definition 
+						Dialog Box</caption>
+						<tr>
+							<td>
+							<img alt="" src="images/CAAMmrCombinedCurveDlg.jpg" width="249" height="161"/></td>
+						</tr>
+					</table></p>
+				</li>
+				<li><strong><em>CATIContextualSubMenu</em></strong> -
+					<a href="CAAMmrUcCombinedCurveConSubMenu.htm">Adding a Contextual 
+					Sub-Menu</a>
+					<p>This interface of the ApplicationFrame framework enables 
+					you to add commands after the Definition command. This command 
+					is in the sub-menu of the contextual menu associated with the 
+					Combined Curve.</p>
+					<table>
+						<caption><a name="Fig7">Fig.7</a>: The Contextual Sub-Menu 
+						of the Combined Curve Object</caption>
+						<tr>
+							<td>
+							<img alt="" src="images/CAAMmrCombCrvContextualMenuDeac.jpg" width="408" height="113"/></td>
+						</tr>
+					</table>
+					<p>This use case explains how to implement this interface and 
+					how to retrieve Dassault Syst&#232;mes (or other) commands.</p>
+				</li>
+				</ul>
+			</li>
+			<li>For specific case interfaces
+				<ul>
+					<li><strong><em>CATIReplaceUI</em></strong>
+						<p>See the <a href="CAAMcaUcReplace.htm">Modifying Combined Curve Specifications</a> article.</p>
+					<p>&nbsp;</p>
+					</li>
+					<li><strong><em>CATIIcon</em></strong>
+						<p>The MechanicalFeature feature - <a href="#Fig1">Fig.1</a>- 
+						already implements the <em>CATIIcon</em> interface. For a 
+						simple case as the Combined Curve, you only need to provide 
+						an icon whose name is: <strong>I_StartUpName.bmp</strong> 
+						where StartUpName is the name of the StartUp. In the CNext/Resources/graphic/normal 
+						directory of the CAAMechanicalModelerExtend.edu framework, you 
+						will thus find the <strong>I_CombinedCurve.bmp</strong> 
+						file.</p>
+						<table>
+							<caption style="width: 227px"><a name="Fig9">Fig.9</a>: The Combined Curve 
+							Icon</caption>
+							<tr>
+								<td>
+								<img alt="" src="images/CAAMmr_I_CombinedCurve.jpg" width="34" height="39"/></td>
+							</tr>
+						</table>
+						<p>In short, the Combined Curve, deriving from a mechanical 
+						StartUp, benefits from mechanical behaviors, but it should 
+						or could implement other interfaces to be fully integrated.</p>
+					</li>
+					<li><strong><a name="Instances"></a>Creating 
+						Interactively Instances</strong>
+						<p>To create new instances of the Combined Curve, you 
+						will create an add-in of the Generative Shape Design app into which 
+						you will add the Combined Curve Creation command.
+						<a href="CAAMmrUcCombinedCurveAddIn.htm">Creating an Add-in 
+						in the Generative Shape Design App</a></p>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Overview"></a>Overview of the Combined Curve Use Case Articles</h3>
+<p>The documentation of the Combined Curve use case contains the following articles:</p>
+<ul class="wide">
+	<li><a href="CAAMmrUcCombCrvCatalog.htm">Creating Combined Curve's Catalog</a>. 
+		This article describes the creation of the catalog containing the new feature 
+		StartUp definition.</li>
+	<li><a href="CAAMmrUcCombinedCurveFactory.htm">Creating Combined Curve's Factory 
+		Interface</a>. This article describes the creation and the implementation 
+		of the new feature factory interface.</li>
+	<li><a href="CAAMmrUcCombinedCurveInterface.htm">Creating Combined Curve's Interface 
+		of Type</a>. This article describes the creation and the implementation 
+		of the interface which enables you to retrieve or modify the input specifications 
+		of the new feature.</li>
+	<li><a href="CAAMmrUcCombinedCurveBuild.htm">Building Combined Curves</a>. 
+		This article describes the implementation of the <em>CATIFmFeatureBehaviorCustomization</em> 
+		interface on the new feature.</li>
+	<li><a href="CAAMmrUcCombinedCurveCATIMechPop.htm">Enabling the Build Deactivation</a>.
+	 This article describes the implementation of the
+		<em>CATIMechanicalProperties</em> interface on the new feature.</li>
+	<li><a href="CAAMmrUcCombinedCurveInputDescription.htm">Integrating Combined Curves
+	 inside Ordered Sets</a>. This describes the implementation of the
+		<em>CATInputDescription</em> interface on the new feature.</li>
+	<li><a href="CAAMmrUcCombinedCurveMf3DBehavior.htm">Defining the Combined Curve's Type</a>.
+	 This describes the implementation of the <em>CATIMf3DBehavior</em> 
+		interface on the new feature.</li>
+	<li><a href="CAAMcaUcReplace.htm">Modifying Combined Curve Specifications</a>. 
+		This article describes the implementation of the replace mechanism on the 
+		new feature.</li>
+	<li><a href="CAAMmrUcCombinedCurveCATIEdit.htm">Editing Combined Curves</a>. This article 
+		describes editing the new feature through a dialog box and implementing 
+		the <em>CATIEdit</em> interface.</li>
+	<li><a href="CAAMmrUcCombinedCurveConSubMenu.htm">Adding a Contextual Sub-Menu</a>. 
+		This article describes the <em>CATIContextualSubMenu</em> interface implementation</li>
+	<li><a href="CAAMmrUcCombinedCurveAddIn.htm">Creating an Add-in in the 
+	Generative Shape 
+		Design App</a>. This article describes creating an Add-in of the 
+	Generative Shape 
+		Design app to insert the new feature creation command.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the Combined Curve Use Case</h3>
+<p>To launch the Combined Curve use case, you will need to set up the build time 
+environment, then compile the following modules of the CAAMechanicalModelerExtend.edu 
+framework along with their prerequisites:</p>
+<ul>
+	<li>CAAMmrCombinedCurve.m</li>
+	<li>CAAMmrCombinedCurveAddIn.m</li>
+	<li>CAAMmrCombinedCurveReplace.m</li>
+	<li>CAAMmrCombinedCurveUI.m</li>
+	<li>CAAMmrCombinedCurveSample.m</li>
+</ul>
+<p>Next, execute the use case [<a href="#References">6</a>]. Several steps must 
+be followed in order to completely execute the use case:</p>
+<ul>
+	<li>Create the Combined Curve catalog as described in the
+		<a href="CAAMmrUcCombCrvCatalog.htm">Creating Combined Curve's Catalog</a> 
+		article.</li>
+	<li>By batch, launch the following command:
+		<p><code>mkrun -c <em>CAAMmrCombinedCurveSample Repository Server UserID 
+		Password SecurityCtx</em></code></p>
+		<p>Where:</p>
+		<table class="fill">
+			<tr>
+				<th>Repository</th>
+				<td>
+				<script type="text/javascript">insertRepository();</script>
+				</td>
+			</tr>
+			<tr>
+				<th>Server</th>
+				<td>The server as <em>Host:port_number/RootURI</em></td>
+			</tr>
+			<tr>
+				<th>User</th>
+				<td>The user name</td>
+			</tr>
+			<tr>
+				<th>Password</th>
+				<td>The user password to authenticate the user</td>
+			</tr>
+			<tr>
+				<th><strong>SecurityCtx</strong></th>
+				<td>A string representing the security context (Role.Organization.Project). 
+				Choose Role as Designer (as the use case modifies the PLM data)</td>
+			</tr>
+		</table>
+		<p>The result of this executable is provided. A &quot;CAAMmrCombinedCurve.3dxml&quot; 
+		file is stored in the InputData directory of the CAAMechanicalModelerExtend.edu 
+		framework, at the path specified below.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\InputData\CAAMmrCombinedCurve.3dxml\</code></p>
+		<p>where <code>InstallRootFolder</code> [<a href="#References">6</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+		<p>This 3D XML file contains the resulting PLM Representation Reference 
+		with these characteristics:</p>
+		<ul>
+			<li><strong>PLM_ExternalID</strong>: CAAMmrCombinedCurve</li>
+			<li>majorrevision: ---</li>
+		</ul>
+		<p>Please refer to the document [<a href="#References">6</a>] for how to 
+		import and reimport such a 3D XML file in your PLM repository.</p>
+	</li>
+	<li>Launch CATIA. When the application is ready, follow scenarios described 
+		below:
+		<p>The <strong>Creation</strong> scenario:</p>
+		<ul>
+			<li>Launch <kbd>Generative Shape Design</kbd> app from the <kbd>3D</kbd> quadrant of the compass.</li>
+			<li>Activate <kbd>Wireframe</kbd> section of the action bar.</li>
+			<li>Create four points with the <kbd>Point</kbd> command.</li>
+			<li>Create two lines with the <kbd>Line</kbd> command.</li>
+			<li>Create two splines with the <kbd>Spline</kbd> command.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section of the action bar.</li>
+			<li>Create a Combined Curve with the <kbd>Combined Curve</kbd> command
+				<img alt="" src="images/CAAMmr_I_CombinedCurve.jpg" width="34" height="39"/> 
+				.</li>
+		</ul>
+		<p>The <strong>Edition</strong> scenario:</p>
+		<ul>
+			<li>Double click the <strong>Combined Curve</strong> instance.</li>
+		</ul>
+		<p>The <strong>Contextual-SubMenu</strong> scenario:</p>
+		<ul>
+			<li>Right click the <strong>Combined Curve</strong> and select
+				<kbd>Parent/Children</kbd>.</li>
+			<li>Right click the <strong>Combined Curve</strong> and select
+				<kbd>Activate</kbd>.</li>
+			<li>Right click the <strong>Combined Curve</strong> and select
+				<kbd>Deactivate</kbd>.</li>
+		</ul>
+		<p>Once the Combined Curve is created, try the <strong>Replace</strong> 
+		scenario:</p>
+		<ul>
+			<li>Open <strong>CAACombinedCurveReplace</strong> <a href="#Note">(*)</a>.</li>
+			<li>Select <strong>Line.1</strong> (second direction).</li>
+			<li>Choose the <kbd>Replace</kbd> item in the contextual menu
+				<ul>
+					<li>Select <strong>Line.5</strong>.</li>
+					<li>Click <kbd>OK</kbd> in the Replace dialog box.</li>
+				</ul>
+			</li>
+			<li>Select <strong>Line.3</strong> (second curve).</li>
+			<li>Choose the <kbd>Replace</kbd> item in the contextual menu:
+				<ul>
+					<li>Select <strong>Line.6</strong>.</li>
+					<li>Click <kbd>OK</kbd> in the Replace 
+						dialog box.</li>
+				</ul>
+			</li>
+			<li>Select <strong>Line.5</strong> (new second direction).</li>
+			<li>Choose the <kbd>Replace</kbd> item in the contextual menu:
+				<ul>
+					<li>Select an edge of <strong>Pad.1</strong>.</li>
+					<li>Click <kbd>OK</kbd> in the Replace 
+						dialog box.</li>
+				</ul>
+			</li>
+			<li>Select <strong>Line.6</strong> (new second curve).</li>
+			<li>Choose the <kbd>Replace</kbd> item in the contextual menu:
+				<ul>
+					<li>Select <strong>Line.3</strong>.</li>
+					<li>Click on the <kbd>green arrow</kbd> to invert
+						<strong>Line.3</strong>.</li>
+					<li>Click <kbd>OK</kbd> in the Replace 
+						dialog box.</li>
+				</ul>
+				<p><a name="Note">(*)</a>This represents a PLM Representation Reference 
+				which is provided in the CAAMmrCombinedCurveReplace.3dxml file, 
+				at the path specified below.</p>
+				<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\InputData\CAAMmrCombinedCurveReplace.3dxml\</code></p>
+				<p>where <code>InstallRootFolder</code> [<a href="#References">6</a>] 
+				is the folder where the API CD-ROM is installed.</p>
+				<p>This 3D XML file contains a PLM Representation Reference with 
+				these characteristics:</p>
+				<ul>
+					<li><strong>PLM_ExternalID</strong>: CAAMmrCombinedCurveReplace</li>
+					<li>majorrevision: ---</li>
+				</ul>
+				<p>Please refer to the document [<a href="#References">6</a>] for 
+				how to import and reimport such a 3D XML file in your PLM repository.</p>
+			</li>
+		</ul>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h3><a name="Where"></a>Where to Find the Combined Curve Code</h3>
+		<p>The Combined Curve use case is made of a several modules of the CAAMechanicalModelerExtend.edu 
+		framework:</p>
+		<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\</code></p>
+		<p>where <code>InstallRootFolder</code> [<a href="#References">6</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+		<p>These modules are:</p>
+		<ul>
+			<li><strong>CAAMmrCombinedSample.m</strong> - This module contains one 
+				main program, CAAMmrCombinedSample.cpp. It is an executable batch 
+				program that was used to create a Part feature containing a Combined 
+				Curve. After its creation, the new Combined curve is updated.</li>
+			<li><strong>CAAMmrCombinedCurve.m</strong> - This module contains the 
+				implementations of the <em>CATIFmFeatureBehaviorCustomization</em> 
+				(manages the build operation called during the update of the Combined 
+				Curve), the definition and the implementation of the <em>CAAIMmrCombinedCurveFactory</em> 
+				(manages the Combined Curve StartUp instantiation), the <em>CAAIMmrCombinedCurve</em> 
+				(manages the access to the input specifications of the Combined 
+				Curve), the <em>CATInputDescription</em>, the <em>CATIMechanicalProperties</em>, 
+				and the <em>CATIMf3DBehavior</em> interface.
+				<ul>
+					<li>CAAEMmrCombinedCurveBehavior.cpp, the header file is in 
+						the LocalInterfaces directory</li>
+					<li>CAAEMmrCombCrvFactory.cpp, the header file is in the LocalInterfaces 
+						directory</li>
+					<li>CAAEMmrCombinedCurve.cpp, the header file is in the LocalInterfaces 
+						directory</li>
+					<li>CAAIMmrCombCrvFactory.cpp, the header file is in the PublicInterfaces 
+						directory of the CAAMechanicalModelerExtend.edu framework:</li>
+					<li>CAAIMmrCombinedCurve.cpp, the header file is in the PublicInterfaces 
+						directory of the CAAMechanicalModelerExtend.edu framework</li>
+					<li>CAAEMmrCombCrvInputDescription.cpp, the header file is in 
+						the LocalInterfaces directory</li>
+					<li>CAAEMmrCombinedCurveMechProp.cpp, the header file is in 
+						the LocalInterfaces directory</li>
+					<li>CAAEMmrCombCrvMf3DBehavior.cpp, the header file is in the 
+						LocalInterfaces directory</li>
+					<li>CAAEMmrCombCrvCkeFeature.cpp, the header file is in the 
+						LocalInterfaces directory</li>
+				</ul>
+			</li>
+			<li><strong>CAAMmrCombinedCurveAddIn.m</strong> - This module contains 
+				the implementation of the <em>CATIShapeDesignWorkshopAddin</em> interface. 
+				In other words, it defines an Add-in to the Generative Shape 
+			Design app.
+				<ul>
+					<li>CAAEMmrCombinedCurveAdn.cpp, the header file is in the LocalInterfaces 
+						directory</li>
+				</ul>
+			</li>
+			<li><strong>CAAMmrCombinedCurveReplace.m</strong> - This module contains 
+				the implementation of the <em>CATIReplace</em> and <em>CATIReplaceUI</em> 
+				interfaces. It enables integration of the Combined Curve in the 
+				replace mechanism.
+				<ul>
+					<li>CAAEMmrCombinedCurveReplace.cpp, the header file is in the 
+						LocalInterfaces directory</li>
+					<li>CAAEMmrCombinedCurveReplaceUI.cpp, the header file is in 
+						the LocalInterfaces directory</li>
+				</ul>
+			</li>
+			<li><strong>CAAMmrCombinedCurveUI.m</strong> - This module contains 
+				the implementation of the <em>CATIContextualSubMenu</em> and <em>CATIEdit</em> 
+				interfaces. The implementation of this last interface launches 
+				a state command with a Dialog box to create Combined Curve instances.
+				<ul>
+					<li>CAAEMmrCombinedCurveEdit, the header file is in the LocalInterfaces 
+						directory</li>
+					<li>CAAMmrCombCrvPanelStCmd, the header file is in the LocalInterfaces 
+						directory</li>
+					<li>CAAEMmrCombinedCurveDlg, the header file is in the LocalInterfaces 
+						directory</li>
+					<li>CAAEMmrCombinedCurveContSubMenu, the header file is in the 
+						LocalInterfaces directory</li>
+				</ul>
+			</li>
+		</ul>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h2><a name="Step-by-Step"></a>Step-by-Step</h2>
+		<p>You can now successively get to:</p>
+		<ul>
+			<li><a href="CAAMmrUcCombCrvCatalog.htm">Creating Combined Curve's Catalog</a></li>
+			<li><a href="CAAMmrUcCombinedCurveFactory.htm">Creating Combined Curve's 
+				Factory Interface</a></li>
+			<li><a href="CAAMmrUcCombinedCurveInterface.htm">Creating Combined Curve's 
+				Interface of Type</a></li>
+			<li><a href="CAAMmrUcCombinedCurveBuild.htm">Building Combined Curves</a></li>
+			<li><a href="CAAMmrUcCombinedCurveCATIMechPop.htm">Enabling the Build Deactivation</a></li>
+			<li><a href="CAAMmrUcCombinedCurveMf3DBehavior.htm">Defining the Combined 
+				Curve's Type</a></li>
+			<li><a href="CAAMmrUcCombinedCurveInputDescription.htm">Integrating 
+				Combined Curves inside Ordered Sets</a></li>
+			<li><a href="CAAMcaUcReplace.htm">Modifying Combine Curve Specifications</a></li>
+			<li><a href="CAAMmrUcCombinedCurveCATIEdit.htm">Editing Combined Curves</a></li>
+			<li><a href="CAAMmrUcCombinedCurveConSubMenu.htm">Adding a Contextual 
+				Sub-Menu</a></li>
+			<li><a href="CAAMmrUcCombinedCurveAddIn.htm">Creating an Add-in in the 
+			Generative Shape Design App</a></li>
+		</ul>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h2><a name="InShort"></a>In Short</h2>
+		<p>The Combined Curve Sample shows how to 
+		create your own geometrical Feature.</p>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h2><a name="References"></a>References</h2>
+		<table>
+			<tr>
+				<td>[1]</td>
+				<td>
+				<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont2.htm">
+				The Geometrical Features</a></td>
+			</tr>
+			<tr>
+				<td>[2]</td>
+				<td><a href="CAAMmrTaCreatingNewFeat.htm">Creating a New StartUp 
+				Deriving from a Mechanical StartUp</a></td>
+			</tr>
+			<tr>
+				<td>[3]</td>
+				<td><a href="CAAMmrTaFeatureIntegration.htm">Integrating a New Mechanical Feature</a></td>
+			</tr>
+			<tr>
+				<td>[4]</td>
+				<td><a href="CAAMmrTaBuildIntegrating.htm">Integrating a New Geometrical 
+				Feature in the Update Mechanism</a></td>
+			</tr>
+			<tr>
+				<td>[6]</td>
+				<td>
+				<a href="../CAADocUseCases/CAADocRunSample.htm">
+				Building and Launching a Use Case</a></td>
+			</tr>
+			<tr>
+				<td>[7]</td>
+				<td>
+				<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont1.htm">
+				The Geometrical Feature Sets</a></td>
+			</tr>
+			<tr>
+				<td>[8]</td>
+				<td>
+				<a href="../CAAMmrMecMod/CAAMmrTa3DShape.htm">
+				From the PLM Representation to the 3D Shape</a></td>
+			</tr>
+		</table>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h2><a name="History"></a>History</h2>
+		<table>
+			<tr>
+				<td>Version: <strong>1</strong> [Mar 2000]</td>
+				<td>Document created</td>
+			</tr>
+			<tr>
+				<td>Version: <strong>2</strong> [Jan 2003]</td>
+				<td>Document updated</td>
+			</tr>
+			<tr>
+				<td>Version: <strong>3</strong> [Jan 2005]</td>
+				<td>Document updated for CATIMechanicalProperties introduction</td>
+			</tr>
+			<tr>
+				<td>Version: <strong>4</strong> [Jan 2011]</td>
+				<td>Document updated for V6 modifications</td>
+			</tr>
+		    <tr>
+		        <td>Version: <strong>5</strong> [Mai 2014]</td>
+		        <td>Document updated for 3DEXPERIENCE platform migration</td>
+	        </tr>
+
+		</table>
+		<script type="text/javascript">insertLinkToTop();</script>
+		<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<script type="text/javascript">insertCopyright();</script>
+	</li>
+</ul>
+
+</body>
+
+</html>

@@ -1,0 +1,393 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding, Versioning</title>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Versioning</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>This article details the versioning principles.&nbsp; </p>
+      <ul>
+        <li><a href="#a PLM Operation">Versioning a PLM Operation</a><ul>
+        <li><a href="#Short Transaction">Short Transaction</a></li>
+		<li><a href="#Applicable on stand-alone PLM Components">
+		Applicable on Stand-Alone PLM Objects</a></li>
+		<li><a href="#V_version Attribute">Based on V_Version attribute</a></li>
+      </ul>
+    	</li>
+		<li><a href="#Duplication Operation Based on Family Concept">
+		What Does the Versioning Operation Do?</a><ul>
+        <li><a href="#PLM Component Duplication">PLM Object 
+		Duplication</a></li>
+		<li><a href="#Family Context Keeping">Family Context Keeping </a>
+		</li>
+      </ul>
+    	</li>
+		<li><a href="#Versioning Principles">Versioning Principles</a><ul>
+			<li><a href="#Based on Maturity Graph">Based on Maturity Graph</a></li>
+			<li><a href="#Linear Process">Linear Process</a></li>
+			<li><a href="#Applicability Date">Applicability Date</a></li>
+		</ul></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="a PLM Operation"></a> Versioning a  PLM 
+Operation </h2>
+<p>On PLM Objects [<a href="#References">1</a>] it is possible to apply PLM 
+operations such as Query, Expand, Open and Save (named QEOPS operations).&nbsp; 
+The versioning belongs to another group of PLM operations, the CrUD operations with 
+the Create, Delete, Update, Change maturity [<a href="#References">2</a>] 
+operations.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3 align="left"><a name="Short Transaction"></a>Short Transaction</h3>
+<p align="left">The versioning is a &quot;<b>server</b>&quot; operation, it means that the 
+version is directly created in database. Therefore the PLM Object 
+to version <b>must not be loaded in session.</b> </p>
+<p align="left">Nevertheless you have specific API to version PLM Objects 
+already loaded in session. But even if the PLM Object is in session, the 
+versioning operation is always done on the server. You will have more 
+information with the referenced technical article &quot;SaveAs Services. Principles and Features" [<a href="#References">10</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><strong><a name="Applicable on stand-alone PLM Components"></a>Applicable on 
+Stand-Alone PLM Objects</strong></h3>
+<p>The only one PLM Objects which can be versioned are the &quot;Separable&quot; 
+PLM Objects, in other words the PLM References, and the PLM 
+Representation References. To simplify the wording in this article, <b>PLM reference 
+</b>will 
+be used for the two kinds of PLM Objects. </p>
+<p>About the PLM Representation Reference the concept has to be more accurate. 
+Only the multi-instantiable PLM Representation Reference [<a href="#References">11</a>] 
+can be <i>direclty</i> versioned.
+<script type="text/javascript">insertLinkToTop()</script>
+
+If you try to version a mono-instantiable PLM Representation Reference it will 
+fail. A mono-instantiable PLM Representation Reference will be only versioned 
+through the versioning of its PLM Reference.</p>
+
+<h3><a name="V_version Attribute"></a>Based on V_version Attribute</h3>
+<p>The version is kept in the <b>V_version</b> attribute [<a href="#References">3</a>], 
+a string attribute. This attribute is inherited from the PLM Core Reference, it 
+means that your PLM reference natively owns this attribute. The only constraint is that this attribute 
+must be part of the identifier set. </p>
+<p>V_version is a read-only public attribute, you have access to its value, 
+thanks a modeler's API, or the <code>GetPublicAttributes</code> of the <i>
+CATIPLMNavEntity</i> interface, but 
+you cannot modify it.&nbsp; Only the server can modify the value. The default 
+implementation to increment a version is the following:&nbsp; </p>
+<ul>
+	<li>first&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ---</li>
+	<li>second : --A</li>
+	<li>third&nbsp;&nbsp;&nbsp;&nbsp; : --B</li>
+</ul>
+<p>and so on using alphabetic order. Nevertheless, this default implementation 
+can be customized as described in the 
+referenced article []. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="Duplication Operation Based on Family Concept"></a>What Does the 
+Versioning Operation Do?</h2>
+<p>The versioning operation is a duplication operation. The first section, 
+<a href="#PLM Component Duplication">PLM Object Duplication</a>, details the first aspect of the duplication: what kind 
+of PLM Objects are duplicated, and how they are duplicated. The second section, 
+<a href="#Family Context Keeping">Family Context Keeping</a>, presents the second aspect of the duplication: what is 
+the link between the original and duplicated PLM Objects. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Component Duplication"></a>PLM Object Duplication </h3>
+<p>The versioning consists in duplicating the PLM reference, and all its 
+aggregated PLM Objects.</p>
+<p>&nbsp;</p>
+<table border="0" id="table2">
+	<caption><a name="Fig.1">Fig.1</a> Duplication Operation</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmVersioningPrinciples_duplication1.gif" width="675" height="453"></td>
+	</tr>
+</table>
+<p>On the left you have the PLM Object (<code>CAAMyRef ---</code>) before the version, 
+and on the right the versioned PLM Object (<code>CAAMyRef --A</code>) .
+</p>
+<ul>
+	<li><b>PLM reference duplication</b></li>
+</ul>
+<blockquote>
+	<p>From the original PLM Object, a new PLM Object is created.&nbsp; 
+	<code>CAAMyRef--- </code>and <code>CAAMyRef--A</code> are two PLM distinct components : each one 
+	at its own PLM Object identifier (<i>CATIAdpPLMIdentificator</i>). For 
+	more details about the PLM Object Identifier read the referenced article&nbsp; [<a href="#References">5</a>].</p>
+</blockquote>
+<ul>
+	<li><b>Aggregating PLM Objects are duplicated too</b></li>
+</ul>
+<blockquote>
+	<p>All the aggregated PLM Objects of the PLM Reference to version are re-created 
+	on the new version: each PLM instances ( <code>Inst1 </code>and 
+	<code>inst2</code>), each PLM Representation Instances (<code>Rep 
+	Inst1</code>), each PLM Connections (<code>Cntx1</code>), and each PLM Ports 
+	(<code>Port1</code>).</p>
+	<p>Like the new PLM reference, the new aggregated PLM Objects have 
+	their own PLM Object identifier. </p>
+</blockquote>
+<ul>
+	<li><b>No Recursivity</b></li>
+</ul>
+<blockquote>
+	<p>Only the first level of the PLM reference is duplicated: the references of 
+	the aggregated PLM Representation instances ( <code>CAAMySubRepRef1</code> ) 
+	are 
+	not versioned, and the references of the aggregated PLM instances (<code>CAAMySubRef1</code> 
+	and <code>CAAMySubRef2</code> ) are also not versioned. </p>
+	<p>Note: It is the basic 
+	behavior, the one applies by the <code>NewVersion</code> method of the <i>
+	CAAAdpVersionServices</i> class. Interactively, you can have command 
+	proposing a group of versioning. </p>
+</blockquote>
+<ul>
+	<li><b>Port and Connection are re-routed</b></li>
+</ul>
+<blockquote>
+	<p>On the left of [<a href="#Fig.1">Fig.1</a>] you can see that <code>CAAMyRef 
+	---</code> aggregates a PLM Connection (<code>Cntx1</code>) pointing two PLM 
+	instances, and that <code>CAAMyRef ---</code> aggregates a PLM Port (<code>Port1</code>) 
+	pointing a PLM instance (to simplify). On the right, on the version, you 
+	can see that the new PLM Connection, and the new PLM port pointe to the new PLM 
+	Instances, those of<code> CAAMyRef --A</code>.&nbsp; A re-route operation has 
+	been automatically done. </p>
+</blockquote>
+<ul>
+	<li><b>Keeping same Attributes except some specific cases</b></li>
+</ul>
+<blockquote>
+	<p>All attributes of each duplicated PLM Objects are valuated from the 
+	PLM Object to version, except the following: </p>
+	<ul>
+		<li>V_version : on the new PLM reference, the value is modified to be 
+		incremented ,</li>
+		<li>V_User&nbsp;&nbsp;&nbsp;&nbsp; : on the&nbsp; new PLM Objects, 
+		the user creating the version,</li>
+		<li>+ specific server attributes, as creation data, are different for 
+		the new PLM Objects.</li>
+	</ul>
+</blockquote>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Family Context Keeping"></a>Family Context Keeping </h3>
+<p>In the previous section, we have seen that the versioning operation creates 
+new PLM Objects, each one being a new PLM Object in the database, so with 
+its own PLM Object identifier. This unique identifier is the physical 
+identifier.&nbsp; But on each PLM Object there is also a <b>logical</b> 
+identifier.&nbsp; This identifier defines the PLM Object <b>family</b>.&nbsp; 
+The versioning operation creates new PLM Objects with the same logical 
+identifier as the original components.&nbsp; A picture to illustrate that:</p>
+
+<table border="0" id="table3">
+	<caption><a name="Fig.2">Fig.2</a> Logical Identifier Keeping</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmVersioningPrinciples_duplication2.gif" width="673" height="448"></td>
+	</tr>
+</table>
+<p>The above picture is the exactly the same one as [<a href="#Fig.1">Fig.1</a>], 
+we have just added the identifiers of each PLM Object (P for physical 
+identifier, and L for logical identifier). You can see that:</p>
+<ul>
+	<li>Each PLM Objects has its own physical identifier, </li>
+	<li>The original PLM reference , and its version have the same logical 
+	identifier (<code>L1</code>): All the versions of a PLM Object are of the 
+	same family. </li>
+	<li>Each aggregated PLM Object keeps its family: (<code>L2</code>) for 
+	Rep Inst1 , (<code>L3</code>) for Inst1 ...&nbsp; </li>
+</ul>
+<p>[<a href="#Fig.1">Fig.2</a>] does not show the identifiers of <code>CAAMySubRepRef1</code> 
+or <code>CAAMySubRef1</code> , the references of the aggregated instances, since 
+previously we have seen that the versioning does not affect these elements. </p>
+<p>This logical identifier is not accessible, conversely to the physical 
+identifier, there is no exposed API to retrieve them.&nbsp; For more details, about 
+the logical identifier, and the role of the PLM Object family, you can read 
+the referenced article&nbsp; [<a href="#References">6</a>]. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2 align="left"><a name="Versioning Principles"></a>Versioning Principles</h2>
+<p align="left">Just above, we have seen the internal aspects of the versioning, 
+now let's see how the versioning is applicable, and usable. </p>
+<h3 align="left"><a name="Based on Maturity Graph"></a>Based on Maturity Graph</h3>
+<p align="left">A PLM reference can be version if the PLM Object is not 
+locked by another user, if you have the right to modify it, and if its <b>
+maturity state</b> is &quot;versionable&quot;.&nbsp; </p>
+<p align="left">The referenced article details the PLM Maturity Graph principles 
+[<a href="#References">7</a>], but in short, each PLM Object class [<a href="#References">8</a>] can 
+redefine (a default one exist) a Finite State machine (FSM). </p>
+<table border="0" id="table6">
+	<caption>Fig.3 Maturity Graph</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmVersioningPrinciples_FSM.gif" width="236" height="305"></td>
+	</tr>
+</table>
+<p>Each PLM Object is in a state, and you can change its state, by applying a 
+transition. Each state defines 3 behavior controls: not removable, not editable, 
+and not versionable. If the PLM Object is in a state where the control is 
+&quot;not versionable&quot;, you cannot version the component. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3 align="left"><a name="Linear Process"></a>Linear Process</h3>
+<p align="left">The <a href="#Family Context Keeping">Family Context Keeping</a> section has shown that when a 
+PLM Object is versioned, the new PLM Object keeps the same family, so that all the 
+versions builds a family. But it does not explain the versioning process : which 
+PLM Objects can  
+be versioned? </p>
+<p align="left">In fact, the process is linear, it means 
+that you can only version the last versioned PLM Object of the family.</p>
+<table border="0" id="table4">
+	<caption><a name="Fig.4">Fig.4</a> Linear Process</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmVersioningPrinciples_LinearProcess.gif" width="430" height="366"></td>
+	</tr>
+</table>
+<p>If a PLM Object has been already versioned, you cannot create a new 
+version from it.&nbsp; [<a href="#Fig.4">Fig. 4</a>] just above shows that the third version of CAAMyRef can only 
+be done from <code>CAAMyRef --B</code>, and not from <code>CAAMyRef --A</code>. </p>
+<p>There is no API to retrieve the last version from any PLM Object of a 
+family, and&nbsp; the CAA APIs, the <code>NewVersion</code> method of the <i>
+	CATAdpVersionServices</i> class does not take into account this principle. </p>
+<table class="code" id="table5">
+  <tr>
+    <td>
+      <pre>...
+CATAdpVersionServices::<b>NewVersion</b>(CATIAdpPLMIdentificator* iPLMCompToVersion,CATTime&amp; ,CATIAdpPLMIdentificator*&amp; oVersionedPLMComp) 
+...</pre>
+    </td>
+  </tr>
+</table>
+<p><code>iPLMCompToVersion</code> must be the last version of the family.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3 align="left"><a name="Applicability Date"></a>Applicability Date</h3>
+<p align="left">At last, we should speak about the second argument of the <code>NewVersion</code> 
+method. It is the applicability date ( a <i>CATTime</i> value) of the new 
+version to create. </p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article shows that the versioning is a PLM Operation with the main 
+following characteristics:</p>
+<ul>
+	<li>only available for PLM Reference and PLM Representation Reference</li>
+	<li>Short transaction: the version is done in database ( so the PLM Object to version must not be in session)</li>
+	<li>It is a duplication operation keeping the logical identifier </li>
+	<li>Only the last versioned Component can be versioned</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <colgroup>
+		<col valign="top" span="1">
+	</colgroup>
+    <td valign="top">[1]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">PLM Core Model Overview</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td>PLM Operations (to provide)</td>
+  </tr>
+  <tr>
+    <td valign="top" height="16">[3]</td>
+    <td height="16">
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">
+	PLM Data Model Attributes</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[4]</td>
+    <td>
+	PLM Opening: Versioning Naming</td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAPlmTaCATIAdpPLMIdentificator.htm">Understanding PLM Object Identification</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[6]</td>
+    <td><a href="CAAPlmTaComponentFamily.htm">PLM Object Family</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[7]</td>
+    <td><a href="CAAAdpUcMaturity.htm">PLM Maturity 
+	Graph Principles</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[8]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">
+	PLM Data Model Customization</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[9]</td>
+    <td><a href="CAAAdpUcVersioning.htm">Versioning PLM Object</a></td>
+  </tr>
+
+  <tr>
+    <td valign="top">[10]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlxServerAccessX/CAAPlxTaSaveAsTechArticle.htm')">
+SaveAs Services. Principles and Features</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[11]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm">
+	PLM Representation Reference Overview</a></td>
+  </tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Nov 2006]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop()</script>
+  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+
+

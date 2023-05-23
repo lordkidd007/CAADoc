@@ -1,0 +1,461 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Initializing the Applicative Container at Runtime</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Initializing the Applicative Container at Runtime</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the CAAPstINFInitCont use case. This use case 
+		explains what necessary initialization tasks must be performed at the time 
+		of loading the container in session.</p>
+		<p>This article is one among a set of articles which together discuss the &quot;Integrating 
+		Applicative Data in Product Context&quot; use case [<a href="#References">3</a>].
+		</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstINFInitCont Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAPstINFInitCont Do</a></li>
+					<li><a href="#Launch">How to Launch CAAPstINFInitCont</a></li>
+					<li><a href="#Where">Where to Find the CAAPstINFInitCont Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to illustrate how to program the necessary initialization 
+tasks that must be performed in order for certain feature behaviors to function 
+correctly at runtime.</p>
+<ul>
+	<li>Visualization.</li>
+	<li>Navigation in spec tree.</li>
+	<li>Cut, Copy, and Paste operations.</li>
+</ul>
+<p>All these behaviors, which are native for DS features, require some tasks from 
+your end when these applicative features are inside applicative container. All these 
+tasks are fully explained in the &quot;Understanding Applicative Container Integration&quot; 
+technical article [<a href="#References">2</a>]. You mainly learn that you should 
+use the Provider mechanism to see your features in 3D or in the specification tree. 
+This mechanism, such as other ones, must be declared when the container is first 
+loaded in session: The <em>CATInit</em> implementation is the right place to make 
+these initializations.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstINFInitCont Use Case</h2>
+<p>The CAAPstINFInitCont is is a use case defined in the CAAProductStructureExtend.edu 
+framework that illustrates the integration of FeatureModelerExtend framework capabilities 
+in the scope of a Product structure.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the CAAPstINFInitCont Use Case Do</h3>
+<p>This use case essentially describes the applicative container's implementation 
+of the <em>CATInit</em> interface in which the necessary provider declarations and 
+feature inter-connections are performed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Launch"></a>How to Launch the CAAPstINFInitCont Use Case</h3>
+<p>See the section entitled &quot;How to Launch the CAAPstINFIntegrateNewFeatures 
+Use Case&quot; in the &quot;Integrating Applicative Data in Product Context&quot; 
+[<a href="#References">1</a>] use case for a detailed description of how this use 
+case should be launched.</p>
+<p>Specifically, the code described in this article is executed upon loading the 
+PLM Product Reference into the V6 session. (You can use CAAPstINFProductRef.3dxml 
+file in the InputData directory of the CAAProductStructureExtend.edu framework).
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstINFInitCont Code</h3>
+<p>This use case describes the implementation class of the <em>CATInit</em> interface, 
+called <em>CAAEPstINFInitCont</em>, which is found in the CAAEPstINFInitCont.cpp 
+source file and CAAEPstINFInitCont.h header file of the CAAPstINFModeler.m shared 
+library.</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructureExtend.edu\CAAPstINFModeler.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>These are the logical steps in CAAPstINFInitCont:</p>
+<ul>
+	<li><a href="#Step1">Creating the Applicative Container Extension</a></li>
+	<li><a href="#Step2">Declaring Available Providers</a></li>
+	<li><a href="#Step3">Connecting Features to their Visualization Roots</a></li>
+	<li><a href="#Step4">Subscribing to Feature Events for View-Refresh</a></li>
+</ul>
+<p>We will now comment each of these sections by looking at the code.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the Applicative Container Extension</h3>
+<p>The <em>CATInit</em> implementation is a <strong>data extension</strong> of the 
+applicative container. This data extension is the <em>CAAEPstINFInitCont</em> class.</p>
+<ul>
+	<li><a href="#Step11">Creating the CAAEPstINFInitCont Header File</a></li>
+	<li><a href="#Step12">Creating the CAAEPstINFInitCont Source File</a></li>
+	<li><a href="#Step13">Adding an Entry in the Interface Dictionary</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step11"></a>Creating the CAAEPstINFInitCont Header File</h4>
+<pre class="code">class <strong>CAAEPstINFInitCont</strong> : public CATBaseUnknown
+{
+  CATDeclareClass;
+
+public:
+ 
+  // Standard constructors and destructors for an implementation class
+  // -----------------------------------------------------------------
+  CAAEPstINFInitCont();
+  virtual ~CAAEPstINFInitCont();
+
+  // Initializes the applicative container.
+  void <strong>Init</strong> (CATBoolean iDestroyExistingData) ;
+
+  // Empty implementation.
+  CATBaseUnknown* <strong>GetRootContainer</strong> (const CATIdent iInterfaceID);
+
+  private:
+  // Copy constructor and equal operator, not implemented
+  // Set as private to prevent the compiler from automatically creating them as public.
+  // -------------------------------------------------------------------
+  CAAEPstINFInitCont (CAAEPstINFInitCont &amp;);
+  CAAEPstINFInitCont&amp; operator=(CAAEPstINFInitCont&amp;);
+};</pre>
+<p>The <em>CAAEPstINFInitCont</em> C++ class derives from <em>CATBaseUnknown</em>. 
+The <code>CATDeclareClass</code> macro declares that the <em>CAAEPstINFInitCont</em> 
+class belongs to a component. The copy constructor and the &quot;=&quot; operator 
+are set as private to prevent the compiler from automatically creating as public.</p>
+<p>The <em>CATInit</em> interface contains two methods:</p>
+<ul>
+	<li><code>Init</code>, to declare the behavior - see the next steps.</li>
+	<li>GetRootContainer, this method returns a NULL pointer in this implementation. 
+		If your container only contains one root, the method can return it. This 
+		method is not used by a DS engine.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step12"></a>Creating the CAAEPstINFInitCont Source File</h4>
+<pre class="code">...
+#include &quot;TIE_CATInit.h&quot;
+TIE_CATInit(CAAEPstINFInitCont);
+
+CATImplementClass (CAAEPstINFInitCont,
+		   DataExtension,
+		   CATBaseUnknown,
+		   <strong>CAAPstINFCont</strong>);</pre>
+<p>The <code>CATImplementClass</code> macro is used in conjunction with the
+<code>CATDeclareClass</code> macro in the class header file to express that the 
+class is part of a CAA Object Modeler component. Its argument read as follows:
+</p>
+<ol>
+	<li>CAAEPstINFInitCont: the class name.</li>
+	<li><code>DataExtension</code>: the CAA Object Modeler class type.</li>
+	<li>CATBaseUnknown: unused for extensions.</li>
+	<li><strong>CAAPstINFCont</strong>: the name of the extended component. This 
+		component is the not the name of the applicative container, it is its late 
+		type [<a href="#References">4</a>].</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step13"></a>Adding an Entry in the Interface Dictionary</h4>
+<pre class="code">...
+CAAPstINFCont      CATInit     libCAAPstINFContainer  
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Declaring Available Providers</h3>
+<p>The necessary declarations related to the applicative container that must be 
+performed at runtime can be made in the implementation of the <code>Init</code> 
+method of <em>CATInit</em>. This method is executed at the time the PLM Technological 
+is loaded in <strong>Edit mode</strong> into the interactive session.</p>
+<p>It essentially contains the declarations of the provider implementations that 
+have been supplied in order to integrate new features in various V6 mechanisms. 
+In this use case, we illustrate the navigation and visualization providers.</p>
+<pre class="code"><strong>void CAAEPstINFInitCont::Init (CATBoolean destroyExistingData)</strong>
+{
+   <strong>CATIProviderManager</strong> *piProvidersMgr = NULL;
+   HRESULT rc = ::CATInstantiateComponent("<strong>CAARepVisuProvider</strong>",
+			               IID_CATIProviderManager,
+				      (void **) &amp;piProvidersMgr);
+...   
+</pre>
+<p>Essentially, this method performs the provider declarations for navigation and 
+visualization. First it retrieve the provider's manager dedicated to the PLM Representation 
+Reference (<code>CAARepVisuProvider</code>).</p>
+<pre class="code">...
+   CAAPstNavigProvForCAAPstINFCont * pCAAPstNavigProvForCAAPstINFCont = new CAAPstNavigProvForCAAPstINFCont();
+   rc = piProvidersMgr-&gt;<strong>AddProvider</strong>(IID_<strong>CATINavigateProvider</strong>,pCAAPstNavigProvForCAAPstINFCont); 
+						 
+   CAAPstVisuProvForCAAPstINFCont * pCAAPstVisuProvForCAAPstINFCont = new CAAPstVisuProvForCAAPstINFCont();
+   rc = piProvidersMgr-&gt;<strong>AddProvider</strong>(IID_<strong>CATI3DVisuProvider</strong>, pCAAPstVisuProvForCAAPstINFCont);				 
+...</pre>
+<p><em>CAAPstNavigProvForCAAPstINFCont</em> and <em>CAAPstVisuProvForCAAPstINFCont</em> 
+are two OM Components implementing respectively:</p>
+<ul>
+	<li><em>CATINavigateProvider</em>, see the detail of this class in this article 
+		[<a href="#References">5</a>].</li>
+	<li><em>CATI3DVisuProvider</em>, see the detail of this class in this article 
+		[<a href="#References">6</a>].</li>
+</ul>
+<p>We can release the provider implementation pointer , since the manager of provider 
+keeps an handle on them. We release the manager of provider too</p>
+<pre class="code">...
+  pCAAPstNavigProvForCAAPstINFCont-&gt;Release() ;
+  pCAAPstNavigProvForCAAPstINFCont = NULL;
+  pCAAPstVisuProvForCAAPstINFCont-&gt;Release() ; 
+  pCAAPstVisuProvForCAAPstINFCont = NULL;
+
+  piProvidersMgr-&gt;Release();
+  piProvidersMgr = NULL;				 
+...</pre>
+<p>The contextual menu is managed by another Provider. The contextual menu is optional, 
+you must export the variable "<code>CAAPstINFContMenu</code>" ( value can be whatever) 
+to have the two following piece of codes executed.</p>
+<pre class="code">...  
+  rc = ::CATInstantiateComponent("<strong>CAAPrdVisuProvider</strong>",
+			       IID_CATIProviderManager,
+			     (void **) &amp;piProvidersMgr); 
+...			     
+</pre>
+<p>We retrieve the provider's manager dedicated to the PLM Reference (<code>CAAPrdVisuProvider</code>) 
+to manage contextual menu.</p>
+<pre class="code">...  
+  <strong>CAAPstCtxMenuProvForCAAPstINFCont</strong> * pCAAPstCtxMenuProvForCAAPstINFCont = new CAAPstCtxMenuProvForCAAPstINFCont();
+  rc = piProvidersMgr-&gt;<strong>AddProvider</strong>(IID_CATICtxMenuProvider, pCAAPstCtxMenuProvForCAAPstINFCont);
+...			     
+</pre>
+<p><em>CAAPstCtxMenuProvForCAAPstINFCont</em> is an OM Component implementing
+<em>CATICtxMenuProvider.</em></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Connecting Features to their Visualization Roots</h3>
+<p>In this section you will see how each feature root is connected to the PLM Representation 
+Instance, and each aggregated feature is connected to its feature root. This connecting 
+operation is necessary in order for the visualization process to work correctly.</p>
+<ol>
+	<li><strong>Retrieve the PLM Representation Instance</strong>.
+		<p>The container implementing <em>CATInit</em> is inside a PLM Technological 
+		Representation which is mono-instantiatable. So <em>CAAPstRetrieveTechnoRep</em> 
+		retrieves easily this instance of PLM representation Reference.</p>
+		<pre class="code">...
+CATBaseUnknown * pTechnoRepInstance = NULL ;
+::<strong>CAAPstRetrieveTechnoRep</strong>(this,&amp;pTechnoRepInstance);		    
+...</pre>
+		<p><em>CAAPstRetrieveTechnoRep</em> is a global function defined in another 
+		use case [<a href="#References">7</a>].</p>
+	</li>
+	<li><strong>Retrieve the root features</strong>
+		<pre class="code">...
+<strong>CAAIPstINFFactory</strong>* piFactoryOnAppliCont = NULL;
+rc = QueryInterface(IID_CAAIPstINFFactory, (void **) &amp;piFactoryOnAppliCont);
+
+CATListPtrCATBaseUnknown ListRoot ;
+rc = piFactoryOnAppliCont-&gt;<strong>GetRootElements</strong>(IID_CATBaseUnknown,ListRoot);         
+...	</pre>
+		<p>This, the container, implements <em>CAAIPstINFFactory.</em> This interface 
+		contains several methods whose the one to retrieve all the root features 
+		(<em>CAAPstINFRoot features)</em> [<a href="#References">8</a>]</p>
+	</li>
+	<li><strong>Connect each root feature to the PLM Representation Instance
+		</strong>
+		<pre class="code">...
+<strong>CATIModelEvents_</strong>var spModelEventsOnInstTechnoRep ;
+spModelEventsOnInstTechnoRep = pTechnoRepInstance ;
+...    
+for ( int i=1 ; i &lt;= ListRoot.Size(); i++ )
+{
+   CATBaseUnknown * pCurrentRoot = <strong>ListRoot[i]</strong> ;
+   if ( NULL != pCurrentRoot )
+   {
+      spModelEventsOnInstTechnoRep-&gt;<strong>ConnectTo</strong>(pCurrentRoot);         
+...</pre>
+		<p>For each <em>CAAPstINFRoot</em> of the list, <code>ListRoot</code>, retrieved 
+		in the previous step, we connect it to the PLM Representation Instance using 
+		the <code>ConnectTo</code> method of <em>CATIModelEvents</em>. <code>spModelEventsOnInstTechnoRep</code>, 
+		is a smart pointer on <em>CATIModelEvents</em> for the PLM Representation 
+		Instance.</p>
+	</li>
+	<li><strong>Retrieve the features aggregated by a root</strong>
+		<p>Inside the previous loop, for each <code>CAAPstINFRoot</code> features-
+		<code>pCurrentRoot</code> - we first retrieve its aggregated features.</p>
+		<pre class="code">...
+<strong>CAAIPstINFRoot</strong>* pCAAIPstINFRootOnRoot = NULL;
+pCurrentRoot-&gt;QueryInterface(IID_CAAIPstINFRoot,(void**)&amp;pCAAIPstINFRootOnRoot);
+           
+if ( (spiModelEvtsOnRoot!= NULL_var) &amp;&amp; ( NULL!=pCAAIPstINFRootOnRoot) )
+{
+   CATListValCATBaseUnknown_var ListChildOfCurrentRoot ;
+   rc = pCAAIPstINFRootOnRoot-&gt;<strong>GetChildren</strong>(ListChildOfCurrentRoot) ;
+...</pre>
+		<p><em>CAAIPstINFRoot</em> implemented by <code>CAAPstINFRoot</code> feature 
+		contains the <code>GetChildren</code> method [<a href="#References">8</a>]. 
+		It is a list of elements of the our data model ( <code>CAAPstINFPoint/</code><code>CAAPstINFLine/</code><code>CAAPstINFWire/CAAPstINFExternalLine/CAAPstINFExternalInstance</code>)</p>
+	</li>
+	<li><strong>Connect every aggregated feature to its root.</strong>
+		<pre class="code">...
+<strong>CATIModelEvents</strong>_var spiModelEvtsOnRoot = pCurrentRoot ; 
+for ( int j=1 ; j &lt;= ListChildOfCurrentRoot.Size(); j++ )
+{
+   spiModelEvtsOnRoot-&gt;<strong>ConnectTo</strong>(ListChildOfCurrentRoot[j]);
+}   
+...</pre>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Subscribing to Feature Events for View-Refresh</h3>
+<p>In this section you will see that for Refreshing the View and the specification 
+tree, an event-based technology has been introduced. The events are emitted by the 
+Feature Modeler internally whenever there is any modification in the features. So 
+basically here we first create credential object giving ownership to all the catalogs 
+wherein we are interested to refresh the View for its features, then we create a 
+Subscriber of the user-defined class (this user - defined class has the code to 
+View-Refresh) and then at last we call the Subscribe() method which in turn calls 
+the call-back method or the User-defined method of the previously mentioned user-defined 
+class (<em>OnEvent( )</em> method in this case).</p>
+<ol>
+	<li><strong>We build the Credentials object with required catalogs ownership.</strong>
+		<pre class="code">...
+	CATFmCredentials MyCredential;
+	rc = MyCredential.RegisterAsCatalogOwner("CAAPstINFExtensionCatalog.CATfct","CAAPstINFUseCase");
+...</pre>
+	</li>
+	<li><strong>Then we build the Catalog Facade object with right credentials for 
+		all catalogs that we intend to use this event-based technology.</strong>
+		<pre class="code">...
+	CATFmCatalogFacade CatalogFacade (MyCredential, "<strong>CAAPstINFCatalog.CATfct</strong>");
+	CATFmCatalogFacade CatalogFacade2 (MyCredential, "<strong>CAAPstINFCatalog2.CATfct</strong>");
+	CATFmCatalogFacade CatalogFacadeExt (MyCredential, "<strong>CAAPstINFExtensionCatalog.CATfct</strong>");
+...</pre>
+		<p><strong>Note</strong>: Only the features in these catalogs will get refreshed 
+		on modifications</p>
+	</li>
+	<li><strong>We create the subscriber object of user-defined class i.e. 'CAAPstEventSubscriber' 
+		in this case</strong>
+		<pre class="code">...
+	CAAPstEventSubscriber *<strong>subscriber</strong> = new CAAPstEventSubscriber;
+...</pre>
+	</li>
+	<li><strong>Finally we call the Subscribe() method, for every Catalog Facade 
+		object since one Catalog Facade object can contain only one catalog</strong>
+		<pre class="code">...
+	rc = CatalogFacade.Subscribe(*subscriber, (CATFmEventSubscriberMethod) &amp;CAAPstEventSubscriber::OnEvent);
+	if ( FAILED(rc) ) return;
+	rc = CatalogFacade2.Subscribe(*subscriber, (CATFmEventSubscriberMethod) &amp;CAAPstEventSubscriber::OnEvent);
+	if ( FAILED(rc) ) return;
+...</pre>
+		<p><strong>Note</strong>: Here OnEvent() is the User-Defined method which 
+		contains the code to View Refresh and Spec-tree Update.</p>
+	</li>
+</ol>
+<p>For more detailed information and clear understanding you can refer to: Managing 
+View Refresh article [<a href="#References">9</a>] and Managing Feature Events for 
+View Refresh article for Feature events concept and also User-defined method [<a href="#References">10</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The CAAPstINFInitCont use case has shown you how to initialize the applicative 
+container at runtime so that navigation and visualization processes can take into 
+account these new features through provider declarations, visualization connections, 
+and View Refresh.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPstUcINFIntegrateNewFeatures.htm">Integrating Applicative 
+		Data in Product Context</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPstTaProviders.htm">Understanding Applicative Container 
+		Integration</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAPstUcCreateAndInstantiateTechnoRep.htm">Creating PLM Technological 
+		Representation</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAPstUcINFNavigate.htm">Enabling Specification Tree Navigation</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAPstUcINFVisuProvider.htm">Enabling Visualization</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAPstUcINFExtensionProvider.htm">Managing Applicative Container 
+		with Feature Extension</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAPstUcINFIntrinsicFeatBehavior.htm">Inherent StartUp Behavior</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAPstUcINFMVCUpdate.htm">Managing View Refresh</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAPstTaManagingFeatureEventsForViewRefresh.htm')">
+		Managing Feature Events for View Refresh</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jan 2011]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

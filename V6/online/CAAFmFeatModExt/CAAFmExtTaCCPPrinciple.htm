@@ -1,0 +1,175 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Cut, Copy, Paste Principle</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Cut, Copy, Paste Principle</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains basic notions about the Cut, Copy and Paste 
+		operations, also named CCP. You will learn some useful information about 
+		the <em>DataCommonProtocolCCPServices</em> class (DataCommonProtocolUse framework) </p>
+		<ul>
+			<li><a href="#Definition">Definitions</a><ul>
+				<li><a href="#Stream">Stream</a></li>
+				<li><a href="#Container">Container</a></li>
+				<li><a href="#Clipboard">Clipboard</a></li>
+				<li><a href="#Format">Format</a></li>
+			</ul>
+			</li>
+			<li><a href="#CCP Principle">CCP Principle</a><ul>
+				<li><a href="#Copy">Copy</a> 
+					<li><a href="#Paste">Paste</a></li>
+				 
+				 
+				<li><a href="#Cut">Cut</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Definition"></a>Definitions</h2>
+<p>We start by explaining the main words that you meet when you do CCP 
+opetations.</p>
+<h3><a name="Stream"></a>Stream</h3>
+<p>A PLM Representation Reference aggregates (logically) a structure containing 
+a main stream, and secondaries ones.&nbsp; The main stream contains 
+technological data. In CAA, you can only work with nthe main stream.</p>
+<h3><a name="Container"></a>Container</h3>
+<p>A container is the persistency structure. A container is a structure which 
+can contain any kind of object implementing a protocol defined by Object Modeler 
+Base, but in CAA, the containers that you handle, only contain feature. </p>
+<h3><a name="Clipboard"></a>Clipboard</h3>
+<p>A clipboard is like a container except it is a temporary structure. they are 
+used for the CCP operations. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Format"></a>Format</h3>
+<p>The format defines the way to copy the objects. Let&#8217;s take the Mechanical modeler as example to illustrate the purpose. When you copy a Mechanical feature, you can notice there are three kinds of paste format:  &#8220;Paste as Spec&#8221;, &#8220;Paste As Result&#8221; and &#8220;Paste as Result with Link&#8221;.</p>
+<ul>
+<li><strong>Paste as Spec.</strong> it  consists in creating a &#8220;clone&#8221; of the original feature.  The result of the copy is a new feature with input specifications that you can change later.
+</li>
+<li><strong>Paste As Result</strong> consists in creating a &#8220;dead&#8221; mechanical feature. Its geometry is exactly the same as the original one, but the new feature is without &#8220;input specifications&#8221;, you cannot change its input to change its geometry.
+</li>
+<li><strong>Paste As Result with Link </strong>consists in creating a &#8220;dead&#8221; mechanical feature too but in keeping a link to the original feature.  If the input of the original feature are modified, the geometry of the copy will be updated too.
+</li>
+</ul>
+<p>Each type of container defines its available format. For the Mechanical container (<code>CATPrtCont</code> for those used to work with Mechanical 
+modeler), there are three kinds of format (at least, because we don&#8217;t have given all the formats of this container). 
+<strong>But for a CAA applicative container, there is only one format: the &#8220;Paste As Spec&#8221;.  You cannot add your own type of format.
+</strong> 
+</p>
+<p>When a feature is copied, the process retrieves all the formats available on the container containing the feature 
+to copy, and as many clipboards 
+as many formats available on the source container are created.</p>
+<table>
+	<caption><a name="Fig.1">Fig.1 </a>Copy with # source Format</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtCCPPrinciple01.png"></td>
+	</tr>
+</table>
+<p>On the picture just above, we are copying the feature A. Its container supports two formats, so the feature is copied according to these 2 formats: 
+two clipboards are created (Clipboard-Format1, Clipboard-Format2)</p>
+<table>
+	<caption><a name="Fig.2">Fig.2</a> Paste with target Format</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtCCPPrinciple02.png"></td>
+	</tr>
+</table>
+<p>When the paste operation occurs, according to the formats of the target container, the paste could fail, if among the common formats, one is not 
+the input format for the paste. </p>
+<p>Suppose Format of the target container are Forma1 and Format3. </p>
+<ul>
+<li>	If the paste is required with Paste1 ok</li>
+<li>	If the paste is required with Paste2 ko</li>
+<li>	If the paste is required with Paste3 ko</li>
+</ul>
+<p><strong>API Information</strong></p>
+<p>The <code>GetAvailableFormats</code> method of the <em>DataCommonProtocolCCPServices</em> 
+class returns the list of formats available for a list of feature to copy and a target. This method retrieves all the common formats between the first element to copy and the target. So if the elements 
+to copy, given in the input list for <code>GetAvailableFormats</code> and <code>CopyAsPaste</code> 
+, are the same but not set in the same order, the <code>CopyAsPaste</code> 
+method can fail.
+</p>
+<p><strong>Note</strong>:  
+</p>
+<ul>
+	<li>The string of the format  &#8220;Paste As Spec&#8221; is not &#8220;Paste As Spec&#8221; but the container type.  Example,
+	<code>CATPrtCont</code> for Mechanical modeler. 
+</li>
+	<li>&nbsp;For CAA features, the only one supported format is &#8220;Paste As Spec&#8221;, so it means that the four methods
+	<code>CcpRegisterAdditionalObjectsForCopy</code>, <code>CcpUpdate</code>, 
+	<code>CcpRegisterAdditionalObjectsForRemove</code>, <code>CcpPaste</code> will only be called for a &#8220;Paste As Spec&#8221; format.
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="CCP Principle"></a>CCP Principle</h2>
+<p>In few words how it works.</p>
+<h3><a name="Copy"></a>Copy </h3>
+<p>The object selected for the copy are duplicated in the clipboard according to 
+the source format. See [<a href="#Fig.1">Fig. 1</a>] </p>
+<h3><a name="Paste"></a>Paste</h3>
+<p>The objects of the clipboard, created for the paste format, are copied in the 
+target container. See [<a href="#Fig.2">Fig. 2</a>] </p>
+<h3><a name="Cut"></a>Cut </h3>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>After these basic explanations, you can pursue with the article about the 
+customization of the CCP operations. [<a href="#References">1</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtUcCopyPasteCusto.htm">CCP Customization</a></td>
+	</tr>
+
+	</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

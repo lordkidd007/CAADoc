@@ -1,0 +1,636 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<link rel="stylesheet" type="text/css" href="../CAAShrResources/caav5.css"/>
+<script type="text/javascript" src="../CAAShrResources/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAAShrResources/submit.js">/* */</script>
+<title>Change Modeler Description &amp; Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Change Modeler Description &amp; Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This article presents the Change modeler, and explains how to customize 
+		it.</p>
+		<ul>
+			<li><a href="#Description">Description</a>
+			<ul>
+				<li><a href="#Conceptual Model">Conceptual Model</a></li>
+				<li><a href="#Implementation Model">Implementation Model</a></li>
+				<li><a href="#Business Logic Description">Business Logic</a></li>
+			</ul>
+			</li>
+			<li><a href="#Customization">Customization</a>
+			<ul>
+				<li><a href="#Modeler PLM Package Customization">PLM Package Customization</a></li>
+				<li><a href="#UI mask customization">UI Mask Customization</a></li>
+				<li><a href="#Business Logic Customization">Business Logic Customization</a></li>
+			</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Description</h2>
+<p>This section first presents the objects representing the Change modeler. Then 
+it describes how this object model view has been translated towards PLM objects 
+based on PLM Core Modeler objects. You will see the description of each PLM package 
+defining these PLM objects.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Conceptual Model"></a>Conceptual Model</h3>
+<p>Purpose of Change topic is to authorize, track and validate modifications on 
+all kind of PLM objects. Change modeler object captures change intent and implementation 
+mostly by referencing PLM objects.</p>
+<p>This is summarized in the following UML schema:</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Change, Model</caption>
+	<tr>
+		<td><img alt="" src="CAAChange_ConceptualMdl.jpg"/></td>
+	</tr>
+</table>
+<p><strong>ECA</strong>: stands for Engineering Change Action. It is the main object 
+of the Change modeler. It represents a change. An ECA can be break down into &quot;child&quot; 
+ECA (to dispatch implementation to several user for instance).</p>
+<p>All PLM objects needed to perform the change are referenced by the ECA. Each 
+referencing has its own semantic:</p>
+<ul>
+	<li>Reported Against Item context into which change have to be performed</li>
+	<li>Attachement attachments are objects manually &quot;attached&quot; to an ECA. Attachments 
+	are not affected by the modifications; they are merely there for reference.</li>
+	<li>Affected Items Two categories of Affected Items:
+	<ul>
+		<li>Objects that need to be modified/versioned because of the ECA</li>
+		<li>Objects where no direct modification is expected because of the ECA 
+		but where related objects need to be modified. For instance: add a product 
+		as input in a manufacturing ECA where the aim is to modify the related process.</li>
+	</ul>
+	They are manually associated to ECA.</li>
+	<li>Related Changes Related ECAs (but not Parent-child)</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Implementation Model"></a>Implementation Model</h3>
+<p>The Change model is implemented with PLM Core Object as follows:</p>
+<table>
+	<caption>Fig.1 PLM Core Objects</caption>
+	<tr>
+		<td><img alt="" src="CAAChange_ImplementationMdl.jpg"/></td>
+	</tr>
+</table>
+<p>Out of the box, several type of ECA are provided (Design, Documentation, Maintenance, 
+Manufacturing and SignOff). Above schema is the same for each type (just replace 
+xxx by one of the 5 value).</p>
+<p>The following array shows the links between the conceptual and PLM Core objects:</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="fill">
+	<tr>
+		<th>Model Object</th>
+		<th>PLM Modeler Type</th>
+		<th>PLM Core Type</th>
+		<th>Modeler PLM Package</th>
+	</tr>
+	<tr>
+		<td>ECA</td>
+		<td>
+		PLMDesignAction
+		PLMDocumentationAction
+		PLMMaintenanceAction
+		PLMManufacturingAction
+		PLMSignoffAction</td>
+		<td>PLMCoreReference</td>
+		<td>
+		PLM Design ECA
+		PLM Documentation ECA
+		PLM Maintenance ECA
+		PLM Manufacturing ECA
+		PLM Signoff ECA</td>
+	</tr>
+	<tr>
+		<td rowspan="2">&quot;Child&quot; ECA</td>
+		<td>
+		PLMDesignChildAction
+		PLMDocChildAction
+		PLMMaintChildAction
+		PLMMfgChildAction
+		PLMSignoffChildAction</td>
+		<td>PLMCoreInstance</td>
+		<td>
+		PLM Design ECA
+		PLM Documentation ECA
+		PLM Maintenance ECA
+		PLM Manufacturing ECA
+		PLM Signoff ECA</td>
+	</tr>
+	<tr>
+		<td>
+		PLMDesignAction
+		PLMDocumentationAction
+		PLMMaintenanceAction
+		PLMManufacturingAction
+		PLMCoreReference</td>
+		<td>
+		PLM Design ECA
+		PLM Documentation ECA
+		PLM Maintenance ECA
+		PLM Manufacturing ECA
+		PLM Signoff ECA</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Description"></a>Business Logic</h3>
+<p>This section lists and describes the PLM Opening ID implemented by the following 
+PLM classes of the Change modeler.</p>
+<ul>
+	<li><a href="#PLMDesignAction, Implemented Business Logic">PLMDesignAction, 
+	Implemented Business Logic</a></li>
+	<li><a href="#PLMDocumentationAction, Implemented Business Logic">PLMDocumentationAction, 
+	Implemented Business Logic</a></li>
+	<li><a href="#PLMMaintenanceAction, Implemented Business Logic">PLMMaintenanceAction, 
+	Implemented Business Logic</a></li>
+	<li><a href="#PLMManufacturingAction, Implemented Business Logic">PLMManufacturingAction, 
+	Implemented Business Logic</a></li>
+	<li><a href="#PLMSignoffAction, Implemented Business Logic">PLMSignoffAction, 
+	Implemented Business Logic</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMDesignAction, Implemented Business Logic"></a>PLMDesignAction, Implemented 
+Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMAttributesValuationCheck</td>
+		<td>BL to perform validity checks on attributes&#39; values</td>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization</td>
+		<td>BL used for PLM New to pre-valuate the Identifier of the object</td>
+	</tr>
+	<tr>
+		<td>CheckActionOutputObjsOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Implemented 
+		Items are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionChildrenOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Child 
+		ECAs are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionNEOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Named 
+		Effectivity is validated</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMDocumentationAction, Implemented Business Logic"></a>PLMDocumentationAction, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMAttributesValuationCheck</td>
+		<td>BL to perform validity checks on attributes&#39; values</td>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization</td>
+		<td>BL used for PLM New to pre-valuate the Identifier of the object</td>
+	</tr>
+	<tr>
+		<td>CheckActionOutputObjsOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Implemented 
+		Items are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionChildrenOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Child 
+		ECAs are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionNEOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Named 
+		Effectivity is validated</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMMaintenanceAction, Implemented Business Logic"></a>PLMMaintenanceAction, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMAttributesValuationCheck</td>
+		<td>BL to perform validity checks on attributes&#39; values</td>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization</td>
+		<td>BL used for PLM New to pre-valuate the Identifier of the object</td>
+	</tr>
+	<tr>
+		<td>CheckActionOutputObjsOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Implemented 
+		Items are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionChildrenOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Child 
+		ECAs are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionNEOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Named 
+		Effectivity is validated</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMManufacturingAction, Implemented Business Logic"></a>PLMManufacturingAction, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMAttributesValuationCheck</td>
+		<td>BL to perform validity checks on attributes&#39; values</td>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization</td>
+		<td>BL used for PLM New to pre-valuate the Identifier of the object</td>
+	</tr>
+	<tr>
+		<td>CheckActionOutputObjsOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Implemented 
+		Items are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionChildrenOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Child 
+		ECAs are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionNEOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Named 
+		Effectivity is validated</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="PLMSignoffAction, Implemented Business Logic"></a>PLMSignoffAction, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMAttributesValuationCheck</td>
+		<td>BL to perform validity checks on attributes&#39; values</td>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization</td>
+		<td>BL used for PLM New to pre-valuate the Identifier of the object</td>
+	</tr>
+	<tr>
+		<td>CheckActionOutputObjsOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Implemented 
+		Items are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionChildrenOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Child 
+		ECAs are in SHARED state</td>
+	</tr>
+	<tr>
+		<td>CheckActionNEOnTransition</td>
+		<td>BL to determine if and on what transition we need to check if the Named 
+		Effectivity is validated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Customization"></a>Customization</h2>
+<p>Customization first deals with the modeler PLM package customization [<a href="#References">2</a>]. 
+It consists in to create a new package containing new PLM classes for each &quot;Customizable&quot; 
+PLM class of the modeler PLM package. Then, you should take into account the UI 
+masks creation to create either a new security mask file, or to update the default 
+one [<a href="#References">3</a>]. Finally, you can integrate your own business 
+logic on each new PLM classes by implementing provided PLM opening ID [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modeler PLM Package Customization"></a><strong>PLM Package Customization</strong></h3>
+<p>This part consist in to create a new package when the modeler PLM package must 
+be customized.</p>
+<ul>
+	<li><a href="#P1_custo">PLM Design ECA</a> contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+	<li><a href="#P2_custo">PLM Documentation ECA</a> contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+	<li><a href="#P3_custo">PLM Maintenance ECA</a> contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+	<li><a href="#P4_custo">PLM Manufacturing ECA</a> contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+	<li><a href="#P5_custo">PLM Signoff ECA</a> contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+</ul>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: For all References 
+		to customize, do not insert the PLM_ExternalID attribute in the identifier 
+		set since it will be automatically added.</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_custo"></a>PLM Design ECA</h4>
+<p>PLM Design ECA must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>PLM Design ECA</td>
+		<td>Yes</td>
+		<td>Do not support multi-valuated attributes</td>
+	</tr>
+	<tr>
+		<td>PLM Design Child ECA</td>
+		<td>Yes</td>
+		<td>Do not support any additional attribute</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P2_custo"></a>PLM Documentation ECA</h4>
+<p>PLM Documentation ECA must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>PLM Documentation ECA</td>
+		<td>Yes</td>
+		<td>Do not support multi-valuated attributes</td>
+	</tr>
+	<tr>
+		<td>PLM Documentation Child ECA</td>
+		<td>Yes</td>
+		<td>Do not support any additional attribute</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P3_custo"></a>PLM Maintenance ECA</h4>
+<p>PLM Maintenance ECA must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>PLM Maintenance ECA</td>
+		<td>Yes</td>
+		<td>Do not support multi-valuated attributes</td>
+	</tr>
+	<tr>
+		<td>PLM Maintenance Child ECA</td>
+		<td>Yes</td>
+		<td>Do not support any additional attribute</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P4_custo"></a>PLM Manufacturing ECA</h4>
+<p>PLM Manufacturing ECA must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>PLM Manufacturing ECA</td>
+		<td>Yes</td>
+		<td>Do not support multi-valuated attributes</td>
+	</tr>
+	<tr>
+		<td>PLM Manufacturing Child ECA</td>
+		<td>Yes</td>
+		<td>Do not support any additional attribute</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P5_custo"></a>PLM Signoff ECA</h4>
+<p>PLM Signoff ECA must be fully customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>PLM Signoff ECA</td>
+		<td>Yes</td>
+		<td>Do not support multi-valuated attributes</td>
+	</tr>
+	<tr>
+		<td>PLM Signoff Child ECA</td>
+		<td>Yes</td>
+		<td>Do not support any additional attribute</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UI mask customization"></a>UI Mask Customization</h3>
+<p>When a PLM attribute is defined (inside modeler PLM package) some features like 
+its editability criteria, mandatory /optional option, can be overwritten by UI mask. 
+You can say this PLM attribute is not writable in Query context, this PLM attribute 
+is mandatory in Create context, this user PLM attribute is not never visible and 
+so one. A set of UI masks form a security mask file. We say security mask because 
+it is associated with these files security information. For a people, and a given 
+context can be associated a security mask.</p>
+<p>For each customized Modeler PLM package, at least one UI mask file must be created 
+(for the default security mask ), since it must contain the new PLM Attributes. 
+When you use the tool to create a customization, a default UI mask file is provided 
+taken into account the added PLM attributes. You can modify the default file to 
+introduce your change.</p>
+<p>If you want create a new security mask file, you should provide a UI mask for 
+all the &quot;AsIs&quot; modeler PLM packages and for each customization of the &quot;Customizable&quot; 
+modeler PLM package.</p>
+<h4>Rules to respect for a new UI mask creation</h4>
+<p>No specific rule to customize UI mask file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Customization"></a>Business Logic Customization</h3>
+<p>You can yourself integrate your business logic for each customization of:</p>
+<ul>
+	<li><strong>PLMDesignAction</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+		</tr>
+		<tr>
+			<td>PLMAttributesValuationCheck [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>CheckActionOutputObjsOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionChildrenOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionNEOnTransition</td>
+		</tr>
+	</table>
+	</li>
+	<li><strong>PLMDocumentationAction</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+		</tr>
+		<tr>
+			<td>PLMAttributesValuationCheck [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>CheckActionOutputObjsOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionChildrenOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionNEOnTransition</td>
+		</tr>
+	</table>
+	</li>
+	<li><strong>PLMMaintenanceAction</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+		</tr>
+		<tr>
+			<td>PLMAttributesValuationCheck [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>CheckActionOutputObjsOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionChildrenOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionNEOnTransition</td>
+		</tr>
+	</table>
+	</li>
+	<li><strong>PLMManufacturingAction</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+		</tr>
+		<tr>
+			<td>PLMAttributesValuationCheck [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>CheckActionOutputObjsOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionChildrenOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionNEOnTransition</td>
+		</tr>
+	</table>
+	</li>
+	<li><strong>PLMSignOffAction</strong>
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+		</tr>
+		<tr>
+			<td>PLMAttributesValuationCheck [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		</tr>
+		<tr>
+			<td>CheckActionOutputObjsOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionChildrenOnTransition</td>
+		</tr>
+		<tr>
+			<td>CheckActionNEOnTransition</td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>Business Logic Openness Infrastructure Reference, in the DS Product 
+			Documentation Portal, Client Collaborative Platform, Virtual Product 
+			Modeling, VPM Knowledge Standardization, PLM Openings</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="reference">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2008]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version:<strong> 2</strong> [Oct 2009]</td>
+		<td>Business Logic added</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

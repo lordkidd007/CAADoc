@@ -1,0 +1,152 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Callback Checks</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Callback Checks</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article describes the check relative to callbacks. This check is
+      identified by BCBA.</p>
+      <div id="toc">
+      </div>
+      </td>
+  </tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Problematic"></a>Problematic</h2>
+<p>The callback mechanism is the way CAA V5 implements publish/subscribe between
+objects. This mechanism is implemented with method pointers. The user has to
+specify the type of the method by a cast of the address of the method pointer.
+If the cast does not meet the method signature (incorrect number of arguments),
+heap overwriting will happen at runtime, which is a serious problem leading to
+memory corruption.</p>
+<p>Four ways of setting a callback are checked by the tool:</p>
+<ol>
+  <li><strong>AddAnalyseNotificationCB </strong><code>[<a href="#References">2</a>]</code><br />
+    the third argument must be a method pointer. The implementation of this
+    method pointer must have 3 arguments.
+    <pre class="code"><strong>AddAnalyseNotificationCB</strong>(__Select_Mechanism, __Select_Mechanism-&gt; GetComboSelectNotification(), 
+  (CATCommandMethod) &amp;DNBDeviceMoveScheduleDlg::OnMechanismSelectionChange, NULL);</pre>
+  </li>
+  <li><strong>AddCallback </strong><code>[<a href="#References">1</a>]</code><br />
+    the third argument must be a method pointer. The implementation of this
+    method pointer must have 5 arguments.</li>
+  <li><strong>AddTransition </strong><code>[<a href="#References">3</a>]</code><br />
+    the third argument must be a method pointer. The implementation of this
+    method pointer must have 1 argument.</li>
+  <li><strong>Filter </strong><code>[<a href="#References">3</a>]</code><br />
+    the first argument must be a method pointer. The implementation of this
+    method pointer must have 2 arguments.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Checks"></a>Checks</h2>
+<h3><a name="Principle"></a>Principle</h3>
+<p>For each occurrence of a callback set (each occurrence of
+AddAnalyseNotificationCB, AddCallback, AddTransition or Filter), the tool looks
+if the corresponding argument (ex : 3rd for AddAnalyseNotificationCB) is a
+method pointer. If it is, CSC looks in its symbol table for the implementation
+of this method. If the corresponding implementation does not have the good
+number of arguments (ex : 3 for AddAnalyseNotificationCB), the tool reports a
+BCBA error.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="BCBA"></a>BCBA</h3>
+<p>BCBA stands for Bad CallBAck.</p>
+<p>An error of type BCBA is reported when :</p>
+<ul>
+  <li>a callback is set with a bad signature for callback method</li>
+</ul>
+<h4><a name="BCBA-1"></a>Example BCBA-1</h4>
+<p>Let's assume that the signature of the method OnMechanismSelectionChange of
+the class CATDeviceMoveScheduleDlg is :</p>
+<pre class="code">class CATDeviceMoveScheduleDlg
+{
+  ...
+  void <strong>OnMechanismSelectionChange</strong>( CATCommand * iFromClient, CATNotification * iEvtDat);
+  ...
+}</pre>
+<p>The following code will report a BCBA error :</p>
+<pre class="code">CATDeviceMoveDcheduleDlg.cpp
+...
+<strong>AddAnalyseNotificationCB</strong>(_selection, _selection-&gt; GetComboSelectNotification(), 
+  (CATCommandMethod) &amp;<strong>CATDeviceMoveScheduleDlg::OnMechanismSelectionChange</strong>, NULL);
+...</pre>
+<p>To correct the error, modify the signature of
+CATDeviceMoveScheduleDlg::OnMechanismSelectionChange like the following :</p>
+<pre class="code">class CATDeviceMoveScheduleDlg
+{
+  ...
+  void <strong>OnMechanismSelectionChange</strong>( 	CATCommand * iFromClient,
+				CATNotification * iEvtDat,
+				CATCommandClientData iUsefulData);
+  ...
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Relative"></a>Relative Sections in Setting Files</h2>
+<p>No external parameter is taken into account for this check.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>C++ Source Checker can easily and quickly point bad usage of callbacks,
+preventing a very laborious runtime debug, preventing runtime abort and waste of
+time for the user.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+  <tr>
+    <td>[1]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysMiddleware/CAASysTaMidCallbacks.htm');return false;">The
+      Callback Mechanism</a></td>
+  </tr>
+  <tr>
+    <td>[2]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysMiddleware/CAASysTaMidSendReceive.htm');return false;">The
+      Send/Receive Communication Protocol</a></td>
+  </tr>
+  <tr>
+    <td>[3]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADegDialogEngine/CAADegTaGraph.htm');return false;">How to Implement
+    the Command Statechart Diagram</a></td>
+  </tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+  <tr>
+    <td>Version: <strong>1</strong> [Jul 2013]</td>
+    <td>Document created</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

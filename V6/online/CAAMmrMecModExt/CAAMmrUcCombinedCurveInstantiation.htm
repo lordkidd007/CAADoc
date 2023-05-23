@@ -1,0 +1,714 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Instantiating Combined Curves</title>
+<style type="text/css">
+.auto-style1 {
+	background-color: #F9F9F9;
+}
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Instantiating Combined Curves</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case explains how to create a Combined Curve instance, and how 
+		to insert it into a geometrical features set [<a href="#References">1</a>].
+		</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAACombinedCurveInstantiation Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAACombinedCurveInstantiation 
+						Do</a></li>
+					<li><a href="#How">How to Launch CAACombinedCurveInstantiation</a></li>
+					<li><a href="#Where">Where to Find the CAACombinedCurveInstantiation 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The CAACombinedCurveInstantiation use case explains:</p>
+<ul>
+	<li>How to create a Combined Curve instance thanks to <em>CAAIMmrCombCrvFactory</em> 
+		[<a href="#References">2</a>].</li>
+	<li>How to recognize the different geometrical features set:
+		<ul>
+			<li>is it a geometrical set?</li>
+			<li>is it a surfacic set?</li>
+			<li>it is an ordered set?</li>
+		</ul>
+	</li>
+	<li>How to create a geometrical set.</li>
+	<li>How to insert the new feature into a geometrical features set, in particular, 
+		into an ordered set [<a href="#References">4</a>]:
+		<ul>
+			<li>The new instance is located just after the current feature.</li>
+			<li>The <code>Insert</code> method of the <em>CATIMmiUseLinearBodyServices</em> 
+				interface must be called after the aggregation.</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAACombinedCurveInstantiation Use Case</h2>
+<p>CAACombinedCurveInstantiation is a use case of the CAAMechanicalModelerExtend.edu 
+framework that illustrates the Mechanical Modeler extended capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAACombinedCurveInstantiation Do</h3>
+<p>The use case shows how to create, and insert a Combined Curve instance into a 
+geometrical features set.</p>
+<p>
+<img alt="" src="images/CAAMmrCombinedCurveInstantiation.jpg" width="417" height="441"/></p>
+<p>The yellow Combined Curve is created into <code>Geometrical Set.1</code>, the green Combined 
+Curve into <code>OrderedSet</code>, and the purple Combined Curve 
+into <code>Body.1</code>. The three possible cases for a geometrical features 
+set.</p>
+<p>The use case has been updated in V5R13, and V5R14 enabling you to select the 
+type of the aggregating features. Thanks to an environment variable you can aggregate 
+the newly created feature:</p>
+<ul>
+	<li>Only into a Geometrical Set.</li>
+	<li>Only into a surfacic features sets: Geometrical Set and Ordered Geometrical 
+		Set.</li>
+	<li>Anywhere: into Geometrical Set, Ordered Geometrical Set, and Body features.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAACombinedCurveInstantiation</h3>
+<p>See the section entitled &quot;How to Launch the Combined Curve Use Case&quot; 
+in &quot;Creating a New Geometrical 
+Feature: the Combined Curve&quot; [<a href="#References">9</a>] for a detailed description of how 
+this use case should be launched.</p>
+<p>There are three kinds of scenarios to consider. Each one enables you to choose 
+the way to aggregate the new instances:</p>
+<ol>
+	<li><a href="#100">You impose the geometrical set</a>.</li>
+	<li><a href="#200">You only accept the surfacic sets, and you prohibit Body features</a>.</li>
+	<li><a href="#300">You accept any kind of geometrical features set</a>.</li>
+</ol>
+<p>Here the scenarios are described in detail.</p>
+<ol>
+	<li><a name="100"></a>You impose the geometrical set
+
+		<p>First, check that <code>CAAMmrCombCrvNoHybridBody</code> and <code>CAAMmrCombCrvOGS</code>,
+		two environment variables are not set.</p>
+		<p>Launch CATIA, when the application is ready, follow the scenario described 
+		below:</p>
+		<ul>
+			<li>Open <strong>CAAMmrCombinedCurve</strong> representation reference<a href="#IM">(*)</a>.</li>
+			<li>Launch <kbd>Generative Shape Design</kbd> app from <kbd>3D</kbd> quadrant of the compass.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section of the action bar.</li>
+			<li>Create a Combined Curve with the <kbd>Combined Curve</kbd> command
+			<img alt="" src="images/CAAMmr_I_CombinedCurve.jpg" width="34" height="39"/>, it is inserted into a GS.</li>
+			<li>Activate the <kbd>Tools</kbd> section of action bar and launch <kbd>Ordered Geometrical Set</kbd> command.</li>
+			<li>Activate again <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command. 
+			It is inserted into a new GS.</li>
+			<li>Activate again the <kbd>Tools</kbd> section of action bar and launch <kbd>Body</kbd> command.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command. 
+			It is inserted into a new GS.</li>
+		</ul>
+		<p>The new combined curve can only be inserted into a Geometrical Set.</p>
+	</li>
+	<li><a name="200"></a>You only accept surfacic sets, and you prohibit Body features
+		<p>First, check that <code>CAAMmrCombCrvOGS</code> is not set, and export 
+		the <code>CAAMmrCombCrvNoHybridBody</code> environment variable such as:</p>
+		<ul>
+			<li><code>set CAAMmrCombCrvNoHybridBody</code>=whatdoyouwant</li>
+		</ul>
+		<p>Launch CATIA, when the application is ready, follow the scenario described 
+		below:</p>
+		<ul>
+			<li>Open <strong>CAAMmrCombinedCurve</strong> representation reference<a href="#IM">(*)</a>.</li>
+			<li>Launch <kbd>Generative Shape Design</kbd> app from <kbd>3D</kbd> quadrant of the compass.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section of the action bar.</li>
+			<li>Create a Combined Curve with the <kbd>Combined Curve</kbd> command
+			<img alt="" src="images/CAAMmr_I_CombinedCurve.jpg" width="34" height="39"/>,	it is inserted into a GS.</li>
+			<li>Activate the <kbd>Tools</kbd> section of action bar and launch <kbd>Ordered Geometrical Set</kbd> command.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command.
+			 It is inserted into the current OGS.</li>
+	  	    <li>Activate the <kbd>Tools</kbd> section of action bar and launch <kbd>Body</kbd> command.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command.
+			 It is inserted into a new GS.</li>
+		</ul>
+		<p>The new combined curve cannot be inserted into a Body feature.</p>
+	</li>
+	<li><a name="300"></a>You accept any kind of geometrical features set
+		<p>First, export the <code>CAAMmrCombCrvOGS</code> environment variable 
+		such as:</p>
+		<ul>
+			<li><code>set CAAMmrCombCrvOGS</code>=whatdoyouwant</li>
+		</ul>
+		<p>Launch CATIA, when the application is ready, follow the scenario described 
+		below:</p>
+		<ul>
+			<li>Open <strong>CAAMmrCombinedCurve</strong> representation reference<a href="#IM">(*)</a>.</li>
+			<li>Launch <kbd>Generative Shape Design</kbd> app from <kbd>3D</kbd> quadrant of the compass.</li>
+			<li>Activate <kbd>CAA MechMod Extend UC</kbd> section of the action bar.</li>
+			<li>Create a Combined Curve with the <kbd>Combined Curve</kbd> command
+			<img alt="" src="images/CAAMmr_I_CombinedCurve.jpg" width="34" height="39"/>, 
+			it is inserted into a GS.</li>
+			<li>Activate the <kbd>Tools</kbd> section of action bar and launch <kbd>Ordered Geometrical Set</kbd> command.</li>
+			<li>Activate again <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command.
+			 It is inserted into the current OGS.</li>
+			<li>Activate <kbd>Wireframe</kbd> section and create two points with the <kbd>Point</kbd> command into the current 
+				OGS.</li>
+			<li>Activate again <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command.
+			 It is inserted at the end of the current OGS since 
+				the last point was the current feature.</li>
+			<li>Click right the first point, and launch <strong>Define in Work Object</strong>,
+				the first point is underlined.</li>
+			<li>Create a Combined Curve with the <kbd>Combined Curve</kbd> command, it's inserted between the two points.</li>
+            <li>Activate the <kbd>Tools</kbd> section of action bar and launch <kbd>Body</kbd> command.</li>
+            <li>Activate <kbd>CAA MechMod Extend UC</kbd> section and create a CC with the <kbd>Combined Curve</kbd> command.
+             It's inserted into Body.1.</li>
+		</ul>
+	</li>
+</ol>
+<p><a name="IM">(*)</a> This represents the Input Model, loaded in the PROVIDER. 
+We have provided the CAAMmrCombinedCurve.3dxml file, at the path specified below.</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\InputData\CAAMmrCombinedCurve.3dxml\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">8</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML file contains the Input Model with the following attribute:, 
+which needs to be imported to the PROVIDER, you are working with.</p>
+<ul>
+	<li><strong>PLM_ExternalID</strong> : CAAMmrCombinedCurve (with suffix)</li>
+</ul>
+<p><strong>Attention</strong>: Its mandatory that you provide a suitable prefix 
+to the PLM_ExternalID of the Input Model, while importing a 3D XML file, to ensure 
+that data stored in the PROVIDER, is unique.</p>
+<p>Please refer to the document [<a href="#References">8</a>] for how 
+to import and reimport such a 3D XML file in your PLM repository.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAACombinedCurveInstantiation Code</h3>
+<p>The CAACombinedCurveInstantiation use case is made one class, <em>CAAMmrCombCrvPanelStCmd</em>, 
+located in the CAAMmrCombinedCurveUI.m module of the CAAMechanicalModelerExtend.edu 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\CAAMmrCombinedCurveUI.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">8</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>The use case is an extract of the <em>CAAMmrCombCrvPanelStCmd</em> class which 
+is a state command. Refer to the referenced article [<a href="#References">5</a>] 
+for complete detail about this command.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The CAACombinedCurveInstantiation use case is divided into five steps. The first 
+three steps are grouped together into the <code>CreateCombinedCurve</code> method 
+of the <em>CAAMmrCombCrvPanelStCmd</em> class (state command). The last two are done 
+once all the Combined Curve inputs are valuated, so at the end of the command, in 
+its <code>OkAction</code> method.</p>
+<ol>
+	<li><a href="#Step1">Looking for a Geometrical Features Set</a></li>
+	<li><a href="#Step2">Creating the Combined Curve</a></li>
+	<li><a href="#Step3">Aggregating the New Combined Curve into the Set</a></li>
+	<li><a href="#Step4">Updating the Feature</a></li>
+	<li><a href="#Step5">Ending the Aggregation</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Looking for a Geometrical Feature Set</h3>
+<p>It is the first part of the <code>CreateCombinedCurve</code> method 
+of the <em>CAAMmrCombCrvPanelStCmd</em> command. The goal of this method is 
+to retrieve, or create if necessary, a geometrical features set which will aggregate 
+the new instance.</p>
+<pre class="code">...     
+    CATIGSMTool * piGSMTool = NULL ;
+
+    char * pCombCrvOGS = NULL ;
+    CATLibStatus result = ::<strong>CATGetEnvValue</strong>(&quot;CAAMmrCombCrvOGS&quot;,&amp;pCombCrvOGS);  
+    if ( (CATLibError == result) || ( NULL == pCombCrvOGS) )
+    {
+        char * pCombCrvNoHybridBody = NULL ;
+        result = ::<strong>CATGetEnvValue</strong>(&quot;CAAMmrCombCrvNoHybridBody&quot;,&amp;pCombCrvNoHybridBody); 
+        if ( (CATLibError == result) || ( NULL == pCombCrvNoHybridBody) )
+        {
+           rc = <strong><a href="#LookingForGeomSet">LookingForGeomSet</a></strong>(&amp;piGSMTool);
+        }else
+        {
+           rc = <strong><a href="#LookingForGeomSetOrOrderedGeomSet">LookingForGeomSetOrOrderedGeomSet</a></strong>(&amp;piGSMTool);   
+        }
+    }else
+    {
+       rc = <strong><a href="#LookingForAnyKindOfBody">LookingForAnyTypeOfBody</a></strong>(&amp;piGSMTool);       
+    }</pre>
+<p>The environment variables enable you to choose between three modes:</p>
+<ul>
+	<li><code>CAAMmrCombCrvOGS</code> and <code>CAAMmrCombCrvNoHybridBody</code> 
+		are not valuated.
+		<p>You have chosen to insert the new instance only within a Geometrical 
+		Set. The <a href="#LookingForGeomSet"><code>LookingForGeomSet</code></a> 
+		method will be invoked to looking for, or to create, a Geometrical Set feature.</p>
+	</li>
+	<li><code>CAAMmrCombCrvOGS</code> is not valuated, and
+		<code>CAAMmrCombCrvNoHybridBody</code> is valuated.
+		<p>You have chosen to insert the new instance only within a 
+		Geometrical Set or an Ordered Geometrical Set. The
+		<a href="#LookingForGeomSetOrOrderedGeomSet"><code>LookingForGeomSetOrOrderedGeomSet</code></a> 
+		method will be invoked to looking for a such set, or to create a Geometrical 
+		Set feature.</p>
+	</li>
+	<li><code>CAAMmrCombCrvOGS</code> is valuated.
+		<p>You have chosen to insert the new instance within any kind of geometrical 
+		features set. The <a href="#LookingForAnyKindOfBody">LookingForAnyTypeOfBody</a><code>
+		</code>method will be invoked to looking for a such set, or to create a 
+		Geometrical Set feature.</p>
+	</li>
+</ul>
+<p>In the three cases, the geometrical feature set which will aggregate the new 
+instance is a feature implementing the <em>CATIGSMTool</em> interface [<a href="#References">1</a>].</p>
+<p><strong>The <a name="LookingForGeomSet">LookingForGeomSet</a> 
+Method</strong></p>
+<p>The goal of this method is to retrieve or create a Geometrical Set.</p>
+<pre class="code">HRESULT CAAMmrCombCrvPanelStCmd::<strong>LookingForGeomSet</strong>(CATIGSMTool ** piGsmtool)
+{
+...
+    <strong>CATIMmiUsePrtPart</strong> * pIPrtPart = NULL ;
+    CATPathElement PathAct = _editor-&gt;<strong>GetUIActiveObject</strong>();
+    rc = PathAct.<strong>Search</strong>(IID_<strong>CATIMmiUsePrtPart</strong>,(void**)&amp;pIPrtPart) ;
+
+    if ( SUCCEEDED(rc) &amp;&amp; ( NULL!=pIPrtPart) )
+    {
+       CATBoolean ToolToCreate = TRUE ;
+
+       <strong>CATIBasicTool</strong>_var CurrentTool ;
+       CurrentTool = pIPrtPart-&gt;<strong>GetInWorkObjectTool</strong>() ;
+
+       if ( NULL_var != CurrentTool )
+       {        
+          <strong>CATIMmiNonOrderedGeometricalSet</strong> * pIGSOnCurrentTool = NULL ;
+          rc = CurrentTool-&gt;QueryInterface(IID_CATIMmiNonOrderedGeometricalSet, 
+                                            (void**) &amp;pIGSOnCurrentTool);
+          if ( SUCCEEDED(rc) )
+          {
+             ToolToCreate = FALSE ;
+             ...
+...
+       if ( TRUE == ToolToCreate )
+       {
+          rc = <strong><a href="#CreateTool">CreateTool</a></strong>(pIPrtPart,piGsmtool);
+...</pre>
+<p>The first part consists in retrieving the Part feature of the current 
+representation reference thanks to the <code>Search</code> method of the <em>CATPathElement</em> 
+class. This object is within the UI active object path, and implements the <em>CATIMmiUsePrtPart</em> 
+interface [<a href="#References">6</a>]. The Part feature knows the current set, 
+you retrieve it thanks to the <code>GetInWorkObjectTool</code> method. There is 
+only one case where it is not necessary to create a new Geometrical Set: the current 
+set is already a Geometrical Set. There are two means to check that the current 
+set is a Geometrical Set:</p>
+<ol>
+	<li>
+		<p>Check that the current set implements the <em>CATIMmiNonOrderedGeometricalSet</em> 
+		interface(the methodology currently used).</p>
+	</li>
+	<li>
+		<p>Check that the current set implements <em>CATIGSMTool</em>, 
+		and that its <code>GetType</code> method returns <code>0</code> (the 
+		methodology used in V5R13).</p>
+	</li>
+</ol>
+<p>The <a href="#CreateTool">CreateTool</a> method creates a 
+new Geometrical Set.</p>
+<p><strong>The <a name="LookingForGeomSetOrOrderedGeomSet">LookingForGeomSetOrOrderedGeomSet</a>
+Method</strong></p>
+<p>The goal of this method is to retrieve a surfacic set (ordered or 
+not), or to create a Geometrical Set.</p>
+<pre class="code">HRESULT CAAMmrCombCrvPanelStCmd::LookingForGeomSetOrOrderedGeomSet
+                                                      (CATIGSMTool ** piGsmtool)
+{
+  ...
+
+   <strong>CATIMmiUsePrtPart</strong> * pIPrtPart = NULL ;
+   CATPathElement PathAct = _editor-&gt;<strong>GetUIActiveObject</strong>();
+    
+   rc = PathAct.<strong>Search</strong>(IID_CATIMmiUsePrtPart,(void**)&amp;pIPrtPart)  ;
+
+   if ( SUCCEEDED(rc) &amp;&amp; ( NULL!=pIPrtPart) )
+   {
+       CATBoolean ToolToCreate = TRUE ;  
+
+       <strong>CATIBasicTool</strong>_var CurrentTool ;
+       CurrentTool = pIPrtPart-&gt;<strong>GetInWorkObjectTool</strong>() ;
+
+       <strong>CATIMmiGeometricalSet</strong> * pIGSMToolOnCurrentTool = NULL ;
+       rc = CurrentTool-&gt;QueryInterface(IID_CATIMmiGeometricalSet, 
+                                           (void**) &amp;pIGSMToolOnCurrentTool);
+       if ( SUCCEEDED(rc) )
+       {             
+          ToolToCreate = FALSE ;
+          ...
+       if ( (TRUE == ToolToCreate) )
+       {
+          rc = <strong><a href="#CreateTool">CreateTool</a></strong>(pIPrtPart,piGsmtool);
+       }
+...</pre>
+<p>The first part consists in retrieving the Part feature of the current 
+representation reference thanks to the <code>Search</code> method of the <em>CATPathElement</em> 
+class. This object is within the UI active object path, and implements the <em>CATIMmiUsePrtPart</em> 
+interface [<a href="#References">6</a>]. The Part feature knows the current set, 
+you retrieve it thanks to the <code>GetInWorkObjectTool</code>. The
+<a href="#CreateTool">CreateTool</a> method is invoked only if the current 
+set is a Body feature, it means that the current set does not implement the <em>CATIMmiGeometricalSet</em> 
+interface.</p>
+<p><strong>The <a name="LookingForAnyKindOfBody">LookingForAnyKindOfBody</a> 
+Method</strong></p>
+<p>The goal of this method is to retrieve a set implementing the <em>CATIGSMTool</em>
+interface, or to create a Geometrical Set. From the V5R14, 
+all the new geometrical features sets implement <em>CATIGSMTool</em>. The only one 
+case where a set does not implement this interface, is the case of the solid set, 
+in other words a feature instantiated from the MechanicalTool StartUp. It is possible 
+only into a representation reference created before the V5R14.</p>
+<pre class="code">HRESULT CAAMmrCombCrvPanelStCmd::LookingForGeomSetOrOrderedGeomSet
+                               (CATIGSMTool ** piGsmtool)
+{
+...
+   <strong>CATIMmiUsePrtPart</strong> * pIPrtPart = NULL ;
+   CATPathElement PathAct = _editor-&gt;<strong>GetUIActiveObject</strong>();
+    
+   rc = PathAct.<strong>Search</strong>(IID_CATIMmiUsePrtPart,(void**)&amp;pIPrtPart)  ;
+
+   if ( SUCCEEDED(rc) &amp;&amp; ( NULL!=pIPrtPart) )
+   {
+       CATBoolean ToolToCreate = TRUE ;  
+
+       <strong>CATIBasicTool</strong>_var CurrentTool ;
+       CurrentTool = pIPrtPart-&gt;<strong>GetInWorkObjectTool</strong>() ;
+
+       if ( NULL_var != CurrentTool )
+       {         
+          <strong>CATIGSMTool</strong> * pIGSMToolOnCurrentTool = NULL ;
+          rc = CurrentTool-&gt;QueryInterface(IID_CATIGSMTool, 
+                                      (void**) &amp;pIGSMToolOnCurrentTool);
+          if ( SUCCEEDED(rc) )
+          {            
+              ToolToCreate = FALSE ;
+...
+       if ( TRUE == ToolToCreate )
+       {
+          rc = <strong>CreateTool</strong>(pIPrtPart,piGsmtool);
+       }
+...</pre>
+<p>The first part consists in retrieving the Part feature of the current 
+representation reference thanks to the <code>Search</code> method of the <em>CATPathElement</em> 
+class. This object is within the UI active object path, and implements the <em>CATIMmiUsePrtPart</em> 
+interface [<a href="#References">6</a>]. The Part feature knows the current set, 
+you retrieve it thanks to the <code>GetInWorkObjectTool</code>. The
+<a href="#CreateTool">CreateTool</a> method is invoked only if the current 
+set is a solid body, it means that the current set does not implement <em>CATIGSMTool</em>.</p>
+<p><strong>The <a name="CreateTool">CreateTool Method</a></strong></p>
+<pre class="code">HRESULT CAAMmrCombCrvPanelStCmd::CreateTool(CATIPrtPart * pIPrtPart, 
+                                                       CATIGSMTool ** pIGsmTool)
+{
+...
+<strong>CATIMmiMechanicalFeature_var</strong> spMechFeatOnMainTool = pIPrtPart;
+if (NULL_var != spMechFeatOnMainTool)
+{
+  //Get container
+  <strong>CATIMmiPrtContainer_var</strong> spPrtCont=NULL_var;
+  rc = spMechFeatOnMainTool-&gt;<strong>GetPrtContainer</strong>(spPrtCont);
+  if (SUCCEEDED(rc) &amp;&amp; spPrtCont!= NULL_var)
+  {
+    <strong>CATIMmiUseSetFactory_var</strong> spMechanicalRootFactory = spPrtCont;
+    if (spPrtCont != NULL_var)
+    {
+      <strong>CATIMmiMechanicalFeature_var</strong> spGSMTool;
+      rc = spMechanicalRootFactory-&gt;<strong>CreateGeometricalSet</strong>("", spMechFeatOnMainTool, spGSMTool);
+...
+}</pre>
+<p>The method to create a Geometrical Set is the <code>CreateGeometricalSet
+</code>method of the <em>CATIMmiUseSetFactory</em> interface. This interface is implemented 
+on the container of specifications, <code>CATPrtCont</code> [<a href="#References">7</a>]. 
+You retrieve it thanks the <code>GetPrtContainer</code> method of the <em>CATIMmiMechanicalFeature</em> 
+interface implemented on any mechanical feature of the 3D Shape.The Part feature 
+being useful for the set creation, this feature has been used to retrieve <code>
+CATPrtCont</code>.</p>
+<p>The argument of the <code>CreateGeometricalSet</code> method are:</p>
+<ul>
+	<li>An empty string, to have the default name.</li>
+	<li><code>spMechfeatOnMainTool</code>, a smart pointer to the 
+		Part feature.</li>
+	<li><code>spGSMTool</code>, the created set.</li>
+	<li>-1 (default argument).</li>
+</ul>
+<p>It means that the <code>spGSMTool</code> will be inserted at the 
+end of the Part feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2">Creating the Combined Curve</a></h3>
+<p>The <em>CAAIMmrCombCrvFactory</em> interface enables us to create an instance of 
+the Combined Curve StartUp.</p>
+<pre class="code">...
+<strong>CATIMmiMechanicalFeature_var</strong> spMechFeatOnMainTool = piGSMTool;
+if (NULL_var != spMechFeatOnMainTool)
+{
+  //Get container
+  <strong>CATIMmiPrtContainer_var</strong> spPrtCont=NULL_var;
+  rc = spMechFeatOnMainTool-&gt;<strong>GetPrtContainer</strong>(spPrtCont);
+  if (SUCCEEDED(rc) &amp;&amp; spPrtCont!= NULL_var)
+  {
+    <strong>CAAIMmrCombCrvFactory</strong> *piCombinedCurveFactory = NULL;
+    rc = spPrtCont-&gt;QueryInterface(IID_CAAIMmrCombCrvFactory , (void**)&amp; piCombinedCurveFactory);
+    if (SUCCEEDED(rc))
+    {
+      // Create the Combined Curve        
+      rc = piCombinedCurveFactory-&gt;<strong>CreateCombinedCurve</strong>(_piCurve1, _piDir1, _piCurve2,_piDir2, _piCombinedCurve);
+
+...</pre>
+<p><code>piGSMTool</code> is a <em>CATIGSMTool</em> interface pointer on the geometrical 
+features set, retrieved or created by one of the methods described just above. See 
+the <a href="#Step1">Looking for a Geometrical Features 
+Set</a> section.</p>
+<p>spMechFeatOnMainTool is a <em>CATIMmiMechanicalFeature</em> interface smart 
+pointer on this set. Since, the set is a Mechanical feature, it is included within 
+the <code>CATPrtCont</code> container [<a href="#References">7</a>]. So 
+the <code>GetPrtContainer</code> method retrieves the <code>CATPrtCont</code> feature 
+which implements the <em>CAAIMmrCombCrvFactory</em> interface.</p>
+<p>The argument of the <strong><code>CreateCombinedCurve</code></strong> method are data members 
+of the <em>CAAMmrCombCrvPanelStCmd</em> state command. They are the four inputs of 
+the Combined Curve to create.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Aggregating the New Combined Curve into the Set</h3>
+<p>The new Combined curve is aggregated into a geometrical features set thanks to 
+the <em>CATIMmiUseBasicInsertion</em> interface. But depending on the type of the 
+set, the position of the new instance can be different.</p>
+<pre class="code">...
+<strong>CATIMmiUseBasicInsertion_var</strong> hBasicInsertion = _piCombinedCurve; 
+if (SUCCEEDED(rc) &amp;&amp; (NULL != piGSMTool) &amp;&amp; (NULL_var != hBasicInsertion))
+{ 
+  <strong>CATIMmiMechanicalFeature_var</strong> hTarget = piGSMTool;
+  if (hTarget != NULL_var)
+  {      
+    int IsAnOrderedBody= -1 ;
+    piGSMTool-&gt;<strong>GetType</strong>(IsAnOrderedBody);
+
+    if ( <strong>1 == IsAnOrderedBody</strong>)
+    { see <a href="#Aggregation1">Aggregation into Ordered Set</a> } 
+    else
+    { see <a href="#Aggregation2">Aggregation into Non Ordered Set</a> }
+...</pre>
+<p>Before the aggregation, check the type of the set using the <em>CATIGSMTool</em> 
+interface and its <code>GetType</code> method. <code>1</code> it is an ordered set,
+<code>0</code> otherwise. <code>hBasicInsertion</code> is a <em>CATIMmiUseBasicInsertion</em> 
+smart pointer to the geometrical object to aggregate. <code>hTarget</code> is a <em>CATIMmiMechanicalFeature</em> 
+interface smart pointer to the set (<code>piGSMTool</code>) retrieved or created 
+in the <a href="#Step1">Looking for a Geometrical 
+Features Set</a> section. They are used in
+<a href="#Aggregation1">Aggregation into Ordered Set</a> and
+<a href="#Aggregation2">Aggregation into Non Ordered Set</a> 
+sections.</p>
+<p><strong><a name="Aggregation1"></a>Aggregation into Ordered Set</strong></p>
+<p>When the set is ordered, the location of the new feature depends on the current 
+feature. The current feature is:</p>
+<ul>
+	<li>In the set: the new instance is set after the current feature.</li>
+	<li>Outside the set: the new instance is set at the end of the set.</li>
+</ul>
+<pre class="code">...
+<span class="auto-style1">  </span>CATIMmiMechanicalFeature_var CurrentElt = <strong>GetCurrentFeature</strong>() ;
+
+  if (CurrentElt != NULL_var)
+  {
+<span class="auto-style1">    </span>CATIMmiUseBodyContent_var hBodyContent = piGSMTool;
+    if (hBodyContent != NULL_var)
+    {
+<span class="auto-style1">      </span>CATListValCATBaseUnknown_var listFeatures;
+      hBodyContent-&gt;<strong>GetMechanicalFeatures</strong>(listFeatures);
+      if (listFeatures.Locate(CurrentElt))
+      {
+        // the CC is appended at the end
+        hBasicInsertion-&gt;<strong>InsertAfter</strong>(CurrentElt);
+      }
+      else
+      {
+        // the current feature is inside the body 
+        hBasicInsertion-&gt;<strong>InsertInside</strong>(piGSMTool);
+      }
+    }
+  }
+...</pre>
+<p>The current feature, CurrentElt, is known by the Part feature and its <em>CATIMmiUsePrtPart</em> 
+interface. But since the <em>CAAMmrCombCrvPanelStCmd</em> derives from the <em>CATMmrPanelStateCmd</em>
+class, the <code>GetCurrentFeature</code> of this class has been used.</p>
+<p><code>GetMechanicalFeatures</code>, a method of the <em>CATIMmiUseBodyContent</em> 
+interface, enables us to check if the current feature is in the set or not.</p>
+<p>hBasicInsertion is a <em>CATIMmiUseBasicInsertion</em> interface smart 
+pointer on the new instance, see the <a href="#Step2">Creating 
+the Combined Curve</a> section. It is inserted after the current feature thanks 
+to the I<code>nsertAfter</code> method, or at the end of the current set thanks 
+to the InsertInside method, two methods of the <em>CATIMmiUseBasicInsertion</em> interface.</p>
+<p><strong><a name="Aggregation2"></a>Aggregation into Non Ordered 
+Set</strong></p>
+<p>When the set is not ordered, the new instance is always appended at the 
+end of the set.</p>
+<pre class="code">...
+    hBasicInsertion-&gt;<strong>InsertInside</strong>(piGSMTool);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Updating the Feature</h3>
+<p>Once the feature is created and aggregated into a set, you must update it. In 
+an interactive command, you can use the <em>CATPrtUpdateCom</em> class to benefit 
+of error management.</p>
+<pre class="code">CATPrtUpdateCom *pUpdateCommand =  new <strong>CATPrtUpdateCom</strong> (pCombinedCurveObject ,  
+                                                        1,  
+                                                        GetMode());</pre>
+<p><code>pCombinedCurveObject</code> is a <em>CATBaseUnknown</em> interface 
+pointer on the created or modified feature. The second argument, <code>1</code>, 
+enables us to follow the automatic/manual update of the Part Infrastructure settings. 
+The last argument specifies the mode of the command, creation or edition. <code>
+GetMode</code> is a method of the state command.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Ending the Aggregation</h3>
+<p>Finally, once the feature is created, aggregated into a set, and updated, if 
+the set is ordered, you must call the <code>Insert</code> method of the <em>CATIMmiUseLinearBodyServices</em> 
+interface.</p>
+<pre class="code">...
+CATBoolean IsInsideOrderedBody = FALSE;
+rc = <strong>IsCombCrvInsideOrderedBody</strong>(IsInsideOrderedBody);
+if (SUCCEEDED(rc) &amp;&amp; (TRUE == IsInsideOrderedBody))
+{
+  // Invoke the Insert method is mandatory 
+  CATBaseUnknown_var spBUOnCC = pCombinedCurveObject;
+      
+  <strong>CATIMmiUseLinearBodyServices</strong> *OGSServices = NULL;
+  rc = CATMmiUseServicesFactory::<strong>CreateMmiUseLinearBodyServices</strong>(OGSServices);
+  if (SUCCEEDED(rc) &amp;&amp; OGSServices)
+  {
+    rc = OGSServices-&gt;<strong>Insert</strong>(spBUOnCC);      
+...
+</pre>
+<p>The <code>IsCombCrvInsideOrderedBody</code> method is a method of the
+<em>CAAMmrCombCrvPanelStCmd</em> class which is detailed in the Editing Combined Curves 
+use case [<a href="#References">5</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has explained the methodology to insert a new feature in a geometrical 
+features set:</p>
+<ol>
+	<li>Aggregate the new feature thanks to <em>CATIMmiUseBasicInsertion</em>:
+		<ul>
+			<li>At the end of the set, for a non ordered set (Geometrical Set).</li>
+			<li>After the current feature, otherwise (Body or Ordered Geometrical 
+				Set).</li>
+		</ul>
+	</li>
+	<li>Update the new feature thanks to <em>CATPrtUpdateCom</em>.</li>
+	<li>Call the <code>Insert</code> method of the <em>CATIMmiUseLinearBodyServices</em> class 
+		if the set is ordered.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont1.htm">
+		The Geometrical Feature Sets</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrUcCombinedCurveFactory.htm">Creating Combined Curve's 
+		Factory Interface</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont2.htm">
+		The Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaOrderLinearBody.htm">
+		Order and Absorption Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAMmrUcCombinedCurveCATIEdit.htm">Editing Combined Curves</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont1.htm">
+		The Geometrical Feature Sets</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTa3DShape.htm">
+		From the PLM Representation to the 3D Shape</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAMmrUcCombinedCurveSamplesOverview.htm">Creating a New Geometrical 
+		Feature: the Combined Curve</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2003]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jan 2011]</td>
+		<td>Document updated for V6 modifications</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Mai 2014]</td>
+		<td>Document updated for 3DEXPERIENCE platform migration</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

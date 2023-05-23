@@ -1,0 +1,154 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Testing the Position of a Point Inside a Face or a Volume</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Testing the Position of a Point Inside a Face or a Volume</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>You can test whether a point is inside or on the boundary of a face 
+		or a volume by 
+		using the CATICGMPositionPtFaceOperator and CATICGMPositionPtVolOperator operators.</p>
+		<ul>
+			<li><a href="#OpeToBeUsed">Operator to be Used</a></li>
+			<li><a href="#UseCaseDescription">Use Case Description</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="OpeToBeUsed">Operator to be Used</a></h2>
+<p>Use CATICGMPositionPtFaceOperator&nbsp; and CATICGMPositionPtVolOperator. These operators 
+are created by using the CATCGMCreatePositionPtFaceOperator and CATCGMCreatePositionPtVolOperator 
+global functions.</p>
+
+<h2><a name="UseCaseDescription">Use Case Description</a></h2>
+<p>The CAAGMModelPositionOpe.m module in CAAGMModelInterfaces.edu 
+illustrates how to test the inclusion of a point inside a volume or a face. This use case 
+constructs its input data. If you are not already 
+familiar with geometric modeler use cases, go to
+<a href="../CAACgmModel/CAACgmUcGMUseCases.htm">About Geometric Modeler Uses Cases</a>.</p>
+<p>With the input data below:</p>
+<table border="0" cellspacing="6">
+  <caption><a name="Fig.1">Fig.1</a> Point Inclusion:&nbsp; Input 
+	data<br />
+	The point pointOnFace (in blue) relies on the bottom face ( x=4.008, y=4.996, z=0.996), the 
+	point pOUT (in yellow) is located at 5., 5., 5.
+</caption>
+  <tr>
+    <td>
+	<img alt="Point Inclusion" src="images/CGM_point_inclusion_0.png" width="250" height="220"/></td>
+   </tr>
+</table>
+<p>the code below:</p>
+<pre class="code">CATICGMPositionPtVolOperator * pPositionPtVolOpe1 =::CATCGMCreatePositionPtVolOperator(piGeomFactory, &amp;topdata,
+		pOUT, pVolume);   
+...
+CATLocation loc1 = pPositionPtVolOpe1-&gt;GetLocationResult();
+	if (loc1==CATLocationOuter) 
+		cout &amp;lt&amp;lt "math point(5., 5.,5.) is outside" &amp;lt&amp;lt endl;
+	else
+...	
+</pre>    
+<p>returns <code>&quot;math point(5., 5., 5.) is outside&quot;</code> on the standard output.</p>
+<p>The code below (<strong>pointOnFace relies on a bordering face</strong>):</p>
+<pre class="code">CATICGMPositionPtVolOperator * pPositionPtVolOpe2 =::CATCGMCreatePositionPtVolOperator(piGeomFactory, &amp;topdata,
+		pointOnFace, pVolume);
+...
+CATLocation loc2 = pPositionPtVolOpe2-&gt;GetLocationResult();
+	if (loc2==CATLocationFull) 
+	{
+		cout &amp;lt&amp;lt "math point with coordinates " &amp;lt&amp;lt endl;
+		cout &amp;lt&amp;lt pointOnFace.GetX() &amp;lt&amp;lt " " &amp;lt&amp;lt pointOnFace.GetY() &amp;lt&amp;lt " " &amp;lt&amp;lt pointOnFace.GetZ() &amp;lt&amp;lt endl;
+        cout &amp;lt&amp;lt "is on the volume border " &amp;lt&amp;lt endl;
+	}
+...</pre>
+<p>returns:</p>
+<pre class="code">math point with coordinates
+4.00772 4.99616 0.996126
+is on the volume border</pre>
+<p>The code below:</p>
+<pre class="code">CATICGMPositionPtFaceOperator *pPositionPtFaceOpe =::CATCGMCreatePositionPtFaceOperator(piGeomFactory, pConfig,
+		surParam, theFaceOnWhichICreateAPoint);
+...
+if ( (pPositionPtFaceOpe-&gt;GetOneResult() )==CATLocationInner)
+	{
+		cout &amp;lt&amp;lt "math point with coordinates " &amp;lt&amp;lt endl;
+		cout &amp;lt&amp;lt pointOnFace.GetX()  &amp;lt&amp;lt " " &amp;lt&amp;lt pointOnFace.GetY() &amp;lt&amp;lt " " &amp;lt&amp;lt pointOnFace.GetZ() &amp;lt&amp;lt endl;
+		cout &amp;lt&amp;lt  "is INSIDE (not on the boundary of) the face  " &amp;lt&amp;lt  theFaceOnWhichICreateAPoint-&gt;GetPersistentTag() &amp;lt&amp;lt endl;
+		 
+	}
+...</pre>
+<p>returns:</p>
+<pre class="code">
+math point with coordinates
+4.00772 4.99616 0.996126
+is INSIDE (not on the boundary of) the face  53
+</pre>
+
+
+
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAACgmModel/CAACgmUcGMUseCases.htm">About Geometric Modeler Use Cases</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAACgmModel/CAACgmTaUseTopoOperators.htm">How to Use Topological Operators</a></td>
+	</tr>
+
+<tr>
+		<td>[4]</td>
+		<td>
+		<a href="CAACgmUcGMModelOpeOverw.htm">How to Use Geometric Operators</a></td>
+	</tr>
+	</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

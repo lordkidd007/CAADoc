@@ -1,0 +1,188 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Concatenation and minification, Web Module Build Options</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Concatenation and minification, Web Module Build Options</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows, through the CAAWebAppsOperationApp [<a href="#References">1</a>] use case, what the mkmk tools create in the run time view according 
+		to the build options (-dev and -g), both introduced in the referenced article [<a href="#References">2</a>] .</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part0"></a>webapps Run Time View</h2>
+<p>The CAAWebAppsOperationApp  use case is made of the bellow files:</p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsTaUseCaseCodeTree.png"/></td>
+	</tr>
+</table>
+<p>The build result of each mweb module is always located below the <code>webapps</code> directory into the run time view as you can observe on this picture:</p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsTaUseCaseCodeTree2.png"/></td>
+	</tr>
+</table>
+<p>The name of the directory associated with a mweb module is by default the mweb module name. But it can be changed by using this imakefile option:</p>
+<pre class="code">
+PROGRAM_NAME=MyWebAppName
+</pre>
+<p>Just below, the contents of the <code>webapps</code> directory when the imakefile of the CAAWebAppsOperationApp Module has been changed:</p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsTaUseCaseCodeTree3.png"/></td>
+	</tr>
+</table>
+<p>After these first explanations about the build of a web module, let's see in detail the content of each directory associated with a web module. Indeed, the contents is different 
+according to two build options: concatenation and minification. </p>
+<ul>
+<li><b>concatenation</b>: All the js files included in the src directory are included in on file whose  name 
+is the web app name ( mweb module name or PROGRAM_NAME value )</li>
+<li><b>Minification</b>: comments and blank lines are removed </li>
+</ul>
+<p>To expose the different cases, we have chosen to focus on the <code>CAAWebAppsOperationBase</code> mweb module since its content is not just one file. </p>
+<h2><a name="Prod"></a>Production Step</h2>
+<p>The objective is to have a lightweigh loading of your application, so it is better if your JavaScript code is <b>concatened</b> and <b>Minified.</b>
+<p>Build : <code>mkmk</code></p>
+<p>Below the <code>webapps/CAAWebAppsOperationBase</code> directory you find one js, named after the module name: <i>CAAWebAppsOperationBase.js</i>,  which contains all the js of the modules
+and each one is minified: </p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsucAMDBuild7.png"/></td>
+	</tr>
+</table>
+
+<p>Note the Copyright instructions are kept</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Dev"></a>Development Step</h2>
+<p>The goal is to have a maximum of information in case of build errors. In this case, your code must  <b>not be concatenated</b> and not <b>minified</b>.</p>
+<p>Build : <code>mkmk -g</code></p>
+<p>In this case, a file per js file into the src directory is generated, and no file <i>CAAWebAppsOperationBase.js</i>  is created below <code>webapps/CAAWebAppsOperationBase</code>  </p>
+<p>Just you will find hereafter the <i>Binary.js</i> file present in <code>webapps/CAAWebAppsOperationBase/basic</code> </p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsucAMDBuild3.png"/></td>
+	</tr>
+</table>
+<p>The file in the run time view is a copy of the file in the src directory.</p> 
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Check1"></a>Check Minification Step</h2>
+<p>The minification build step parses the JavaScript code. If your code is not well written, mkmk will raise errors. To fix them, we recommend to use options which <b>minify</b> the code, but do <b>not concatenate</b> it.</p>
+<p>Build : <code>mkmk -dev</code></p>
+<p>In this case,  one file  is still generated per js file present in the src directory , and still no file <i>CAAWebAppsOperationBase.js</i>  below <code>webapps/CAAWebAppsOperationBase</code> is created, but the contents of
+each file in the run time view are minified. </p>
+<p>Just you will find hereafter the <i>Binary.js</i> file present in <code>webapps/CAAWebAppsOperationBase/basic</code> </p>
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsucAMDBuild4.png"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Check2"></a>Check Concatenation Step</h2>
+<p>The concatenation build step can lead to specific errors. To fix them, we recommend to use options which <b>concatenate</b> the code, but do <b>not minify</b> it.</p>
+<p>Build : <code>mkmk -dev -g</code></p>
+<p>In this case, a file <i>CAAWebAppsOperationBase.js</i>  below <code>webapps/CAAWebAppsOperationBase</code> is created, and it contains the sum of all js files contained in the src directory.</p>
+<p>The <i>CAAWebAppsOperationBase.js</i> file below <code>webapps/CAAWebAppsOperationBase</code> contains that (extract):
+<table> 
+	<tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsTaUseCaseCodeTree4.png"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This array sums up the mkmk options:</p>
+<table class="fill">
+<tr>
+<th>Options</th>
+<th>Concatenation</th>
+<th>Minification</th>
+<th>Expected Behavior</th>
+</tr>
+<tr>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+<td>Optimise production </td>
+</tr>
+<tr>
+<td>-g</td>
+<td>no</td>
+<td>no</td>
+<td>Debugging and for coverage</td>
+</tr>
+<tr>
+<td>-dev</td>
+<td>no</td>
+<td>yes</td>
+<td>Debugging for «build issue » </td>
+</tr>
+<tr>
+<td>-dev -g</td>
+<td>yes</td>
+<td>no</td>
+<td>Debugging specificallly for concatenation mode</td>
+</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAWebAppsUcOperationApp.htm">Defining and Using AMD Modules</a></td>
+	</tr>
+		<tr>
+		<td>[2]</td>
+		<td>mkmk and mweb module</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

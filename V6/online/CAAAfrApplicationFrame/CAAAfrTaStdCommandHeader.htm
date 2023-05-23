@@ -1,0 +1,353 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>How to Create Standard Command Headers</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Create Standard Command Headers</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to create standard command headers, and how to 
+		assign resources to them.</p>
+		<ul>
+			<li><a href="#Creating">Creating Standard Command Headers</a>
+				<ul>
+					<li><a href="#WithoutArg">Creating a Standard Command Header 
+						without Passing an Argument to the Command</a></li>
+					<li><a href="#WithArg">Creating a Standard Command Header that 
+						Passes an Argument to the Command</a></li>
+				</ul>
+			</li>
+			<li><a href="#Resources">Assigning Resources to a Command Header</a>
+			<ul>
+					<li><a href="#NLS">Filling in the Command Header CATNls File</a></li>
+					<li><a href="#RSC">Filling in the Command Header CATRsc File</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Creating"></a>Creating Standard Command Headers</h2>
+<p>This is achieved in the <code>CreateCommands</code> method of an app or 
+an add-in [<a href="#References">1</a>] [<a href="#References">2</a>]. A 
+standard command header can be asked to pass an argument to the command it 
+represents when the command is launched.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="WithoutArg"></a>Creating a Standard Command Header without Passing 
+an Argument to the Command</h3>
+<p>To create a standard command header, use the <code>CATCreateCommandHeader</code> 
+static method of the <em>CATAfrCommandHeader</em> class, for example here for a Point 
+command.</p>
+<pre class="code">
+CATAfrCommandHeader::CATCreateCommandHeader(&quot;CAAAfrPointHdr&quot;, 
+                                            &quot;CAADegGeoCommands&quot;, 
+                                            &quot;CAADegCreatePointCmd&quot;,
+                                            (void *) NULL,
+                                            &quot;CAAAfrGeometryWksHeader&quot;,
+                                            CATFrmAvailable);</pre>
+<p>Where:</p>
+<ul>
+	<li><code>CAAAfrPointHdr</code> is the command header identifier. It is used 
+	when associating a command starter to the command header to place the command 
+		in the application frame. 
+	This identifier is also used to build the variables defining the command 
+	header resources, such as the name seen by the end user in his/her own 
+	language in a contextual menu, or the icon to display in the action bar.<br />
+	</li>
+	<li><code>CAADegGeoCommands</code> is the name of the DLL to load when starting 
+		the command, without extension.</li>
+	<li><code>CAADegCreatePointCmd</code> is the name of the command class.</li>
+	<li>The fourth argument is the argument to pass when starting the command. 
+	Since no argument is to be passed to the Point command, this is set to NULL.</li>
+	<li><code>CAAAfrGeometryWksHeader</code> is the character string used to build 
+		the names of the command header resource files.</li>
+	<li><code>CATFrmAvailable</code> states that the command is available. This 
+		is the default. Otherwise, it should be set to <code>CATFrmUnavailable</code>.
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="WithArg"></a>Creating a Standard Command Header that Passes an Argument 
+to the Command</h3>
+<p>These three command headers refer to the same command which changes the view 
+point to a one having its sight direction along the X axis, the Y axis, and the 
+Z axis respectively.</p>
+<pre class="code">CATAfrCommandHeader::CATCreateCommandHeader(&quot;CAAAfrNormalXHdr&quot;,
+                                            &quot;CAAAfrGeoCommands&quot;,
+                                            &quot;CAAAfrChangeViewNormalCmd&quot;,
+                                            <b>(void *)CATINT32ToPtr(1)</b>,
+                                            &quot;CAAAfrGeometryWksHeader&quot;,
+                                            CATFrmAvailable);
+CATAfrCommandHeader::CATCreateCommandHeader(&quot;CAAAfrNormalYHdr&quot;,
+                                            &quot;CAAAfrGeoCommands&quot;,
+                                            &quot;CAAAfrChangeViewNormalCmd&quot;,
+                                            <b>(void *)CATINT32ToPtr(2)</b>,
+                                            &quot;CAAAfrGeometryWksHeader&quot;,
+                                            CATFrmAvailable);
+CATAfrCommandHeader::CATCreateCommandHeader(&quot;CAAAfrNormalZHdr&quot;,
+                                            &quot;CAAAfrGeoCommands&quot;,
+                                            &quot;CAAAfrChangeViewNormalCmd&quot;,
+                                            <b>(void *)CATINT32ToPtr(3)</b>,
+                                            &quot;CAAAfrGeometryWksHeader&quot;,
+                                            CATFrmAvailable);</pre>
+<p>In this case, the fourth argument is used to pass that direction to the command, 
+that decodes 1 is for the X axis, 2 for the Y axis, and 3 for the Z axis. See the
+<em>CAAAfrChangeViewNormalCmd</em> command class [<a href="#References">4</a>] for 
+more details. The <code>CATINT32ToPtr</code> macro enables these method calls to 
+be 64-bit compliant [<a href="#References">5</a>].</p>
+<p>More generally, this fourth argument is:</p>
+<ul>
+	<li>Often a character string that indicates the action to carry out when the 
+		same command can perform several actions depending on the active model and 
+		data, such as &quot;update&quot; or &quot;update all&quot;, or &quot;cut&quot; 
+		or &quot;copy&quot;.</li>
+	<li>A pointer to an object to pass to the command constructor when starting 
+		the command.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Resources"></a>Assigning Resources to a Command Header</h2>
+<p>There are two resource files associated with a command header:</p>
+<ol>
+	<li>A CATNls resource file. It contains the resources expressed 
+		in the English language that can be translated into the different languages 
+		spoken by your intended command end-users. These resources include the command 
+		name and the help messages.</li>
+	<li>A CATRsc resource file. It contains the references to the 
+		command icons and other resources that are common to all languages.</li>
+</ol>
+
+<p>The name of these two resource file must be the same as the value declared as 
+the fifth argument of the CATAfrCommandHeader::CATCreateCommandHeader method.These files are located in the CNext\resources\msgcatalog directory of the 
+framework containing the module where the command header source files are 
+located. This directory includes subdirectories, one for each language into 
+which the title and messages of the CATNls file can be 
+translated.</p>
+
+<p>With the example of the Point command described above, thanks to its fifth argument
+<code>CAAAfrGeometryWksHeader</code>, the resources of the Point command header 
+must be located in the two resources files<code>:</code></p>
+<ul>
+	<li>CAAAfrGeometryWksHeader.CATNls for titles, help messages, and everything 
+		that can be translated.</li>
+	<li>CAAAfrGeometryWksHeader.CATRsc for other resources, such as the icons to 
+	display in the action bar.</li>
+</ul>
+<p>The resources are designated using a key built as a concatenation of <code>CAAAfrGeometryWksHeader</code>, 
+the command header instance identifier, and the resource keyword, separated by dots.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="NLS"></a>Filling in the Command Header CATNls File</h3>
+
+<p>The CAAAfrGeometryWksHeader.CATNls file includes the following for the Point command:</p>
+<pre class="code">...
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Title</strong>     = &quot;Point&quot;;
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>ShortHelp</strong> = &quot;Point&quot;;
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Help</strong>      = &quot;Creates points: indicate a point or enter coordinates&quot;;
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>LongHelp</strong>  = &quot;Point (Insert menu)
+Create points in two ways:
+ 1- Indicate a point with the mouse left button 
+ 2- Enter the point coordinates in the dialog box
+This Command is in repeat mode, so you can create
+several points along the command life.
+To leave the command, select another command.&quot;;
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Category</strong>  = &quot;Element&quot;;
+
+
+...</pre>
+<p>These resources are:</p>
+<table class="fill">
+	<tr>
+		<th>Keyword</th>
+		<th>Resource</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td>Title</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdTitle.jpg" width="61" height="29"/></td>
+		<td>Text displayed if the command was inserted in a contextual menu</td>
+	</tr>
+	<tr>
+		<td>ShortHelp</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdShortHelp.jpg" width="149" height="70"/></td>
+		<td>Text displayed in a balloon as the command short help message when 
+		the mouse moves over the command. This is not applicable to commands 
+		located in a contextual menu</td>
+	</tr>
+	<tr>
+		<td>Help</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdHelp.jpg" width="274" height="25"/></td>
+		<td>Text displayed in the status bar as the command help message when the 
+		mouse moves over the command. This is not applicabale to commands located in 
+		the action bar</td>
+	</tr>
+	<tr>
+		<td>LongHelp</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdLongHelp.jpg" width="160" height="250"/><br />
+		</td>
+		<td>Text displayed in a balloon when the end user keeps the mouse over 
+		the command. This is not applicable to commands located in a contextual 
+		menu</td>
+	</tr>
+	<tr>
+		<td>Category</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdCategory.jpg" width="435" height="363"/></td>
+		<td>An attribute associated with the command and used to sort the commands 
+		in the <kbd>Commands</kbd> tab page of the <kbd>Customize</kbd> panel<br />
+		</td>
+	</tr>
+	</table>
+	
+	
+
+<p>It's possible to declare a mnemonic for an item in a menu. For example, it the point command was added in a contextual menu,
+we could add the line:</p>
+<pre class="code">...
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Title</strong>     = &quot;PointXYZ&quot;;
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Mnemonic</strong>     = &quot;X&quot;;
+...</pre>
+
+<table class="fill">
+	<tr>
+		<th>Keyword</th>
+		<th>Resource</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td>Mnemonic</td>
+		<td>
+		<img alt="" src="images/CAAAfrPointCmdMnemonic.jpg" width="84" height="29"/>
+		</td>
+		<td>A key letter that activates items in a contextual menu. The key 
+		character is underlined in the menu item title, and therefore must 
+		belong to this title, in this example it's the &quot;X&quot;. No duplicates should 
+		exist in the set of mnemonic keys for a given contextual menu or submenu 
+		(for this reason, we had to modify the title to &quot;PointXYZ&quot;, all the 
+		letters of &quot;Point&quot; being already use by standard commands that can be 
+		found in the contextual menu). The case is ignored when using the mnemonic.</td>
+	</tr>
+	</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="RSC"></a>Filling in the Command Header CATRsc File</h3>
+
+<p>The CAAAfrGeometryWksHeader.CATRsc file includes the following for the Point 
+command:</p>
+<pre class="code">...
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>Icon.Normal</strong> = &quot;I_CAAPoint&quot; ;
+CAAAfrGeometryWksHeade.CAAAfrPointHdr.<strong>Accelerator</strong>  = "Ctrl+Alt+P";
+CAAAfrGeometryWksHeader.CAAAfrPointHdr.<strong>LongHelpId</strong>  = "CAAAfrGeometryWksHeader.CAAAfrPointHdr" ;
+...</pre>
+<table class="fill">
+	<tr>
+		<td>Icon.Normal</td>
+		<td>Icon associated with the command and used in the action bar when the command 
+		is available. The grayed icon associated with the command when it is unavailable 
+		is computed from this one. The shadowed icon displayed for default state 
+		and the Pressed and Focused icons are computed from the Normal one too.</td>
+	</tr>
+	<tr>
+		<td>Accelerator</td>
+		<td>A keystroke combination, such as &quot;Ctrl+key&quot;, used to activate 
+		the command directly. The keystroke combination is written beside the command 
+		name in a contextual menu or submenu.</td>
+	</tr>
+	<tr>
+		<td>LongHelpId</td>
+		<td>Identifier to associate to the command an URL referencing a file documenting the command [<a href="#References">3</a>].</td>
+	</tr>
+
+</table>
+
+ <p>The icon files must be 32x32 size picture with png extension. They must be 
+	located in the CNext\resources\graphic\icons\normal folder of the framework 
+	containing the module where the command headers are created.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A command header is a light object that stands for a command and avoids to load 
+the command as long as the end user does not require it. A command header is an 
+instance of a command header class. A standard command header class is created using 
+the <code>MacDeclareHeader</code> macro, and can be used for several commands. Resources 
+that help to expose and access the command are assigned to the command header in 
+order to be available even if the command is not loaded.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrUcSampleWorkbench.htm">Creating an App</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAAfrUcSampleAddin.htm">Creating an Add-in</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAfrTaHelpOnLine.htm">Contextual Help</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAAfrUcSampleCamera.htm">Using Cameras</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADoc64bit.htm">
+		C++ 64-bit Operating System Support</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2008]</td>
+		<td>Document created</td>
+	</tr>
+		<tr>
+		<td>Version: <strong>1</strong> [Feb 2014]</td>
+		<td>Document updated</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

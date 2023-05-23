@@ -1,0 +1,249 @@
+<html>
+<head>
+ <meta name="Generator" content="mihGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>InfInterfaces SelectedElement (Object)</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Object Hierarchy</a>  <a href="../InfInterfaces.htm">This Framework</a>  <a href=".htm">Previous</a>  <a href="interface_Selection_18040.htm">Next</a>  <a href="../CAAHomeIdx.htm">Indexes</a>  </pre>
+<hr>
+<h1>SelectedElement<font size=-1> (Object)</font></h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">IDispatch</a>
+    |
+    +---<a href="../System/interface_CATBaseUnknown_40786.htm">CATBaseUnknown</a>
+      |
+      +---<a href="../System/interface_CATBaseDispatch_45333.htm">CATBaseDispatch</a>
+        |
+        +---<a href="../System/interface_AnyObject_17321.htm">AnyObject</a>
+          |
+          +---SelectedElement
+ </pre>
+<hr><br>
+<b><i> Represents an element contained by a Selection object.</i></b><br>
+
+ This object is an object contained by a <a href="../InfInterfaces/interface_Selection_18040.htm">Selection</a> object. The 
+<a href="../InfInterfaces/interface_Selection_18040.htm">Selection</a> object contains 
+<a href="../InfInterfaces/interface_SelectedElement_47693.htm">SelectedElement</a> objects, which are accessed through the 
+<a href="../InfInterfaces/interface_Selection_18040.htm#Count2">Selection.Count2</a> and 
+<a href="../InfInterfaces/interface_Selection_18040.htm#Item2">Selection.Item2</a> methods.
+<hr>
+<dl>
+ <h2><a name="PropertyIndex"></a>Property Index</h2>
+ <dt>
+    <a href="#Document"><b>Document</b></a>
+<dd>  Returns the document to which the selected element belongs.
+ <dt>
+    <a href="#LeafProduct"><b>LeafProduct</b></a>
+<dd>  Returns the leaf product corresponding to the selection in the specification tree.
+ <dt>
+    <a href="#Reference"><b>Reference</b></a>
+<dd>  Returns a Reference version of the Value property.
+ <dt>
+    <a href="#Type"><b>Type</b></a>
+<dd>  Returns the string constant which describes the selected element Automation type.
+ <dt>
+    <a href="#Value"><b>Value</b></a>
+<dd>  Returns the actual selected automation object.
+</dl>
+<dl>
+ <h2><a name="MethodIndex"></a>Method Index</h2>
+ <dt>
+    <a href="#GetCoordinates"><b>GetCoordinates</b></a>
+<dd>  Returns the coordinates of the pick point.
+</dl>
+ <h2><a name="Properties"></a>Properties</h2> <br>
+<a name="Document"><dt>
+
+<table><tr><td>o Property <b>Document</b>(<td>) As <a href="../InfInterfaces/interface_Document_14456.htm">CATIADocument</a>  (Read Only)</table></dt>
+<dl>
+  <dd>
+ Returns the document to which the selected element belongs.
+</dl>
+<a name="LeafProduct"><dt>
+
+<table><tr><td>o Property <b>LeafProduct</b>(<td>) As <a href="../System/interface_AnyObject_17321.htm">CATIABase</a>  (Read Only)</table></dt>
+<dl>
+  <dd>
+ Returns the leaf product corresponding to the selection in the specification tree.
+ <br><b>Role</b>: Returns the leaf 
+<a href="../ProductStructureInterfaces/interface_Product_11223.htm">Product</a> (component, corresponding for example to "Product1.1" in the specification tree). The 
+<a href="../System/interface_AnyObject_17321.htm">AnyObject</a> returned is a 
+<a href="../ProductStructureInterfaces/interface_Product_11223.htm">Product</a> if a product appears in the specification tree, in the path corresponding to the current selection, and a fake 
+<a href="../System/interface_AnyObject_17321.htm">AnyObject</a> whose 
+<a href="../System/interface_AnyObject_17321.htm#Name">AnyObject.Name</a> property equals to "InvalidLeafProduct" otherwise.</br> Cumulated with the use of the 
+<a href="../System/interface_AnyObject_17321.htm#Parent">AnyObject.Parent</a> property (which enables to navigate into the object structure), the current property enables the scripter to obtain the path, in the specification tree,
+ corresponding to the selection.
+ 
+<dl>
+  <dt> <b>Example:</b> 
+  <dd>  The following example supposes a 
+<a href="../MecModInterfaces/interface_Part_3788.htm">Part</a> or a 
+<a href="../ProductStructureInterfaces/interface_Product_11223.htm">Product</a> is opened. It asks the end user to select a 
+<a href="../MecModInterfaces/interface_Shape_5555.htm">Shape</a> in the current window. It then sends message boxes containing the names of the automation objects contained in the specification tree path corresponding to the shape selected, and, regarding the 
+ automation objects which are products (only products which are components), a message box containing the 
+ abcissa of the translation of the product compared to its reference product.
+ <pre>
+ Dim Status,Feature,LeafProduct,LeafProductProcessed,InputObjectType(0)
+ Dim Document,Selection,AutomationTreeNodeOrProduct,Position,AxisComponentsArray(11)
+ Set Document = CATIA.ActiveDocument : Set Selection = Document.Selection
+'We propose to the user that he select a feature
+ InputObjectType(0)="AnyObject" 
+ Status=Selection.SelectElement2(InputObjectType,"Select a feature",true)
+ if (Status = "Cancel") then Exit Sub
+ Set Feature = Selection.Item(1).Value
+ Set LeafProduct = Selection.Item(1).LeafProduct
+ LeafProductProcessed = true
+ if (LeafProduct.Name&lt;&gt;"InvalidLeafProduct") then LeafProductProcessed = false
+ Set AutomationTreeNodeOrProduct = Feature
+ do while (TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"Application")
+'  We send a message box, if AutomationTreeNodeOrProduct is not nor a Shapes object neither a PartDocument object
+     if ((TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"Shapes") And _
+         (TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"Bodies") And _
+         (TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"PartDocument") And _
+         (TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"Products") And _
+         (TypeName(AutomationTreeNodeOrProduct)&lt;&gt;"ProductDocument")) then
+         msgbox AutomationTreeNodeOrProduct.Name
+         if (TypeName(AutomationTreeNodeOrProduct)="Product") then
+'          We display a message box containing the abcissa of the translation, except in the case of the
+'          root product
+             if (TypeName(AutomationTreeNodeOrProduct.Parent.Parent)&lt;&gt;"Application") then
+                 Set Position = AutomationTreeNodeOrProduct.Position
+                 Call Position.GetComponents(AxisComponentsArray)
+                 msgbox AxisComponentsArray(9)
+             end if
+         end if
+     end if
+'  We determine the next automation tree node or product
+     Set AutomationTreeNodeOrProduct = AutomationTreeNodeOrProduct.Parent
+     if ((TypeName(AutomationTreeNodeOrProduct)="Application") And (Not LeafProductProcessed)) then
+'      The specification tree path corresponding to the selection contains at least one product, which the current
+'      loop as not yet processed. It means that the parent in the specification tree of the feature corresponding
+'      to the last message box sent is LeafProduct
+         Set AutomationTreeNodeOrProduct = LeafProduct
+         LeafProductProcessed = true
+     end if
+ loop</pre>
+ If you run the preceeding piece of script, the current document beeing a product with the following specification
+ tree: 
+ <pre>
+     +--------+ 
+     !Product3!
+     +----+---+
+          !
+          +- Product2 (Product2.1)             'translation value: 10
+          !     !
+          !     +- Product1 (Product1.1)       'translation value: 20
+          !           !
+          !           +- Part1 (Part1.1)       
+          !                !
+          !                +- Part1
+          !                     !
+          !                     +- PartBody
+          !                           !
+          !                           +- Pad.1
+          +- Part2 (Part2.1)</pre>
+ and you select Pad.1, the message boxes displayed will be:
+ <pre>
+     Pad.1
+     PartBody
+     Part1
+     Part1.1
+     Product1.1
+     20
+     Product2.1
+     10
+     Product3
+ </pre>
+</dl>
+</dl>
+<a name="Reference"><dt>
+
+<table><tr><td>o Property <b>Reference</b>(<td>) As <a href="../InfInterfaces/interface_Reference_17481.htm">CATIAReference</a>  (Read Only)</table></dt>
+<dl>
+  <dd>
+ Returns a Reference version of the Value property.
+ <br><b>Role</b>: Returns a 
+<a href="../InfInterfaces/interface_Reference_17481.htm">Reference</a> version of 
+<a href="#Value">Value</a> .
+</dl>
+<a name="Type"><dt>
+
+<table><tr><td>o Property <b>Type</b>(<td>) As <a href="../System/typedef_CATBSTR_8129.htm">CATBSTR</a>  (Read Only)</table></dt>
+<dl>
+  <dd>
+ Returns the string constant which describes the selected element Automation type.
+ <br>This type is returned by the 
+<a href="#Value">Value</a> property, and may be, for instance <tt>"Pad"</tt> or <tt>"Line2D"</tt>.
+ <br><b>Caution</b>: This property gives the leaf automation type of the object, in the
+ inheritance hierarchy. Nevertheless, after a call to 
+<a href="../InfInterfaces/interface_Selection_18040.htm#SelectElement2">Selection.SelectElement2</a> , 
+<a href="../InfInterfaces/interface_Selection_18040.htm#SelectElement3">Selection.SelectElement3</a> , 
+<a href="../InfInterfaces/interface_Selection_18040.htm#SelectElement4">Selection.SelectElement4</a> , 
+<a href="../InfInterfaces/interface_Selection_18040.htm#IndicateOrSelectElement2D">Selection.IndicateOrSelectElement2D</a> or 
+<a href="../InfInterfaces/interface_Selection_18040.htm#IndicateOrSelectElement3D">Selection.IndicateOrSelectElement3D</a> ,  this property gives the input filter string constant relative to the effective selection (more precisely 
+ the first filter string constant delivered through the iFilterType
+ parameter, for which the current automation object fullfills the string constant). This string constant may be
+ an automation object name corresponding to the iFilterType parameter with which
+ 
+<a href="../InfInterfaces/interface_Selection_18040.htm#SelectElement2">Selection.SelectElement2</a> has previously been called, or even a 
+<a href="../InfInterfaces/enum_CATSelectionFilter_67138.htm">CATSelectionFilter</a> value name. 
+ 
+<dl>
+  <dt> <b>Example:</b> 
+  <dd>  Suppose you run the following piece of script: 
+ <pre>
+ Set Selection = CATIA.ActiveDocument.Selection
+'  We propose to the user that he select a Prism or a Hole
+ ReDim InputObjectType(1) : InputObjectType(0)="Prism" : InputObjectType(1)="Hole"
+ Status=Selection.SelectElement2(InputObjectType,"Select a prism or a hole",true)
+ if (Status = "Cancel") then Exit Sub
+ AutomationType = Selection.Item(1).Type</pre>
+ If the user selects a Pad, the script <tt>AutomationType</tt> variable will contain <tt>"Prism"</tt>
+ and not <tt>"Pad"</tt>.
+ <br><p>Consequently, in most cases, use the VBScript TypeName function instead of this property.
+</dl>
+</dl>
+<a name="Value"><dt>
+
+<table><tr><td>o Property <b>Value</b>(<td>) As <a href="../System/interface_CATBaseDispatch_45333.htm">CATBaseDispatch</a>  (Read Only)</table></dt>
+<dl>
+  <dd>
+ Returns the actual selected automation object.
+</dl>
+ <h2><a name="Methods"></a>Methods</h2> <br>
+<a name="GetCoordinates"><dt>
+
+<table><tr><td>o Sub <b>GetCoordinates</b>(<td><a href="../System/typedef_CATSafeArrayVariant_73843.htm">CATSafeArrayVariant</a> <td><tt>ioPoint</tt>)</table></dt>
+<dl>
+  <dd>
+ Returns the coordinates of the pick point. 	
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> oPoint</tt>
+   <dd> The coordinates of the pick point, i.e. the hit between the geometric object and the cursor.</br> 
+ The length of this parameter will be 3, except if the document is a </dd>
+</dl>
+<a href="../DraftingInterfaces/interface_DrawingDocument_48585.htm">DrawingDocument</a> <br> 
+  <dt> <b>Example:</b> 
+  <dd>  This example retrieves the coordinates of the pick point in the
+ array myArray:
+<pre>
+ Dim oSelElem As SelectedElement
+ Set oSelElem = CATIA.ActiveDocument.Selection.Item(1)
+ ReDim myArray(2)
+ oSelElem.GetCoordinates myArray
+</pre>
+</dl>
+</dl>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

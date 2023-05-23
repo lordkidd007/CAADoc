@@ -1,0 +1,430 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Using XML</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using XML</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains what is an XML parser. It describes the parsers 
+		available with V6, lists their capabilities and discusses how to create 
+		them. It also discusses how these parsers comply with XML standards.</p>
+		<ul>
+			<li><a href="#100000">XML Parser Components</a>
+				<ul>
+					<li><a href="#110000">Support for Multiple Parsers</a></li>
+				</ul>
+			</li>
+			<li><a href="#200000">Use of XML Standards</a>
+				<ul>
+					<li><a href="#210000">C++ Bindings for DOM</a></li>
+					<li><a href="#220000">C++ Bindings for SAX</a></li>
+				</ul>
+			</li>
+			<li><a href="#300000">Supported XML Encodings</a>
+				<ul>
+					<li><a href="#310000">UTF-8</a></li>
+					<li><a href="#320000">Other Supported Encodings</a></li>
+				</ul>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>XML Parser Components</h2>
+<p>The component, which processes raw XML content and allows the developer to access 
+and manipulate this content from a DOM or a SAX API is called an XML parser. Rather 
+than developing its own XML parser, Dassault Syst&egrave;mes chooses to rely on 
+its software partners and integrate existing parsers. All these parsers support 
+the DOM and SAX APIs, but there are differences between them:</p>
+<ul>
+	<li>They do not use the C++ language in the same way: due to the lack of universal 
+		conventions in C++, each parser defines its own string class, its own way 
+		to manage errors, its own way to represent an interface, etc.</li>
+	<li>They have different features: support for DTD validation, support for schema 
+		validation, availability for a given operating system, etc.</li>
+</ul>
+<p>To make the development of XML-based solutions easier, the XMLParserItf framework 
+provides developers with the following functionalities:</p>
+<ul>
+	<li>An API to instantiate the various XML parsers available</li>
+	<li>A set of interfaces based on either the DOM or the SAX models to access 
+		all the parsers in a uniform, friendly way</li>
+	<li>An adaptor layer which makes the various XML parsers accessible through 
+		the interfaces in a uniform way.</li>
+</ul>
+<p>
+<img alt="xmlparsers.png (9540 bytes)" height="250" src="images/xmlparsers.png" width="370"/></p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="110000"></a>Support for Multiple Parsers</h3>
+<p>The XML infrastructure automatically chooses the XML parser component which is 
+best suited for the platform, as summarized by the following table:</p>
+<table class="fill">
+	<thead>
+		<tr>
+			<th>Operating Systems</th>
+			<th>Parsers</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>intel_a</td>
+		<td>Microsoft MSXML4SP2</td>
+	</tr>
+	<tr>
+		<td>win_b64</td>
+		<td>Microsoft MSXML6</td>
+	</tr>
+	<tr>
+		<td>aix_a64</td>
+		<td>IBM XML4C5.4</td>
+	</tr>
+	<tr>
+		<td>linux_a64</td>
+		<td>IBM XML4C5.4</td>
+	</tr>
+</table>
+<p>The goal of the XML parser infrastructure is to make the choice of the underlying 
+parser as transparent as possible. Because vendors do not always comply with standards 
+or provide different capabilities, it is not possible to provide a perfect encapsulation 
+of the parser. However, it is possible to write code which works equally well on 
+all supported platforms if you follow the following coding practices.</p>
+<dl>
+	<dt>Do not use entity resolvers</dt>
+	<dd>MSXML does not support entity resolvers at all. Entity resolvers are often 
+	used to fetch the DTD or the XSD schema referred to by an XML document. See
+	<a href="#Ref2">[2]</a> for a description of portable mechanisms which can be 
+	used to replace entity resolvers.</dd>
+	<dt>Do not use DTD validation with SAX. Avoid DTD validation altogether if possible.</dt>
+	<dd>MSXML does not support DTD validation in SAX at all. Schema validation is 
+	however supported by all encapsulated parsers in SAX. Microsoft has already 
+	begun dropping support for DTDs from its infrastructure (support for DTD validation 
+	is disabled by default) and strongly advocates the use of XSD schemas. You should 
+	take this recommendation into account by using XSD schemas for all new applications 
+	requiring validation and by beginning to implement plans to transition from 
+	DTDs to XSD schemas when DTDs are already in use.</dd>
+	<dt>Use only the SAX options defined in the CATSAXXMLReaderOptions.h header</dt>
+	<dd>SAX parser all have a set of proprietary features and properties which are 
+	not portable. The CATSAXXMLReaderOptions.h header contains only feature and 
+	property names which are known to be portable.</dd>
+	<dt>Take into account MSXML DOM idiosyncrasies</dt>
+	<dd>Numerous deviation from the standard exist in the DOM implementation of 
+	MSXML. Though most of them are fixed by the encapsulation layer, some remain.
+	<ul>
+		<li>MSXML does not implement the <code>CATIDOMNode.SetPrefix()</code> method.</li>
+		<li>The <code>CATIDOMAttr.GetOwnerElement()</code> does not work for DOM 
+			tree which were built by parsing an XML file.</li>
+		<li>When building DOM trees programmatically, MSXML does not report errors 
+			of type <code>WRONG_DOCUMENT_ERR</code> or <code>HIERARCHY_REQUEST_ERR</code>.</li>
+		<li>The <code>CATIXMLDOMDocumentBuilder.Parse()</code> MSXML implementation 
+			does not support error handlers and entity resolvers. </li>
+	</ul>
+	To guarantee portability, you must not write code which relies on these functionality.
+	</dd>
+</dl>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Use of XML Standards</h2>
+<p>The XMLParserItf framework defines two classes of XML APIs: standard APIs and 
+additional APIs created by Dassault Syst&egrave;mes.</p>
+<ul>
+	<li>The standard APIs are the exact image of the W3C DOM specification or the 
+		SAX specification. Nothing has been added to or removed from the specification. 
+		Therefore, the information you can find on DOM or SAX in books, magazine 
+		or on-line tutorials can directly be put in practice in a V6 context using 
+		these APIs. To recognize these APIs more easily, the following naming patterns 
+		are used: DOM interfaces use the prefix <strong>CATIDOM</strong>; DOM classes 
+		use the prefix <strong>CATDOM</strong>; SAX interfaces use the prefix
+		<strong>CATISAX</strong>; SAX classes use the prefix <strong>CATSAX</strong>.</li>
+	<li>Additional APIs were created by Dassault Syst&egrave;mes to fulfill two 
+		needs. First, fill the gaps of the DOM and SAX standards, which do not define 
+		the mechanisms to create a DOM or a SAX parsers or to configure them. Second, 
+		add useful functionalities, which were missing from the standard, for instance 
+		the capability to create an XML document from a DOM tree. To recognize these 
+		APIs more easily, the following naming pattern is used: additional XML interfaces 
+		use the prefix <strong>CATIXML</strong>.</li>
+</ul>
+<p>The following two sections give you more information as to how XML standard specifications 
+have been adapted.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>C++ Bindings for DOM</h3>
+<p>The DOM specification uses OMG IDL to define its APIs in an abstract, platform-neutral 
+way. It is then up to each platform to define a binding, that is a concrete version 
+of the APIs using the language and data types native to the platform. The following 
+table explains how this is done in C++.</p>
+<table class="border1">
+	<thead>
+		<tr>
+			<th>OMG IDL</th>
+			<th>V6 C++</th>
+			<th>Comments</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>DOMString</td>
+		<td>CATUnicodeString</td>
+		<td>All the strings obtained from parsing an XML document are represented 
+		as <em>CATUnicodeStrings</em>: element names, attribute values, characters, 
+		entity names, etc.</td>
+	</tr>
+	<tr>
+		<td>DOM exception</td>
+		<td>HRESULT + CATError</td>
+		<td>The usage is to signal errors using <em>HRESULTs</em>. Additional information 
+		about the error can be obtained using the <em>CATError</em> mechanism. See
+		<a href="#Ref1">[1]</a> for more information.</td>
+	</tr>
+	<tr>
+		<td>interface XXX</td>
+		<td>interface handler CATIDOMXXX_var</td>
+		<td>All DOM interfaces are represented by interface handlers. The naming 
+		conventions are respected by prepending the "CATIDOM" prefix to the original 
+		DOM name (Thus, the <em>Node</em> interface from the specification is mapped 
+		to <em>CATIDOMNode_var</em> interface handler, the <em>Element</em> interface 
+		is mapped to the <em>CATIDOMElement_var</em> interface handler, etc.).</td>
+	</tr>
+	<tr>
+		<td>rettype method(arg1, arg2, ..., argN) raises DOMException</td>
+		<td>HRESULT Method(arg1, arg2, ..., argN, rettype)</td>
+		<td>Methods bear the same name as in the specification, with the first letter 
+		in capital to obey the naming convention. If the specification indicates 
+		a return value for the method, the corresponding method will have an additional 
+		out parameter to return this argument. The exceptions declared by the method 
+		are replaced by a <em>HRESULT</em>.</td>
+	</tr>
+	<tr>
+		<td>boolean</td>
+		<td>CATBoolean</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>unsigned long</td>
+		<td>unsigned int</td>
+		<td></td>
+	</tr>
+</table>
+<p>As a concrete example of how the binding works, please consider the abstract 
+definition of the DOMImplementation extracted from the DOM specification.</p>
+<pre class="code">interface DOMImplementation {
+ boolean hasFeature(
+           in DOMString feature, 
+           in DOMString version);
+ // Introduced in DOM Level 2:
+ DocumentType createDocumentType(
+                in DOMString qualifiedName, 
+                in DOMString publicId, 
+                in DOMString systemId) raises(DOMException);
+ // Introduced in DOM Level 2:
+ Document createDocument(
+             in DOMString namespaceURI, 
+             in DOMString qualifiedName, 
+             in DocumentType doctype) raises(DOMException);
+};</pre>
+<p>In V6, you will manipulate the following interface:</p>
+<pre class="code">class CATIDOMImplementation : public CATBaseUnknown {
+ virtual HRESULT HasFeature(
+                   const CATUnicodeString&amp; iFeature,
+                   const CATUnicodeString&amp; iVersion, 
+                   CATBoolean&amp; oResult) = 0;
+ // Introduced in DOM Level 2:
+ virtual HRESULT CreateDocumentType(
+                  const CATUnicodeString&amp; iQualifiedName, 
+                  const CATUnicodeString&amp; iPublicId, 
+                  const CATUnicodeString&amp; iSystemId, 
+                  CATIDOMDocumentType_var&amp; oDocumentType) = 0;
+ // Introduced in DOM Level 2:
+ virtual HRESULT CreateDocument(
+                  const CATUnicodeString&amp; iNamespaceURI, 
+                  const CATUnicodeString&amp; iQualifiedName, 
+                  const CATIDOMDocumentType_var&amp; iDocumentType, 
+                  CATIDOMDocument_var&amp; oDocument) = 0;
+};</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>C++ Bindings for SAX</h3>
+<p>The SAX specification uses Java to define its APIs. Platforms, which do not use 
+Java as their programming language define a binding for their language, that is 
+a version of the APIs using the language and data types native to the platform. 
+The following table explains how this is done in C++.</p>
+<table class="fill">
+	<thead>
+		<tr>
+			<th>Java SAX Definition</th>
+			<th>V6 C++</th>
+			<th>Comments</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>java.lang.String</td>
+		<td>CATUnicodeString</td>
+		<td>All the strings obtained from parsing an XML document are represented 
+		as <em>CATUnicodeStrings</em>: element names, attribute values, characters, 
+		entity names, etc.</td>
+	</tr>
+	<tr>
+		<td>java.io.Exception<br />
+		org.xml.sax.SAXException</td>
+		<td>HRESULT + CATError</td>
+		<td>The usage is to signal errors using <em>HRESULTs</em>. Additional information 
+		about the error can be obtained using the <em>CATError</em> mechanism. See
+		<a href="#Ref1">[1]</a> for more information.</td>
+	</tr>
+	<tr>
+		<td>interface YYY</td>
+		<td>interface handler CATISAXYYY_var</td>
+		<td>All SAX interfaces are represented by interface handlers. The naming 
+		conventions are respected by prepending the "CATISAX" prefix to the original 
+		SAX name (Thus, the <em>ErrorHandler</em> interface from the specification 
+		is mapped to <em>CATISAXErrorHandler_var</em> interface handler, the <em>
+		Attributes</em> interface is mapped to the <em>CATISAXAttributes_var</em> 
+		interface handler, etc.).</td>
+	</tr>
+	<tr>
+		<td>rettype method(arg1, arg2, ..., argN) throws SAXException</td>
+		<td>HRESULT Method(arg1, arg2, ..., argN, rettype)</td>
+		<td>Methods bear the same name as in the specification, with the first letter 
+		in capital to obey the naming convention. If the specification indicates 
+		a return value for the method, the corresponding method will have an additional 
+		out parameter to return this argument. The exceptions declared by the method 
+		are replaced by a <em>HRESULT</em>.</td>
+	</tr>
+	<tr>
+		<td>org.xml.sax.DefaultHandler<br />
+		org.xml.sax.DefaultXMLFilter</td>
+		<td>CATSAXDefaultHandler<br />
+		CATSAXDefaultXMLFilter</td>
+		<td>Classes providing a default implementation for SAX interfaces are represented 
+		by an Object Modeler component providing a default implementation for the 
+		same SAX interface. The naming conventions are respected by prepending the 
+		"CATSAX" prefix to the original SAX name. Thus, the <em>DefaultHandler</em> 
+		Java class, which implements the <em>ContentHandler</em>, <em>DTDHandler</em>,
+		<em>EntityResolver</em> and <em>ErrorHandler</em>Java SAX interfaces is 
+		mapped to the <em>CATSAXDefaultHandler</em> Object Modeler component, which 
+		implements the <em>CATISAXContentHandler</em>, <em>CATISAXDTDHandler</em>,
+		<em>CATISAXEntityResolver</em> and <em>CATISAXErrorHandler</em>&nbsp; interfaces.</td>
+	</tr>
+	<tr>
+		<td>boolean</td>
+		<td>CATBoolean</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>int</td>
+		<td>unsigned int</td>
+		<td></td>
+	</tr>
+</table>
+<p>As a concrete example of how the binding works, please consider the Java definition 
+of the EntityResolver extracted from the SAX specification.</p>
+<pre class="code">package org.xml.sax;
+public interface EntityResolver {
+ InputSource resolveEntity(
+   String publicId,
+   String systemId) throws SAXException, IOException;
+}</pre>
+<p>In V6, you will manipulate the following interface</p>
+<pre class="code">class CATISAXEntityResolver: public CATBaseUnknown {
+ virtual HRESULT ResolveEntity(
+                   const CATUnicodeString &amp; iPublicId, 
+                   const CATUnicodeString &amp; iSystemId, 
+                   CATISAXInputSource_var &amp; oInputSource) = 0;
+};</pre>
+<p><span class="run-in">Warning:</span> Note that only the SAX2 API is supported. 
+The SAX2 API replaces the SAX1 API and provides many improvements to it, such as 
+support for namespaces and a richer set of events to keep track of comments and 
+CDATA sections.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Supported XML Encodings</h2>
+<p>The XML specification defines the XML syntax using the character model defined 
+by the Unicode specification. XML contents however can be stored in text using any 
+encoding (code page) provided that the underlying parsers support them. To use a 
+given encoding for an XML file, you need to:</p>
+<ol>
+	<li>Encode the file with this encoding</li>
+	<li>Indicate in the XML declaration the encoding you have used.</li>
+</ol>
+<pre class="code">&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+... content encoded in UTF-8 ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>UTF-8</h3>
+<p>The XML specification mandates that XML parsers support UTF-8. Therefore, this 
+encoding is universally available. Furthermore, this encoding supports the whole 
+Unicode standard, which guarantees that national characters can be read and written 
+on any machine in the world without loss or corruption, or need to install a specific 
+code page configuration file.</p>
+<p><span class="run-in">Important:</span> When you have the choice of the encoding, 
+use the UTF-8 encoding.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Other Supported Encodings</h3>
+<p>A few other encodings are also supported by the XMLParserItf framework. </p>
+<dl>
+	<dt>UTF-16</dt>
+	<dd>Can sometimes be more compact that UTF-8 for eastern languages.</dd>
+	<dt>ISO-8859-1</dt>
+	<dd>Can be used for XML which contains characters from the Latin 1 character 
+	set only.</dd>
+	<dt>SHIFT_JIS</dt>
+	<dd>Can be used for XML which contains Japanese characters.</dd>
+</dl>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The XMLParserItf framework provides several parsers. All these parsers are accessible 
+through the same DOM or SAX APIs. Choice of the parser depends on requirements of 
+the target application.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidErrors.htm">
+		Managing Errors Using HRESULT</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td><a href="CAAXmlTaSchemas.htm">Using XML Schemas</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2005]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

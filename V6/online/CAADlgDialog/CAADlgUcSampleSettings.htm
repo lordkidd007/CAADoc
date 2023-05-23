@@ -1,0 +1,388 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Saving and Restoring the Dialog Box State</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Saving and Restoring the Dialog Box State</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to save parameters so that one can find the Dialog 
+		box in the same state that it was before its closing.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAADlgFrameReplace Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAADlgFrameReplace Do</a></li>
+					<li><a href="#How">How to Launch CAADlgFrameReplace</a></li>
+					<li><a href="#Where">Where to Find the CAADlgFrameReplace Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how to use a preference file and repository 
+[<a href="#References">1</a>] to store and retrieve the values of Dialog Objects. 
+The preference repository being the memory copy of a preference file.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADlgFrameReplace Use Case</h2>
+<p>CAADlgFrameReplace is a use case of the CAADialog.edu framework that illustrates 
+Dialog and System framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADlgFrameReplace Do</h3>
+<p>CAADlgFrameReplace simulates the &quot;Point Definition&quot; Dialog box. It 
+creates the &quot;Frame Replacement Demonstrator&quot; Dialog box that you can see 
+just below. The end user can select the mode of creation for the point: by coordinate 
+values, by the center of a circle or between two points [<a href="#References">2</a>].</p>
+<table>
+	<tr>
+		<th><a name="Fig3a"></a>Fig. 1a: Coordinates</th>
+		<th><a name="Fig3b"></a>Fig. 1b: Circle Center</th>
+		<th><a name="Fig3c"></a>Fig. 1c: Between</th>
+	</tr>
+	<tr>
+		<td>
+		<img alt="Frame Replacement Demonstrator - Coordinates Frame" height="178" src="images/CAADlgTabFrameReplace2.jpg" width="197"/></td>
+		<td>
+		<img alt="Frame Replacement Demonstrator - Circle Frame" height="143" src="images/CAADlgTabFrameReplace1.jpg" width="197"/></td>
+		<td>
+		<img alt="Frame Replacement Demonstrator - Between Frame" height="194" src="images/CAADlgTabFrameReplace3.jpg" width="198"/></td>
+	</tr>
+</table>
+<p>When the end user clicks <strong>OK</strong>, the following values are kept:</p>
+<ul>
+	<li>The &quot;<code>Point Type</code>&quot; ( an integer )</li>
+	<li>The point coordinates (<code>X, Y, Z</code>) (three double)</li>
+</ul>
+<p>The others values are not kept, for the following reasons:</p>
+<ul>
+	<li><code>Circle</code>, <code>P1</code> and <code>P2</code>: The values will 
+		be a string, the <em>GetDisplayName</em> of a <em>CATISpecObject.</em> You 
+		can save a string, but it is not possible to save a <em>CATISpecObject</em> 
+		instance, so there is no need to keep the value of these fields.</li>
+	<li><code>Ratio</code> : The Dialog object is a <em>CATDlgEditor</em> class. 
+		It is the only one Dialog object which natively keeps the last values. You 
+		retrieve them with the up and down arrows.</li>
+</ul>
+<p>When the end user clicks <strong>Cancel</strong> or <strong>closes</strong> the 
+window, the current values of the Dialog objects are not kept.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADlgFrameReplace</h3>
+<p>To launch the use case, you will need to set up the build time environment, then 
+compile CAADlgDialogDemonstrator along with its prerequisites, set up the run time 
+environment, and then execute the use case [<a href="#References">3</a>].</p>
+<p><code>mkrun -c CAADlgDialogDemonstrator</code></p>
+<p>When the <code>CAADlgDialogDemonstrator</code> application is launched:</p>
+<ul>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>Click <strong>Circle Center </strong>in the combo</li>
+	<li>Click <strong>OK</strong></li>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>Click <strong>Coordinates </strong>in the combo</li>
+	<li>Enter a value in <strong>X</strong>, <strong>Y</strong> and <strong>Z</strong> 
+		field</li>
+	<li>Click <strong>OK</strong></li>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>Click <strong>Between </strong>in the combo</li>
+	<li>Enter different values in the <strong>Ratio</strong> field</li>
+	<li>Click <strong>OK</strong></li>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>On the <strong>Ratio</strong> field retrieve the different value with the
+		<strong>up </strong>and<strong> down</strong> arrows</li>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>Click <strong>Coordinates </strong>in the combo</li>
+	<li>Enter a value in <strong>X</strong>, <strong>Y</strong> and <strong>Z</strong> 
+		field</li>
+	<li>Click <strong>Cancel</strong></li>
+	<li>On the <strong>Tabulation</strong> menu click <strong>Frame Replacement</strong></li>
+	<li>On the<strong> File</strong> menu click<strong> Exit</strong></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAADlgFrameReplace Code</h3>
+<p>The CAADlgFrameReplace use case is made of several classes located in the CAADlgDialogDemonstrator.m 
+module of the CAADialog.edu framework:</p>
+<p><code>InstallRootFolder\CAADialog.edu\CAADlgDialogDemonstrator.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>In the LocalInterfaces and src folders, you will find the following files:</p>
+<ul>
+	<li>CAADlgDemoApplication.h/CAADlgDemoApplication.cpp: The <em>&quot;DialogDemonstrator&quot;</em> 
+		application definition. (a <em>CATInteractiveApplication</em>)</li>
+	<li>CAADlgDemoWindow.h/CAADlgDemoWindow.cpp: The <em>CATDlgDocument</em> definition.</li>
+	<li>CAADlgFrameReplaceDlg.h/CAADlgFrameReplaceDlg.cpp: The &quot;Frame Replacement 
+		Demonstrator&quot; dialog box definition.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are four logical steps in the use case:</p>
+<ol>
+	<li><a href="#Step1">Creating the Class Header</a></li>
+	<li><a href="#Step2">Retrieving the Preference 
+		Repository</a></li>
+	<li><a href="#Step3">Retrieving the Last Values</a></li>
+	<li><a href="#Step4">Saving the Values</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the Class Header</h3>
+<p>The main contents of the CAADlgFrameReplaceDlg.h file is the following:</p>
+<pre class="code">#include &quot;CATDlgDialog.h&quot;   // To derive from
+...
+class <strong>CATSysPreferenceRepository</strong> ; // To manage values
+
+class CAADlgFrameReplaceDlg: public <strong>CATDlgDialog</strong>
+{
+  ...
+  public:
+
+      CAADlgFrameReplaceDlg(CATDialog * pParentDlg);
+      virtual ~CAADlgFrameReplaceDlg();
+
+      void Build ();
+
+  private:
+      ...
+      virtual void <strong>CloseWindowOK</strong> (CATCommand * iSendingCommand, 
+                                CATNotification * iSentNotification, 
+                                CATCommandClientData iUsefulData);
+
+      virtual void <strong>CloseWindow</strong> (CATCommand * iSendingCommand, 
+                                CATNotification * iSentNotification, 
+                                CATCommandClientData iUsefulData);
+     ...
+  private:
+     ...
+     CATSysPreferenceRepository * _pSettingFrameReplace ;
+
+};</pre>
+<p>where:</p>
+<ul>
+	<li>The <code>Build</code> method enables you to construct the Dialog objects 
+		and to initialize them with the values saved in the Preference&nbsp; file.</li>
+	<li>The <code>CloseWindowOK</code> method is a callback method which is called 
+		when the end user pushes the Ok Button</li>
+	<li>The <code>CloseWindow</code> method is a callback method which is called 
+		when the end user pushes the Cancel Button or closes the window.</li>
+	<li><code>_pSettingFrameReplace</code> is a <em>CATSysPreferenceRepository
+		</em>class pointer. It will be initialized in the constructor class. You 
+		should not release this pointer.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the Preference 
+Repository</h3>
+<p>In the <em>CAADlgFrameReplaceDlg</em> class constructor you retrieve a preference 
+repository pointer thanks to the static <code>GetPreferenceRepository</code> method. 
+The first and unique argument of this method is the name of the preference file.</p>
+<pre class="code">CAADlgFrameReplaceDlg::CAADlgFrameReplaceDlg(CATDialog * pParentDlg) :
+  CATDlgDialog (pParentDlg,&quot;CAADlgFrameReplaceDlg&quot;,
+      CATDlgWndAutoResize | CATDlgWndBtnOKCancel |CATDlgWndNoResize ),
+      _CurrentSelection(0),_pComboPointType(NULL),_pSpinnerX(NULL),
+      _pSpinnerY(NULL),_pSpinnerZ(NULL)
+{
+   ...
+   _pSettingFrameReplace =ATSysPreferenceRepository::<strong>GetPreferenceRepository</strong>(&quot;CAADlgFrameReplaceDlg&quot; );
+}</pre>
+<p>In the <em>CAADlgFrameReplaceDlg</em> class destructor you have just to set NULL 
+the <code>_pSettingFrameReplace</code> pointer.</p>
+<pre class="code">CAADlgFrameReplaceDlg::~CAADlgFrameReplaceDlg()
+{
+    _pSettingFrameReplace = NULL ;
+    ...
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Retrieving the Last Values</h3>
+<p>The <code>Build</code> method can be divided in three parts:</p>
+<pre class="code">void CAADlgFrameReplaceDlg::Build()
+{
+   <a href="#Step31">a/ Creating the Dialog objects and Arranging them</a>
+
+   <a href="#Step32">b/ Retrieving the initial values</a>
+ 
+   <a href="#Step33">c/ Defining the callbacks</a>
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step31"></a>a/ Creating the 
+Dialog objects and Arranging them</h4>
+<p>This part is described in the use case about the tabulation layout [<a href="#References">2</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step32"></a>b/ Retrieving the Initial Values</h4>
+<p>To retrieve a value in a preference repository use the <code>ReadPreference</code> 
+method. The arguments of this method are</p>
+<ul>
+	<li>The name of the attribute.</li>
+	<li>The value of the attribute.</li>
+</ul>
+<p>For the use case:</p>
+<ul>
+	<li><code>XCoord</code>, <code>YCoord</code> and <code>ZCoord</code> are the 
+		names of the attributes to initialize the X, Y and Z spinner respectively. 
+		The value of each attribute is a double</li>
+	<li><code>ComboPointType </code>is the name of the attribute to initialize the 
+		first selected element in the combo list. The value of the attribute is 
+		an integer.</li>
+</ul>
+<pre class="code">...
+      double X(0.0f),Y(0.0f),Z(0.0f);
+      if ( NULL != _pSettingFrameReplace )
+      {
+         _pSettingFrameReplace-&gt;<strong>ReadPreference</strong>(&quot;<strong>XCoord</strong>&quot;,&amp;X);
+         _pSettingFrameReplace-&gt;ReadPreference(&quot;<strong>YCoord</strong>&quot;,&amp;Y);
+         _pSettingFrameReplace-&gt;ReadPreference(&quot;<strong>ZCoord</strong>&quot;,&amp;Z);
+      }
+      
+      _pSpinnerX -&gt;<strong>SetValue</strong>(X,0);
+      _pSpinnerY -&gt;SetValue(Y,0);
+      _pSpinnerZ -&gt;SetValue(Z,0);
+      
+      _CurrentSelection = Coordinates ;
+      if ( NULL != _pSettingFrameReplace )
+      {
+         _pSettingFrameReplace-&gt;<strong>ReadPreference</strong>(&quot;<strong>ComboPointType</strong>&quot;,&amp;_CurrentSelection);
+      }
+      _pComboPointType-&gt;<strong>SetSelect</strong>(_CurrentSelection,0);
+...
+}</pre>
+<p>Where <code>_pSpinnerX, _pSpinnerY</code> and<code> _pSpinnerZ </code>are <em>
+CATDlgSpinner</em> class instances created in the first part of the <code>Build</code> 
+method, but not explained in this article. <code>_pComboPointType</code> is a
+<em>CATDlgCombo</em> class instance created in the first part of the <code>Build
+</code>method, but also not explained in this article.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step33"></a>c/ Defining the Callbacks</h4>
+<pre class="code">...
+   AddAnalyseNotificationCB (this, 
+                             GetDiaCANCELNotification(),
+                             (CATCommandMethod)&amp;CAADlgFrameReplaceDlg::<strong>CloseWindow</strong>,
+                             NULL);
+
+   AddAnalyseNotificationCB (this, 
+                             GetDiaOKNotification(),
+                             (CATCommandMethod)&amp;CAADlgFrameReplaceDlg::<strong>CloseWindowOK</strong>,
+                             NULL);
+   AddAnalyseNotificationCB (this, 
+                             GetWindCloseNotification(),
+                             (CATCommandMethod)&amp;CAADlgFrameReplaceDlg::<strong>CloseWindow</strong>,
+                             NULL);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Saving the Values</h3>
+<p>When the end user clicks OK, the dialog box must be closed. The current values 
+of the Dialog objects should be saved. To save the values in the preference repository 
+use the <code>WritePreference</code> method. The arguments of this method are:</p>
+<ul>
+	<li>The name of the attribute.</li>
+	<li>The value of the attribute.</li>
+</ul>
+<pre class="code">void CAADlgFrameReplaceDlg::CloseWindowOK(CATCommand* cmd, CATNotification* evt, CATCommandClientData data)
+{
+   ...
+   if ( NULL != _pSettingFrameReplace )
+   {
+       if ( NULL != _pComboPointType )
+       {
+          int PointType = _pComboPointType-&gt;GetSelect() ;
+          _pSettingFrameReplace-&gt;<strong>WritePreference</strong>(&quot;ComboPointType&quot;,&amp;PointType);
+       }
+
+       if ( (NULL !=_pSpinnerX) &amp;&amp; (NULL !=_pSpinnerY) &amp;&amp; (NULL !=_pSpinnerZ) )
+       {
+          double XVal = _pSpinnerX-&gt;GetValue() ;
+          _pSettingFrameReplace-&gt;<strong>WritePreference</strong>(&quot;XCoord&quot;,&amp;XVal);
+          double YVal = _pSpinnerY-&gt;GetValue() ;
+          _pSettingFrameReplace-&gt;<strong>WritePreference</strong>(&quot;YCoord&quot;,&amp;YVal);
+          double ZVal = _pSpinnerZ-&gt;GetValue() ;
+          _pSettingFrameReplace-&gt;<strong>WritePreference</strong>(&quot;ZCoord&quot;,&amp;ZVal);
+       }
+...</pre>
+<p>To retrieve the values after the session closing use the <code>SaveRepository</code> 
+method. The preference repository is saved in a preference file whose the name is 
+those of the preference repository.</p>
+<pre class="code">...
+       _pSettingFrameReplace-&gt;<strong>SaveRepository</strong>();
+ ...
+}</pre>
+<p>When the end user clicks Cancel or closes the window, there is nothing to save. 
+The end user will retrieve the values before the current modifications.</p>
+<pre class="code">void CAADlgFrameReplaceDlg::<strong>CloseWindow</strong>(CATCommand* cmd, CATNotification* evt, 
+                                                          CATCommandClientData data)
+{
+ ...
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case explains how to use the preference file and repository to save 
+and restore the Dialog object values.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidSettingUnderstanding.htm">
+		Understanding Setting Repositories and Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADlgUcSampleTabulation.htm">Creating Dialog Boxes Automatically 
+		Resizable</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2003]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

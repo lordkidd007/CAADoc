@@ -1,0 +1,541 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding Feature Extensions</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Feature Extensions</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This articles details the mechanism to extend a feature, named
+		<strong>based</strong> feature, by another one (named <strong>extension</strong> 
+		feature).</p>
+		<ul>
+			<li><a href="#Concepts">Concepts</a><ul>
+				<li><a href="#What is an Extension Feature">What is a Feature Extension?</a></li>
+				<li><a href="#Where store Extension Feature">Where Store Feature 
+				Extension?</a></li>
+			</ul>
+			</li>
+			<li><a href="#Main Steps to Develop a Feature Extension">Main Steps 
+			to Develop Feature Extension</a><ul>
+				<li><a href="#Designing the Extension Feature">Designing Feature 
+				Extension</a></li>
+				<li><a href="#Designing the Extension Feature">Declaring Information 
+				to Manage Feature Extension</a></li>
+				<li><a href="#About the Applicative Container">About the Applicative 
+				Container</a></li>
+				<li><a href="#Interfaces to Implement on the Extension Feature">
+				Interfaces to Implement on Feature Extension</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Concepts"></a>Concepts</h2>
+<p>A picture to explain the concept:</p>
+<table>
+	<caption>Fig.1 Concept</caption>
+	<tr>
+		<td>
+		<img alt="Concept" src="images/CAAOsmFeatureExtension_Concept.gif" width="485" height="319"></td>
+	</tr>
+</table>
+<p>The <strong>base</strong> feature can be any kind feature, it can be for example 
+designed by DS applications. You can extend it by another feature which is named
+<strong>Extension</strong> feature. This feature can have, like any other features, 
+its own attributes, and its own behaviors. </p>
+<p>But an extension feature cannot be extended itself. The Base feature cannot be 
+an extension. </p>
+<p>The extension mechanism consists in <strong>creating an aggregation</strong> 
+of the extension feature by the base feature without a modification of the base 
+feature&#39;s StartUp. </p>
+<p>The <em>CATFmFeatureFacade</em> class provides methods to</p>
+<ul>
+	<li>Add, remove or retrieve a feature extension from a base feature</li>
+	<li>Retrieve the base feature from an extension feature</li>
+</ul>
+<p>The use case Working with Feature Extensions&quot; [<a href="#References">1</a>] is 
+an illustration of these methods.</p>
+<p>Now going further with this extension feature.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What is an Extension Feature"></a>What is a Feature Extension?</h3>
+<p>First it is a feature, so like any other feature, you <strong>design </strong>
+it using<strong> OSM language</strong> [<a href="#References">2</a>]. Its particularity 
+is to be declared as an &quot;extension&quot; using a specific tag. You will see implementation 
+detail in a next section, the <a href="#Designing the Extension Feature">Designing 
+Feature Extension</a> section. </p>
+<p>An extension feature can extend several base features. The <strong>extended features</strong> 
+(base features) are declared in the OSM too, see the section
+<a href="#Declaring Information to Manage the Extension Feature">Declaring Information 
+to Manage the Feature Extension</a>. But conversely an extension feature can only 
+be instantiated once for a given base feature. </p>
+<table>
+	<caption><a name="Fig.2">Fig.2</a> What is Possible and Impossible</caption>
+	<tr>
+		<td>
+		<img alt="What is Possible and Impossible" src="images/CAAOsmFeatureExtension_Possibilities.gif"></td>
+	</tr>
+</table>
+<p>On [<a href="#Fig.2">Fig.2</a>] you can see that <code>Feature Extension1</code> 
+extends two base features, but two extensions (<code>Feature Extension2) </code>
+of the same feature is impossible. This check is ensured by the <code>AddExtension</code> 
+method of the <em>CATFmFeatureFacade</em> class. The only one method to add an extension 
+to a base feature.</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Note</span>: An extension feature 
+		has been designed to be aggregated by a base feature using the extension 
+		protocol, so do not aggregate this special feature to another feature whose 
+		one of this attribute will be a component.</td>
+	</tr>
+</table>
+<p><strong>A Feature Deriving from an internal Feature Modeler Feature</strong></p>
+<p>We have said previously that the extension feature is declared with a special 
+tag in the OSM file, so by this way you create a new StartUp deriving from a specific 
+feature. You do not have directly access to the derived feature&#39;s attributes, but 
+you can take benefit of interfaces implemented by this derived feature. You have 
+the details in the <a href="#Interfaces to Implement on the Extension Feature">Interfaces 
+to Implement on Feature Extension</a> section.</p>
+<p><strong>Life cycle</strong></p>
+<p>The extension feature is aggregated by the base feature, so it means that the 
+life cycle of the extension feature is tie to its base feature. When a base feature 
+is deleted, all its aggregated elements declared as component attributes are deleted, 
+such as all its extension features. </p>
+<p>When an extension feature must be deleted, either you use the <code>RemoveExtension</code> 
+method of the <em>CATFmFeatureFacade</em> interface on the base feature, or you 
+use <code>DeleteSelf</code> method on the same class, but on the feature extension 
+itself. In both cases, the feature extension is deleted, and removed from its base 
+feature. Some customization, like any kind of feature, are possible too, see the
+<a href="#Interfaces to Implement on the Extension Feature">Interfaces to Implement 
+on Feature Extension</a> section.</p>
+<p>An extension feature has no reason to exist without being aggregated by a base 
+feature. </p>
+<p><strong>Base Feature Instantiation</strong></p>
+<p>Imagine the case where the base feature already contains an extension, and this 
+base feature, an instance, is in turn instantiated. See the Instance/Reference concept 
+in the referenced article [<a href="#References">3</a>]. You have the choice to 
+duplicate or not the extension feature.</p>
+<table>
+	<caption>Fig.3 Local or Not Feature Extension</caption>
+	<tr>
+		<td>
+		<img alt="Local or Not Feature Extension" src="images/CAAOsmFeatureExtension_local.gif"></td>
+	</tr>
+</table>
+<p>On the picture, the base feature, an instance, is a reference to be instantiated. 
+If you have declared &quot;local&quot; your extension feature, it will be not instantiated 
+itself on the new base feature instance, otherwise it will be instantiated also. 
+This declaration local/not local is done by OSM file, see
+<a href="#Declaring Information to Manage the Extension Feature">Declaring Information 
+to Manage Feature Extension</a> section, and is not run-time modifiable.</p>
+<p>The local mode is strongly recommended. </p>
+<p><strong>Feature Extension External Naming</strong></p>
+<p>We would like inform the reader about a little particularity about the extension 
+feature naming. This feature is processed like any other feature, it means that 
+its automatic name will include an incremental number. But if you read the article 
+[<a href="#References">4</a>] you will see that the value is computed from the aggregating 
+feature. By consequence, if you do not change yourself the external name computation, 
+you can have several time the same external name for different extension feature 
+[<a href="#References">11</a>]</p>
+<table>
+	<caption>Fig.4 Feature Extension Naming</caption>
+	<tr>
+		<td>
+		<img alt="Feature Extension Naming" src="images/CAAOsmFeatureExtension_naming.png"></td>
+	</tr>
+</table>
+<p>Just below you have a picture of the Product Structure use case [<a href="#References">5</a>] 
+before the <em>CATIAlias</em> implementation on the Extension feature. You can see 
+that all extensions have the same external name: <code>CAAPstINFRelimitedLine.1</code>: 
+it is due to the fact that extension features are the first element aggregated by 
+their respective base feature. You can solve the issue in the use case by implementing 
+the <em>CATIAlias</em> interface on the Extension feature [<a href="#References">11</a>].</p>
+<p><strong>A Feature like other one</strong></p>
+<p>This feature is also integrated to the undo/redo mechanism. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where store Extension Feature"></a>Where Store Feature Extension?</h3>
+<p>Reading the article &quot;Understanding Applicative container&quot; [<a href="#References">6</a>] 
+you have learnt that a feature can only be instantiated within a container. </p>
+<p>When you use the <code>AddExtension</code> method of the <em>CATFmFeatureFacade</em> 
+interface to extend a base feature, eventually this method creates an instance of 
+the extension feature. But if you consider the signature of this method, it only 
+contains the <a href="#identifier">identifier</a> of the extension. So this method 
+requires an additionally information to retrieve the container. This information 
+will be retrieved within the OSM file where the feature extension StartUp is defined. 
+See the <a href="#Declaring Information to Manage the Extension Feature">Declaring 
+Information to Manage Feature Extension</a> section.</p>
+<p>Some recommendations to choose the right container:</p>
+<ul>
+	<li>Which kind of container?
+	<p>The <strong>mandatory rule </strong>to respect is : the base feature and 
+	the extension feature must be in the same PLM Representation Reference [<a href="#References">6</a>]. 
+	They can be in the same containers, in two different containers, but they must 
+	be in the same PLM Rep Ref.</p>
+	</li>
+	<li>Can I use the base feature container?
+	<p>If this container is your container, it is possible, otherwise create another 
+	applicative container. You must no insert your feature in a container which 
+	is not yours.</p>
+	</li>
+	<li>Can I use the same container as the one containing my applicative features?
+	<p>There is no restriction that your two kinds of features, those deriving from 
+	scratch and your extension features, share the same container. </p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Main Steps to Develop a Feature Extension"></a>Main Steps to Develop 
+Feature Extension</h2>
+<p>Now we have seen the concepts, we can show implementation details. We advise 
+the reader that to have a real idea of the extension feature usage, he/she can refer 
+to different use cases implementing the mechanism:</p>
+<ul>
+	<li>Feature Extension, in Feature Modeler[<a href="#References">1</a>] [<a href="#References">7</a>]</li>
+	<li>Extending Applicative Feature (in Product Modeler) [<a href="#References">5</a>]</li>
+	<li>Extending a Mechanical Feature [<a href="#References">8</a>]</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Designing the Extension Feature"></a>Designing Feature Extension</h3>
+<p>Using OSM technology [<a href="#References">2</a>], you design the extension 
+feature by using tags. </p>
+<pre class="code">document <strong>`MyStartUpCatalogName</strong>.CATfct` 
+{
+   container RootCont #root 
+   {
+       ...
+       feature <strong>MyExtensionName</strong> <span class="sample">#startup #extension</span>   
+       {
+           ...
+       }
+       ...
+   }
+}
+</pre>
+<p>Note, the<code> #startup #extension </code>facets, it declares the feature statement 
+as a StartUp of an feature extension.</p>
+<p>We have bold the argument to customize:</p>
+<ul>
+	<li>The first, <code>`MyStartUpCatalogName&#39;</code><strong> </strong>it is the 
+	name of the catalog containing all startups designed by this OSM file. You can 
+	update an existing catalog, or create a new to integrate your new extension 
+	feature StartUp. </li>
+	<li><a name="identifier"></a>The second, &#39;<code>MyExtensionName</code>&#39; is the
+	<strong>identifier</strong> of the extension feature. (respect the CAA naming 
+	rule [<a href="#References">9</a>] ). This identifier is used:<ul>
+		<li>As latetype to implement interfaces on your feature extension</li>
+		<li>to add or retrieve an extension. The <code>AddExtension</code>, and
+		<code>GetExtension</code> methods require as input this identifier. </li>
+	</ul>
+	</li>
+</ul>
+<p>Between the two brackets you define the feature extension itself.</p>
+<pre class="code">...
+  feature MyExtensionName #startup #extension   
+  {
+     #<strong>creation::parameter</strong> = metadata_identifier1
+     ...
+     attribute 1 
+     attribute 2
+     ...
+  }
+...</pre>
+<p>As usual you insert the attribute definition, and perhaps some initialization. 
+But the most relevant information is the #<strong>creation::parameter </strong>line<strong>.
+</strong>This line is MANDATORY for a feature extension. You can omit it, only if 
+your StartUp derives from another one, itself having directly or not this declaration. 
+In this case you <strong>inherit</strong> of the derived StartUp behaviors. See 
+the use case [<a href="#References">7</a>] for an example of derivation. </p>
+<p><code>metadata_identifier1</code> is the name of a metadata statement declaring 
+the information to manage the feature extension: </p>
+<pre class="code">document <strong>`MyStartUpCatalogName</strong>.CATfct` 
+{
+   container RootCont #root 
+   {
+       ...
+       feature <strong>MyExtensionName</strong> <span class="sample">#startup #extension</span>   
+       {
+          #<strong>creation::parameter</strong> = metadata_identifier1
+          ...
+       }
+       ...
+   }
+   <strong>metadata</strong>  metadata_identifier1
+   {
+       ...
+   }
+}
+</pre>
+<p>A metadata statement is as the same level as the container one. Several feature 
+extension can share the same metadata block. </p>
+<p>Now let us detailed the contents of this specific metadata block.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Declaring Information to Manage the Extension Feature"></a>Declaring 
+Information to Manage Feature Extension</h3>
+<p>The metadata block associated with a <code>#creation::parameter</code> facet 
+MUST contain these following four lines. If all are mandatory, the order does not 
+matter.</p>
+<pre class="code">metadata metadata_identifier {
+      `<strong>ContType` </strong>=&quot;ContainerType&quot;
+      <strong>`Container` </strong>=&quot;ContainerName&quot;
+      <strong>`Extends` </strong>=[ &quot;StartUp1&quot;,...]
+      <strong>`IsLocal` </strong>= true | false
+}</pre>
+<p>Pay attention : the `` can be omitted when the osm file is updated, but when 
+the osm file will be generated by CATFctEditorAssistant, the `` will be visible.</p>
+<ul>
+	<li>Information to create automatically applicative container
+	<pre class="code"><strong>ContType</strong>=&quot;MyContainerType&quot;</pre>
+	<p>The <code>ContType</code> argument, is the late type of the container. Refer 
+	to the Creation section of the Understanding Applicative Container article [<a href="#References">6</a>] 
+	if necessary.</p>
+	<p>Thanks to this line, the <code>AddExtension</code> method is able to create 
+	itself the container if it does not already exist in the current main stream 
+	of the PLM Representation Reference [<a href="#References">6</a>]. Moreover 
+	this method, after the creation, will activate the container by calling the
+	<code>init</code> method of the <em>CATInit</em> interface</p>
+	</li>
+	<li>The identifier of the container where to instantiate extension features:
+	<pre class="code"><strong>Container</strong>=&quot;MyApplicativeContainerIdentifier&quot;</pre>
+	<p>The identifier of the container where the extension feature will be created.</p>
+	</li>
+	<li>The list of extended features:
+	<pre class="code"><strong>Extends</strong>=[&quot;MyBaseFeature1, MyBaseFeature2, MyBaseFeature3&quot;]</pre>
+	<p>where <code>MyBaseFeaturei</code> is the identifier (Startup identifier [<a href="#References">4</a>]) 
+	of a base feature. The list must, of course, contain at least one element.</p>
+	<p>The list of the extendable StartUp is defined by each application. Refer 
+	to its documentation.</p>
+	<p>Attention, if the StartUp extends only one feature , don&#39;t forget the [] 
+	(typical error)</p>
+	<pre class="code"><strong>Extends</strong>=[&quot;MyBaseFeature1&quot;]</pre>
+	</li>
+	<li>Local or Not
+	<pre class="code"><strong>IsLocal</strong>= true or false</pre>
+	<p>value can be true ( no feature extension instantiation in case of base feature 
+	instantiation) or false (otherwise); true is strongly recommended</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="About the Applicative Container"></a>About the Applicative Container</h3>
+<p>In the article &quot;Understanding Applicative Container&quot; article [<a href="#References">6</a>] 
+you will find all the details to create, and integrate this container in Standard 
+DS behaviors. The above referenced use cases are interesting to be studied to compare 
+the light differences between modelers. </p>
+<p>Here we will inform the reader about the main particularity when an applicative 
+container contains extension feature:</p>
+<p>Whatever the modeler responsible of the stream, <strong>natively all applicative 
+containers will be automatically loaded</strong> (and initialized) when the stream 
+is loaded in session (in other word stream open in edit mode, or switched in
+<strong>edit</strong> mode [<a href="#References">10</a>]).</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Interfaces to Implement on the Extension Feature"></a>Interfaces to 
+Implement on Feature Extension</h3>
+<p>Except <em>CATIRedrawEvents</em>, natively implemented on any feature, the
+<strong>basic interfaces to implement</strong> on each extension feature are:</p>
+<table class="fill">
+	<tr>
+		<th>Interface Name</th>
+		<th>Context</th>
+		<th>Behavior</th>
+	</tr>
+	<tr>
+		<td>MyInterface</td>
+		<td>all</td>
+		<td>interface to handle the attributes of the extension feature</td>
+	</tr>
+	<tr>
+		<td>CATIModelEvents</td>
+		<td>UI</td>
+		<td>to be able to update the viewer</td>
+	</tr>
+	<tr>
+		<td>CATI3DGeoVisu/CATI2DGeoVisu</td>
+		<td>UI</td>
+		<td>to define the 2D/3D visualization</td>
+	</tr>
+	<tr>
+		<td>CATIVisProperties</td>
+		<td>UI</td>
+		<td>to be able to modify the graphic properties through Properties command</td>
+	</tr>
+	<tr>
+		<td>CATISelectShow</td>
+		<td>UI </td>
+		<td>to be able to hide/show the extension feature (CATIVisProperties must 
+		be implemented too)</td>
+	</tr>
+	<tr>
+		<td>CATIEdit</td>
+		<td>UI</td>
+		<td>to edit the extension feature</td>
+	</tr>
+	<tr>
+		<td>CATIFmFeatureBehaviorCustomization</td>
+		<td>all</td>
+		<td>To customize the delete [<a href="#References">13</a>], to implement 
+		the Build [<a href="#References">14</a>], but do not use this interface 
+		to customize CCP behavior .</td>
+	</tr>
+	<tr>
+		<td>CATINavigateObject (*)</td>
+		<td>UI</td>
+		<td>to give a name to the node, and to list its children, to be in turn 
+		visualized in the spec tree. Check that the base feature implements itself<em> 
+		CATINavigateObject</em> , and its implementation takes into its possible 
+		extensions.</td>
+	</tr>
+	<tr>
+		<td>CATIAlias</td>
+		<td>all</td>
+		<td>To provide SetAlias and GetAlias</td>
+	</tr>
+	<tr>
+		<td>CATIUseEntity</td>
+		<td>all</td>
+		<td>Have a look to the referenced article [<a href="#References">12</a>].</td>
+	</tr>
+</table>
+<p>It is the most generic interfaces, and then according to the application defining 
+the base feature, some others can exist. But in all cases, first have a look to 
+the documentation describing the application defining the base feature, you find 
+all the necessary information to integrate your feature extension.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has explained that feature extension mechanism is the way to extend 
+any kind feature (except an extension feature) both:</p>
+<ul>
+	<li>in data and behavior.</li>
+	<li>externally to the base feature, without modification on the base feature.</li>
+</ul>
+<p>This mechanism has a lot of facilities:</p>
+<ul>
+	<li>The life cycle of the extension feature is tied to the base feature, deleting 
+	the base feature leads to delete its extension(s).</li>
+	<li>The applicative container containing the extension are automatically opened 
+	and initialized when it is necessary.</li>
+	<li>Application container can be automatically created by declaring the right 
+	information in the OSM file.</li>
+</ul>
+<p>You should:</p>
+<ul>
+	<li>Deliver a StartUp catalog file containing the extension feature.</li>
+	<li>Perhaps Create and manage a new applicative container.</li>
+	<li>Implement interfaces on the new feature.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtUcManageExtensions.htm">Working with Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAOsmTaModelingStartUps.htm">Modeling Feature StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAOsmTaOverview.htm">Feature Modeler Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstUcINFExtensionOverview.htm')">
+		Extending Applicative Data</a> (Product context)</td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAFmExtTaApplicativeContainer.htm">Understanding Applicative 
+		Container</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAFmExtUcCreateExtensions.htm">Defining Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMmrTaMechModExtendOverview.htm')">
+		Mechanical Modeler Extend Overview</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocCppNamingRules.htm">
+		CAA C++ Naming Rules</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaSelectiveLoading.htm')">
+		Understanding Representation Loading Mode</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAAFmExtTaNamingFeatures.htm">Customizing Feature Naming</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td><a href="CAAFmExtTaCommonProtocol.htm">Common Protocol Integration</a></td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="CAAFmExtTaCustoDelete.htm">Understanding Delete Protocol Customization</a></td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td><a href="CAAFmExtUcBuildUpdate.htm">The Build/Update Protocol</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

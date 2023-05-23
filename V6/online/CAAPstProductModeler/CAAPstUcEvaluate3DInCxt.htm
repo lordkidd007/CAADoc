@@ -1,0 +1,557 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Evaluating 3D Position in Context</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Evaluating 3D Position in Context</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the CAAPstEvaluate3DInCxt use case. This use case 
+		shows how to create a new positioned geometry. From a geometry implementing
+		<em>CATIEvaluate3DInContext</em>, you can create a new object (same geometry) 
+		but at a given input matrix.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstEvaluate3DInCxt Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAPstEvaluate3DInCxt Do</a></li>
+					<li><a href="#How">How to Launch CAAPstEvaluate3DInCxt</a></li>
+					<li><a href="#Where">Where to Find the CAAPstEvaluate3DInCxt 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The primary objective of this use case is to familiarize the user with the interface
+<em>CATIEvaluate3DInContext</em>.</p>
+<p>You will learn how to:</p>
+<ul>
+	<li>Compute the position of the geometry in its Product Context.</li>
+	<li>Create a new object(same geometry) but at a given input matrix using the 
+		interface <em>CATIEvaluate3DInContext</em>.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstEvaluate3DInCxt Use Case</h2>
+<p><code>CAAPstEvaluate3DInCxt</code> is a use case of the CAAProductStructure.edu 
+framework that illustrates the PLMModelerBaseInterfaces frameworks capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstEvaluate3DInCxt Do</h3>
+<p>The input PLM Data for the Use Case is a <code>Product</code> <code>Model</code>.</p>
+<p>The use case, loads the <code>Product</code> <code>Model</code>, as the one shown 
+in the fig below [<a href="#Fig1">Fig. 1</a>] in an &quot;Authoring&quot; mode.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Input Product Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Product Model" src="images/CAAPstEvaluate3DInCxt_Fig1.jpg"/></td>
+	</tr>
+</table>
+<p>The CAAPstEvaluate3DInCxt_Root aggregates</p>
+<ul>
+	<li>CAAPstEvaluate3DInCxt_Child1.1, an instance of PLM Reference CAAPstEvaluate3DInCxt_Child1
+		<p>PLM Reference CAAPstEvaluate3DInCxt_Child1 aggregates</p>
+		<ul>
+			<li>CAAPstEvaluate3DInCxt_Child1.1.1, an instance of PLM Representation 
+				Reference namely CAAPstEvaluate3DInCxt_Child1.1</li>
+		</ul>
+	</li>
+	<li>Pub_Vertex, a Publication ,pointing to a vertex of the geometry (contained 
+		in the PLM Rep Ref CAAPstEvaluate3DInCxt_Child1.1)</li>
+</ul>
+<p>The use case browses the loaded Product Reference to retrieve the required Publication 
+(input by the user). Then , it retrieve the object pointed to by the retrieved publication 
+(i.e. the geometry in the current UC).</p>
+<p>Once the pointed object (i.e. the geometry) is obtained , we then computes its 
+3D positioning for the following two Contexts:</p>
+<ul>
+	<li>3D Position of the geometry in context of the same position.</li>
+	<li>3D Position of the geometry in context of the different position.</li>
+</ul>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2: Abstract of the Output</caption>
+	<tr>
+		<td>
+		<img alt="Abstract of the Output" src="images/CAAPstEvaluate3DInCxt_Fig2.jpg"/></td>
+	</tr>
+</table>
+<p>As depicted in the output extract above, if the <strong>absolute coordinates</strong> 
+of the Pointed Vertex are <strong>(0, -40, 40)</strong> ,then its coordinates in 
+Context will be:</p>
+<ul>
+	<li><strong>CASE 1: 3D Position in Context of the same position (M1*M2):</strong>
+		<p><strong>Input position matrix (M1*M2)</strong>:<br />
+		0.984091 0 0.177666 31.8842<br />
+		0 1 0 0<br />
+		-0.177666 0 0.984091 44.0181</p>
+		<p><strong>Output 3D coordinates in context</strong>:<br />
+		(38.9908 ,-40, 83.3817)</p>
+	</li>
+	<li><strong>CASE 2: 3D Position in Context of the different position (M1):</strong>
+		<p><strong>Input position matrix (M1)</strong>:<br />
+		-0.926169 0 -0.377108 92.2803<br />
+		0 1 0 0<br />
+		0.377108 0 -0.926169 109.333</p>
+		<p><strong>Output 3D coordinates in context</strong>:<br />
+		(77.196, -40, 72.2862)</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstEvaluate3DInCxt</h3>
+<p>To launch CAAPstEvaluate3DInCxt, you will need to set up the build time environment, 
+then compile <code>CAAPstEvaluate3DInCxt</code> along with its prerequisites, set 
+up the run time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot; CAAPstEvaluate3DInCxt Repository Server User Password SecurityCtx 
+PublicationName PLM_ExternalID_RepRef PLMType_Ref IDAttribute1_RootRef AttrValue1 
+[IDAttribute2 Value2 ...]</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The name and port of the server as <code>name:port_number\RootURI</code></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose Role as Reviewer ( as the use case does not modify the PLM Data).</td>
+	</tr>
+	<tr>
+		<th>PublicationName</th>
+		<td>A String containing the Publication</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID_RepRef</th>
+		<td>PLM_ExternalID of the Rep Ref, containing the geometry pointed by the 
+		Publication</td>
+	</tr>
+	<tr>
+		<th>PLMType_Ref</th>
+		<td>The PLM type defined by the PRODUCT Modeler</td>
+	</tr>
+	<tr>
+		<th>IDAttribute1_RootRef*</th>
+		<td>IDSet attribute Name</td>
+	</tr>
+	<tr>
+		<th>AttrValue1*</th>
+		<td>Attribute Value</td>
+	</tr>
+</table>
+<p>* The input model is retrieved by importing the CAAPstEvaluate3DInCxt.3dxml file 
+from the CAAProductStructure.edu framework.</p>
+<p><code>InstallRootFolder\CAAProductStructure.edu\InputData\CAAPstEvaluate3DInCxt.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML file contains the root Product Reference with the following attributes:</p>
+<ul>
+	<li><code>PLM_ExternalID</code>: <code>CAAPstEvaluate3DInCxt_RootRef</code></li>
+	<li><code>Version</code>: ---</li>
+</ul>
+<p><strong>Attention</strong>: Please refer to the document [<a href="#References">1</a>] 
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstEvaluate3DInCxt Code</h3>
+<p>The <code>CAAPstEvaluate3DInCxt</code> use case is located in the CAAPstEvaluate3DInCxt.m 
+module of the CAAProductStructure.edu framework:</p>
+<p><code>InstallRootFolder\CAAProductStructure.edu\CAAPstEvaluate3DInCxt.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in CAAPstEvaluate3DInCxt:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Opening the PLM Product (Root) and Browsing It to Retrieve 
+		the Required Publication</a></li>
+	<li><a href="#Step2">Retrieving the Pointed Object (Here a Geometry)</a></li>
+	<li><a href="#Step3">Computing the Position of the Retrieved Geometry in the 
+		Product Context</a></li>
+	<li><a href="#Step4">Creating a New Object (Same Geometry) at the Same Position</a></li>
+	<li><a href="#Step5">Creating a New Object (Same Geometry) at the Different 
+		Position</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAPstEvaluate3DInCxt use case, to begin with, creates a PLM Session. Its 
+defined by the repository to be connected to, server, user, password and a Security 
+Context. The Security context primarily defines a role with which the user is logged 
+into the current session. In the current Use Case, since it simply opens a Product 
+Model hierarchy, it does not involve any modification of the PLM data. So a Reviewer 
+role serves our purpose in this case. The article &quot;<strong>Connecting to V6 
+Server</strong>&quot; [<a href="#References">2</a>] delves further deeper into this 
+subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Opening the PLM Product (Root) and Browsing It to Retrieve 
+the Required Publication</h3>
+<p>We begin with loading the input model in &quot;Authoring Mode&quot;.</p>
+<pre class="code">...
+    CATUnicodeString strPubName(iArgv[6]);
+    CATUnicodeString strRepRefName(iArgv[7]);
+    ...
+    CATIPLMNavReference *piPrdRefOnComp=NULL;
+    CATOmbLifeCycleRootsBag Bag_OpenedLglRef;
+    <strong>CATAdpOpener AdpOpener(Bag_OpenedLglRef)</strong>;
+    hr = <strong>AdpOpener.CompleteAndOpen</strong>(opiIDComp,IID_CATIPLMNavReference,(void**)&amp;piPrdRefOnComp);
+    CATIPrdPublication* opiPrdInputPub=NULL;
+    CATMathTransformation oMathTransfo_FirstInst;
+    hr= <strong>BrowseRefForInputPub</strong>(piPrdRefOnComp,strPubName,strRepRefName,opiPrdInputPub,oMathTransfo_FirstInst);
+...</pre>
+<p>The implementation details of browsing the Product Model are present in the article &quot;Browsing 
+a Product Model&quot; [<a href="#References">3</a>].</p>
+<p>Next , we retrieve the publication input by the user , whose implementation are 
+present in the article &quot;Browsing Publications in a Product Model&quot; [<a href="#References">4</a>] 
+.</p>
+<p>In the process of browsing the loaded Root Reference , we also perform a step 
+which is relevant in the current UC context is: retrieve the position matrix of 
+the first child instance of the loaded Product Root Reference. This position matrix 
+will be used later in <a href="#Step5">Creating a New Object (Same Geometry) at 
+the Different Position</a>.</p>
+<pre class="code">...
+	CATIPLMNavInstance* piNavInst = NULL;
+	...
+	CATIMovable * piMovableOnFirstInst=NULL;
+	hr= piNavEntity-&gt;QueryInterface(IID_CATIMovable, (void**) &amp;piMovableOnFirstInst);
+
+	if(NULL!=piMovableOnFirstInst)
+	{
+		CATIMovable_var spMovContext =ipiNavRef ;
+
+		oMathTransfo_FirstInst = piMovableOnFirstInst<strong>-&gt;GetPosition</strong>(spMovContext);
+		isCATIMovable_FirstInstFound= TRUE;
+		...
+	}
+...</pre>
+<p>Once the required publication is retrieved, we then retrieve the object pointed 
+to by the retrieved Publication( a geometry in the current UC) . Its implementation 
+details are described in the next section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the Pointed Object (Here a Geometry)</h3>
+<p>Here, we retrieve the object pointed to by the Publication ( retrieved in the 
+previous section.</p>
+<pre class="code">...
+    CATOmbObjectInContext* oPointedObjInCxt=NULL;
+    hr = opiPrdInputPub-&gt;<strong>GetPointed</strong>(oPointedObjInCxt,TRUE);
+
+    CATBaseUnknown * piPointedObjectOutOfCxt=NULL;
+    hr= oPointedObjInCxt-&gt;<strong>GetObjectOutOfContext</strong>(piPointedObjectOutOfCxt);
+
+    hr= <strong>GetAbsCoordinatesOfGeometry</strong>(piPointedObjectOutOfCxt);
+...</pre>
+<p>The <code>CATIPrdPublication::GetPointed</code> enables us to retrieve the pointed
+<strong>Target</strong> (a geometry in the current UC), as a <em>CATOmbObjectInContext</em> 
+object. Here, we retrieve the final target i.e. unfolded view of Publication On 
+Publication. This is done by passing TRUE, as the second argument to the <code>CATIPrdPublication::GetPointed</code> 
+api.</p>
+<p>Next, we retrieve the target object by making a call to the <code>CATOmbObjectInContext::GetObjectOutOfContext</code> 
+API . We then pass this final target object(i.e. the geometry) to the global routine
+<code>GetAbsCoordinatesOfGeometry</code> in order to get the absolute coordinates 
+of the geometry.</p>
+<p>Let us have a look at the implementation details of the global routine <code>
+GetAbsCoordinatesOfGeometry</code>.</p>
+<pre class="code">...
+    <strong>HRESULT GetAbsCoordinatesOfGeometry(CATBaseUnknown *&amp;ipPointedObjOutOfCxt)</strong>
+    {
+	...
+	HRESULT hr=E_FAIL;
+
+	<strong>CATIMmiUseBRepAccess</strong>* piBRepOnPointedObj=NULL;
+	hr= <strong>ipPointedObjOutOfCxt-&gt;</strong>QueryInterface(IID_CATIMmiUseBRepAccess,(void**)&amp;piBRepOnPointedObj);
+
+	CATCell_var oCell;
+	if(SUCCEEDED(hr))
+	{ 
+	    hr= piBRepOnPointedObj-&gt;<strong>GetBRepSelectingCell</strong>(oCell);
+	    ...
+	}
+
+	<strong>CATVertex</strong> *piVertex=NULL;
+	if(SUCCEEDED(hr) &amp;&amp; (NULL_var!=oCell))
+	{
+	    hr= oCell-&gt;QueryInterface(IID_CATVertex,(void**)&amp;piVertex);
+	}
+
+	<strong>CATPoint</strong> * piPoint=NULL;
+	if(SUCCEEDED(hr) &amp;&amp; (NULL!=piVertex))
+	{
+	    piPoint= piVertex-&gt;<strong>GetPoint</strong>();
+	    if(NULL!=piPoint)
+	    {
+		double ioFisrtCoord= piPoint-&gt;GetX();
+		double ioSecondCoord= piPoint-&gt;GetY();
+		double ioThirdCoord= piPoint-&gt;GetZ();
+		...
+	}
+    ...
+}</pre>
+<p>As depicted in the code extract above, we begin by doing QI on the target object 
+for the interface <em>CATIMmiUseBRepAccess</em>. Finally, we retrieve the coordinates 
+of the geometry (in form of <em>CATPoint )</em>.</p>
+<p>Once we retrieve the target, we will compute the position of the retrieved geometry, 
+by passing the final target (<strong>oPointedObjInCxt</strong>) associated with 
+the input publication as the input , whose details are given in the next section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Computing the Position of the Retrieved Geometry in the 
+Product Context</h3>
+<p>Here, we compute the position of the retrieved geometry in the product context 
+by making a call to the global routine <code>ComputePositionOfPointedObj</code>.</p>
+<pre class="code">...
+	CATMathTransformation  roExistingMathTransfo;
+	<strong>hr= ComputePositionOfPointedObj(oPointedObjInCxt,roExistingMathTransfo);</strong>
+...
+</pre>
+<p>Let us have a look at the implementation details of the global routine <code>
+ComputePositionOfPointedObj</code>.</p>
+<pre class="code">HRESULT <strong>ComputePositionOfPointedObj(CATOmbObjectInContext* &amp;iPointedObjInCxt, CATMathTransformation  &amp;roExistingMathTransfo)</strong>
+{
+	if(NULL==iPointedObjInCxt) return E_INVALIDARG;
+
+	HRESULT hr=E_FAIL;
+
+	CATIPLM3DPositionMng *pPLM3DPositionMng = NULL;
+	hr = ::CATInstantiateComponent(CATIPLM3DPositionMng_Component,
+				    IID_CATIPLM3DPositionMng,
+				   (void**)&amp;pPLM3DPositionMng);
+	
+	if(SUCCEEDED(hr))
+	{
+		hr= pPLM3DPositionMng-&gt;RetrievePosition(iPointedObjInCxt, roExistingMathTransfo);
+
+		double iCoeff[12];
+		roExistingMathTransfo.GetCoef(iCoeff);
+		...
+	}
+	return hr;	
+}</pre>
+<p>This global routine takes the following arguments:</p>
+<ul>
+	<li><code>iPointedObjInCxt</code>, a <em>CATOmbObjectInContext</em> type, the 
+		target associated with the input Publication (retrieved in the previous 
+		section).</li>
+	<li><code>roExistingMathTransfo</code>, <em>CATMathTransformation</em> type, 
+		an output argument which contains the position matrix of the retrieved geometry 
+		in its Product Context. We then pass this retrieved position matrix as the 
+		input matrix to the global function <code>Evaluate3DCxtOnGeometry</code> 
+		in order to create the new object(same geometry) at the same position, whose 
+		implementation details are given in the next section.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Creating a New Object (Same Geometry) at the Same Position</h3>
+<p>This step is the crux of the UC. Here we create a new object (same geometry, 
+retrieved in <a href="#Step2">Retrieving the Pointed Object (Here a Geometry)</a>) 
+at the same position by making a call to the global function <code>Evaluate3DCxtOnGeometry</code>.</p>
+<pre class="code">...
+   hr= <strong>Evaluate3DCxtOnGeometry(piPointedObjectOutOfCxt,roExistingMathTransfo);</strong>
+...
+</pre>
+<p>The global function <code>Evaluate3DCxtOnGeometry</code> takes the target object 
+(i.e. geometry in our case) and the position matrix as its input arguments.</p>
+<p>Let us have a look at the implementation details of global function <code>Evaluate3DCxtOnGeometry</code>.</p>
+<pre class="code">...
+  HRESULT <strong>Evaluate3DCxtOnGeometry(CATBaseUnknown * &amp;piPointedObjectOutOfCxt,
+  				CATMathTransformation  &amp;riTransfo)</strong>
+  {
+	if(NULL==piPointedObjectOutOfCxt) return E_INVALIDARG;
+
+	HRESULT hr=E_FAIL;
+
+	<strong>CATIEvaluate3DInContext</strong>* piEvaluate3d_PointedObjOutOfCxt=NULL;
+	hr= piPointedObjectOutOfCxt-&gt;QueryInterface(IID_CATIEvaluate3DInContext, 
+						(void**)&amp;piEvaluate3d_PointedObjOutOfCxt);
+
+	if(SUCCEEDED(hr))
+	{
+	    CATBaseUnknown *op3DPointedObj=NULL;
+	    hr= piEvaluate3d_PointedObjOutOfCxt-&gt;<strong>Evaluate3D</strong>(IID_CATBaseUnknown,(CATMathTransformation *)&amp;riTransfo,(void **) &amp;op3DPointedObj);
+
+	    if(SUCCEEDED(hr) &amp;&amp; (NULL!=op3DPointedObj))
+	    {
+		hr= <strong>GetCoordinatesInCxtOfGeometry(op3DPointedObj);</strong>
+		...
+...   
+</pre>
+<p>As depicted in the code abstract above , we begin with doing QI on the retrieved 
+geometry (<strong>piPointedObjectOutOfCxt</strong>) for the <em>CATIEvaluate3DInContext</em> 
+interface pointer.</p>
+<p>Next, we create a new object (same geometry) at the same position, passing the 
+position matrix (retrieved in the previous section) as the input argument . We make 
+a call to <code>CATIEvaluate3DInContext::Evaluate3D</code> API for evaluating the 
+3D position of the retrieved geometry in context of the input position matrix.</p>
+<p><code>CATIEvaluate3DInContext::Evaluate3D</code> takes the following arguments:</p>
+<ul>
+	<li><code>IID_CATBaseUnknown</code>, an IID type , name of the interface(CATBaseUnknown 
+		in our case) to handle the positioned 3D geometry</li>
+	<li><code>riTransfo</code>, <em>CATMathTransformation</em> type , the input 
+		position matrix ( the 3D position of the geometry will be computed in context 
+		of this matrix)</li>
+	<li><code>op3DPointedObj</code>, the output argument containing the positioned 
+		3D geometry. Next, we pass this returned positioned geometry to the global 
+		routine <code>GetCoordinatesInCxtOfGeometry</code> in order to retrieve 
+		its coordinates in context.</li>
+</ul>
+<p>Let us have a look at the implementation details of global function <code>GetCoordinatesInCxtOfGeometry</code>.</p>
+<pre class="code"><strong>HRESULT GetCoordinatesInCxtOfGeometry(CATBaseUnknown *&amp;ip3DObjInCxt)</strong>
+     {
+	...
+	const char * strIsAOnCatBase= ip3DObjInCxt-&gt;IsA();
+	
+	CATMacroPoint  *piMacroPointOnPointedObj=NULL;
+	hr= ip3DObjInCxt-&gt;QueryInterface(IID_CATMacroPoint,(void **) &amp;piMacroPointOnPointedObj);
+
+	if(SUCCEEDED(hr) &amp;&amp; (NULL!=piMacroPointOnPointedObj))
+	{
+		CATPoint * piPoint=NULL;
+		CATPoint * piPoint_forNULL=NULL;
+		piPoint= piMacroPointOnPointedObj-&gt;<strong>Next</strong>(piPoint_forNULL);
+
+		if(NULL!=piPoint)
+		{
+			double ioFisrtCoord= piPoint-&gt;GetX();
+			double ioSecondCoord= piPoint-&gt;GetY();
+			double ioThirdCoord= piPoint-&gt;GetZ();
+			...
+		}
+		...
+	}
+	...
+    }</pre>
+<p>As depicted in the code abstract above, first we make a QI on the positioned 
+geometry (output of <code>CATIEvaluate3DInContext::Evaluate3D</code> API in the 
+previous step) for the <em>CATMacroPoint</em> interface pointer. Finally, we retrieve 
+the coordinates of the positioned geometry by retrieving <strong>CATPoint</strong> 
+from the <em>CATMacroPoint</em> (piMacroPointOnPointedObj) pointer.</p>
+<p>Here in this section, we have computed the 3D positioning of the geometry in 
+context of the same position, we will now try to compute its positioning in context 
+of the different position . Its implementation details are given in the next section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Creating a New Object (Same Geometry) at the Different Position</h3>
+<p>In this section , we will compute the 3D positioning of the retrieved geometry 
+in context of the different position by making a call to the by making a call to 
+the global routine <code>Evaluate3DCxtOnGeometry</code>.</p>
+<pre class="code">...
+       	hr= <strong>Evaluate3DCxtOnGeometry(piPointedObjectOutOfCxt,oMathTransfo_FirstInst);</strong>
+...</pre>
+<p>As depicted in the code abstract above, we pass the geometry (retrieved in
+<a href="#Step2">Retrieving the Pointed Object (Here a Geometry)</a> ) and the position 
+matrix (retrieved in <a href="#Step1">Opening the PLM Product (Root) and Browsing 
+It to Retrieve the Required Publication</a>) and compute the 3D positioning of the 
+geometry in context of the input position matrix (i.e. at the different position). 
+The implementation details of the global function <code>Evaluate3DCxtOnGeometry</code> 
+is present in the previous section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAPstEvaluate3DInCxt use case ends by simply closing the PLM session. Since 
+all Product Structure use cases necessarily conclude by closing the PLM session, 
+we have a dedicated article on this topic namely. &quot;Connecting to V6 Server&quot; 
+[<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case basically illustrates the end user how to create a new positioned 
+geometry. From a geometry implementing <em>CATIEvaluate3DInContext</em>, you can 
+create a new object (same geometry) but at a given input matrix.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPstUcBrowsingProductModel.htm">Browsing a Product Model</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAPstUcBrowsingPublications.htm">Browsing Publications in 
+		a Product Model</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding &amp; Opening PLM Components</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

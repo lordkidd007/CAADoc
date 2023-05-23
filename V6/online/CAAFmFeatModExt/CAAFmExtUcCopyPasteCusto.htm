@@ -1,0 +1,473 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Customizing Copy/Paste</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Customizing Copy/Paste</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes an example of customization when copying a feature, 
+		and pasting features on a target. The technical article &quot;Cut Copy Paste 
+		Customization&quot; [<a href="#References">1</a>] delves into the depth of this 
+		topic.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmExtCustoCopyPaste Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmExtCustoCopyPaste Do</a></li>
+				<li><a href="#How">How to Launch CAAFmExtCustoCopyPaste</a></li>
+				<li><a href="#Where">Where to Find the CAAFmExtCustoCopyPaste Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you to implement the <em>CATIFmFeatureBehaviorCustomization</em> 
+interface to customizing default behaviors.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAFmExtCustoCopyPaste Use Case</h2>
+<p>CAAFmExtCustoCopyPaste is a use case of the CAAFeatureModelerExt.edu framework 
+that illustrates FeatureModelerExt framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmExtCustoCopyPaste Do</h3>
+<p>CAAFmExtCustoCopyPaste is split in three different operations:</p>
+<ul>
+	<li><a href="#StartUp Creation">StartUp creation</a></li>
+	<li><a href="#Copy/paste customization">Copy/paste customization, i.e. the implementation 
+	of <em>CATIFmFeatureBehaviorCustomization</em></a></li>
+	<li><a href="#Use case scenario">Use case scenario, involving the Feature data 
+	model creation and its usage.</a></li>
+</ul>
+<p>Lets us describe each part.</p>
+<p><strong><a name="StartUp Creation"></a>StartUp Creation</strong></p>
+<p>This use case is based on five StartUps defined in the <code>CAAFmExtForCCPCatalog</code> 
+CATfct file. See <a href="#Where">Where to Find the CAAFmExtCustoCopyPaste Code</a> 
+section. These 5 Startups are:</p>
+<ul>
+	<li><code>CAAFmExtCCP_A</code>, with one attribute, <code>CAAFmExt_attr1</code>, 
+	a list of component</li>
+	<li><code>CAAFmExtCCP_B</code>, with two attributes, <code>CAAFmExt_attr2</code> 
+	a specobject, and <code>CAAFmExt_attr3</code> a component</li>
+	<li><code>CAAFmExtCCP_C</code>, with one attribute, <code>CAAFmExt_info</code> 
+	a string</li>
+	<li><code>CAAFmExtCCP_D</code>, with one attribute, <code>CAAFmExt_info</code> 
+	a string</li>
+	<li><code>CAAFmExtCCP_</code>E, with one attribute, <code>CAAFmExt_info</code> 
+	a string</li>
+</ul>
+<p>We assume that:</p>
+<ul>
+	<li>For <code>CAAFmExtCCP_B</code> can point (via <code>CAAFmExt_attr2</code>) 
+	a feature of type <code>CAAFmExtCCP_</code>E only.</li>
+	<li><code>CAAFmExtCCP_A</code> can aggregate (via <code>CAAFmExt_attr1)
+	</code>all type of features but <code>CAAFmExtCCP_E</code>.</li>
+</ul>
+<p>The five features are fully implementing the <em>CATIUseEntity</em> interface 
+[<a href="#References">2</a>]</p>
+<p><strong><a name="Copy/paste customization"></a>Copy/paste customization, i.e. 
+the implement of <em>CATIFmFeatureBehaviorCustomization</em></strong></p>
+<p>The default behavior when a feature is copied is to copy its aggregated features 
+and its extensions, but not its pointed feature. Example for <code>CAAFmExtCCP_B.</code></p>
+<table>
+	<caption>Fig.1 Default Copy for a Feature</caption>
+	<tr>
+		<td>
+		<img alt="Default Copy for a Feature" src="images/CAAFmExtUCCustoCopyPaste_Fig1.gif"></td>
+	</tr>
+</table>
+<p>When the feature <code>CAAFmExtCCP_B</code> is copied, <code>CAAFmExtCCP_Bnew
+</code>is created, aggregating <code>FeatCnew</code>, a copy of <code>FeatC</code>, 
+and pointing <code>FeatE</code>.</p>
+<p>The use case consists in to overwrite this default behavior for <code>CAAFmExtCCP_B.
+</code>Its pointed feature, the value of its attribute <code>CAAFmExt_attr2</code> 
+, when it exists, is copied too.</p>
+<table>
+	<caption>Fig.2 Customization of the Copy</caption>
+	<tr>
+		<td>
+		<img alt="Customization of the Copy" src="images/CAAFmExtUCCustoCopyPaste_Fig2.gif"></td>
+	</tr>
+</table>
+<p>Now, when the feature <code>CAAFmExtCCP_B</code> is copied, <code>CAAFmExtCCP_Bnew
+</code>is created, aggregating <code>FeatCnew</code>, a copy of <code>FeatC,</code> 
+and pointing <code>FeatEnew</code>, a copy of FeatE.</p>
+<p>The second customization is about <code>CAAFmExtCCP_A</code>. In our modelization 
+instances of <code>CAAFmExtCCP_A, CAAFmExtCCP_B</code>, <code>CAAFmExtCCP_</code>C 
+and <code>CAAFmExtCCP_D</code> can be pasted on a feature of type <code>CAAFmExtCCP_A</code>. 
+The customization consists in for the target to aggregate the copied features.
+</p>
+<p><strong><a name="Use case scenario"></a>Use case scenario, involving the Feature 
+data model creation and its usage.</strong></p>
+<p>The initial data model is as follows:</p>
+<table>
+	<caption><a name="Fig.3">Fig.3</a> Customization of the Copy</caption>
+	<tr>
+		<td>
+		<img alt="Customization of the Copy" src="images/CAAFmExtUCCustoCopyPaste_Fig3.gif"></td>
+	</tr>
+</table>
+<p>You can see the convention, <code>CAAFmExtCCP_Xy</code>, means a feature of type
+<code>CAAFmExtCCP_X</code> and y enables us to name them. The green boxes represents 
+the features to copy, and the blue one the target.</p>
+<p>The final data model is as follows:</p>
+<table>
+	<caption>Fig.4 Customization of the Copy</caption>
+	<tr>
+		<td><img alt="" src="images/CAAFmExtUCCustoCopyPaste_Fig4.gif"></td>
+	</tr>
+</table>
+<p>The pink boxes represents the new features, and the bold lines represents the 
+operations due to the customization: The creation of the <code>CAAFmExtCCP_E1new</code>, 
+and the aggregation by <code>CAAFmExtCCP_A2</code> of <code>CAAFmExtCCP_B1new</code> 
+and <code>CAAFmExtCCP_C2new.</code></p>
+<p>Here an extract of the code:</p>
+<pre class="code">
+<strong>Before copy/paste, the total members in applicative container are: 7</strong>
+
+   The Created data model is a follows:
+   CAAFmExtCCP_A
+      CAAFmExtCCP_A.1
+         CAAFmExtCCP_B.1
+            CAAFmExtCCP_<strong>E.1</strong>
+            CAAFmExtCCP_D.1
+         CAAFmExtCCP_C.1
+      CAAFmExtCCP_A.2
+</pre>
+<p>Note that <code>CAAFmExtCCP_E.1</code> is indexed with a number (1), because 
+we have use root feature (<code>CAAFmExtCCP_A</code>) as reference for the auto 
+numbering [<a href="#References">4</a>].</p>
+<p>and then after the copy/paste:</p>
+<pre class="code">
+<strong>Before copy/paste, the total members in applicative container are: 7</strong>
+  CAAFmExtCCP_A
+      CAAFmExtCCP_A.1
+         CAAFmExtCCP_B.1
+            CAAFmExtCCP_E.1
+            CAAFmExtCCP_D.1
+         CAAFmExtCCP_C.1
+      CAAFmExtCCP_A.2
+         CA<strong>AFmExtCCP_B.1
+            CAAFmExtCCP_<span class="sample">E.2</span>
+            CAAFmExtCCP_D.1
+         CAAFmExtCCP_C.1</strong>
+         
+    After copy/paste, the total members in applicative container are: 11</pre>
+<p>You can see the new features below <code>CAAFmExtCCP_A.2</code>, and that
+<code>CAAFmExtCCP_E.2</code> is indexed with a number (2): in the paste customization 
+we have set it the root feature (CAAFmExtCCP_A) as reference for the auto numbering 
+[<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAFmExtCustoCopyPaste</h3>
+<p>To launch <code>CAAFmExtCustoCopyPaste</code>toUpdate, you will need to set up 
+the build time environment, then compile <code>CAAFmExtCustoCopyPaste</code> along 
+with its prerequisites, set up the run time environment, and then execute the sample. 
+This is fully described in the referenced article [<a href="#References">3</a>].
+</p>
+<p>mkrun -c &quot;<em><code>CAAFmExtCustoCopyPaste</code> Repository Server UserId Password 
+SecurityCtx Environment</em>&quot;</p>
+<p>Where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(Since use case modifies PLM Data)</td>
+	</tr>
+	<tr>
+		<th>Environment</th>
+		<td>A PLM environment containing PLMProductDS (a PRODUCT&#39;s custo)</td>
+	</tr>
+</table>
+<p>Don&#39;t forget to update the runtime view to have the <code>CAAFmExtForCCPCatalog.CATfct</code> 
+file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a></h3>
+<h3>Where to Find the CAAFmExtCustoCopyPaste Code</h3>
+<p>CAAFmExtCustoCopyPaste code is located in the <code>CAAFmExtCustoCopyPaste.m</code> 
+and <code>CAAFmExtModeler.m</code> use case module of the <code>CAAFeatureModelerExt.edu</code> 
+framework. The path follows:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtCustoCopyPaste.m</code></p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtModeler.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the root 
+folder of your API installation. It is made of source files namely.</p>
+<ul>
+	<li><code>CAAFmExtCustoCopyPaste.cpp</code>, which has the UC main in it</li>
+	<li><code>CAAEFmExtCCP_A.cpp</code>, <code>CAAEFmExtCCP_B.cpp</code> the <em>
+	CATIFmFeatureBehaviorCustomization</em> implementation for <strong>CAAFmExtCCP_A</strong> 
+	and <strong>CAAFmExtCCP_B</strong> respectively</li>
+</ul>
+<p>The <code>CAAFmExtForCCPCatalog.CATfct</code> file is located in the resource 
+graphic directory:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CNext\CNext\resources\graphic</code></p>
+<p>The osm file generated from this StartUp catalog is provided in another directory</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\</code>InputData</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are four logical steps in CAAFmExtCustoCopyPaste:</p>
+<ol>
+	<li>
+	<a href="#Implementing the  CATIFmFeatureBehaviorCustomization Interface">Implementing 
+	the <em>CATIFmFeatureBehaviorCustomization</em> Interface</a></li>
+	<li>
+	<a href="#Implementing the  CATIFmFeatureBehaviorCustomization Interface">Implementing 
+	the Copy</a></li>
+	<li><a href="#Implementing the Paste">Implementing the Paste</a></li>
+	<li><a href="#Launching Copy/Paste">Launching Copy/Paste</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Implementing the  CATIFmFeatureBehaviorCustomization Interface">
+</a>Implementing the <em>CATIFmFeatureBehaviorCustomization</em> Interface</h3>
+<p>This interface is implementable with the BOA mechanism; It implies to create 
+a header file and a source file for your StartUp late type [<a href="#References">4</a>] 
+. Here extract of code for the <code>CAAFmExtCCP_B</code> late type.</p>
+<ul>
+	<li>For the header
+	<p>A new class, CAAEFmExtCCP_B is created. Its header file is a follows.</p>
+	<pre class="code">...
+class <strong>CAAEFmExtCCP_B</strong>:  public CATFmFeatureCustomizationAdaptor
+{
+  CATDeclareClass;
+public:
+    virtual HRESULT <strong>CcpRegisterAdditionalObjectsForCopy</strong>(const CATListValCATBaseUnknown_var &amp; iInitialSetOfObjects,
+                                                        CATListValCATBaseUnknown_var &amp; oObjectToAddToBoundary) const;  
+
+private:
+	
+      // Standard constructors and destructors for an implementation class
+      CAAEFmExtCCP_B();
+      virtual ~CAAEFmExtCCP_B();
+
+      CATFmCredentials _MyCredential;
+};
+...</pre>
+	<p>The class is derived from the adaptor class <em>CATFmFeatureCustomizationAdaptor</em> 
+	class. So on your own class, you only have to add the methods to overwrite.</p>
+	</li>
+	<li>For the source
+	<pre class="code">...
+<strong>CATImplementClass</strong>(CAAEFmExtCCP_B,
+		  DataExtension, 
+		  CATIFmFeatureBehaviorCustomization,
+		  <strong>CAAFmExtCCP_B</strong>);
+
+...
+<strong>CATImplementBOA</strong>(CATIFmFeatureBehaviorCustomization,CAAEFmExtCCP_B);
+...</pre>
+	<p><code>CAAFmExtCCP_B</code> is the late type implementing <em>CATIFmFeatureBehaviorCustomization</em>. 
+	CAAEFmExtCCP_B is the class implementing the data extension.</p>
+	</li>
+</ul>
+<p>Don&#39;t forget to update the dictionary file (CAAFeatureModelerExt.edu\CNext\code\dictionary\CAAFeatureModelerExt.edu.dico), 
+and to add an entry point for the new implementation.</p>
+<pre class="code">...
+<strong>CAAFmExtCCP_B</strong> CATIFmFeatureBehaviorCustomization  libCAAFmExtModeler
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Implementing the Copy</h3>
+<p>The additional features are given in the <code>CcpRegisterAdditionalObjectsForCopy</code> 
+method of the <em>CATIFmFeatureBehaviorCustomization</em> interface for the StartUp
+<code>CAAFmExtCCP_B.</code></p>
+<pre class="code">...
+HRESULT CAAEFmExtCCP_B::<strong>CcpRegisterAdditionalObjectsForCopy</strong>(const CATListValCATBaseUnknown_var &amp; iInitialSetOfObjects, 
+                                                                  CATListValCATBaseUnknown_var &amp; oObjectToAddToBoundary) <strong>const</strong>
+{
+   CATFmFeatureFacade Instance(_MyCredential,<strong>const_cast&lt;CAAEFmExtCCP_B *&gt;</strong>(this));
+   CATFmAttributeName NameAttr (&quot;CAAFmExt_attr2&quot;);
+   CATFmAttributeValue ThePointedFeatAsValue ;
+   rc = Instance.<strong>GetValue</strong>(NameAttr,ThePointedFeatAsValue);
+   if ( SUCCEEDED(rc) )  
+   {
+      ...
+      CATBaseUnknown_var ThePointedFeatAsCBU = ThePointedFeatAsValue.<strong>GetFeature</strong>();
+      if ( NULL_var != ThePointedFeatAsCBU )
+      {
+         oObjectToAddToBoundary.<strong>Append</strong>(ThePointedFeatAsCBU);
+
+...</pre>
+<p>Here observe the first line, the way the <em>CATFmFeatureFacade</em> class instance 
+is created. &quot;<strong>const_cast&lt;</strong>CAAEFmExtCCP_B<strong>*&gt;</strong> is used 
+before this, because the method is const. The method is const because it must not 
+change the implementation of this.</p>
+<p>Then we get its pointed feature, the one handle by the <code>CAAFmExt_attr2</code> 
+attribute. If the pointed feature exists, we add it to the list of feature to copy 
+too.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Implementing the Paste"></a>Implementing the Paste</h3>
+<p>The aggregation on the target are done inside the <code>CcpPaste</code> method 
+of the <em>CATIFmFeatureBehaviorCustomization</em> interface for the StartUp
+<code>CAAFmExtCCP_A.</code></p>
+<pre class="code">...
+HRESULT CAAEFmExtCCP_A::<strong>CcpPaste</strong>(const CATFmCCPContext &amp; iContext)
+{
+    HRESULT rc = E_FAIL ; 
+    CATFmFeatureFacade Instance(_MyCredential,this);
+
+    CATListValCATBaseUnknown_var TheListObject ;
+    rc = iContext.<strong>GetImpactedObjects</strong>(TheListObject) ;
+    if ( SUCCEEDED(rc) )
+    {
+      CATFmAttributeName NameAttr (&quot;CAAFmExt_attr1&quot;);
+      for ( int i=1 ; i &lt;= TheListObject.Size() ; i++ )
+      {
+         CATBaseUnknown_var CurrentObject = TheListObject[i];
+         if ( NULL_var !=  CurrentObject )
+	{
+               CATFmFeatureFacade FacadeForCurrent(_MyCredential,CurrentObject);
+               CATUnicodeString  TheLateType ;
+               HRESULT rcl = FacadeForCurrent.<strong>GetType</strong>(TheLateType);
+	      if ( SUCCEEDED(rcl) )  // it is an object that we owns. 
+	      {
+		if (( TheLateType == &quot;CAAFmExtCCP_A&quot; ) || 
+		    ( TheLateType == &quot;CAAFmExtCCP_B&quot; ) || 
+		    ( TheLateType == &quot;CAAFmExtCCP_C&quot; ) || 
+		    ( TheLateType == &quot;CAAFmExtCCP_D&quot; ) ) 
+	         {     
+                      CATFmAttributeValue TheNewElt ;
+	             TheNewElt.SetFeature(TheListObject[i]) ;
+                      Instance.<strong>AppendValue</strong>(NameAttr,TheNewElt);
+                   )elseif ( <strong>TheLateType == &quot;CAAFmExtCCP_C&quot;</strong> )
+                   {
+                        CATFmAttributeValue TheRootAsValue ;
+                        Instance.GetRootParentFeature(TheRootAsValue);
+                        FacadeForCurrent.SetAutoNumberingProvider(TheRootAsValue);
+                   }
+                         
+...</pre>
+<p>The elements returned by <code>GetImpactedObjects</code> must be aggregated on 
+the &quot;pasted&quot; object (A2) except the <code>CAAFmExtCCP_E</code> objects. Indeed, 
+this method, <code>GetImpactedObjects</code> , returns all the &quot;root&quot; features: 
+the one to aggregates to feature A, and the <code>CAAFmExtCCP_E</code> features. 
+Indeed, the<code> CAAFmExtCCP_</code>E objects pointed by <code>CAAFmExtCCP_B
+</code>features, added by the <code>CcpRegisterAdditionalObjectsForCopy</code> method, 
+is not aggregated (it is a root) must not be aggregated by this.</p>
+<p>When a feature <code>CAAFmExtCCP_E</code> is returned by <code>GetImpactedObjects</code>, 
+we change its auto numbering reference [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Launching Copy/Paste"></a>Launching Copy/Paste</h3>
+<p>First we create the list of features to copy.</p>
+<pre class="code">...
+CATIUseEntity_var B1AsUseEntity = InstanceB1.<strong>GetFeature</strong>();
+CATIUseEntity_var C2AsUseEntity = InstanceC2.GetFeature();
+...
+<strong>CATListOfCATIUseEntity_var</strong> ListToCopy ;
+ListToCopy.Append(B1AsUseEntity);
+ListToCopy.Append(C2AsUseEntity);
+...</pre>
+<p><code>InstanceB1</code> and <code>InstanceC2</code> are <em>CATFmFeatureFacade
+</em>class instances on B1 and C2, two features as depicted by [<a href="#Fig.3">Fig.3</a>]. 
+The <code>GetFeature</code> method of <em>CATFmFeatureFacade</em> returns a CATBaseUnknown 
+smart pointer. This smart pointer is automatically converted in a <em>CATIUseEntity</em> 
+smart pointer by the = operator.</p>
+<p>Then we got a <em>CATIUseEntity</em> smart pointer on the target, here A2 as 
+depicted by [<a href="#Fig.3">Fig.3</a>].</p>
+<pre class="code">...
+CATIUseEntity_var A2AsUseEntityforPaste = InstanceA2.<strong>GetFeature</strong>();
+CATPathElement <strong>PathElementOnA2</strong>((CATBaseUnknown*)A2AsUseEntity);
+...</pre>
+<p>And finally, we execute the copy paste using the API exposed by the DataCommonProtocolUse 
+framework.</p>
+<pre class="code">...
+CATListOfCATIUseEntity_var ListResult ;
+rc = DataCommonProtocolCCPServices::<strong>CopyAndPasteTo</strong>(ListToCopy,PathElementOnA2,ListResult) ;
+...</pre>
+<p>The objects to copy, as the target, must implement the <em>CATIUseEntity</em> 
+interface, the method will fail otherwise.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case is an illustration of the Copy/Paste customization. We have implemented 
+the <em>CATIFmFeatureBehaviorCustomization</em> interface on the feature to copy 
+and on the target.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaCCPCustomization.htm">Cut Copy Paste Customization</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAFmExtTaCommonProtocol.htm">Common Protocol Integration</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

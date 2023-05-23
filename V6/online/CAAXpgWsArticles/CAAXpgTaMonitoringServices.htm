@@ -1,0 +1,444 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Monitoring Service </title>
+</head>
+ 
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Monitoring Service</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+			<h2>Abstract</h2>
+
+
+
+<p> This article gives you information on Web Services provided for Gateway Monitoring.</p>
+			<ul>
+				<li><a href="#About Gateway Monitoring">About Gateway Monitoring</a></li>
+				<li><a href="#Key Terms Referenced">Key Terms Referenced</a></li>
+				<li><a href="#Web Services and associated Types Exposed">Associated Types</a></li>
+
+				<li><a href="#References">References</a></li>
+			</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<script type="text/javascript">insertLinkToTopTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="About Gateway Monitoring"></a>About Gateway Monitoring</h2>
+
+
+
+<p>In a production environment, the ENOVIA V6 Event Bus is a key component which 
+must remain service-ready to ensure full integration between ENOVIA V6 and other 
+systems. Administrators have to keep watch on Gateway operation to know of any 
+error situations in Gateway. This can be done by monitoring queue and events 
+being processed using the Gateway's <strong>administration consoles</strong> or by keeping track and 
+analyzing the emails sent by the <strong>notification services</strong>. This activity can be 
+automated using the Monitoring Web Services.</p>
+
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: Event Bus Architecture</caption>
+	<tr>
+		<td><img alt="Event Bus Architecture" src="images/CAAXpgArchitectureMonitoring.png"/></td>
+	</tr>
+</table>
+
+
+<p>There may be various error situations which result in blocking Gateway 
+operation. For example <em>File Server error, error in communication between V6 and 
+XPDM Gateway </em>or in case of V6 Gateway <em>processor pool is locked</em>. Such situations 
+are considered as Error situations.</p>
+<p>If there is any Event in Busy state for long time or in Blocked state 
+then it doesn&#8217;t block Gateway operation. Such situations blocks operation of 
+a particular user. Such situations are considered as Warning situations.</p>
+<p>Error or warning situations can be detected using Monitoring Web Service 
+GetGatewayStatus.</p>
+<p>According to the Error/Warning reported by <strong>GetGatewayStatus</strong> you can take 
+corrective actions. For example if Error reported is &#8220;File Server not 
+operational. Please check File server is up and running and all the parameters 
+in fsclient-config.properties are correct&#8221; then you can take corrective action 
+as suggested in the Error message.</p>
+<p>If <strong>GetGatewayStatus</strong> returns warning that there are some Blocked events then 
+you can get the list of IDs of Blocked events using Web Service <strong>GetEvents</strong>. From 
+the Event IDs you can get all the information of the events using Web Service 
+<strong>GetEventInformation</strong>. You can get detailed Error Message, Event state, Queue Name 
+etc. Analyzing this information you can take corrective actions and you can 
+retry or remove event by calling Web Services <strong>RetryEvent</strong> or 
+<strong>RemoveEvent</strong>.</p>
+<p>It may happen that there is an Error in Gateway and hence all the events go 
+into blocked state. After correction in Gateway if you want to retry all the 
+blocked events then you can call Web Service <strong>RestoreGatewayOperation</strong>.</p>
+<p>If there is no Error or Warning and you just want to see the list of Queues 
+then you can use Web Service <strong>GetListOfQueues</strong> to get the Queue names.</p>
+<p>You can automate the Gateway Monitoring activity by writing an application as 
+per your requirements using the Monitoring Web Services. Please go through the 
+use cases [<a href="#References">2</a>] to get to know how to use the Web Services.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Key Terms Referenced"></a>Key Terms Referenced</h2>
+<p><strong>Web Service</strong>: A software system designed to support interoperable machine-to-machine interaction over a network. It has an interface described in a machine-processable format (specifically Web Services Description Language WSDL). Other systems interact with the web service in a manner prescribed by its description using SOAP messages, typically conveyed using HTTP with an XML serialization in conjunction with other web-related standards.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Web Services and associated Types Exposed"></a>Associated Types</h2>
+<p>This section covers associated types with Monitoring Services [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<p><strong>EventStateTypeType</strong></p>
+<p><code>EventStateType </code>object represents the type of the state of an event. Possible values are <code>PROCESSING/QUEUED/ERROR</code>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<p><strong>SearchCriteriaType </strong></p>
+<p>The search criteria object contains a list of criterion that will be combined with a AND operator to build a search query.</p>
+<TABLE class=border1 id=table22>
+  <TBODY>
+   <TR>
+    <TH>Element name 
+</TH>
+    <TH>Type</TH>
+    
+    <TH>Minimum Occurrence</TH>
+    <th>Description</th>
+    </TR>
+
+  <TR>
+    <TD style="height: 16px">queueType<br>
+	
+	</TD><I>
+    <TD style="height: 16px"><code>QueueTypeType</code><br>
+	</TD>
+    </I>
+     <TD>0</TD>
+    <TD style="height: 16px">Type of Queue : <code>LOCAL/REMOTE</code>
+<br>
+</TD>
+    </TR>
+  <TR>
+    <TD>queueState</TD>
+    <TD><code>QueueStateType</code></TD>
+     <TD>0</TD>
+    <TD>State of Queue : <code>BUSY/BLOCKED/READY</code> <br>
+		</TD>
+    </TR>
+  <TR>
+    <TD>queueName</TD>
+    <TD><code>QueueNameType</code></TD>
+     <TD>0</TD>
+    <TD>Name of the queue&nbsp;
+</TD>
+    </TR>
+  <TR>
+    <TD>eventStateType</TD>
+    <TD><code>EventStateTypeType</code></TD>
+     <TD>0</TD>
+    <TD>The type of the state of the event :<code>PROCESSING/QUEUED/ERROR/ARCHIVED</code>
+<br>
+	</TD>
+    </TR>
+  <TR>
+    <TD>eventDuration</TD>
+    <TD><code>int</code></TD>
+     <TD>0</TD>
+    <TD>Minimum duration of the event in current state in minutes. </TD>
+    </TR>
+  <TR>
+    <TD>eventSize</TD>
+    <TD><code>int</code></TD>
+     <TD>0</TD>
+    <TD>Minimum size of the data relative to the already locally processed event in KB. Note that for an event that was not already locally processed on one side its size will be set to zero.</TD>
+    </TR>
+
+    <TR>
+    <TD>eventName</TD>
+    <TD><code>string</code></TD>
+     <TD>0</TD>
+    <TD>Name of the event. A like operator will be used on this name. <br /><b>Note: </b>Only valid when <code>eventStateType</code> is set to <code>ARCHIVED</code></TD>
+    </TR>
+
+    <TR>
+    <TD>creationDate</TD>
+    <TD><code>DateCriteriaType</code></TD>
+     <TD>0</TD>
+    <TD>A criteria for Creation date. <br /><b>Note: </b>Only valid when <code>eventStateType</code> is set to <code>ARCHIVED</code></TD>
+    </TR>
+
+      <TR>
+    <TD>processingResult</TD>
+    <TD><code>EventProcessResultType&nbsp;&nbsp;&nbsp; </code></TD>
+     <TD>0</TD>
+    <TD>Result of the processing : <code>SUCCESS/ERROR/WARNING/FILE_TRANSFER_ERROR/CANCELED</code><br /><b>Note: </b>Only valid when <code>eventStateType</code> is set to <code>ARCHIVED</code></TD>
+    </TR>
+
+      <TR>
+    <TD>processingReturnCode</TD>
+    <TD><code>int</code></TD>
+     <TD>0</TD>
+    <TD>The processing return code.<br /><b>Note: </b>Only valid when <code>eventStateType</code> is set to <code>ARCHIVED</code></TD>
+    </TR>
+
+
+  </TBODY></TABLE>
+  <script type="text/javascript">insertLinkToTop();</script>
+<p><strong>GatewayErrorType</strong> </p>
+<p><code>GatewayErrorType </code>object contains Error IDs and Error messages</p>
+<TABLE class=border1 id=table22>
+  <TBODY>
+     <TR>
+    <TH>Element name 
+</TH>
+    <TH>Type</TH>
+    <th>Description</th>
+    </TR>
+
+  <TR>
+    <TD>errorID</TD><I>
+    <TD><code>int</code></TD>
+    </I>
+    <TD>Id of error</TD>
+    </TR>
+  <TR>
+    <TD>message&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </TD>
+    <TD><code>string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </code></TD>
+    <TD>Message of error</TD>
+    </TR>
+  </TBODY></TABLE>
+
+<TABLE class=border1 id=table22>
+  <TBODY>
+  <TR>
+    <TH>Error ID</TH>
+    <TH>Error Description</TH>
+    </TR>
+  <TR>
+    <TD>0</TD><I>
+    <TD>No Error or warning</TD>
+    </I></TR>
+  <TR>
+    <TD>101</TD>
+    <TD>Asynchronous event processor pool locked. Please check connection to database is okay and check event-processor.log</TD>
+    </TR>
+  <TR>
+    <TD>102</TD>
+    <TD>File Server not operational. Please check File server is up and running and all the  parameters in fsclient-config.properties are correct
+</TD>
+    </TR>
+  <TR>
+    <TD height=17>103</TD>
+    <TD height=17>Local to remote communication error. Please check entries in site-ids-config.xml are correct and the remote Gateway is up and running.</TD>
+    </TR>
+  <TR>
+    <TD>104</TD>
+    <TD>
+Persistency unavailable. Please check database parameters.</TD>
+    </TR>
+  <TR>
+    <TD>1000</TD>
+    <TD>Internal Error please contact support</TD>
+    </TR></TBODY></TABLE>
+<TABLE class=border1 id=table22>
+  <TBODY>
+  <TR>
+    <TH>Warning ID</TH>
+    <TH>Warning Description</TH>
+    </TR>
+  <TR>
+    <TD>1&nbsp;</TD><I>
+    <TD>Blocked Local Event/ Events</TD>
+    </I></TR>
+  <TR>
+    <TD>2</TD>
+    <TD>Blocked Remote Event/Events</TD>
+    </TR>
+  <TR>
+    <TD>3</TD>
+    <TD>Event busy for more than specified time based on parameter <code>ThresholdTimeForBusyEvent </code>mentioned in  gateway-config.properties
+</TD>
+    </TR>
+  </TBODY></TABLE>
+
+<p><code>ThresholdTimeForBusyEvent </code>&#8211; Threshold time in minutes. This option is 
+located in gateway-config.properties. Default value will be 30 min.  If any event is in busy state for more than the <code>ThresholdTimeForBusyEvent </code>then the Web Service GetGatewayStatus will return Warning message.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<p><strong>QueueStateType</strong></p>
+<p><code>QueueState </code>object represents state of Queue. Possible values are <code>BUSY/BLOCKED/READY</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<p><strong>EventInformationType</strong> </p>
+<p> <code>EventInformationType </code>object contains all the information of a particular Event</p>
+<TABLE class=border1 id=table22>
+  <TBODY>
+     <TR>
+    <TH>Element name 
+</TH>
+    <TH>Type</TH>
+    <th>Description</th>
+    </TR>
+
+  <TR>
+    <TD style="height: 16px">eventID
+	
+	
+	</TD><I>
+    <TD style="height: 16px"><code>EventUIDType</code>
+	
+	</TD>
+    </I>
+    <TD style="height: 16px">
+	Event ID
+	
+</TD>
+    </TR>
+  <TR>
+    <TD>eventName</TD>
+    <TD>
+    <code>EventNameType</code></TD>
+    <TD>Event name</TD>
+    </TR>
+  <TR>
+    <TD>eventQueue</TD>
+    <TD><code>QueueNameType</code>
+	&nbsp;</TD>
+    <TD>Name of Queue</TD>
+    </TR>
+  <TR>
+    <TD>eventState</TD>
+    <TD><code>EventStateType</code>
+	&nbsp;</TD>
+    <TD>The state of the event : <br>
+	LOCAL_RECEIVED, LOCAL_PRE_PROCESSING&#8230;</TD>
+    </TR>
+  
+  <TR>
+    <TD style="height: 16px">queueType</TD>
+    <TD style="height: 16px"><code>QueueTypeType</code></TD>
+    <TD style="height: 16px">Queue Type: <code>LOCAL/REMOTE</code></TD>
+    </TR>
+  <TR>
+    <TD>eventPath</TD>
+    <TD><code>EventPathType</code></TD>
+    <TD>Event Path</TD>
+    </TR>
+  <TR>
+    <TD>eventDuration</TD>
+    <TD><code>int</code></TD>
+    <TD>Duration of the event in current state in minutes. </TD>
+    </TR>
+  <TR>
+    <TD style="height: 18px">eventSize</TD>
+    <TD style="height: 18px"><code>int</code></TD>
+    <TD style="height: 18px">Size of the data relative to the already locally processed event in KB.</TD>
+  </TR>
+  <TR>
+    <TD>isArchived</TD>
+    <TD><code>boolean</code></TD>
+    <TD>Give the information if the event is archived or not.</TD>
+  </TR>
+  <TR>
+    <TD>description</TD>
+    <TD><code>string</code></TD>
+    <TD>A string giving some context information about this particular event.</TD>
+  </TR>
+  <TR>
+    <TD>processingInformation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </TD>
+    <TD><code>EventProcessInformationType</code></TD>
+    <TD>Information about event processing done by Adapter.</TD>
+  </TR>
+  <TR>
+    <TD>processingArgs</TD>
+    <TD><code>ListOfProcessingArgsType</code></TD>
+    <TD>A list of name/value arguments sometime necessary for the processing.</TD>
+  </TR>
+    <TR>
+    <TD>creationDate</TD>
+    <TD><code>dateTime</code></TD>
+    <TD>The creation date.</TD>
+  </TR>
+  <TR>
+    <TD>stateTransitions</TD>
+    <TD><code>ListOfEventStateTransitionType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </code></TD>
+    <TD>The list of state transition of the event.</TD>
+  </TR>
+   
+  </TBODY></TABLE>
+<script type="text/javascript">insertLinkToTop();</script>
+<p> <strong>RestoreGatewayErrorType</strong> </p>
+<p><code>RestoreGatewayErrorType </code>object contains Error IDs and Error messages</p>
+<TABLE class=border1 id=table22>
+  <TBODY>
+     <TR>
+    <TH>Element name&nbsp;&nbsp;&nbsp;&nbsp; 
+</TH>
+    <TH>Type</TH>
+    <th>Description</th>
+    </TR>
+
+  <TR>
+    <TD>errorID</TD><I>
+    <TD><code>int</code></TD>
+    </I>
+    <TD>Id of error</TD>
+    </TR>
+  <TR>
+    <TD>message&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </TD>
+    <TD><code>string&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </code></TD>
+    <TD>Message of error</TD>
+    </TR>
+  </TBODY></TABLE>
+<script type="text/javascript">insertLinkToTop();</script>
+
+        
+
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+<tbody>
+	<tr>
+		<td valign="top">[1] </td>
+		<td><a href="XPGServiceIndex.html">Monitoring Service</a></td>
+	</tr>
+	
+	<tr>
+		<td valign="top">[2]</td>
+		<td><a href="CAAXpgUcMonitoringWebServiceUseCase.htm">Monitoring Service Use Case</a></td>
+	</tr>
+	
+	</tbody>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [July 2011]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>BRep Access Objects</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>BRep Access Objects</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains the different types of BRep Access objects and 
+		describes their corresponding interfaces.</p>
+		<ul>
+			<li><a href="#100000">Selecting Objects</a></li>
+			<li><a href="#200000">Selecting a Face on a 3D or 2D Geometry</a></li>
+			<li><a href="#300000">Selecting an Edge</a>
+				<ul>
+					<li><a href="#310000">Selecting an Internal Edge on a 3D or 
+						2D Geometry</a></li>
+					<li><a href="#320000">Selecting a Border Edge on a 2D Geometry</a></li>
+					<li><a href="#330000">Selecting a Wire Edge on a 1D Geometry</a></li>
+				</ul>
+			</li>
+			<li><a href="#400000">Selecting a Vertex</a>
+				<ul>
+					<li><a href="#410000">Selecting a Vertex on a 3D or 2D Geometry</a></li>
+					<li><a href="#420000">Selecting an Internal Vertex on a 1D Geometry</a></li>
+					<li><a href="#430000">Selecting a Border Vertex on a 1D Geometry</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Selecting Objects</h2>
+<p>BRep Access objects are also called selecting Objects, since they represent selected 
+topological sub-elements. They can be created in two different ways:</p>
+<ul>
+	<li>By an interactive selection in the 3D view or in the specification tree 
+		through the <em><strong>CATFeatureAgent</strong></em> or <em><strong>CATFeatureImportAgent</strong></em> 
+		class.</li>
+	<li>Directly generated from a topological cell with the <em><strong>CATIMmiUseBRepDecodeServices</strong></em> 
+		interface.</li>
+</ul>
+<p>A BRep Access object is a temporary object, it is not a feature. According to 
+the dimension of the selected topology, BRep Access object of different types are 
+created, all implementing specific interfaces that enable to filter them.</p>
+<p>The following diagram shows the hierarchy of BRep Access objects with their associated 
+interfaces, classified from the most generic on the left, to the more specific on 
+the right. The boxes in purple show the interfaces that provide methods, all the 
+other interfaces in blue are just filters to check the type of selected object.
+</p>
+<table>
+	<caption>BRep Access Object Interfaces</caption>
+	<tr>
+		<td>
+		<img alt="BRep Access Object Interfaces" height="550" src="images/BRep/CAAMmrTreeBRepAccess2.png" width="713"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Selecting a Face on a 3D or 2D Geometry</h2>
+<p>The selecting object for a Face is a relimited surface on a 2D or 3D topological 
+object, called <strong>RSur</strong>, filtered with the <em><strong>CATIMmiUseRSur</strong></em> 
+interface.</p>
+<p>Lets review the difference between functional and relimited surfaces:</p>
+<ul>
+	<li>Functional surface: corresponds to all the faces issued from an initial 
+		face, regardless of relimitation and connexity. The faces all have the same 
+		name, which is the name of the initial face at creation time. A functional 
+		surface can be splitted into several relimited surfaces through topological 
+		relimitations.</li>
+	<li>Relimited surface: corresponds to one specific relimited surface among the 
+		split surfaces of a functional surface. It's identified by its limits, namely 
+		the adjacent faces. In some particular cases, a relimited surface can be 
+		made of several connected faces, that cannot be distinguished by their limits.
+	</li>
+</ul>
+<p>At selection time, limitations of the topological body are always taken into 
+account. That is why these selecting objects are called relimited surfaces. The 
+choice between functional and relimited is done during featurization process.</p>
+<p>Here are a few examples of surfacic selecting objects: user has picked one face 
+in the 3D view and the corresponding BRep Access is highlighted in blue:</p>
+<table>
+	<caption>Selection of a Face on a 3D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Face on a 3D Body" height="183" src="images/BRep/CAAMmrExample1-Rsur-1_face.png" width="318"/></td>
+	</tr>
+</table>
+<p>In this example the relimited surface is the same as the functional surface, 
+issued from the Pad and unmodified.</p>
+<table>
+	<caption>Selection of a Relimited Face on a 3D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Relimited Face on a 3D Body" height="178" src="images/BRep/CAAMmrImage_glossaire_pad+pad_rsur.png" width="333"/></td>
+	</tr>
+</table>
+<p>In this example the initial face has been split in two after the creation of 
+a Pocket. The selected face is identified by its adjacent faces, one of which is 
+visible in red.</p>
+<table>
+	<caption>Selection of a Face on a 2D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Face on a 2D Body" height="126" src="images/BRep/CAAMmrExample3-Rsur-1_face.png" width="309"/></td>
+	</tr>
+</table>
+<p>This example just shows the selection of a surface on a 2D geometry.</p>
+<table>
+	<caption>Selection of Two Connected Faces</caption>
+	<tr>
+		<td>
+		<img alt="Selection of Two Connected Faces" height="185" src="images/BRep/CAAMmrExample-Rsur-2_faces.png" width="220"/></td>
+	</tr>
+</table>
+<p>This example shows that the two side faces that constitute the selected cylinder 
+cannot be selected separately. They are issued from the same circle and given the 
+same name and there's nothing to distinguish them.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Selecting an Edge</h2>
+<p>The selecting object for an Edge is a relimited edge, called <strong>REdge</strong>, 
+filtered with the <em><strong>CATIMmiUseREdgeAccess</strong></em> interface. Lets 
+review the difference between functional and relimited edges:</p>
+<ul>
+	<li>Functional Edge: corresponds to all the edges issued from an initial edge, 
+		regardless of relimitation and connexity. The edges all have the same name, 
+		which is the name of the initial edge at creation time. A functional edge 
+		can be split into several relimited edges through topological relimitations.
+	</li>
+	<li>Relimited Edge: corresponds to one specific relimited edge among several 
+		split edges of a functional edge. It's identified by its limits.</li>
+</ul>
+<p>As for surfaces, at selection time, limitations of the topological body are always 
+taken into account. That is why these selecting objects are called relimited edges. 
+The choice between functional and relimited is done during featurization process, 
+but in fact only internal edges are concerned by this choice. For the other types 
+of edges, Wire and Border edges, there is no difference between Functional and Relimited 
+options.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>Selecting an Internal Edge on a 3D or 2D Geometry</h3>
+<p>Internal Edges are edges located between two faces, on a 3D or 2D topological 
+object.</p>
+<p>The object of selection for an Internal Edge is filtered with <em><strong>CATIMmiUseREdge</strong></em> 
+interface.</p>
+<p>Here are a few examples of selection of internal edges: user has picked one edge 
+in the 3D view and the corresponding BRep Access is highlighted in blue:</p>
+<table>
+	<caption>Selection of an Internal Edge on a 3D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of an Internal Edge on a 3D Body" height="169" src="images/BRep/CAAMmrImage_glossaire_IRedge-1_1.png" width="323"/></td>
+	</tr>
+</table>
+<p>In this example the relimited edge is the same as the functional edge, issued 
+from the Pad and unmodified.</p>
+<table>
+	<caption>Selection of a Relimited Edge on a 3D Body Between 2 Relimited Faces</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Relimited Edge on a 3D Body Between 2 Relimited Faces" height="161" src="images/BRep/CAAMmrImage_glossaire_IRedge-1_2.png" width="320"/></td>
+	</tr>
+</table>
+<p>In this example the initial edge has been split in two after the creation of 
+a Pocket. The selected edge is identified by the two adjacent faces (green and yellow). 
+The yellow surface being relimited, it's sufficient to distinguish the selected 
+edge from the other part of the split edge.</p>
+<table>
+	<caption>Selection of a Relimited Edge on a 3D Body Between Two Faces</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Relimited Edge on a 3D Body Between Two Faces" height="165" src="images/BRep/CAAMmrImage_glossaire_IRedge-1_3.png" width="316"/></td>
+	</tr>
+</table>
+<p>In this example the initial edge has been split in two after the creation of 
+a Pocket, but the adjacent surface in yellow is still connected. In this case, the 
+selected edge needs additional information to be identified: the limit faces, one 
+of which is visible in red.</p>
+<table>
+	<caption>Selection of an Internal Edge on a 2D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of an Internal Edge on a 2D Body" height="155" src="images/BRep/CAAMmrImage_glossaire_IRedge-1_4.png" width="338"/></td>
+	</tr>
+</table>
+<p>This example just shows the selection of an internal edge on a 2D geometry.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Selecting a Border Edge on a 2D Geometry</h3>
+<p>A Border Edge is an edge on a 2D topological object. It has one and only one 
+adjacent face.</p>
+<p>The object of selection for a Border Edge, called <strong>BorderREdge,</strong> 
+is filtered with <em><strong>CATIMmiUseBorderREdge</strong></em> interface.</p>
+<table>
+	<caption>Selection of a Border Edge on a 2D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Border Edge on a 2D Body" height="147" src="images/BRep/CAAMmrImage_glossaire_BRedge-1_1.png" width="349"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="330000"></a>Selecting a Wire Edge on a 1D Geometry</h3>
+<p>A Wire Edge is an edge on a 1D topological object. It doesn't have any adjacent 
+face.</p>
+<p>The object of selection for a Wire Edge, called <strong>WireREdge,</strong> is 
+filtered with <em><strong>CATIMmiUseWireREdge</strong></em> interface.</p>
+<table>
+	<caption>Selection of a Wire Edge on a 1D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Wire Edge on a 1D Body" height="133" src="images/BRep/CAAMmrImage_glossaire_WireRedge-1_1.png" width="247"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Selecting a Vertex</h2>
+<p>The selecting object for a Vertex is filtered with the <strong><em>CATIMmiUseFVertexAccess</em></strong> 
+interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="410000"></a>Selecting a Vertex on a 3D or 2D Geometry</h3>
+<p>A Vertex on a 2D or 3D topological object is the extremity of at least two edges 
+of one or several faces.</p>
+<p>The selecting object of a Vertex on 3D or 2D geometry, called <strong>FVertex</strong>, 
+is filtered with <em><strong>CATIMmiUseFVertex</strong></em> interface.</p>
+<table>
+	<caption>Selection of a Vertex on a 3D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Vertex on a 3D Body" height="226" src="images/BRep/CAAMmrImage_glossaire_FVertex-3.png" width="358"/></td>
+	</tr>
+</table>
+<table>
+	<caption>Selection of a Vertex on a 2D Body</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Vertex on a 2D Body" height="152" src="images/BRep/CAAMmrImage_glossaire_FVertex-1.png" width="314"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="420000"></a>Selecting an Internal Vertex on a 1D Geometry</h3>
+<p>A internal Vertex is a Vertex on a 1D topological object that has two adjacent 
+edges.</p>
+<p>The selecting object of an internal Vertex, called <strong>WireFvertex</strong>, 
+is filtered with <em><strong>CATIMmiUseWireFVertex</strong></em> interface.</p>
+<table>
+	<caption>Selection of a Wire Vertex</caption>
+	<tr>
+		<td>
+		<img alt="Selection of a Wire Vertex" height="142" src="images/BRep/CAAMmrImage_glossaire_WireVertex-1_1.png" width="305"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="430000"></a>Selecting a Border Vertex on a 1D Geometry</h3>
+<p>A Border Vertex is a Vertex on a 1D topological object that has only one adjacent 
+edge.</p>
+<p>The selecting object of a Border Vertex, called <strong>BorderFvertex</strong>, 
+is filtered with <em><strong>CATIMmiUseBorderFVertex</strong></em> interface.</p>
+<table>
+	<caption>Selection of Border Vertex</caption>
+	<tr>
+		<td>
+		<img alt="Selection of Border Vertex" height="146" src="images/BRep/CAAMmrImage_glossaire_borderVertex-1_1.png" width="302"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A BRep Access object, also called selecting object, is a temporary object representing 
+a geometry selection. There are different types of selecting objects, depending 
+on the dimension of the selected topology.</p>
+<p>The following diagram sums up all the types of selecting objects with their associated 
+interfaces.</p>
+<p>
+<img alt="" height="497" src="images/BRep/CAAMmrSumUpBRepTree.png" width="741"/></p>
+<p>You are now ready to read the next article &quot;BRep Features&quot; [<a href="#References">3</a>] 
+to see how these BRep Access objects can be featurized to create BRep features.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaGenericNaming.htm">Generic Naming Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaBRepFeatureGlossary.htm">BRep Features</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sept 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Apr 2010]</td>
+		<td>Document updated for V6 novelties</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Consuming WCF Services Deployed in IIS</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Consuming WCF Services Deployed in IIS</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Dassault Systemes Web Services can be deployed inside an IIS server,
+		version 5.1, 6 or 7. This form of deployment takes advantage of the
+		compatibility of Dassault Systemes Web Services with 
+		Windows Communication Foundation, the new Microsoft web service stack
+		which supersedes previous Microsoft web service libraries. This stack
+		is part of the Microsoft .NET 3.0 framework and implements new
+		web service protocols (known collectively as WS-*) which provide
+		end users with advanced features such as message reliability, support
+		for a wide range of encryption, signature and authentication technologies. 
+		This article presents you with the most notable facts you need to be aware of when
+		running Dassault Systemes Web Services in such a configuration.</p>
+		<ul>
+			<li><a href="#1">Configuration files</a></li>
+			<li><a href="#2">Connection URLs</a></li>
+			<li><a href="#3">Metadata (WSDL) Retrieval</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="1">Configuration files</a></h2>
+<p>Dassault Syst&#232;mes web services live inside an IIS application (
+also known as an ASP.NET application). This application takes the form
+of a virtual directory in IIS, which has been configured during installation 
+to allow ASP.NET scripts to run. The various parts which make up the web service are:</p>
+<ul>
+<li>A configuration file called Web.config which is global to all the services
+hosted by the application. Inside the file is
+a &lt;system.serviceModel&gt; section whis is dedicated to WCF service configuration.
+This section lets you choose the various protocols you want to use for your web
+services as well as the associated parameters (ports, certificates, buffer sizes...) for
+these protocols. The choice of protocols used by the web service is called a
+&quot;binding&quot; in WCF, and the framework comes with a set of predefined bindings to
+simplify deployment. By default, Dassault Systemes Web Services defines two endpoints
+(one for the communication with the web service itself and one to query
+the web service for its metadata using the Metadata Exchange (MEX) standard).
+The communication endpoint uses the wsHttpBinding by default, which provides message
+level security for SOAP messages over HTTP. A sample Web.config file is shown in Figure 1.
+For a details discussion of WCF service configuration, please refer to the <cite>WS-I</cite> section in [<a href="#References">1</a>].
+You are free to change the configuration of the web services to match your needs
+in any way which is compatible with the WCF framework.</li>
+<li>One per-service deployment descriptor. This file has a .SVC suffix. You will be referring to this file when
+accessing the web service.</li>
+<li>Managed DLLs, which contains the web service logic.</li>
+</ul>
+<table>
+	<caption>Fig.1: The Web.config File</caption>
+	<tr>
+		<td><img src="images/CAAWSDeployingInIIS_Fig1.png" alt="The Web.config File"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="2">Connection URLs</a></h2>
+<p>Once IIS is up and running, you can connect to the web services which have been deployed inside it
+using the proper URLs. Each web service has dedicated URL, which ends with a ".SVC" suffix, in reference to
+the deployment descriptor file mentioned in the previous section. The name of
+the descriptor file for each service is listed in the reference documentation of
+Dassault Systemes services. If you attempt
+to access the service with an HTTP GET request on this URL (using a browser), 
+IIS will return a default HTML help page which explains how to write a client and how to
+access the web service metadata (WSDL).</p>
+<table>
+	<caption>Fig.2: The Default HTML Help Page</caption>
+	<tr>
+		<td><img src="images/CAAWSDeployingInIIS_Fig2.png" alt="The Default HTML Help Page"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="3"></a>Metadata (WSDL) Retrieval</h2>
+<p>If you append a "?wsdl" to the connection URL described in the previous section,
+IIS will return the WSDL description of the web service. Note that the description
+it usually split across several XML documents: a main WSDL document describing the
+WSDL binding, importing auxiliary WSDL or XSD documents describing the WSDL portType
+ and schemas of the data exchanged. This functionality can be disabled by removing
+ the metadata endpoint of the web service in the Web.config file. Note also that
+ the content of the WSDL file changes dynamically to reflect the modifications you
+ make in your Web.config file. If you decide to activate message level security,
+ corresponding security-related policy assertions will be dynamically inserted in your WSDL. Thus, you
+ may need to regenerate the client proxy classes from the WSDL every time you
+ edit your Web.config file, unless you decide to use the Metadata Exchange (MEX)
+ protocol on your client also. In this case, the client will automatically retrieve
+ the proper configuration options from the server and configure itself accordingly.
+ For more information on this, please refer to See [<a href="#References">1</a>].
+</p>
+<table>
+	<caption>Fig.3: The Generated WSDL</caption>
+	<tr>
+		<td><img src="images/CAAWSDeployingInIIS_Fig3.png" alt="The Generated WSDL"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script> 
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort" id="InShort"></a>In Short</h2>
+<p>This article briefly discusses the deployment of Dassault Systemes
+web services in IIS and the main files which play a role in the configuration
+of these services.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAWSLinks.htm">Web Services Links and Resources</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Dec 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

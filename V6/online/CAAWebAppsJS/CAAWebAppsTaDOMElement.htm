@@ -1,0 +1,183 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>About DOM Elements</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>About DOM Elements</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The  purpose of this article is to present how to identify the DOM elements, and how to associate them a style, for  a widget in  the 
+		<b>3D</b>EXPERIENCE platform context. </p>
+		<p>In this article, all the code examples come from the "Consuming Yahoo Web Service"  use case [<a href="#References">1</a>]</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Identification"></a>Identification</h2>
+<p>The first idea is to use the <code>id</code> attribute to associate an identifier with a DOM element. But since the <code>id</code>  must be 
+unique in the DOM, it is strongly recommended to not use this attribute type. For example, do no forget widgets can be multi-instancied. </p>
+<p>The best way is to use the <code>class</code> attribute. </p>
+<pre class="code">
+ &lt;button <b>class</b>='convertBtn'&gt;&lt;/button&gt;
+</pre>
+<p>This <code>class</code> attribute can be used to associate a style with a DOM Element, see next chapter, as it can be used to perform queries
+in the DOM using the  css selector APIs:</p>
+<ul> 
+<li><i>querySelector(CSS_Selector)</i>: returns the first DOM element that matches the input criteria, or null if no object matches it.</li> 
+<li><i>querySelectorAll(CSS_Selector)</i>: returns all the elements matching the input criteria, in the order of their location in the DOM tree, or an empty array if no object was found. </li>
+</ul>
+<p>Please refer to the W3schools articles, "CSS Selectors" [<a href="#References">2</a>], and "HTML DOM querySelector() Method" [<a href="#References">3</a>] for further information.</p>
+
+<p>In our example, the button is retrieved as follows:</p>
+<pre class="code">
+ var button = xxx.<b>querySelector</b>('.convertBtn');
+</pre>
+
+<p>Where  <code>.convertBtn</code> is the class associated with the button, and <code>xxx</code> an element of the DOM.</p>
+<p>In the literature - like the W3schools articles - the css selector APIs is usually applied on the <i>document</i>, the root of the DOM. In the <b>3D</b>EXPERIENCE  context, we do not 
+recommend to use it, prefer it the <code>widget.body</code> element. </p>
+<pre class="code">
+ var button = <b>widget.body.</b>querySelector('.convertBtn');
+</pre>
+<p>As of today, using the document only works because the widget is iframed [<a href="#References">4</a>]. The good rule - for obvious perfomance reason - is to apply the method
+on the lowest element in the DOM: higher you are, slower the search  will be.</p> 
+<p>Using <code>widget.body</code>, or an entity lower in the DOM tree, you are sure to be inside the right instantiated widget. This means 
+<b>no nomenclature</b> is required for the class. You can use <code>convertBtn</code>, or a more sophisticated name. </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="cass"></a>Cascading Style Sheet (css)</h2>
+<p>In the referenced use case [<a href="#References">1</a>], the  text color of the "euros" label is green, and the button is an image. </p>
+<table>
+ <caption><a name="Fig.1">Fig.1</a>CSS </caption>
+	<tr>
+		<td>
+		<img alt="CSS" src="images/CAAWebAppsAtDOMElt.png"/></td>
+	</tr>
+</table>
+<p>The best way to do this is to create a css file, and to include it in your widget html file as shown below:</p>
+<pre class="code">
+...
+    <b>&lt;link rel="stylesheet" type="text/css" href="PathOftheFile" /&gt;</b>
+
+    &lt;script&gt;  
+       ...	
+    &lt;/script&gt;
+...
+</pre>
+<p>About <code>PathOftheFile</code>, if the path is relative to the runtime view, there are two solutions, the first being the recommended one: </p>
+<ul>
+<li>You use the default build options for mweb module ( css/js concatenation is active), create only one css file whose name is the webapp name. So, however you build your module 
+(with or without -g or -dev), the css filename in the rtv is the same: the webapp name.</li>
+<li>You control the concatenation mode in the imakefile of the mweb module, according to your choice, set the right name for the href value. </p>
+</ul>
+<p>Refer to the "Concatenation and minification, Web Module Build Options" article [<a href="#References">5</a>] if you are not aware of the different 
+possible rtv contents depending on the different mweb build options. </p>
+<p>So in the use case, the path is as follows: </p>
+<pre class="code">
+...
+    &lt;link rel="stylesheet" type="text/css" href="<b>../CAAWebAppsConverter/CAAWebAppsConverter.css</b>" /&gt;
+</pre>
+<p>Where, <i>CAAWebAppsConverter.css</i> is in the same directory as the html file. Extract of its contents:</p>
+<pre class="code">
+  .convertBtn{
+    background: transparent url(./<b>assets</b>/Dollar.png) no-repeat center;
+	..
+	cursor: pointer;
+	..
+  }
+  .euroLbl{
+    color: #00ff00 ;
+  }
+</pre>
+<p>Note, the <i>Dollar.png</i> picture is in the <code>assets</code> directory, the place  for resource files as pictures. </p>
+<table>
+ <caption><a name="Fig.2">Fig.2</a> mweb module tree </caption>
+	<tr>
+		<td>
+		<img alt="tree" src="images/CAAWebAppsAtDOMElt2.png"/></td>
+	</tr>
+</table>
+<p>About the css contents, refer to the w3schools tuturial [<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>To identify an element in the DOM use the <code>class</code> attribute, and the <i>querySelector</i> API. Apply this method to, 
+at least, the <code>widget.body</code> element. It can be
+lower in the DOM, but at higher levels, as in the document, it is unsafe, and cost-efficient.</p>
+<p>Define CSS in a css file instead in the code, and name if after the web app.</p> 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="../CAAWebAppsJSWS/CAAWebAppsUcConverter.htm">Consuming Yahoo WS</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://www.w3schools.com/css/css_selectors.asp');return false;">
+			CSS Selectors</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://www.w3schools.com/jsref/met_document_queryselector.asp');return false;">
+			HTML DOM querySelector() Method</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="../CAAWebAppsJS/CAAWebAppsTaWidgetWriting.htm">Widget Development Principles</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="../CAAWebAppsJSGuides/CAAWebAppsTamkmkbuild.htm">Concatenation and minification, Web Module Build Options</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl(' http://www.w3schools.com/css/');return false;">
+			CSS Tutorial</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

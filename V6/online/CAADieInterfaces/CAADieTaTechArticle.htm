@@ -1,0 +1,319 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Importer/Exporter Services</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Importer/Exporter Services</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This article describes Importer and Exporter services, to convert V6 
+		PLM data (PLMCoreReference, PLMCoreRepReference) from/to external files 
+		(formats 2D and 3D IGES, STEP, DXF, DWG).</p>
+		<ul>
+			<li><a href="#Part1">Import and Export services</a></li>
+			<li><a href="#Part2">Errors and Limitations</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p>
+<img alt="Import/Export Overview" src="images/ImpExp.jpg" width="871" height="385"/></p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Import and Export Services</h2>
+<p>Use the services class <strong>CATDieImportExportServices</strong> from framework
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATDXImportExportFile');return false;">CATDXImportExportFile</a>.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Singleton services class</h3>
+<p>CATDieImportExportServices is a singleton class:</p>
+<ul>
+	<li>Get a pointer to its unique instance with <strong>GetInstance</strong>.</li>
+	<li>Call methods on this pointer.</li>
+	<li>Release the instance after use with <strong>DeleteInstance</strong>.</li>
+</ul>
+<pre class="code">HRESULT hr = S_OK ;
+
+CATDieImportExportServices * pServicesInstance = CATDieImportExportServices::GetInstance();
+if (NULL != pServicesInstance)
+{
+	hr = pServicesInstance-&gt;ImportExternalFileToPLMObject(...) ;
+	<em>// or</em>
+	hr = pServicesInstance-&gt;ExportPLMObjectToExternalFile(...) ;
+}
+CATDieImportExportServices::DeleteInstance();</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Import</h4>
+<p>Before calling the Importer (<strong>ImportExternalFileToPLMObject</strong>), 
+you must define a PLM environment. [<a href="#References">1</a>]</p>
+<p>Then, call the Importer with only two input arguments (CATUnicodeString): the
+<strong>full file path</strong> (including the file extension: .igs, .stp...) of 
+the input external file and the <strong>usage</strong>.</p>
+<p>The Importer will create a PLM object (CATBaseUnknown*):</p>
+<pre class="code">// PLM session environment is initialized...
+
+// PLM Object created by Importer
+CATBaseUnknown * pPLMObject = NULL ;
+
+hr = ServicesInstance-&gt;ImportExternalFileToPLMObject (InputFilePath, InputUsage, pPLMObject);</pre>
+<p>The created objects are automatically saved in the database.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Export</h4>
+<p>To export a PLM object, opened in a V6 session, call the Exporter ExportPLMObjectToExternalFile 
+with:</p>
+<ul>
+	<li>First, the pointer to the PLM object (CATBaseUnknown*).</li>
+	<li>Then (CATUnicodeString) the <strong>output file path</strong> (<em><strong>without</strong></em> 
+	the output extension nor the separating point), the <strong>output file extension</strong> 
+	and the <strong>usage</strong>:</li>
+</ul>
+<pre class="code">hr = ServicesInstance-&gt;ExportPLMObjectToExternalFile (pPLMObject, OutputFilePath, OutputFileExtension, OutputUsage);</pre>
+<p>The export is only possible if all objects in session are propagated in the data base: before running the Exporter, make sure all PLM objects were saved. [<a href="#References">3</a>]</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Available Usages and Extensions (for Import and Export)</h4>
+<table class="fill">
+	<tr>
+		<th>Input<br />
+		Format</th>
+		<th>Associated<br />
+		Extension(s)</th>
+		<th>Available<br />
+		Usage(s)*</th>
+	</tr>
+	<tr>
+		<td>DWG </td>
+		<td>.dwg </td>
+		<td>&#8220;DWG&#8221;</td>
+	</tr>
+	<tr>
+		<td>DXF </td>
+		<td>.dxf </td>
+		<td>&#8220;DXF&#8221;</td>
+	</tr>
+	<tr>
+		<td>3D IGES </td>
+		<td>.igs or .IGS </td>
+		<td>&#8220;IGES3D&#8221;</td>
+	</tr>
+	<tr>
+		<td>2D IGES</td>
+		<td>.ig2 </td>
+		<td>&#8220;IGES2D&#8221;</td>
+	</tr>
+	<tr>
+		<td>STEP </td>
+		<td>.stp or .step </td>
+		<td>&#8220;STEP&#8221;</td>
+	</tr>
+</table>
+<p><em>* In next versions, it would be possible to have different available usages 
+for an extension (ex: the usage &#8220;IGES2D&#8221; could be available for .igs files containing 
+2D IGES data &#8211; no need to rename .igs to .ig2).</em></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part2"></a>Errors and Limitations</h3>
+<h4>Returned Errors</h4>
+<p>If the Import or Export methods fail (return code = E_FAIL) because of bad input 
+parameters, a CATError is created and can be get: [<a href="#References">2</a>]</p>
+<pre class="code">if ( FAILED(hr) )
+{
+  CATError * pOccurringError = CATError::CATGetLastError(ReturnCode);
+  ...
+}</pre>
+<p>Here is the list of error messages created by CATDieImportExportServices:</p>
+<table class="fill">
+	<tr>
+		<th>&nbsp;</th>
+		<th><strong>Error Class</strong></th>
+		<th><strong>Error ID</strong></th>
+		<th><strong>Meaning</strong></th>
+	</tr>
+	<tr>
+		<th rowspan="5">IMPORT</th>
+		<td>CATInputError</td>
+		<td>LicenseERR_1201</td>
+		<td>The license needed for this import is missing.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>PathERR_1001</td>
+		<td>The input file cannot be opened from the given path.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>ExtensionERR_1101</td>
+		<td>The input file extension is incorrect (unknown format).</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>UsageERR_1151</td>
+		<td>The usage is not compatible with the input file extension.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>SaveERR_1441</td>
+		<td>The imported objects cannot be saved in de data base.</td>
+	</tr>
+	<tr>
+		<th rowspan="6">EXPORT</th>
+		<td>CATInputError</td>
+		<td>LicenseERR_1211</td>
+		<td>The license needed for this export is missing.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>PathERR_1011</td>
+		<td>It is not possible to write the output file in the output directory.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>ExtensionERR_1111</td>
+		<td>The output file extension is incorrect (unknown format).</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>ExtensionERR_1121</td>
+		<td>The output file extension is not compatible with the input data.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>UsageERR_1161</td>
+		<td>The usage is not compatible with the output file extension or the input 
+		data.</td>
+	</tr>
+	<tr>
+		<td>CATInputError</td>
+		<td>DirtyERR_1461</td>
+		<td>The export fails because some objects in session are not propagated.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLM Environment Initialization Is Mandatory before Import</h4>
+<p>Before calling the Importer service (<strong>ImportExternalFileToPLMObject</strong>), 
+a valid PLM environment must be positionned. [<a href="#References">1</a>]</p>
+<p>If the environment is not correctly set, or if the PLM session is not correctly 
+initialized, the import service will fail.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>About Exported File Name</h4>
+<p>For Export, the complete output file path is the concatenation of the parameters
+<strong>iOutputFilePath</strong> and <strong>iOutputFileExtension</strong> given 
+to the method <strong>ExportPLMObjectToExternalFile</strong>:</p>
+<p><strong>Output file path </strong>=<strong> &lt;iOutputFilePath&gt; + </strong>&#8220;<strong>.</strong>&#8221;<strong> 
++ &lt;iOutputFileExtension&gt;</strong></p>
+<p>So, the file name given by the parameter <strong>iOutputFilePath</strong> should 
+not have the output extension.</p>
+<p>Let see three examples:</p>
+<ul>
+	<li>iOutputFilePath=<strong>&#8221;c:\temp\File1&#8221;</strong><br />
+	iOutputFileExtension=<strong>&#8221;igs&#8221; </strong>(IGES File)<br />
+	The created file will be:
+	<pre class="code">&#8221;c:\temp\<strong>File1.igs</strong>&#8221; (IGES File)</pre>
+	</li>
+	<li>iOutputFilePath=<strong>&#8221;c:\temp\File2.igs&#8221;</strong><br />
+	iOutputFileExtension=<strong>&#8221;stp&#8221; </strong>(STEP File)<br />
+	The created file will be:
+	<pre class="code">&#8221;c:\temp\<strong>File2.igs.stp</strong>&#8221; (STEP File)</pre>
+	</li>
+	<li>iOutputFilePath=<strong>&#8221;c:\temp\File3.dxf&#8221;</strong><br />
+	iOutputFileExtension=<strong>&#8221;dxf&#8221; </strong>(DXF File)<br />
+	The created file will be:</li>
+</ul>
+<pre class="code">&#8221;c:\temp\<strong>File3.dxf.dxf</strong>&#8221; (DXF File)</pre>
+<p>If a file with the same name already exists in the output directory, this old 
+file is replaced by the new exported file (if it is writable &#8211; else: error PathERR_1021).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>About read/write access</h4>
+<p>The input file path given as first parameter for Import must exist and be readable 
+(read permission, etc.).</p>
+<p>The output file directory path given in the third parameter (iOutputFilePath) 
+for Export must exist and be accessible (write permission, etc.). If the access 
+is not possible, the method returns E_FAIL and the corresponding error identifier 
+(PathERR_1001, PathERR_1011, PathERR_1021&#8230;). </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLM objects to be exported</h4>
+<p>PLM objects that can be exported must have as core type:</p>
+<ul>
+	<li>PLM Representation [&#8220;PLMCoreRepReference&#8221;].</li>
+	<li>PLM References [&#8220;PLMCoreReference&#8221;].</li>
+</ul>
+<p>Others objects given as input parameter to the export method cannot be exported. 
+For an invalid input object, the method returns E_FAIL.</p>
+<p>All objects must be saved in the data base before the Export step. [<a href="#References">3</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="InShort"></a>In Short</h3>
+<p>This article describes how to use the Importer and Exporter services, in order 
+to convert V6 PLM data to/from external files.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="References"></a>References</h3>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidErrors.htm">
+		Managing Errors Using HRESULT</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpTaSaveOpenMigration.htm#Save">
+		Saving Objects</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="History"></a>History</h3>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>1.1</strong> [Mar 2013]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

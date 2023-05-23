@@ -1,0 +1,244 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Making Your Components Printable</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Making Your Components Printable</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>Abstract</h2>
+<p>This article explains how you can make your own components printable.</p>
+<ul>
+	<li><a href="#100000">Understanding Printable Components and Images</a></li>
+	<li><a href="#110000">Implementing the CATIPrintable Interface</a></li>
+	<li><a href="#120000">Creating the Printable Image Class</a></li>
+	<li><a href="#InShort">In Short</a></li>
+	<li><a href="#References">References</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Understanding Printable Components and Images</h2>
+<p>An component becomes printable when you can build a printable image of it. As 
+an example, a <em>CATViewer</em> instance is a printable component because you can 
+build from it its printable image companion, that is a <em>CATPrintViewerImage</em> 
+instance able to decode the contents of the viewer and to perform rendering not 
+on the screen but on the paper. The Print framework provides the following classes 
+to make printable the main CAA components:</p>
+<table>
+	<tr>
+		<th>CAA Printable Components</th>
+		<th>Corresponding Printable Images</th>
+	</tr>
+	<tr>
+		<td>CATViewer</td>
+		<td>CATPrintViewerImage</td>
+	</tr>
+	<tr>
+		<td>CAT2DBagRep</td>
+		<td>CATPrint2DRepImage</td>
+	</tr>
+	<tr>
+		<td>CAT2DBagRep</td>
+		<td>CATPrint3DRepImage</td>
+	</tr>
+	<tr>
+		<td>CATPrintFile</td>
+		<td>CATPrintFileImage</td>
+	</tr>
+	<tr>
+		<td>CATPixelImage</td>
+		<td>CATPrintPixelImage</td>
+	</tr>
+</table>
+<p>Any component can be made printable. For example, a class deriving from <em>CATFrmWindow</em> 
+could implement <em>CATIPrintable</em> to return an image of its main viewer, or 
+a composition gathering several of its viewers if needed.</p>
+<p>To make a component of your own printable, you need to:</p>
+<ol>
+	<li>Make your component implement the <em>CATIPrintable</em> interface<br />
+		The <code>CreatePrintableImage</code> method of <em>CATIPrintable</em> should 
+		return a pointer to an instance of the printable image class associated 
+		with the component</li>
+	<li>Create this printable image class<br />
+		This class should implement two methods:
+		<ol>
+			<li><code>GetSize</code> to determine and return the component size</li>
+			<li><code>Decode</code> that draws the component image to print using 
+				a set of print parameters.</li>
+		</ol>
+		<p>These methods are called by the <code>Print</code> method of the <em>
+		CATPrinterDevice</em> or of the <em>CATPrintImage</em> classes when the 
+		print is requested.</p>
+	</li>
+</ol>
+<p>Assume that the component to make printable is represented by the main class
+<em>CAACmp</em>. This component must implements the <em>CATIPrintable</em> interface, 
+for example using the <em>CAAECmpPrintable</em> code extension class of <em>CAACmp</em>. 
+Then, the <em>CAACmpImage</em> class, printable image companion class of <em>CAACmp</em>, 
+will do the printing job.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="110000"></a>Implementing the CATIPrintable Interface</h2>
+<p><em>CATIPrintable</em> includes the single <code>CreatePrintableImage</code> 
+method that should return a pointer to an instance of the printable image class 
+associated with the component.</p>
+<p>
+<img alt="CATIPrintable" height="160" src="images/CAAPrtCATIPrintable.gif" width="499"/></p>
+<p>The <em>CAAECmpPrintable</em> header file is as follows:</p>
+<pre class="code">#include &quot;CATBaseUnknown.h&quot;
+class CAAECmpPrintable : public CATBaseUnknown
+{
+  CATDeclareClass;
+  public :
+    CAAECmpPrintable();
+    virtual ~CAAECmpPrintable();
+    virtual CATPrintImage * <strong>CreatePrintableImage</strong>(void);
+  private :
+    <strong>CAAECmpPrintable(const CAAECmpPrintable &amp; printableObjectToCopy);
+    CAAECmpPrintable &amp; operator = (const CAAECmpPrintable &amp; printableObjectToCopy);
+</strong>};</pre>
+<p>The <code>CATDeclareClass</code> macro [<a href="#References">1</a>] declares 
+that <em>CAAECmpPrintable</em> is part of a component. As any extension class, it 
+features a default constructor and a destructor declared as public. This enables 
+it to be instantiated when a pointer to <em>CATIPrintable</em> is asked for, and 
+to delete it when the pointer is released. The <em>CATIPrintable</em> method is 
+also declared as public. A copy constructor and an assignment operator are declared 
+as private. They are not implemented in the source file. This prevents the compiler 
+to create them by default as public and to accommodate room for them in the virtual 
+function table, because pointers to extension classes must never be handled by clients 
+directly.</p>
+<p>The <em>CAAECmpPrintable</em> source file is as follows:</p>
+<pre class="code">#include &quot;CAACmp.h&quot;
+#include &quot;CAACmpImage.h&quot;
+#include &quot;CAAECmpPrintable.h&quot;
+
+CATImplementClass(CAAECmpPrintable,  // Extension class name
+                  CodeExtension,     // Code extension
+                  CATBaseUnknown,    // Always OM-derive extensions from CATBaseUnknown
+                  CAACmp);           // Main class of the extended component
+
+#include &quot;TIE_CATIPrintable.h&quot;       // Declares that CAAECmpPrintable implements
+TIE_CATIPrintable(CAAECmpPrintable); // CATIPrintable
+
+CAAECmpPrintable::CAAECmpPrintable() {}
+CAAECmpPrintable::~CAAECmpPrintable() {}
+
+CATPrintImage * CAAECmpPrintable::<strong>CreatePrintableImage</strong>(void)
+{
+  return new CAACmpImage( (CAACmp*) <strong>GetImpl</strong>() );
+}</pre>
+<p>The <code>CATImplementClass</code> macro [<a href="#References">1</a>] is used 
+as usual to declare the extension class name, the extension type, the OM-derived 
+component that must always be <em>CATBaseUnknown</em> for extensions, and the extended 
+component. <code>CreatePrintableImage</code> simply returns a pointer to the instance 
+of the component printable image class it has just created.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="120000"></a>Creating the Printable Image Class</h2>
+<p>The <em>CAACmpImage</em> printable image class should include a constructor, 
+a destructor, and the two methods <code>GetSize</code> and <code>Decode</code>. 
+Below is the <em>CAACmpImage</em> header file:</p>
+<pre class="code">...
+#include &quot;CATPrintImage.h&quot;
+...
+class CAACmpImage : public CATPrintImage
+{
+  public :
+    CAACmpImage(CAACmp *pCAACmpInstanceToPrint);
+    virtual ~CAACmpImage();
+    int <strong>GetSize</strong>(float &amp;oWidth, float &amp;oHeight);
+    int <strong>Decode</strong>(CATPrintGenerator *pGenerator,
+               const CATPrintParameters &amp;Parameters);
+  private :
+    CAACmp * _pCAACmpInstanceToPrint;
+};</pre>
+<p>Note that:</p>
+<ul>
+	<li>The constructor takes a pointer to an instance of <em>CAACmp</em> as parameter, 
+		stored as a the private data member <code>_pCAACmpInstanceToPrint</code></li>
+	<li>The <code>GetSize</code> method returns the width and the height of the 
+		image</li>
+	<li>The <code>Decode</code> method is called by the <code>Print</code> method 
+		of the <em>CATPrinterDevice</em> or of the <em>CATPrintImage</em> class. 
+		Its parameters are the requested generator or driver, and the print parameters. 
+		Its job is to actually draw the image by using the generator drawing methods, 
+		according to the print parameters.</li>
+</ul>
+<p>The constructor and the destructor of this class should be as follows:</p>
+<pre class="code">CAACmpImage::CAACmpImage(CAACmp *pCAACmpInstanceToPrint)
+{
+  _pCAACmpInstanceToPrint = pCAACmpInstanceToPrint;
+  _pCAACmpInstanceToPrint-&gt;<strong>AddRef</strong>();
+}
+
+CAACmpImage::~CAACmpImage()
+{
+  if (NULL != _pCAACmpInstanceToPrint)
+  {
+    _pCAACmpInstanceToPrint-&gt;<strong>Release</strong>();
+    _pCAACmpInstanceToPrint = NULL;
+  }
+}</pre>
+<p>The pointer to the component to print is stored as a data member and thus must 
+be Addref'd to prevent the component destruction while in use by the printing task. 
+It must be released when the printing task completes.</p>
+<p>The <code>GetSize</code> and <code>Decode</code> methods are component dependent. 
+Refer to the example provided [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Any CAA component for which it makes sense, that is, usually those that can be 
+displayed, can be made printable. This is possible thanks to the <em>CATIPrintable</em> 
+interface that the component should implement, possibly by means of a code extension, 
+which role is to return a printable image class associated with the component that 
+has the know-how of decoding the component contents and of printing it. The methods 
+of this class are directly called by the print process.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">
+		Creating Components</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPrtUcSamplePrintableObjects.htm">Making Your Components 
+		Printable</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

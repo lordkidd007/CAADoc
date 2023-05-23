@@ -1,0 +1,739 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>About 3DSwym Web Services</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>About 3DSwym Web Services</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article introduces 3DSwym web services. 
+		It explains how to use them and what need to be known before getting started with 3DSwym web services.
+		</p>
+		<p>Take notice, 3DSwym web services are subjects to change in the next release.
+		</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="RESTWebServices"></a>3DSwym REST Web Services</h2>
+<p>3DSwym web services are designed following REST architecture standards.
+It means:
+</p>
+<ul>
+	<li>Resources are accessed using URI (e.g. https://&lt;server authority&gt;/&lt;path&gt;).</li>
+	<li>Exchanges with server are made using HTTP protocol.</li>
+	<li>Resources are represented using media types (e.g. application/json, text/html).</li>
+</ul>
+<p>REST describes a general architecture for networked applications. Below is explained in details how 3DSwym networked application works.
+</p>
+<p><b>Note:</b> the <b>server authority</b> part of an URL is the part between <code>://</code> and the first <code>/</code> that comes after.
+For example in <code>http://www.3ds.com/fr/about-3ds/</code> the server authority is <code>www.3ds.com</code>.
+</p>
+
+<h3><a name="HTTPProtocol"></a>HTTPS Protocol</h3>
+<p>3DSwym web services are based on HTTP protocol.
+It can support either POST or GET method. 
+In few cases it supports both.
+</p>
+<p>Moreover 3DSwym services are fully compatible with secure HTTP protocol: <b>HTTPS</b>.
+Consequently requests must be made using HTTPS protocol instead of HTTP to ensure security of data transfer.
+</p>
+<p>
+3DSwym uses redirections (response code 302). 
+Developer has to make sure redirections are automatically followed.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Security"></a>Security</h3>
+<p>3DSwym web services enable access to confidential data of both the company and the employees.
+Therefore 3DSwym web services use high security tools to prevent itself from attacks.
+HTTPS protocol is one of them. The others are listed below.
+</p>
+
+<h4><a name="CAS"></a>CAS (Central Authentication Service)</h4>
+<p>3DSwym authentication process uses CAS (Central Authentication Service) thanks to <b>3DPassport</b> [<a href="#References">1</a>].
+CAS enables <b>Single Sign On</b> (SSO) for the <b>3D</b>EXPERIENCE platform.
+</p>
+<p>3DPassport authentication uses a <b>CASTGC</b> (CAS Ticket Granting Cookie) session cookie.
+It must be valid in order to login to 3DSwym.
+</p>
+
+<h4><a name="Cookies"></a>3DSwym Cookies</h4>
+<p>3DSwym has on top of the 3DPassport one its own session cookies. 
+They provide a safe session environment.
+</p>
+<!--There are two of them:
+</p>
+<ul>
+	<li><b>PHPSESSID</b> is used to identify the session on 3DSwym.</li>
+	<li><b>JSESSIONID</b> is an additional cookie that might be set to process some of 3DSwym rich media.</li>
+</ul>-->
+<p>Cookie values are encrypted keys.
+Those cookies can have two states.
+They can be either valid or invalid.
+If they are both valid the user is identified on 3DSwym.
+If one of them or the two are invalid, then the user is not identified on 3DSwym. 
+In such case they will not be allowed to use 3DSwym web services.
+</p>
+
+<!-- <p>Any HTTP Client should be configured as follow:
+</p>
+<ul>
+	<li>Keep all cookies set by a given service. A cookie jar can be used to do so.
+	This includes cookies for user session identification on a given Service URL (PHPSESSID, JSESSIONID).
+	But also cookies for session affinity or stickyness on a given load balanced server.
+	</li>
+	<li>Be sure to keep only the latest value set on a given cookie name.
+	For instance, PHPSESSID value can be overridden several times thru <em>Set-cookie</em> directive.
+	</li>
+</ul> -->
+
+<!--<h4><a name="CORS"></a>CORS</h4>
+<p>CORS (Cross-Origin Resource Sharing) enables <b>cross-domain communication</b> from the browser.
+This type of request traditionally wouldn't be allowed under the browser's <b>same origin policy</b>.
+For example it enables direct access to 3DSwym web services inside a widget from 3DDashboard [<a href="#References">2</a>].
+</p>-->
+<!-- <p><b>Note: </b>CORS is not supported by old browsers.
+</p> -->
+
+<h4><a name="CSRFToken"></a>CSRF Token</h4>
+<p>CSRF is an attack which forces an end user to execute unwanted actions on a web application in which they are currently authenticated.
+With a little help of social engineering (like sending a link via email/chat), an attacker may trick the users of a web application into executing actions of the attacker's choosing.
+A successful CSRF exploit can compromise end user data and operation in case of normal user.
+If the targeted end user is the administrator account, this can compromise the entire web application.
+</p>
+<p>CSRF token is retrieved just after login to 3DSwym using the API version.
+It must then be passed in the header of all following requests until logout.
+</p>
+<p><!-- In case of use in a widget with trusted domain the CSRF token is bypassed thanks to CORS.-->
+In case of use in a widget within 3DDashboard trusted domain, the CSRF token is not necessary.
+In others cases if the developer do not use it, consuming 3DSwym web services will fail and send back an error.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="APIVersion"></a>API Version</h3>
+<p>The official Dassault Systemes version of the 3DSwym APIs can be retrieved with <code>https://&lt;3DSwym Server Authority&gt;/api/index/tk</code> web service.
+It returns a JSON with an attribute <b>ServerVersion</b> which contains in its first field the 3DSwym API version (e.g. 2014x).
+It is the same web service that also gives the CSRF Token.
+Please refer to the web service reference dedicated page [<a href="#References">3</a>] for more details.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="3DSwymID"></a>3DSwym Resource Identification</h3>
+<p>3DSwym web services are related to resources. Some of these resources are related to data requiring an identifier:</p>
+<ul>
+	<li><b>user</b>: 3DSwym user resource</li>
+	<li><b>community</b>: 3DSwym community resource</li>
+	<li><b>post</b>: 3DSwym blog post inside communities resource</li>
+	<li><b>question</b>: 3DSwym iQuestion inside communities resource</li>
+	<li><b>media</b>: 3DSwym media resource</li>
+	<!--<li>(search): Exalead search web service</li>
+	<li>(passport): login and logout web services</li>
+	<li>(index): 3DSwym API version web service</li>-->
+</ul>
+<p>Each resource (user, community, post, question, media) has a <b>unique identifier</b>.
+It is a positive number except for users who are identified with their username (login name).
+</p>
+<p>It is commonly used (as an input parameter to requests) in order to retrieve an instance of a resource in a web service.
+</p>
+<!-- <p>The default &lt;path&gt; (or &lt;web service path&gt;) pattern of request URL is: <code>api/&lt;resource&gt;/&lt;action&gt;</code> (e.g. <code>api/user/getcurrent</code> or <code>api/post/add</code>).
+</p> -->
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Requests"></a>Requests</h2>
+<p>3DSwym requests are standard HTTPS requests.
+A request is composed of a <b>header</b>, and in case of POST methods of a <b>POST body</b>.
+3DSwym allows only the <b>POST</b> and <b>GET</b> methods for requests.
+The method of a request must be specified in the header and depends on the web service.</p>
+<p>The default URL template for request is <code>&lt;protocol&gt;://&lt;server authority&gt;/&lt;path&gt;?&lt;query&gt;#&lt;fragment&gt;</code> where:</p>
+<ul>
+	<li><b>&lt;protocol&gt;</b>: <em>https</em></li>
+	<li><b>&lt;server authority&gt;</b>: the address of the 3DSwym server</li>
+	<li><b>&lt;path&gt;</b>: each 3DSwym web service as its own path. 
+	The default &lt;path&gt; (or &lt;web service path&gt;) pattern of request URL is: <code>api/&lt;resource&gt;/&lt;action&gt;</code> (e.g. <code>api/user/getcurrent</code> or <code>api/post/add</code>).</li>
+	<li><b>&lt;query&gt;</b>: to specify input parameters (see below).</li>
+	<li><b>&lt;fragment&gt;</b>: unused in 3DSwym</li>
+</ul>
+<p>Requests can take others input parameters specified differently according to the method of the request (see below).
+</p>
+
+<h3><a name="GET"></a>Input Parameters with GET Method</h3>
+<p>When a 3DSwym web service uses the GET method input parameters are specified in the URL of the request.
+</p>
+<p>There are two types of parameters:
+</p>
+<ul>
+	<li><b>query parameters</b>: parameters are specified inside the &lt;query&gt; part of the URL</li>
+	<li><b>path parameters</b>: parameters are specified inside the &lt;path&gt; part of the URL</li>
+</ul>
+<p>3DSwym uses path parameters for most of the web services.
+A web service can have both query and path parameters in its URL.
+</p>
+
+<h4><a name="Query"></a>Query Parameters</h4>
+<p>The default pattern is:</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/&lt;web service path&gt;?<b>&lt;parameter name 1&gt;</b>=<b>&lt;parameter value 1&gt;</b>&amp;<b>&lt;parameter name 2&gt;</b>=<b>&lt;parameter value 2&gt;</b>...
+</pre>
+<p>Example with the <code>api/passport/login</code> web service and the <em>ticket</em> parameter:</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/api/passport/login?<b>ticket=&lt;St-XXX&gt;</b>
+</pre>
+<p>Some input parameters can be optional. 
+The <em>ticket</em> parameter is optional.
+In case it is not used with the web service the URL simply becomes:
+</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/api/passport/login
+</pre>
+
+<h4><a name="Path"></a>Path Parameters</h4>
+<p>The default pattern is:</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/<b>&lt;path&gt;</b>
+</pre>
+<p>Where the <b>&lt;path&gt;</b> is:</p>
+<pre class="code">
+&lt;web service path&gt;/<b>&lt;parameter name 1&gt;</b>/<b>&lt;parameter value 1&gt;</b>/<b>&lt;parameter name 2&gt;</b>/<b>&lt;parameter value 2&gt;</b>...
+</pre>
+<p>Example with the <code>api/post/list</code> web service and the parameters <em>limit</em> and <em>community_id</em>:</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/api/post/list/<b>limit</b>/<b>99</b>/<b>community_id</b>/<b>32</b>
+</pre>
+<p>Some input parameters can be optional.
+The <em>limit</em> parameter is optional.
+In case it is not used with the web service the URL simply becomes:
+</p>
+<pre class="code">
+https://&lt;3DSwym Server Authority&gt;/api/post/list/<b>community_id</b>/<b>32</b>
+</pre>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="POST"></a>Input Parameters with POST Method</h3>
+<p>When a 3DSwym web service uses the POST method input parameters are specified in the POST body of the request.
+APIs using POST method always take input parameters. 
+The parameters must be arranged to form a JSON.
+</p>
+<p><strong>Exception:</strong> There is one 3DSwym web service using POST method that does not support JSON type.
+It is the web service to add a media [<a href="#References">4</a>].
+</p>
+
+<h4>Input JSON Format</h4>
+<p>The JSON default format expected by 3DSwym web services is:
+</p>
+<pre class="code">
+{
+	"request_id":0
+	"params":{
+		"parameter name 1":"value 1",
+		"parameter name 2":"value 2",
+		...
+	}
+}
+</pre>
+<p>The <em>request_id</em> parameter is for internal use and must always be 0.
+The POST parameters are themselves put in a JSON that is the value of the <em>params</em> key.
+</p>
+<p>The value corresponding to a parameter is server side cast.
+It means that
+</p>
+<pre class="code">
+{
+	"parameter 1":<b>value 1</b>
+}
+</pre>
+<p>JSON is equivalent to 
+</p>
+<pre class="code">
+{
+	"parameter 1":<b>"value 1"</b>
+}
+</pre>
+<p>
+It is highly recommended to use <em>"value 1"</em> (and not <em>value 1</em>) to ensure <b>JSON integrity</b>.
+</p>
+
+<h4>Content-Type</h4>
+<p>When sending data over a POST method the nature of the data sent (e.g. JSON, text) must be specified in the <em>"Content-Type"</em> header of the request.
+<b>Content-Type</b> and <b>media type</b> are synonyms.
+They refer to the standard way of specifying the nature of sent data.
+</p>
+<p>With text the format of encoding can be added (e.g. <em>application/json; charset=UTF-8</em>).
+</p>
+<p>The Content-Type is also used in response header of requests to specify the nature of the response body.
+</p>
+<p>For 3DSwym:
+</p>
+<ul>
+	<li>the POST data Content-Type can be:
+		<ul>
+			<li><code>application/json; charset=UTF-8</code> by default</li>
+			<li><code>multipart/form-data;</code> when adding a media</li>
+			<li><code>application/x-www-form-urlencoded;</code> when editing a media with raw POST body (otherwise if the POST body is a JSON use the default value)</li>
+		</ul>
+	</li>
+	<li>the response Content-Type can be:
+		<ul>
+			<li><code>application/json;</code> by default</li>
+			<li><code>text/html;</code> when the web service returns a html page (login and logout web services)</li>
+			<li><code>image/&lt;format&gt;;</code> when response is an image where &lt;format&gt; is the file extension (e.g. jpeg, png)</li>
+		</ul>
+	</li>
+</ul> 
+<!--<p>The format of the POST data must be specified to 3DSwym server.
+To do so the Content-Type header of the HTTPS request is used.
+It must be set to  as the POST body is a JSON encoded in UTF-8.
+</p>-->
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Response"></a>Responses</h2>
+<p>3DSwym server sends standard HTTPS responses.
+A response is composed of a <b>header</b> and a (response) <b>body</b>.
+Each web service response body is described in a dedicated web service reference page [<a href="#References">6</a>].
+</p>
+
+<h3><a name="JSON"></a>JSON as Output</h3>
+<p>3DSwym web services response body can be a JSON.
+In such case the response <em>Content-Type</em> header is <code>application/json</code>.
+</p>
+<p>The 3DSwym <b>standard JSON format</b> of a response is:
+</p>
+<pre class="code">
+{
+	"nb_result": &lt;nb_result&gt;,
+	"result": &lt;value&gt;
+}
+</pre>
+	<!--"request_id": &lt;request_id&gt;,-->
+	<!--"monitoring": "",-->
+<p>Any other key present in the JSON is for internal use and should be ignored.
+</p>
+<!--<h4><a name="monitoring"></a><em>monitoring</em> key</h4>
+<p>The key <em>monitoring</em> is for internal use and should be ignored.
+</p>-->
+
+<h4><a name="nb_result"></a><em>nb_result</em> key</h4>
+<p>The key <em>nb_result</em> is usually a number.
+But it can be a boolean (true or false) on some deletion web services to tell the success or failure of the request.
+In such case it is no longer considered as a standard output and full explanation is given in the web service reference page [<a href="#References">6</a>]. 
+</p>
+<p>The key <em>nb_result</em> contains the number of result the 3DSwym server found when executing the web service.
+<b>It can be different from the actual number of result present in the <em>result</em> key (see <a href="#PaginatedResult">Paginated Result</a>).</b>
+</p>
+
+<!--<h4><a name="request_id"></a><em>request_id</em> key</h4>
+<p>The key <em>request_id</em> is for internal use and should be ignored.
+</p>-->
+
+<h4><a name="result"></a><em>result</em> key</h4>
+<p>The key <em>result</em> can either contain:
+</p>
+<ul>
+	<li>A string: with web services returning success message</li>
+	<li>A JSON: with web services returning a single resource</li>
+	<li>An array of JSON: with web services returning a collection of resources</li>
+</ul>
+<h4><a name="Applicable"></a>Applicable keys</h4>
+<p>In the web service reference pages [<a href="#References">6</a>] you find the details of the JSON structure as response. For each key you have :</p>
+<ul>
+<li>its name, </li>
+<li>a short description,</li> 
+<li>Information about the  value,</li>
+<li>its Applicability (yes/no).</kli>
+</ul>
+<p>For a "not applicable" key, there is no description and no information about the value. 
+Such keys must not be used by your code.  </P>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="OutputImage"></a>Image as Output</h3>
+<p>Few 3DSwym web service responses are pictures.
+Consequently, the Content-Type of the HTTP response header is <code>image/&lt;format&gt;</code>.
+Where <code>&lt;format&gt;</code> is the image file extension (jpg, png...).
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="PaginatedResult"></a>Paginated Result</h3>
+<p>Some web services can return huge amount of data.
+Limit and Page are two commonly available parameters for 3DSwym web services.
+They manage the <em>result</em> key content of a JSON response to control the amount of data in a response body.
+</p>
+<p>To explain how these parameters affect the <em>result</em> key we will use an example.
+Let's suppose the web service <code>/api/community/listmycommunities</code> that lists the communities of the logged user.
+Without limit or page parameters, the web service returns:
+</p>
+<pre class="code">
+{
+	"nb_result": <b>5</b>,
+	"request_id": 1,
+	"result": [
+		&lt;community <b>1</b>&gt;,
+		&lt;community <b>2</b>&gt;,
+		&lt;community <b>3</b>&gt;,
+		&lt;community <b>4</b>&gt;,
+		&lt;community <b>5</b>&gt;]
+}
+</pre>
+<p>The web service has found 5 communities that matches the web service request and sends them back in the <em>result</em> key as an array of communities.
+</p>
+
+<h4><a name="Limit"></a>Limit Parameter</h4>
+<p>The limit parameter limits the number of resources sent back by a web service in the <em>result</em> key.
+<!--It is a number between 1 and 128.-->
+It is a number equal or higher than 1.
+</p>
+<p>If we apply the limit parameter to our example, the path becomes <code>/api/community/listmycommunities/limit/2</code>.
+The web service then returns:
+</p>
+<pre class="code">
+{
+	"nb_result": <b>5</b>,
+	"request_id": 1,
+	"result": [
+		&lt;community <b>1</b>&gt;,
+		&lt;community <b>2</b>&gt;]
+}
+</pre>
+<p>The web service still found 5 communities but only two are sent back in the <em>result</em> key.
+</p>
+<p><strong>Warning:</strong> Using the parameter limit does not affect the <em>nb_result</em> value.
+</p>
+<!-- <p><img alt="Limit"  height="103" width="315" 
+onclick="showImg('images/CAALimit.png', 1889, 620)" 
+onmouseover="this.style.cursor='pointer'" 
+src="images/CAALimit.png" 
+title="Limit parameter influence on result.
+Click to enlarge"/>
+</p>
+<p>All the resources of the data base include, a subset of resources matching the web service query (key <em>nb_result</em>).
+But only the resources inside the limit will be returned (key <em>result</em>).
+</p> -->
+<p>Thanks to the limit parameter the amount of data sent back has been reduced. 
+We will know explain how to navigate through the result.
+</p>
+<p><b>Recommendation</b>: To avoid heavy responses from server and, to keep ergonomics data we recommend not to use a limit higher than 128.
+</p>
+<h4><a name="Page"></a>Page Parameter</h4>
+<p>The page parameter allows user to navigate through limited result.
+It is therefore only usable when limit parameter is used.
+<!--It is a number between 1 and 128.-->
+It is a number equal or higher than 1.
+It works like a begin index for the limited parameter.
+</p>
+<p>If we apply the page parameter to our example, the path becomes <code>/api/community/listmycommunities/limit/2/page/2</code>.
+The web service then returns:
+</p>
+<pre class="code">
+{
+	"nb_result": <b>5</b>,
+	"request_id": 1,
+	"result": [
+		&lt;community <b>3</b>&gt;,
+		&lt;community <b>4</b>&gt;]
+}
+</pre>
+<!-- <p><img alt="Page"  height="103" width="315" 
+onclick="showImg('images/CAAPage.png', 1889, 620)" 
+onmouseover="this.style.cursor='pointer'" 
+src="images/CAAPage.png" 
+title="Page parameter influence on result.
+Click to enlarge"/>
+</p>
+<p>The page parameter allows to do jumps in the web service result.
+</p> -->
+<p><b>Note</b>: Bad combination between page and limit parameters can lead to an empty <em>result</em> key. With our example, <code>/api/community/listmycommunities/limit/2/page/10</code> will lead to:
+</p>
+<pre class="code">
+{
+	"nb_result": <b>5</b>,
+	"request_id": 1,
+	"result": []
+}
+</pre>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="WebCaching"></a>HTTP Web Caching</h3>
+<p>3DSwym server supports both web caching based on freshness and validation.
+It follows official HTTP headers and mechanisms used in most browsers and shared caches. 
+Thanks to it, client applications will always get up-to-date (fresh) information with best performance.
+</p>
+<!--<p>Whenever possible, use freshness information returned by 3DSwym services in URL to stream content 
+(for instance, to get a user picture (/api/user/getpicture), use a MD5 based on picture_update and tenant_update timestamps and add it in the URL on update parameter (aka as URL fingerprinting)).
+Response will be sent with headers allowing adequate caching in browser and eventually shared caches.
+Subsequent requests using same freshness information (that is same value for update parameter in URL) will get response from local browser cache.
+The navigation will be faster and this will offload 3DSwym origin server.
+</p>
+<p>If client application cannot rely on freshness information returned by 3DSwym services
+(for instance, if it needs to get a user picture based only on his login attribute) and in this case only,
+3DSwym server can be called without freshness attribute (no update parameter in URL).
+The first request to 3DSwym server will return full response with headers allowing web cache validation in browser.
+Subsequent requests will call 3DSwym origin server with the value found in the header for entity tag validation. 
+If locally cached data is up-to-date, the origin server will return a lightweight response with only HTTP 304 Not Modified status, saving bandwidth.
+</p>-->
+	
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Troubleshooting"></a>Troubleshooting</h2>
+<h3><a name="HTTPStatus"></a>HTTP Status</h3>
+<p>The unique success status of HTTP requests for 3DSwym is 200 OK.
+Status 302 redirect should never be a end call status as redirections are automatically followed by the client application<!-- (see <a href="CAA3DSwymTaLogin.htm#Step0">Automatic Redirection</a>)-->.
+</p>
+<p>3DSwym can cause the following error status:
+</p>
+<ul>
+	<li>&#8220;401 Unauthorized&#8221;: when the 3DSwym session has expired. In case of such an error, client application has to login again. Please note that the session may have been closed server-side following a &#8220;403&#8221; error.</li>
+	<li>&#8220;403 Forbidden&#8221;:  a forbidden response can also be sent back if the HTTP Client attributes changes during the same HTTP session (e.g. when no mandatory <em>CSRF token</em> has been sent, if a different <em>User-Agent</em> is sent in a request).</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="JSONError"></a>JSON Error Messages</h3>
+<p>The 200 OK success status of the HTTP request does not imply that the web service has succeed.
+On web service failure (that can be cause by bad input parameters for example) the response body is a JSON containing the keys:
+</p>
+<pre class="code">
+{
+	"errorcode": "&lt;code&gt;",
+	"errormsg": "&lt;message&gt;",
+	"errorid": "&lt;id&gt;"
+}
+</pre>
+<ul>
+	<li><em>errorcode</em>: code of the error.</li>
+	<li><em>errormsg</em>: the error message.</li>
+	<li><em>errorid</em>: identifier of the error.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="NetworkAnalyser"></a>Network Traffic Analyser</h3>
+<p>A network traffic analyser can be used to see all interactions described in this article.
+It becomes a must to have when it comes to debugging client applications.
+</p>
+<p>Fiddler is a free and easy to use network analyser running under Windows (Linux users may check for Wireshark).
+To use it simply add the following lines to your client application:
+</p>
+<pre class="code">
+System.setProperty("proxyHost", "localhost");
+System.setProperty("proxyPort", "8888");
+</pre>
+<p>In Fiddler under : Tools -&gt; Fiddler Options -&gt; HTTPS ensure that the decrypt option is enable. 
+You might need to use a certificate to avoid your application crashing due to uncertified exceptions. 
+In this case click to the <em>export a certificate</em> button in fiddler and put it in your Java \bin directory.
+Launch your application with the options:
+</p>
+<pre class="code">
+-Djavax.net.ssl.trustStore="&lt;complete path&gt;\bin\&lt;certificate name&gt;"
+-Djavax.net.ssl.trustStorePassword=&lt;the password you set&gt;
+</pre>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Formatting"></a>Formatting</h2>
+<p>Text must be UTF-8 encoded in all 3DSwym web services.
+</p>
+
+<h3><a name="HTMLFormatting"></a>HTML-like</h3>
+<p>Some information is formatted using HTML-like formatting.
+For instance, user information entered in &#8220;More About Me&#8221;:
+</p>
+<pre class="code">
+&lt;p&gt;
+Working on
+&lt;span style="text-decoration:underline;"&gt;&lt;strong&gt;3DSwym&lt;/strong&gt;&lt;/span&gt; 
+services,
+&lt;em&gt;see 
+&lt;a 
+	type="ext"
+	desc="URL" 
+	url="https://www.3ds.com/"&gt;https://www.3ds.com/
+&lt;/a&gt;&lt;/em&gt;.
+&lt;span 
+	style="text-decoration:line-through;"&gt;Full
+&lt;/span&gt;
+API described in 
+&lt;a
+	type="dsi"
+	objclass="post"
+	objid="423"
+&gt;Post for Developers&lt;/a&gt;.
+&lt;/p&gt;.
+</pre>
+<p>Just above, an extract of the JSON result.
+</p>
+<p>Pure HTML is not used to prevent Cross-Site Scripting (XSS) vulnerability.
+ </p>
+<p>Note, there is no guarantee HTML-like formatting is well formed XML.
+</p>
+<p>The additional attributes used in this HTML-like formatting are described below.
+</p>
+
+<h4><a name="HTMLlink"></a>HTML-like formatting for link</h4>
+<h5>To some data external to the platform</h5>
+<p>The link will be specified by an external link.
+So additional attributes are present:
+</p>
+<ul>
+	<li>type=&#8221;ext&#8221; for data external at the platform</li>
+	<li>url with the external url link</li>
+</ul>
+<p>Example: 
+</p>
+<pre class="code">
+&lt;a <b>type="ext"</b> desc="URL" <b>url</b>="https://www.3ds.com/"&gt;https://www.3ds.com/&lt;/a&gt;
+</pre>
+
+<h5>To some data of the platform</h5>
+<p>The elements to point can be a community, a post, a post, a media, a user, a iQuestion or a wiki page.
+So additional attributes are present:</p>
+<table class="fill">
+	<tr>
+		<th>&nbsp;Attribute Name&nbsp;</th>
+		<th>&nbsp;Attribute meaning&nbsp;</th>
+	</tr>
+	<tr>
+		<td>type</td>
+		<td>for data of the 3DSwym platform must be equals to &#8221;dsi&#8221;</td>
+	</tr>
+	<tr>
+		<td>objclass</td>
+		<td>type of the data. Possible values are:
+			<ul>
+				<li>community</li>
+				<li>post</li>
+				<li>media</li>
+				<li>wiki</li>
+				<li>iquestion</li>
+				<li>people</li>
+			</ul>
+		</td>
+	</tr>
+	<tr>
+		<td>objid</td>
+		<td>identifier of the data on SwYm. Note for people, the user encrypted identifier (hash_key) is used&nbsp;</td>
+	</tr>
+	<tr>
+		<td>objcomid</td>
+		<td>(optional) identifier of the community into which the data can be found. This additional information is used for wiki and iQuestion&nbsp;</td>
+	</tr>
+</table>
+<p>Just below an example:
+</p>
+<pre class="code">
+&lt;a <b>type="dsi"</b> <b>objclass</b>="post" <b>objid</b>="423" /&gt;
+</pre>
+
+<h4><a name="HTML-images"></a>HTML-like formatting for images</h4>
+<p>The images can be thumbnail of uploaded media.
+</p>
+<p>Some additional attributes are present:
+</p>
+<table class="fill">
+	<tr>
+		<th>&nbsp;Attribute Name&nbsp;</th>
+		<th>&nbsp;Attribute meaning&nbsp;</th>
+	</tr>
+	<tr>
+		<td>id_media</td>
+		<td>identifier of the media on 3DSwym&nbsp;</td>
+	</tr>
+	<tr>
+		<td>media_type</td>
+		<td>Type of the media. The value can be:
+			<ul>
+				<li>document</li>
+				<li>picture</li>
+				<li>sound</li>
+				<li>video</li>
+				<li>3d_model</li>
+				<li>drawing</li>
+			</ul>
+		</td>
+	</tr>
+	<tr>
+		<td>ds_width</td>
+		<td>width of the image in pixels, same as width&nbsp;</td>
+	</tr>
+</table>
+<p>Just below an example:</p>
+<pre class="code">
+&lt;img 
+	<b>id_media</b>="3960"
+	<b>ds_width</b>="240"
+	width="240"
+	<b>media_type</b>="document" 
+	style="background: none transparent scroll repeat 0% 0%; float: left;"
+	longdesc="id=3960&amp;type=document&amp;ds_width=240" /&gt;
+</pre>   
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="DateFormatting"></a>Date</h3>
+<p>Dates are formatted following ISO 8601 and UTC standard specification (e.g. 2014-07-09T04:23:04Z) [<a href="#References">5</a>].
+</p>
+<p>Transformations from UTC format to display format, including the localization of the end-user, has to be done in the client application.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article introduces 3DSwym web services. 
+It explains how to use them and what need to be known before getting started with 3DswYm web services.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="../CAAiamPassport/CAAiamPassportCASProtocol.htm">3DPassport and the CAS Protocol</a></td>
+	</tr>
+	
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAA3DSwymQrVersion.htm">Version Web Service</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAA3DSwymQrAddMedia.htm">Add Media</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://www.w3.org/TR/NOTE-datetime');return false;">http://www.w3.org/TR/NOTE-datetime</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAA3DSwymTcWebServicesToc.htm">Web Services Reference</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+</body>
+</html>

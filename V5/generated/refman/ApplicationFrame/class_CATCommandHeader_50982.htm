@@ -1,0 +1,322 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>ApplicationFrame Class CATCommandHeader</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../ApplicationFrame.htm">This Framework</a>  <a href="class_CATCmdWorkshop_40900.htm">Previous</a>  <a href="class_CATCommandHeaderWithSDO_101694.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>ApplicationFrame Class CATCommandHeader</h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">System.IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">System.IDispatch</a>
+    |
+    +---<a href="../System/class_CATBaseUnknown_40786.htm">System.CATBaseUnknown</a>
+      |
+      +---<a href="../System/class_CATEventSubscriber_67510.htm">System.CATEventSubscriber</a>
+        |
+        +---CATCommandHeader
+ </pre>
+<p><b>Usage: you can derive this class.</b></p>
+<hr>
+<p>
+ public class <b>CATCommandHeader</b>
+</p>
+<p>
+<b><i> Class to create a command header.</i></b><br>
+
+ <b>Role</b>: Each command you want to make available in your workshop or workbench 
+ must have a command header. It holds the necessary information to load the command, 
+ such as the name of the shared library in which the 
+ command's executable code is located, the name of the command class, and the data to pass 
+ to the command's code when this command becomes the current one. 
+ <p>The command header has 
+ resources for each command  to display, such as the command name shown to the end user, 
+ its ToolTip displayed in a balloon, it help message, and its icon. This enables the 
+ workshop or workbench to be  displayed, that is loaded in memory, without any of its 
+ commands being itself loaded, except the default one, spares memory space, and improves 
+ performance. The end user can  see the icons in the toolbars, the items in the menu bar, 
+ can ask for help on a given command, without the command being loaded. It is only when 
+ he/she clicks on the menu item or on the icon that the command code is actually loaded.</p>
+ 
+ <p>You cannot directly instanciate a <tt>CATCommandHeader</tt>, you must derive 
+ this class. The easiest way is using the <a href="../ApplicationFrame/define_MacDeclareHeader_51758.htm#">MacDeclareHeader.</a> macro such that: <pre>
+    #include "CATCommandHeader.h"
+    MacDeclareHeader(MyHeader);
+ </pre>
+ <tt>MyHeader</tt> is a command header class always available and with a
+ default representation: a push button in a toolbar, and a push item is the menu bar or
+ in a contextual menu. In most cases it is sufficient. However you can create a <b>customized 
+ command header</b> for two reasons:
+ <ul>
+ <li>To manage the command availability with respect to what 
+ the end user does, or what exists in the document.</li>
+  <br>The new class must at least derive from <tt>CATCommandHeader</tt>
+ <li>To customize the command header representation.</li>
+ <br>The new class must at least derive from 
+<a href="../ApplicationFrame/class_CATAfrDialogCommandHeader_123887.htm">CATAfrDialogCommandHeader</a>  </ul>
+ Creating a customized command header implies to have (or overwrite) at least
+ the following methods:
+ <ul>
+   <li>In public</li>
+    <ul>
+   <li>Constructor calling the base class constructor</li>
+   <li>Destructor</li>
+   <li>
+<a href="#Clone">Clone</a> which calls the constructor class</li>   </ul>
+   <li>In private - to implement</li>
+    <ul>
+   <li>Constructor, with a <tt>CATCommandHeader</tt> pointer as argument, and 
+    calling the constructor with a <tt>CATCommandHeader</tt> of
+    the base class</li>
+    </ul>
+   <li>In private - not implemented</li>
+    <ul>
+   <li>Defauft constructor</li>
+   <li>Copy constructor</li>
+   <li>Assignment operator </li>
+    </ul>
+ </ul>
+ The customized command header (named <tt>MyHeader</tt>) must be a <b>component</b> to implement 
+ any kind interfaces, so it must contain the following macros:
+   <ul>
+   <li>in header file: 
+<a href="../System/define_CATDeclareClass_45124.htm">CATDeclareClass</a> </li>   <li>in source file: 
+<a href="../System/define_CATImplementClass_59665.htm">CATImplementClass</a> with the following arguments:       <pre>(MyHeader, Implementation,CATBaseUnknown,CATNull)</pre</li>                
+   </ul>
+ To assign <b>resources</b> to the command header,
+ it must contain the following macros:
+   <ul>
+   <li>in header file: 
+<a href="../ApplicationFrame/define_CATDeclareHeaderResources_128200.htm">CATDeclareHeaderResources</a> ;</li>   <li>in source file: 
+<a href="../ApplicationFrame/define_CATImplementHeaderResources_151479.htm">CATImplementHeaderResources</a> with the following arguments:                  <pre>(MyHeader, BaseClass,MyHeaderResourceFile)</pre> </li>               
+   </ul> 
+ <b>Where</b> to create command header instances ? 
+ Generaly, you create instances in the following methods: 
+ <ul>
+ <li>
+<a href="../ApplicationFrame/interface_CATIWorkshop_30072.htm#CreateCommands">CATIWorkshop.CreateCommands</a> </li> <li>
+<a href="../ApplicationFrame/interface_CATIWorkbench_34136.htm#CreateCommands">CATIWorkbench.CreateCommands</a> </li> <li>
+<a href="../ApplicationFrame/interface_CATIWorkbenchAddin_64426.htm#CreateCommands">CATIWorkbenchAddin.CreateCommands</a> </li> </ul>
+ In this case, the command header instance, identified by the first argument of the constructor 
+ class, is <b>associated with a starter</b> thanks to the 
+ 
+<a href="../ApplicationFrame/define_SetAccessCommand_53288.htm">SetAccessCommand</a> macro </p> You can also create command header instances to set in the "Tools Palette" toolbar. It is
+ a specific toolbar which can be filled, for a specific workbench by implementing 
+ 
+<a href="../ApplicationFrame/interface_CATIAfrPaletteOptions_90891.htm">CATIAfrPaletteOptions</a>, or/and for a specific command thanks 
+<a href="../ApplicationFrame/interface_CATIAfrCmdPaletteOptions_117462.htm">CATIAfrCmdPaletteOptions</a> . In these two cases, before creating a command header instance, you must check that the
+ instance does not already exist in the current editor. It is possible thanks to the
+ 
+<a href="../ApplicationFrame/function_CATAfrGetCommandHeader_276091.htm">CATAfrGetCommandHeader</a> global function.  <p>Who <b>delete</b> command header instances ? 
+ <br>Each command header instance is kept in a list by the 
+<a href="../ApplicationFrame/class_CATFrmEditor_29348.htm">CATFrmEditor</a> associated   with the document to edit. The editor manages the command header deletion. You must never 
+ delete a command header instance.  </p>
+</p>
+<hr>
+ <h2>Constructor and Destructor Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#CATCommandHeader(CATCommandHeader*)"><b>CATCommandHeader</b></a>(CATCommandHeader*)
+<dd>  Constructs a command header instance.
+ <dt> o 
+    <a href="#CATCommandHeader(CATString&amp;,CATString&amp;,CATString&amp;,void*,int)"><b>CATCommandHeader</b></a>(CATString&amp;,CATString&amp;,CATString&amp;,void*,int)
+<dd>  Constructs a command header.
+ <dt> o 
+    <a href="#~CATCommandHeader()"><b>~CATCommandHeader</b></a>()
+<dd> </dl>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#BecomeAvailable()"><b>BecomeAvailable</b></a>()
+<dd>   Makes the command Available.
+ <dt> o 
+    <a href="#BecomeUnavailable()"><b>BecomeUnavailable</b></a>()
+<dd>   Makes the command Unavailable.
+ <dt> o 
+    <a href="#Clone()"><b>Clone</b></a>()
+<dd>     Clones the command header.
+ <dt> o 
+    <a href="#GetCurrentArgument()"><b>GetCurrentArgument</b></a>()
+<dd>  Retrieves the argument of the header.
+ <dt> o 
+    <a href="#GetVisibility()"><b>GetVisibility</b></a>()
+<dd>  Returns the header visibility in the Tools/Customize command.
+ <dt> o 
+    <a href="#SetVisibility(int)"><b>SetVisibility</b></a>(int)
+<dd>  Sets the header visibility in the Tools/Customize command.
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Constructor and Destructor</h2> <br>
+<a name="CATCommandHeader"></a><a name="CATCommandHeader(CATCommandHeader*)"></a> <dt> o <b>CATCommandHeader</b>
+
+<dt>  <table><tr><td>  protected <a href="../DNBSystem/struct__0.htm"></a>  <b>CATCommandHeader</b>(<td><a href="../ApplicationFrame/class_CATCommandHeader_50982.htm">CATCommandHeader*</a> <td><tt>header</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Constructs a command header instance.
+ <br<b>Role:</b>This method calls the copy constructor. 
+ In your derived class overwrite this method such that:
+ 
+ <pre>
+ MyHeader::MyHeader(CATCommandHeader * iHeaderToCopy):
+                           CATCommandHeader(iHeaderToCopy)
+ {
+ }   
+ </pre>
+ This method is called by the 
+<a href="#Clone">Clone</a> method. 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iHeaderToCopy</tt>
+   <dd> The header to copy.</dd>
+</dl>
+</dl>
+</dl>
+<a name="CATCommandHeader"></a><a name="CATCommandHeader(CATString&amp;,CATString&amp;,CATString&amp;,void*,int)"></a> <dt> o <b>CATCommandHeader</b>
+
+<dt>  <table><tr><td>  public <a href="../DNBSystem/struct__0.htm"></a>  <b>CATCommandHeader</b>(<td> const <a href="../System/class_CATString_16797.htm">CATString&amp;</a> <td><tt>iHeaderID</tt>,<tr><td></td><td> const <a href="../System/class_CATString_16797.htm">CATString&amp;</a> <td><tt>iLoadName</tt>,<tr><td></td><td> const <a href="../System/class_CATString_16797.htm">CATString&amp;</a> <td><tt>iClassName</tt>,<tr><td></td><td>void* <td><tt>iArgument</tt>,<tr><td></td><td>int <td><tt>iState</tt><td><tt>= CATFrmAvailable</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Constructs a command header. 
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iHeaderID</tt>
+   <dd>     The identifier of the header. It iss the <tt>command</tt> argument of the <tt>
+     SetAccessCommand </tt> macro.It iss used for NLS resources.
+ </dd>
+    <dt><tt> iLoadName</tt>
+   <dd>    The name of the shared library where <tt>iClassName</tt> is.
+ </dd>
+    <dt><tt> iClassName</tt>
+   <dd>    The name of the <tt> CATCommand </tt> class.
+ </dd>
+    <dt><tt> iArgument</tt>
+   <dd>    The argument of the <tt> CATCommand </tt> class.
+ </dd>
+    <dt><tt> iState</tt>
+   <dd>    The CATCommandHeader state.
+    <br><b>Legal values</b>: 
+       <li> CATFrmAvailable (The default value) </li>
+       <li> CATFrmUnavailable </li>
+ 
+ </dd>
+</dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="../System/class_CATCommand_20100.htm">CATCommand</a>, <a href="../ApplicationFrame/define_SetAccessCommand_53288.htm">SetAccessCommand</a>, <a href="../ApplicationFrame/enum_CATFrmState_24454.htm">CATFrmState</a>
+</dl>
+</dl>
+<a name="~CATCommandHeader"></a><a name="~CATCommandHeader()"></a> <dt> o <b>~CATCommandHeader</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../DNBSystem/struct__0.htm"></a>  <b>~CATCommandHeader</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="BecomeAvailable"></a><a name="BecomeAvailable()"></a> <dt> o <b>BecomeAvailable</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>BecomeAvailable</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+  Makes the command Available.
+ <br><b>Role</b>: The command of the header becomes available. The icon switches from
+ the grayed to the normal state.
+</dl>
+<a name="BecomeUnavailable"></a><a name="BecomeUnavailable()"></a> <dt> o <b>BecomeUnavailable</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>BecomeUnavailable</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+  Makes the command Unavailable.
+ <br><b>Role</b>: The command of the header becomes unavailable. The icon switches from
+ the normal to the grayed state.
+</dl>
+<a name="Clone"></a><a name="Clone()"></a> <dt> o <b>Clone</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../ApplicationFrame/class_CATCommandHeader_50982.htm">CATCommandHeader *</a>  <b>Clone</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+    Clones the command header.
+ <br<b>Role:</b>This method calls the constructor with a <tt>CATCommandHeader</tt> 
+  pointer as argument. In your derived class overwrite this method such that:
+  
+ <pre>
+ CATCommandHeader * MyHeader::Clone ()                                  
+ { 
+   return new MyHeader(this); 
+ }   
+ </pre>
+ You must never call a <tt>Clone</tt> method. This method is called by the "frame".
+ Today, it is called for your CAA instances in only one case: when the command header 
+ instance is created in an Add-in of the General workshop, refer to the 
+ 
+<a href="../ApplicationFrame/interface_CATIAfrGeneralWksAddin_95286.htm">CATIAfrGeneralWksAddin</a> interface for more details about these Add-ins.  
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>    The new command header instance.
+</dl>
+</dl>
+<a name="GetCurrentArgument"></a><a name="GetCurrentArgument()"></a> <dt> o <b>GetCurrentArgument</b>
+
+<dt>  <table><tr><td>  public static <a href="../System/class_CATString_16797.htm">CATString &</a>  <b>GetCurrentArgument</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Retrieves the argument of the header.
+</dl>
+<a name="GetVisibility"></a><a name="GetVisibility()"></a> <dt> o <b>GetVisibility</b>
+
+<dt>  <table><tr><td>  public virtual int  <b>GetVisibility</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Returns the header visibility in the Tools/Customize command.
+ <br><b>Role</b>: This method returns if the command header is visible or not
+ in the Tools/Customize command.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>   The header visibility in the Tools/Customize command.
+ <br><b>Legal values</b>: <tt>1</tt> Visible, <tt>0</tt> : invisible
+</dl>
+</dl>
+<a name="SetVisibility"></a><a name="SetVisibility(int)"></a> <dt> o <b>SetVisibility</b>
+
+<dt>  <table><tr><td>  public void  <b>SetVisibility</b>(<td>int <td><tt>iIsVisible</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Sets the header visibility in the Tools/Customize command.
+ <br><b>Role</b>: This method enables you to hide or show the 
+ command header instance in the Tools/Customize command. It can be interesting
+ to hide some command header instances, when you do not want that the end user 
+ drag and drop your command in a toolbar. 
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iIsVisible</tt>
+   <dd> The header visibility in the Tools/Customize command.
+ <br><b>Legal values</b>: <tt>1</tt> Visible, <tt>0</tt> : invisible</dd>
+</dl>
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>CATCommandHeader.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>CATApplicationFrame</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

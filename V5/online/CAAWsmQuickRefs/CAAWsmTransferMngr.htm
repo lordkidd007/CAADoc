@@ -1,0 +1,423 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_transfer_mngr</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp; <br>
+&nbsp; </p>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><h1>RADE</h1>
+    </td>
+    <td VALIGN="TOP"><h2>Source Code Manager</h2>
+    </td>
+    <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2"><h3><a NAME="Top"></a>adl_transfer_mngr</h3>
+      <p><i>The SCM Multi-site Transfer Manager</i></td>
+  </tr>
+  <tr>
+    <td COLSPAN="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+      <p><b>adl_transfer_mngr</b> is the command corresponding to the SCM
+      Multi-site Transfer Manager. The goal of this process is to provide to
+      remote clients a way to execute SCM commands locally and to transfer files
+      between the local and remote hosts. <ul>
+      <li><b><a href="CAAWsmCo.htm#Synopsis">Synopsis</a></b></li>
+      <li><b><a href="#Usage">Usage</a></b></li>
+      <li><b><a href="CAAWsmCo.htm#Options">Options</a></b></li>
+      <li><b><a href="#CommandFile">The Command File</a></b></li>
+      <li><b><a href="#ControlFile">The Control File</a></b></li>
+      <li><b><a href="#The Event Manager">The Event Manager</a></b></li>
+      <li><b><a href="#Examples">Examples</a></b></li>
+      <li><b><a href="#References">References</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Synopsis"></a>Synopsis</h3>
+<p>adl_transfer_mngr [<b>-port </b> port_number] [<b>-tmp</b> directory] [<b>-cmdfile</b> filename]
+[<b>-ctrlfile</b> filename] [<b>-eventmanager</b> program_path] [<b>-verb</b>] [<b>-h</b> | <b>-help</b> | <b>-?</b>] </p>
+
+<h3><a NAME="Usage"></a>Usage</h3>
+
+<p>The <b>adl_transfer_mngr</b> command is the command to be started but the way
+it is launched differs regarding the current operating system:</p>
+
+<ul>
+  <li>On Windows, we provide the adl_admin_site [<a href="#Ref1">1</a>]
+    command for declaring a service for the transfer manager.&nbsp;<br>
+    In that case we advise to use the service controller to launch the transfer
+    manager.</li>
+  <li>On UNIX, we provide the adl_start_transfer_mngr.sh [<a href="#Ref2">2</a>]
+    program whose purpose is to set up some system parameters before starting
+    the transfer manager.&nbsp;<br>
+    We advise to use this command rather than adl_transfer_mngr in order to be
+    not disturbed by system limits.</li>
+</ul>
+<p>More than one adl_transfer_mngr can be started on the same host by using a
+different port for each of them. However a single manager is enough to manage
+several transfers at the same time. It is designed to support multiple connections
+from different clients and to manage different working environments at the same
+time.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Options"></a>Options</h3>
+
+<p>adl_transfer_mngr accepts the following options: </p>
+
+<table>
+<col valign="top" span="2">
+  <tr>
+    <td WIDTH="20%"><tt>-h|-help|-?</tt></td>
+    <td>Help of the command</td>
+  </tr>
+  <tr>
+    <td><tt>-port</tt></td>
+    <td>Port number to use to communicate with remote clients</td>
+  </tr>
+  <tr>
+    <td><tt>-tmp</tt></td>
+    <td>To specify a directory in which temporary data will be stored and where
+      the manager log will be stored.<br>
+      If not specified, the ADL_TMP variable will be used.</td>
+  </tr>
+  <tr>
+    <td>-cmdfile filename</td>
+    <td>To specify a file in which are written all the commands that can be
+      executed by the manager.<br>
+      This allows the SCM administrator to restrict the commands that can be triggered
+      from remote clients.</td>
+  </tr>
+  <tr>
+    <td>-ctrlfile filename</td>
+    <td>To specify a file in which are declared the workspace trees
+      and frameworks that distant sites can attach. This file allows the SCM
+      administrator of the current site to control the components that other
+      sites can get.</td>
+  </tr>
+  <tr>
+    <td>-eventmanager program_path</td>
+    <td>To specify a program that will be called each time a transfer starts,
+      stops or fails. This program will receive the name of a temporary file
+      containing information about the corresponding transfer.</td>
+  </tr>
+  <tr>
+    <td>-verb</td>
+    <td>Display additional traces (for debug purpose)</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="CommandFile"></a>The Command File</h3>
+
+<p>The command file contains the non SCM commands that a given SCM Multi-site
+Transfer Manager can execute. The default file that is delivered on the CD-ROM
+contains the all the commands that intersite commands needs. The path to the
+default file is &lt;INSTALL_PATH&gt;/<b>OS</b>/code/command/admin/AuthorizedCommands.txt
+where &lt;INSTALL_PATH&gt; is the path specified when installing the RADE CD-ROM
+and <b>OS</b> a directory the name of which is an acronym that depends on the operating system. Refer to [<a href="#References">5</a>] 
+to get the current list of operating systems supported and associated acronyms.</p>
+
+<p>On Windows platform, it is possible than the Multi-site Transfer Manager
+cannot be started due to this command file. This error occurs when the
+&quot;find&quot; program required by intersite commands is found in
+&quot;WINNT\System32&quot; directory instead of &quot;mksnt&quot;. In such a
+case, an error message is written by the transfer manager in its trace file [<a href="#Ref3">3</a>]
+asking the user to edit the command file and to enter the full path to the
+&quot;mksnt&quot; find program.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="ControlFile"></a>The Control File</h3>
+
+<p>The control file is a text file in which the SCM administrator enter the
+names of the frameworks and workspace trees he allows other sites to attach
+through intersite commands.&nbsp;</p>
+
+<p>This file is not required to set up transfers between SCM sites:</p>
+
+<ul>
+  <li>if no file is specified when starting the transfer manager, all frameworks
+    and workspace trees will be available for other sites</li>
+  <li>if a file is specified, only the frameworks and wokrspace trees that are
+    declared in this file will be available for the sites specified in this file
+    (see rules below)</li>
+</ul>
+<h4>Rules&nbsp;&nbsp;</h4>
+<p>The command file is a text file composed of lines describing the rights for
+frameworks and/or workspace trees. Here are the rules to follow to write this
+file:</p>
+<ul>
+  <li>a line can be empty or composed of 5 fields separated by a pipe ('|')</li>
+  <li>if the first field is empty, the second is filled with the name of a
+    workspace tree</li>
+  <li>if the second field is empty, the first one is filled with the name of a
+    framework</li>
+  <li>the third field must be the unique identifier [<a href="#Ref4">4</a>] of a
+    SCM site</li>
+  <li>the fourth field must be either &quot;GRANT&quot; or &quot;FORBID&quot;
+    according to the rights associated with the given framework or tree for the
+    given site</li>
+  <li>the last field is reserved for comments and can be empty</li>
+  <li>if a framework or a tree is to be shared with several sites, there must be
+    one line for each site</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="The Event Manager"></a>The Event Manager</h3>
+
+<p>The &quot;Event manager&quot; is a way for the SCM administrator to follow
+connections that are made from other sites to the SCM Multi-site Transfer
+Manager of the local site. Indeed it is possible to know the transfers that have
+been set up locally using the <a href="CAAWsmLsTransfer.htm">adl_ls_transfer</a>
+command but, in the reverse way, we don't know the remote transfers that have
+been set up to exchange data with some workspaces of the local site.</p>
+
+<p>The &quot;Event Manager&quot; is a program which is specified when starting
+the SCM Multi-site Transfer Manager and which is called automatically each time</p>
+
+<ul>
+  <li>a new client is connecting the transfer manager</li>
+  <li>a client is closing its connection with the transfer manager</li>
+</ul>
+<p>The program is called in background and receives - as its single parameter -
+the path to a temporary information file.<br>
+The program is responsible of deleting this file.</p>
+<p>This file contains 7 lines starting with a keyword. There are different
+information depending on the command that made the connection. Here are the two
+different contents that can be found.</p>
+<p>When the client command is an intersite command (<a href="CAAWsmAttachIs.htm">adl_attach_is</a>,
+<a href="CAAWsmPromoteIs.htm">adl_promote_is</a>, <a href="CAAWsmSyncIs.htm">adl_sync_is</a>,
+etc), here is the content of the information file:</p>
+<table border="1">
+<col valign="top" span="2">
+  <tr>
+    <th>Keyword</th>
+    <th>Fields</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>_ID</td>
+    <td>Transfer_Name Workspace_Name
+      Site_UUID&nbsp;</td>
+    <td>The name of the corresponding
+      transfer (as displayed by adl_ls_transfer on remote site), the name of the
+      associated remote workspace and the unique identifier of the remote SCM
+      site.</td>
+  </tr>
+  <tr>
+    <td>_STATUS</td>
+    <td>START | STOP | ABORT</td>
+    <td>These three keywords can be found
+      depending on the status of the corresponding client command:
+      <ul>
+        <li>START means the client has made the connection and is running</li>
+        <li>STOP means the client left and finished successfully</li>
+        <li>ABORT means the client left but with errors</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>_HOST</td>
+    <td>host name</td>
+    <td>It is the name, in upper case
+      letters, of the remote host from which the client command has been
+      started.</td>
+  </tr>
+  <tr>
+    <td>_PLATFORM</td>
+    <td>UNIX | WINDOWS_NT</td>
+    <td>One of these two keywords can be
+      found depending on the platform of the remote host.</td>
+  </tr>
+  <tr>
+    <td>_USER</td>
+    <td>Login name</td>
+    <td>It is the login, in upper case
+      letter, of the user who started the client command on the remote host.</td>
+  </tr>
+  <tr>
+    <td>_COMMAND</td>
+    <td>Intersite command name</td>
+    <td>It is the name of the intersite
+      command that has been started on the remote host (adl_promote_is,
+      adl_sync_is, etc).</td>
+  </tr>
+  <tr>
+    <td>_TRACES</td>
+    <td>The path to a temporary file</td>
+    <td>This file contains the traces of
+      the remote command as they appear on the remote screen. This file can be
+      read when the command is running. This file is never removed and it is up
+      to the event manager to decide when to delete it (for instance when
+      receiving the STOP or ABORT event).
+      <p>Note: this file exists only if an event manager has been specified when
+      starting the transfer manager.</td>
+  </tr>
+</table>
+<p>When the client command is a <a href="CAAWsmSiteTransfer.htm">adl_site_transfer</a>
+intersite command (internally called from intersite commands), here is the
+content of the information file:</p>
+<table border="1">
+<col valign="top" span="2">
+  <tr>
+    <th>Keyword</th>
+    <th>Fields</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>_ID</td>
+    <td>Site_UUID
+      Remote_Workspace_Name Tree_Name Local_Workspace_Name</td>
+    <td>The first field gives
+      the unique identifier of the remote SCM site, the second field is the name
+      of the remote workspace from which the intersite transfer has been
+      started, the third field is the name of the remote workspace tree
+      associated with this transfer and the last field is the name of the local
+      target workspace.</td>
+  </tr>
+  <tr>
+    <td>_STATUS</td>
+    <td>START | STOP | ABORT</td>
+    <td>These three keywords
+      can be found depending on the status of the corresponding client command:
+      <ul>
+        <li>START means the client has made the connection and is running</li>
+        <li>STOP means the client left and finished successfully</li>
+        <li>ABORT means the client left but with errors</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>_HOST</td>
+    <td>host name</td>
+    <td>It is the name, in
+      upper case letters, of the remote host from which the transfer has been
+      started.</td>
+  </tr>
+  <tr>
+    <td>_PLATFORM</td>
+    <td>UNIX | WINDOWS_NT</td>
+    <td>One of these two
+      keywords can be found depending on the platform of the remote host.</td>
+  </tr>
+  <tr>
+    <td>_USER</td>
+    <td>Login name</td>
+    <td>It is the login, in
+      upper case letter, of the user who started the transfer on the remote
+      host.</td>
+  </tr>
+  <tr>
+    <td>_COMMAND</td>
+    <td></td>
+    <td>there is no
+      information on this line</td>
+  </tr>
+  <tr>
+    <td>_TRACES</td>
+    <td>The path to a
+      temporary file</td>
+    <td>This file contains
+      the traces of the transfer as they appear on the remote screen. This file
+      can be read when the command is running. This file is never removed and it
+      is up to the event manager to decide when to delete it (for instance when
+      receiving the STOP or ABORT event).
+      <p>Note: this file exists only if an event manager has been specified when
+      starting the transfer manager.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a NAME="Examples"></a>Examples</h3>
+
+<dl>
+  <p>To start a manager on port 23452: </p>
+  <table class="code">
+    <tr>
+      <td><b>adl_transfer_mngr</b> -port 23452
+      </td>
+    </tr>
+  </table>
+</dl>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="References"></a>References</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><a name="Ref1"></a>[1]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmAdministration.htm#The Multi-site Transfer Manager">Launching
+      the SCM Multi-Site Transfer Manager on Windows-NT</a></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP"><a name="Ref2"></a>[2]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmGettingStarted.htm#Unix platform Transfer Manager">Launching
+      the SCM Multi-site Transfer Manager on Unix</a></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP"><a name="Ref3"></a>[3]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmGettingStarted.htm#Trouble">Locating
+      the SCM Multi-site Transfer Manager traces file</a></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP"><a name="Ref4"></a>[4]</td>
+    <td><a href="CAAWsmLsSite.htm">adl_ls_site: listing the name of current SCM
+      site</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td valign="top">
+	<a href="../CAADocUseCases/CAADocRunSample.htm">
+	Building and Launching a CAA V5 Use Case</a></td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="History"></a>History</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP">Version: <b>1</b>  [Nov 2001]</td>
+    <td VALIGN="TOP">Document created</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i> </p>
+</body>
+</html>

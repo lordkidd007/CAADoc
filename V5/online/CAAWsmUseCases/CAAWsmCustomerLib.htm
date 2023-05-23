@@ -1,0 +1,877 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>The Custom Checker Library</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="TOP">
+      <h1>RADE</h1>
+    </td>
+    <td valign="TOP">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td align="RIGHT" valign="TOP" rowspan="2">
+      <h3><a name="Top"></a>The Custom Checker Library</h3>
+      <p><i>Understanding and changing tests on command arguments</i></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="use">Use Case</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <ul>
+        <p>As part of the CAA RADE V5 environment, SCM supports the CAA V5
+        nomenclature like the maximum number of characters in a framework name
+        or the structure of a CAA file tree. The default behavior of SCM
+        commands is to check every arguments against those CAA V5 rules.<br>
+        The purpose of this paper is to explain how it is possible to change the
+        default behavior or to add customer rules by building a custom shared
+        library and referencing it from SCM commands.</p>
+        <li><b><a href="#Principles">Principles</a></b>
+          <ul>
+            <li><a href="#Interactions">Interactions Between the Kernel and The
+              Checker Libraries</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#Implementing">Implementing Custom Checkers</a></b>
+          <ul>
+            <li><a href="#Prerequisites">Prerequisites</a></li>
+            <li><a href="#The External Checker Interface">The External Checker
+              Interface</a></li>
+            <li><a href="#Calling kernel Functions">Calling Kernel Utilities</a></li>
+            <li><a href="#Calling Default Checkers">Calling Default Checkers</a></li>
+            <li><a href="#The ADLCMCheckArchiRules Checker">The
+              ADLCMCheckArchiRules Checker</a></li>
+            <li><a href="#The ADLCMCheckIfUnixPathIsShared Checker">The
+              ADLCMCheckIfUnixPathIsShared Checker</a></li>
+            <li><a href="#The ADLCMCheckSoftObj Checker">The
+              ADLCMCheckSoftObjChecker Checker</a></li>
+            <li><a href="#The ADLCMCheckPromotionRequest Checker">The
+              ADLCMCheckPromotionRequest Checker</a></li>
+            <li><a href="#The ADLCMCheckFlow Checker">The
+              ADLCMCheckFlow Checker</a></li>
+            <li><a href="#StructureCheckersParameters">Structure
+              of Checkers Parameters</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#Sample">Sample</a></b></li>
+        <li><a href="#Building the Customer Checker Library"><b>Building
+          the Custom Checker Library</b></a></li>
+        <li><a href="#Installing the Customer Checker Library"><b>Installing
+          the Custom Checker Library</b></a></li>
+        <li><a href="#InShort"><b>In Short</b></a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="global architecture"></a><a name="Principles"></a>Principles</h3>
+<p>When SCM commands are executed, some controls are performed to check the
+validity of command's arguments.<br>
+These controls are realized by some checkers, especially:
+<ul>
+  <li>one checker for verifying the architecture of components
+    <ul>
+      <li>imbrication of directories (framework, module or simple directory)</li>
+      <li>directory and file naming</li>
+      <li>unicity of some components or files</li>
+    </ul>
+  </li>
+  <li>one checker to determine whether a Unix path is a network path or a local
+    path</li>
+  <li>one checker for verifying customer rules when a software object
+    (framework, module, data, directory or element) is created, modified,
+    deleted or imported.</li>
+  <li>one checker for verifying customer rules at each promotion request</li>
+  <li>one checker for verifying customer rules when importing software object
+    changes by adl_force_so_chg command</li>
+</ul>
+<table border="0" width="100%">
+  <tr>
+    <td><img src="images/CheckLib1.gif" alt="CheckLib1.gif (2026 bytes)" width="300" height="150"></td>
+    <td>Those checkers are located outside the configuration management kernel
+      and gathered in a shared library that we will call the<b> default library</b>
+      in the rest of this paper.</td>
+  </tr>
+  <tr>
+    <td><img src="images/CheckLib2.gif" alt="CheckLib2.gif (3578 bytes)" width="300" height="240"></td>
+    <td>For a given installation of the SCM product, it is possible to create a
+      new library which will define some checkers for verifying specific rules.<br>
+      We will call this library the <b>custom library</b>.</td>
+  </tr>
+  <tr>
+    <td><img src="images/CheckLib3.gif" alt="CheckLib3.gif (3624 bytes)" width="300" height="240"></td>
+    <td>We will see that it is also possible to call the default checkers from
+      the custom library.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="Interactions"></a>Interactions Between the Kernel and The Checker
+Libraries</h4>
+<p>Each time a command is executed, the arguments to be checked are passed to
+the corresponding checkers if exist. Some checkers can be found either in the
+default library or in the custom library:
+<ul>
+  <li>if the Custom library exists and contains the wanted checker, this checker
+    is called instead of the default one</li>
+  <li>if the Custom library does not exist or exist but does not export the
+    wanted checker, the default checker is chosen</li>
+</ul>
+<p>We will see afterwards that it is also possible to call the default checkers
+from the custom checkers. So, depending on what has been written in the body of
+a custom checker, it is possible
+<ul>
+  <li>to change the rules that are verified by the kernel (by writing new code)</li>
+  <li>to inhibit some of them (just returning &quot;S_OK&quot;)</li>
+  <li>to add new rules in addition to the default ones (by wrting new code and
+    calling the corresponding default checker)</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Implementing"></a><b>Implementing Custom Checkers</b></h3>
+<h4><a name="Prerequisites"></a><b>Prerequisites</b></h4>
+<p>It is possible to build a custom library without having a full CAA V5
+development environment installed. Only a C++ compiler is needed. The
+compilation and the creation of the library are performed by a <a href="#Building the Customer Checker Library">specific
+tool</a>.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The External Checker Interface"></a><b>The External Checker
+Interface</b></h4>
+<p>The custom library must export two functions that are recognized by the SCM
+kernel and that are called when loading the custom library.<br>
+Here are their definitions:</p>
+<p><a name="ADLCMGetAPIVersion"></a>const char *ADLCMGetAPIVersion();</p>
+<blockquote>
+  <p>This function must not be modified and is used by the kernel to avoid any
+  inconsistency between the kernel and the custom library (especially when
+  further versions of SCM will be installed upon an existing installation)</p>
+</blockquote>
+<p><a name="ADLCMInitAPI"></a>HRESULT ADLCMInitAPI(ADLCMAPIInterface
+&amp;APIInterface)</p>
+<blockquote>
+  <p>This function is always called by the kernel and it allows
+  <ul>
+    <li>the custom library to know the default checkers (located in the default
+      library).<br>
+      Then it will be able to call them from the custom checkers</li>
+    <li>the custom library to provide its own checkers in place of the default
+      ones</li>
+  </ul>
+</blockquote>
+<p>The custom library sample that is provided with SCM performs the two
+operations: it registers the references to the default checkers and provides its
+own checkers</p>
+<p>The other functions that are defined in the custom library are those
+corresponding to the custom checkers. To know the list of default checkers that
+can be redefined, consult the ADLCMAPIInterface class definition which propose a
+SetXXX() method for each XXX default checker.</p>
+<p>Actually there are five checkers that can be defined in the custom library:</p>
+<p>HRESULT <a href="#The ADLCMCheckArchiRules Checker">ADLCMCheckArchiRules</a>(ADLCMCheckArchiRulesArgs)</p>
+<p>HRESULT <a href="#The ADLCMCheckIfUnixPathIsShared Checker">ADLCMCheckIfUnixPathIsShared</a>(ADLCMCheckIfUnixPathIsSharedArgs)</p>
+<p>HRESULT <a href="#The ADLCMCheckIfUnixPathIsShared Checker">ADLCMCheckSoftObj</a>(ADLCMCheckSoftObjArgs)</p>
+<p>HRESULT <a href="#The ADLCMCheckIfUnixPathIsShared Checker">ADLCMCheckPromotionRequest</a>(ADLCMCheckPromotionRequestArgs)</p>
+<p>HRESULT <a href="#The ADLCMCheckIfUnixPathIsShared Checker">ADLCMCheckFlow</a>(ADLCMCheckFlowArgs)</p>
+<p>In further SCM versions, it will be possible that other functions can be
+defined in the custom library. It is the reason why the <a href="#ADLCMGetAPIVersion">ADLCMGetAPIVersion</a>
+function must be implemented by the custom library.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="Calling kernel Functions"></a><b>Calling Kernel Utilities</b></h4>
+<p>The custom library is initialized using the <a href="#ADLCMInitAPI">ADLCMInitAPI</a>
+function. This function receives in input an instance of the class
+ADLCMAPIInterface which provides some methods for managing errors and messages
+in a format that can be handled by the kernel.</p>
+<p>&nbsp;
+<pre>ADLCMAPIMsgBldrCtlg * MakeMsgBldrCtlg(const char *Catalog, const char *Code) </pre>
+<blockquote>
+  <p>This method is used for creating a NLS message builder from a usual CAA
+  message catalog file. See the section &quot;Installing the Custom Checker
+  Library&quot; to know where such a message file can be delivered</p>
+</blockquote>
+<p>&nbsp;
+<pre>HRESULT SetLastError(const char *SourcePath, 
+                            int SourceLine,
+                            ADLCMAPIMsgBldr *pRequestBldr,
+                            ADLCMAPIMsgBldr *pDiagnosticBldr,
+                            ADLCMAPIMsgBldr *pAdviceBldr,
+                            ADLCMAPIErrorType ErrorType = ADLCMAPIErrorTypeCritical,
+                            HRESULT hr = E_FAIL) 
+</pre>
+<blockquote>
+  <p>This method is used for raising an error and defining the associated
+  messages (which have been defined using the method MakeMsgBldrCtlg).</p>
+</blockquote>
+<p>The following sample shows how to return to the SCM kernel an error with a
+relevant message:
+<ul>
+  <li>the error code is initialized with S_OK</li>
+  <li>an error is set using the <em>SetLastError</em> method</li>
+  <li>the error messages are found in the <em>ADLCMD</em> NLS message file with
+    indexes &quot;<em>0525</em>&quot;, &quot;<em>0526</em>&quot; and &quot;<em>0527</em>&quot;</li>
+</ul>
+<table class="code">
+  <tr>
+    <td>
+      <pre>HRESULT hr = S_OK;
+...
+if (! UnixSharedPathFound)
+   {
+      ADLCMAPIMsgBldrCtlg *pRequestBldr = GetAPIInterface().<b>MakeMsgBldrCtlg</b>(&quot;ADLCMD&quot;, &quot;0525&quot;); // &quot;Check the Unix network path \&quot;/p1\&quot;&quot;
+      pRequestBldr-&gt;AddNewParameter(Path);
+
+      ADLCMAPIMsgBldrCtlg *pDiagnosticBldr = GetAPIInterface().<b>MakeMsgBldrCtlg</b>(&quot;ADLCMD&quot;, &quot;0526&quot;); // &quot;The Unix network path \&quot;/p1\&quot; is invalid.&quot;
+      pDiagnosticBldr-&gt;AddNewParameter(Path);
+
+      ADLCMAPIMsgBldrCtlg *pAdviceBldr = GetAPIInterface().<b>MakeMsgBldrCtlg</b>(&quot;ADLCMD&quot;, &quot;0527&quot;); // &quot;Use /p1 option or choose between the following path: /p2&quot;
+      pAdviceBldr-&gt;AddNewParameter(LocalPathOptionName);
+      pAdviceBldr-&gt;AddNewParameter(&quot;/u/lego/, /u/users/&quot;);
+
+      hr = GetAPIInterface().<b>SetLastError</b>(__FILE__, __LINE__, pRequestBldr, pDiagnosticBldr, pAdviceBldr);
+
+      delete pRequestBldr;
+      delete pDiagnosticBldr;
+      delete pAdviceBldr;
+   }
+return hr;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="Calling Default Checkers"></a><b>Calling Default Checkers</b></h4>
+<p>It is interesting to call a default checker when specific tests must be
+performed in addition to the default ones.</p>
+<p>Considering a default checker whose name is XXX and which can be redefined,
+the ADLCMAPIInterface class provides two methods either
+<ul>
+  <li>for getting the reference to this default checker: it is the method
+    ADLCMAPIInterface::DfltXXX()</li>
+  <li>for replacing the default checker by a custom checker: it is the method
+    ADLCMAPIInterface::SetXXX()</li>
+</ul>
+<p>Then if you want to call a default checker from your own function, you have
+just to call the appropriate DlftXXX() method and to set its arguments with the
+values you want. This method will return a HRESULT value that will be tested to
+know whether the call was successful or not.</p>
+<p>The following example shows the default checker called from the custom
+checker in the case where the object to be checked is a framework:</p>
+<table class="code">
+  <tr>
+    <td>
+      <div align="left">
+        <pre>HRESULT ADLCMCheckArchiRules(
+        const ADLCMAPIParsedProjPath &amp;APIParsedProjPath,
+        int ProjElemIdx,
+        const char *User,
+        Boolean &amp;UnicityWithExtension,
+        Boolean &amp;UnicityInFolder)
+{
+   HRESULT hr = S_OK;
+
+   if (APIParsedProjPath.GetProjElem(ProjElemIdx).GetProjElemType() == ADLCMAPIProjElem::ArchiFramework)
+      // Framework -&gt; default check
+      <b>hr = GetAPIInterface().DfltCheckArchiRules</b>(
+                                        APIParsedProjPath,
+                                        ProjElemIdx,
+                                        User,
+                                        UnicityWithExtension,
+                                        UnicityInFolder);
+      else if (Type == ADLCMAPIProjElem::ArchiModule)
+      ...</pre>
+      </div>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The ADLCMCheckArchiRules Checker"></a>The ADLCMCheckArchiRules
+Checker</h4>
+<p>This checker is called for every file or directory path given as argument to
+a SCM command (once per argument).</p>
+<table class="code">
+  <tr>
+    <td>
+      <div align="left">
+        <pre>HRESULT ADLCMCheckArchiRules(
+	const ADLCMAPIParsedProjPath &amp;APIParsedProjPath,
+	int ProjElemIdx,
+	const char *User,
+	Boolean &amp;UnicityWithExtension,
+	Boolean &amp;UnicityInFolder)
+{
+...
+}</pre>
+      </div>
+    </td>
+  </tr>
+</table>
+<h5>Parameters</h5>
+<ul>
+  <li>const ADLCMAPIParsedProjPath &amp;APIParsedProjPath: the element (file or
+    directory) to be checked under a specific format allowing the checker to
+    access each part of the path
+    <ul>
+      <li>the path is split into pieces corresponding to the directories between
+        the workspace root directory and the element to be checked</li>
+      <li>the ADLCMAPIParsedProjPath class provides methods for accessing each
+        piece</li>
+      <li>the first piece correspond to a framework, the second one to module or
+        directory, etc</li>
+    </ul>
+  </li>
+  <li>int ProjElemIdx: the piece of path of the element for which the checker is
+    called by the SCM kernel (0 for the first part, 1 for the second part, etc)</li>
+  <li>const char *User: it is the name of the current user</li>
+  <li>Boolean &amp;UnicityWithExtension: if the element must be checked by the
+    SCM kernel as unique, this boolean must be set to &quot;TRUE&quot; if this
+    control must be performed considering the extension.<br>
+    Note that there is no default value for this boolean and it's up to the
+    custom checker to set it explicitly.</li>
+  <li>Boolean &amp;UnicityInFolder: must be set to &quot;TRUE&quot; if the
+    kernel must verify that the given element is unique only in the embedding
+    folder and must be to &quot;FALSE&quot; if the element must be unique in the
+    whole workspace tree.<br>
+    Note that there is no default value for this boolean and it's up to the
+    custom checker to set it explicitly.</li>
+</ul>
+<p>For instance, when the user runs the command <em>adl_mk_elem
+Fw/module.m/src/foo.cpp</em>, the ADLCMCheckArchiRules checker is called with
+the following arguments:
+<ul>
+  <li>APIParsedProjPath
+    <ul>
+      <li>APIParsedProjPath.GetLastProjElem().GetProjName() returns f<em>oo.cpp</em></li>
+      <li>APIParsedProjPath.GeNbProjElem() returns<em> 3</em></li>
+      <li>APIParsedProjPath.GetLastProjElem().GetProjElemType() returns <em>ArchiFileElement</em></li>
+      <li>APIParsedProjPath.GetLastProjElem().SoftObjIsComponent() returns <em>false</em></li>
+      <li>APIParsedProjPath.GetProjElem(1).GetProjElemType() returns <em>ArchiModule</em></li>
+      <li>APIParsedProjPath.GetProjElem(1).SoftObjIsComponent() returns <em>true</em></li>
+    </ul>
+  </li>
+  <li>ProjElemIdx = 3</li>
+  <li>User = current user</li>
+</ul>
+<h5>Default checker</h5>
+<p>The rules enforced by the default checker are described in a dedicated paper
+[<a href="#Ref1">1</a>]. Please consult it for learning more about the rules.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The ADLCMCheckIfUnixPathIsShared Checker"></a>The
+ADLCMCheckIfUnixPathIsShared Checker</h4>
+<p>This checker is called to check if a given UNIX path should be considered
+like a network path or not; that is to say that it will be considered by SCM
+command as referencing the same file system from any UNIX host of the current
+SCM installation. See the <a href="#Sample">sample</a>'s sources for a full
+implementation of this checker.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>HRESULT ADLCMCheckIfUnixPathIsShared(const char *Path, const char *LocalPathOptionName)
+{
+...
+}</pre>
+    </td>
+  </tr>
+</table>
+<h5>Parameters</h5>
+<ul>
+  <li>const char *Path: It is the full Unix path to be checked.</li>
+  <li>const char *LocalPathOptionName: it is the name of the SCM option that is
+    used for specifying a local path (see adl_mk_ws or adl_mk_image commands).
+    This string can be used if the path is not correct and if you want to
+    display a message in which you remind the option to be used for a local
+    path.</li>
+</ul>
+<h5>Default checker</h5>
+<p>The Unix paths that are considered as shared paths must begin either by
+/u/users or by /u/lego [<a href="#Ref2">2</a>].</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The ADLCMCheckSoftObj Checker"></a>The ADLCMCheckSoftObj Checker</h4>
+<p>This checker is called to check customer rules when a software object
+(framework, module, data, directory or element) is created, modified, deleted or
+imported. In the adl_mk_fw, adl_mk_mod, adl_mk_data, adl_mk_dir, adl_mk_elem,
+adl_co, adl_mv, adl_rm, adl_unrm, adl_import commands, for each software object
+treated this checker is called just before the validation of the action. See the
+<a href="#Sample">sample</a>'s sources for a full implementation of this
+checker.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>HRESULT ADLCMCheckSoftObj(
+	const ADLCMAPIParsedProjPath &amp;APIParsedProjPath,
+	const ADLCMAPIParsedProjPath *pTargetAPIParsedProjPath,
+	const char *CommandName,
+	const char *User,
+	const char *CurrentWsTree,
+	const char *CurrentWs,
+	const char *CurrentImage)
+{
+...
+}</pre>
+    </td>
+  </tr>
+</table>
+<h5>Parameters</h5>
+<ul>
+  <li>const ADLCMAPIParsedProjPath &amp;APIParsedProjPath: Path of the software
+    object to be checked under a specific format allowing the checker to access
+    each part of the path
+    <ul>
+      <li>the path is split into pieces corresponding to the directories between
+        the workspace root directory and the object to be checked</li>
+      <li>the ADLCMAPIParsedProjPath class provides methods for accessing each
+        piece</li>
+      <li>the first piece correspond to a framework, the second one to module or
+        directory, etc</li>
+    </ul>
+  </li>
+  <li>const ADLCMAPIParsedProjPath *pTargetAPIParsedProjPath: Target path under
+    a specific format allowing the checker to access each part of the path. If
+    the software object is moved, pTargetAPIParsedProjPath is valued.</li>
+  <li>const char *CommandName: Name of the running command</li>
+  <li>const char *User: Name of the current user</li>
+  <li>const char *CurrentWsTree: Current workspace tree. See <a href="#WorkspaceTreeParameter">Structure
+    of workspace tree parameter</a>.</li>
+  <li>const char *CurrentWs: Current workspace. See <a href="#WorkspaceParameter">Structure
+    of workspace parameter</a>.</li>
+  <li>const char *CurrentImage: Current image in the workspace tree. See <a href="#ImageInWorkspaceTreeParameter">Structure
+    of image in a workspace tree parameter</a>.</li>
+</ul>
+<h5>No Default checker</h5>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The ADLCMCheckPromotionRequest Checker"></a>The
+ADLCMCheckPromotionRequest Checker</h4>
+<p>This checker is called for every promotion request in adl_promote command
+just before the validation of the transaction. See the <a href="#Sample">sample</a>'s
+sources for a full implementation of this checker.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>HRESULT ADLCMCheckPromotionRequest(
+	const char *SoftObjChangesFilePath,
+	const char *User,
+	const char *CurrentWsTree,
+	const char *CurrentWs,
+	const char *PromotedWsRev,
+	const char *TargetWs,
+	const char *CurrentImage,
+	Boolean Simulation)
+{
+...
+}</pre>
+    </td>
+  </tr>
+</table>
+<h5>Parameters</h5>
+<ul>
+  <li>const char *SoftObjChangesFilePath: File path containing software object
+    changes to promote. See <a href="#SoftObjChangesFileParameter">Structure
+    software object changes file</a>.</li>
+  <li>const char *User: Name of the current user</li>
+  <li>const char *CurrentWsTree: Current workspace tree. See <a href="#WorkspaceTreeParameter">Structure
+    of workspace tree parameter</a>.</li>
+  <li>const char *CurrentWs: Current workspace. See <a href="#WorkspaceParameter">Structure
+    of workspace parameter</a>.</li>
+  <li>const char *PromotedWsRev: Promoted workspace revision. See <a href="#WorkspaceRevisionParameter">Structure
+    of workspace revision parameter</a>.</li>
+  <li>const char *TargetWs: Target workspace (workspace collector) of the
+    promotion request. See <a href="#WorkspaceParameter">Structure of workspace
+    parameter</a>.</li>
+  <li>const char *CurrentImage: Current image in the workspace tree. See <a href="#ImageInWorkspaceTreeParameter">Structure
+    of image in a workspace tree parameter</a>.</li>
+  <li>Boolean Simulation: TRUE if the command is executed in simulation mode
+    (-simul option).</li>
+</ul>
+<h5>No Default checker</h5>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="The ADLCMCheckFlow Checker"></a>The ADLCMCheckFlow Checker</h4>
+<p>This checker is called for every import with the adl_force_so_chg command
+just before the validation of the transaction.&nbsp;</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>HRESULT ADLCMCheckFlow(
+	const char *FlowDataFilePath,
+	const char *CommandName,
+	const char *User,
+	const char *CurrentWsTree,
+	const char *CurrentWs,
+	int NbOriginWsRev,
+	const char *OriginWsRev[],
+	const char *CurrentImage,
+	Boolean Simulation)
+{
+...
+}</pre>
+    </td>
+  </tr>
+</table>
+<h5>Parameters</h5>
+<ul>
+  <li>const char *FlowDataFilePath: File path containing flow data : the
+    software object changes imported, the attached components, the merges to
+    solve, .... See <a href="#FlowDataFileParameter">Structure flow data file</a>.</li>
+  <li>const char *CommandName: Name of the running command</li>
+  <li>const char *User: Name of the current user</li>
+  <li>const char *CurrentWsTree: Current workspace tree. See <a href="#WorkspaceTreeParameter">Structure
+    of workspace tree parameter</a>.</li>
+  <li>const char *CurrentWs: Current workspace. See <a href="#WorkspaceParameter">Structure
+    of workspace parameter</a>.</li>
+  <li>int NbOriginWsRev: Number of origin workspace revisions. Now, it is always
+    1.</li>
+  <li>const char *OriginWsRev: Array of origin workspace revisions from which
+    the software object modifications come. See <a href="#WorkspaceRevisionParameter">Structure
+    of workspace revision parameter</a>.</li>
+  <li>const char *CurrentImage: Current image in the workspace tree or
+    &quot;&lt;NULL&gt;&quot; if no current image. See <a href="#ImageInWorkspaceTreeParameter">Structure
+    of image in a workspace tree parameter</a>.</li>
+  <li>Boolean Simulation: TRUE if the command is executed in simulation mode
+    (-simul option).</li>
+</ul>
+<h5>No Default checker</h5>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="StructureCheckersParameters"></a>Structure of Checkers Parameters</h4>
+<p>Some parameters are complex objects with some attributes. They
+are described in one string with fields.</p>
+<ul>
+  <li>the first field is a keyword</li>
+  <li>the fields are separated by a pipe character &quot;|&quot;</li>
+  <li>for one field, if several values are accepted, they are listed separated
+    by a pipe character &quot;|&quot;</li>
+  <li>the &lt;...&gt; notation indicates a string. <a href="CAAWsmCustomization.htm#Dealing With Strings">See
+    dealing with strings</a>.</li>
+</ul>
+<h5><a name="WorkspaceTreeParameter"></a>Structure of Workspace Tree Parameter</h5>
+<ul>
+  <li>WS_TREE : keyword&nbsp;</li>
+  <li>&lt;WsTreeCaseName&gt; : case name of the workspace tree</li>
+  <li>&lt;WsTreeId&gt; : unique database identifier of&nbsp; the
+    workspace tree&nbsp;(computed by SCM)</li>
+  <li>&lt;ContentsServerHostName&gt; : contents server hostname
+    associated to the workspace tree</li>
+  <li>&lt;ContentsServerPort&gt; : contents server port number
+    associated to the workspace tree</li>
+  <li>&lt;DatabaseUpperName&gt; : database upper name where the
+    workspace tree is created</li>
+  <li>CHECK_CAA_RULES | NO_CHECK_CAA_RULES : indicates wether CAA rules are
+    checked or not for all workspaces of the workspace tree</li>
+  <li>NONE | OPTIONAL | MANDATORY : change request management mode (Internal
+    Dassault-Systèmes)</li>
+  <li>&lt;SoftwareLevel&gt; : software level value</li>
+</ul>
+<h5><a name="WorkspaceParameter"></a>Structure of Workspace Parameter</h5>
+<ul>
+  <li>WORKSPACE: keyword&nbsp;</li>
+  <li>&lt;WsCaseName&gt; : case name of the workspace</li>
+  <li>&lt;WsId&gt; : unique database identifier of&nbsp; the
+    workspace (computed by SCM)</li>
+  <li>&lt;WsTreeCaseName&gt; : case name of the workspace tree</li>
+  <li>&lt;WsTreeId&gt; : unique database identifier of&nbsp; the
+    workspace tree&nbsp;(computed by SCM)</li>
+  <li>AUTOMATIC_MERGE | NOT_AUTOMATIC_MERGE : indicates
+    whether merges can be solved automatically or by user help</li>
+  <li>PROMO_REQ_LOCKED | PROMO_REQ_NOT_LOCKED : indicates
+    whether promotion requests are allowed or not</li>
+  <li>PROMO_FROM_ANY_WS | PROMO_FROM_CHILD_WS : indicates
+    whether promotion requests can come only from child workspaces or also from
+    the parent workspace</li>
+  <li>SYNC_CMD_ALLOWED | SYNC_CMD_FORBIDDEN : indicates
+    whether an adl_sync command can be run in this workspace</li>
+  <li>PROMOTE_CMD_ALLOWED | PROMOTE_CMD_FORBIDDEN : indicates
+    whether an adl_promote command can be run in this workspace</li>
+  <li>MERGE_AT_COLLECT_ALLOWED | MERGE_AT_COLLECT_FORBIDDEN : indicates
+    whether merges are allowed when running the adl_collect command</li>
+  <li>SYNC_FOR_PROMO | NOT_SYNC_FOR_PROMO : indicates
+    whether child workspaces must synchronize themselves before being allowed to
+    promote</li>
+  <li>FLOW_TRACES_STORED | FLOW_TRACES_NOT_STORED : indicates
+    whether the traces produced by flow commands (adl_collect, etc) are stored</li>
+  <li>DEVELOPMNT | MULTILEVEL | CERTIF : kind of workspace
+    for the change request management tool (Internal Dassault-Systèmes)</li>
+  <li>DEFAULT | AUTOMATIC | MANUAL : publication type (see
+    adl_set_ws -publication_type)</li>
+  <li>CHECK_CAA_RULES|NO_CHECK_CAA_RULES|&lt;NULL&gt; : indicates whether CAA
+    rules are checked or not. &lt;NULL&gt; if it is not defined</li>
+  <li>NONE|OPTIONAL|MANDATORY|&lt;NULL&gt; : Change request management mode
+    (Internal Dassault-Systèmes). &lt;NULL&gt; if it is not defined</li>
+  <li>&lt;SoftwareLevel&gt; : The software level value</li>
+</ul>
+<h5><a name="ImageInWorkspaceTreeParameter"></a>Structure of Image in a
+Workspace Tree Parameter</h5>
+<ul>
+  <li>IMAGE_IN_TREE: keyword&nbsp;</li>
+  <li>&lt;ImageCaseName&gt; : case name of the image</li>
+  <li>&lt;ImageId&gt; : unique database identifier of&nbsp; the
+    image (computed by SCM)</li>
+  <li>WINDOWS | UNIX : indicates the platform the image
+    has been created on</li>
+  <li>&lt;ImageCaseProjectionPath&gt; : absolute path to the projection
+    directory</li>
+  <li>&lt;LocalHostName&gt; | &lt;NETWORK&gt; : the
+    &quot;&lt;NETWORK&gt;&quot; string indicates that the
+    image's path is a network path, otherwise the hostname where the image has
+    been created</li>
+  <li>REFRESHED | NOT_REFRESHED : indicates whether the
+    image is refreshed in this workspace tree</li>
+</ul>
+<h5><a name="WorkspaceRevisionParameter"></a>Structure of Workspace
+Revision Parameter</h5>
+<ul>
+  <li>WS_REV: keyword&nbsp;</li>
+  <li>&lt;WsRevRank&gt; : revision number (rank) of the
+    workspace &lt;WsCaseName&gt; in the tree &lt;WsTreeCaseName&gt;</li>
+  <li>&lt;WsRevHistoryRank&gt; : history rank of the workspace
+    &lt;WsCaseName&gt; in the tree &lt;WsTreeCaseName&gt; (internal version
+    number computed by SCM)</li>
+  <li>&lt;WsRevId&gt; : unique database identifier of&nbsp; the
+    workspace revision (computed by SCM)</li>
+  <li>&lt;ConfigRevId&gt; : unique database identifier of the
+    configuration revision (computed by SCM)</li>
+  <li>&lt;WsCaseName&gt; : case name of the workspace</li>
+  <li>&lt;WsId&gt; : unique database identifier of&nbsp; the
+    workspace (computed by SCM)</li>
+  <li>&lt;WsTreeCaseName&gt; : case name of the workspace tree</li>
+  <li>&lt;WsTreeId&gt; : unique database identifier of&nbsp; the
+    workspace tree&nbsp;(computed by SCM)</li>
+</ul>
+<h5><a name="SoftObjChangesFileParameter"></a>Structure of Software Object
+Changes File</h5>
+<p>The file contains software object changes grouped by software object. For
+each modified software object, we found the <b><a href="CAAWsmCustomization.htm#_SOFT_OBJInfo">_SOFT_OBJ</a></b>
+line and for each change type the&nbsp;<b><a href="CAAWsmCustomization.htm#_SO_CHGInfo">_SO_CHG_GRP_CR</a></b><a href="CAAWsmCustomization.htm#_SO_CHGInfo">,
+<b>__SO_CHG</b> and <b>___CREATED </b></a><b></b>lines.</p>
+<h5><a name="FlowDataFileParameter"></a>Structure of Flow Data File</h5>
+<p>The flow data file contains:</p>
+<ul>
+  <li>The software object changes grouped by software object. For each modified
+    software object, we found the <b><a href="CAAWsmCustomization.htm#_SOFT_OBJInfo">_SOFT_OBJ</a></b>
+    line and for each change type the&nbsp;<b><a href="CAAWsmCustomization.htm#_SO_CHGInfo">_SO_CHG_GRP_CR</a></b><a href="CAAWsmCustomization.htm#_SO_CHGInfo">,
+    <b>__SO_CHG</b> and <b>___CREATED </b></a><b></b>lines.</li>
+  <li>Software objects moved out <b><a href="CAAWsmCustomization.htm#_SOFT_OBJ_MOVED_OUT_FROMInfo">_SOFT_OBJ_MOVED_OUT_FROM</a></b></li>
+  <li>Attached components <a href="CAAWsmCustomization.htm#_ATTACHED_COMPONENTInfo"><b>_ATTACHED_COMPONENT</b></a>&nbsp;</li>
+  <li>Software objects which create projection conflicts <a href="CAAWsmCustomization.htm#_PROJECTION_CONFLICTInfo"></a><a href="CAAWsmCustomization.htm#_PROJECTION_CONFLICTInfo"><b>_PROJECTION_CONFLICT</b></a></li>
+  <li>Deleted merges. One line per deleted merge (couple of software object and
+    change type) with information
+    <ul>
+      <li>_DELETED_MERGE</li>
+      <li>&lt;SoftObjPath&gt; : relative path to the software
+        object</li>
+      <li>DEL | NOT_DEL : state of the software object, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the
+        software object (computed by SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA | DIR_ELEM | FILE_ELEM :
+        software object type</li>
+      <li>FOLDER | FILE : the software object is a directory or a
+        file</li>
+      <li>COMPONENT | ELEMENT : the software object is a
+        component or an element. A component is either a framework, a module or
+        a data. An element is a directory or a file and belongs to a
+        component.&nbsp;</li>
+      <li>CH_DELETED | MOVE | CH_DESCR | CH_CONTENT | CH_EXEC:
+        SCM modification type</li>
+    </ul>
+  </li>
+  <li>Merge to solve <b><href="CAAWsmCustomization.htm#_MERGE_TO_SOLVEInfo">_MERGE_TO_SOLVE</a></b></li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Sample"></a>Sample</h3>
+<p>A sample of the custom library is provided in the SCM installation:
+considering the directory specified when downloading the CAA RADE V5 CD-ROM, you
+should find the sample in XXX/resources/Adele/CustRulesLib directory (XXX can be
+intel_a, solaris_a, aix_a, etc).</p>
+<table border="0" width="100%">
+  <tr>
+    <td valign="middle"><img src="images/CheckLibSample.gif" alt="CheckLibSample.gif (18050 bytes)" width="360" height="300"></td>
+    <td valign="middle">As an example, here is a view on a Windows
+      installation:
+      <ul>
+        <li>The MakeInstall.bat file is used to generate the library.</li>
+        <li>The ADLCMCustRules.h and ADLCMCustRules.cpp files contain examples
+          of what can be found in a custom library.</li>
+        <li>The other .h files contain the definitions of the different classes
+          needed for compiling:
+          <ul>
+            <li>ADLCMAPIInterface.h</li>
+            <li>ADLCMAPIMsgBldr.h and ADLCMAPIMsgBldrCtlg.h (error and NLS
+              message utilities)</li>
+            <li>ADLCMAPIParsedProjPath.h</li>
+            <li>etc</li>
+          </ul>
+        </li>
+        <li>The msgcatalog directory contains an example of a english NLS
+          message file and this directory can contain sub-directories depending
+          the language supported by the custom library (French, German,
+          Japanese, etc)</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Building the Customer Checker Library"></a><b>Building the
+Custom Checker Library</b></h3>
+<p>If you want to use your own tools to generate the custom library, just copy
+the source files under your environment, generate the library and install it
+with the NLS message files (if any) by following what is explained in the <a href="#Installing the Customer Checker Library">installation
+section</a>. Otherwise you can use the MakeInstall program located in the
+directory where the sample source files are stored and execute it.</p>
+<p>The purpose of the MakeInstall program is
+<ol>
+  <li>to compile all the source files</li>
+  <li>to link the derived objects to produce the custom library</li>
+  <li>create a runtime view gathering the library and the message files</li>
+</ol>
+<p>Before using the tool, check the following prerequisites:
+<ul>
+  <li>create a temporary directory which will be used as a target directory for
+    producing the library</li>
+  <li>the C++ compiler and linker are found in PATH</li>
+  <li>change the current working directory to the one containing the source
+    files (.cpp and .h) and the &quot;msgcatalog&quot; directory.</li>
+</ul>
+<p>Here is an example where the library is produced under the temporary
+directory E:\MyLib:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>MakeInstall E:\MyLib
+##############################################
+                Initialization
+##############################################
+msgcatalog\ADLCMCUSTRULES.CATNls
+msgcatalog\French\ADLCMCUSTRULES.CATNls
+2 File(s) copied
+##############################################
+                Compilation
+##############################################
+ADLCMCustRules.cpp
+ADLCMCustStringUtilities.cpp
+##############################################
+                 Link-edit
+##############################################
+   Creating library e:\MyLib\ADLCMCustRules\code\bin\ADLCMCustRules.lib and object e:\MyLib\ADLCMCustRules\code\bin\ADLCMCustRules.exp
+##############################################
+                   End
+##############################################
+Directory PATH listing
+Volume serial number is 0012FC94 8C79:E0CF
+E:\MYLIB\ADLCMCUSTRULES
++---code
+¦   +---bin
+¦           ADLCMCustRules.dll
+¦           ADLCMCustRules.exp
+¦           ADLCMCustRules.lib
+¦           ADLCMCustRules.pdb
+¦
++---resources
+    +---msgcatalog
+        ¦   ADLCMCUSTRULES.CATNls
+        ¦
+        +---French
+                ADLCMCUSTRULES.CATNls
+
+The directory e:\MyLib\ADLCMCustRules has been successfully created.</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Installing the Customer Checker Library"></a><b>Installing the
+Custom Checker Library</b></h3>
+<p>Once the custom library generated, it must become visible by SCM commands.
+This is done using the ADL_CUST_RULES_LIB environment variable.</p>
+<p>There are two cases:
+<ul>
+  <li>If the library and the message files are copied into the standard CAA RADE
+    runtime view,<br>
+    set the ADL_CUST_RULES_LIB variable with just the library identifier, for
+    instance <em>ADLCMCustRules</em> in our example</li>
+  <li>If the library and the message files are stored somewhere outside the
+    standard CAA RADE runtime view.<br>
+    set the ADL_CUST_RULES_LIB variable with the full path name of the library,
+    for instance <em>E:\mylib\ADLCMCustRules\code\bin\ADLCMCustRules.dll</em> in
+    our example.</li>
+</ul>
+<p>Where to set this variable?</p>
+<p>The best way should be to edit the SCM initialization profile [<a href="#Ref3">3</a>]
+and to add the setting of this variable.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+<p>The controls performed by SCM commands on their arguments can be changed by
+building a custom library and referencing it from the SCM initialization
+profile.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="TOP"><a name="Ref1"></a>[1]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmRules.htm">CAA V5 Rules</a></td>
+  </tr>
+  <tr>
+    <td valign="TOP"><a name="Ref2"></a>[2]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmRules.htm#Unix workspace image">Default
+      Unix Shared Paths</a></td>
+  </tr>
+  <tr>
+    <td valign="TOP"><a name="Ref3"></a>[3]</td>
+    <td><a href="CAAWsmGettingStarted.htm#SCM Profiles Initialization">SCM
+      Initialization Profiles</a></td>
+  </tr>
+  <tr>
+    <td valign="TOP"><a name="Ref4"></a>[4]</td>
+    <td><a href="CAAWsmCustomization.htm">SCM output in program
+      mode</a></td>
+  </tr>
+  <tr>
+    <td align="RIGHT" valign="TOP" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="TOP">Version: <b>3</b> [Jul 2003]</td>
+    <td valign="TOP">Add one argument for checkers :
+      ADLCMCheckPromotionRequest, ADLCMCheckFlow</td>
+  </tr>
+  <tr>
+    <td valign="TOP">Version: <b>2</b> [Jan 2003]</td>
+    <td valign="TOP">New checkers : ADLCMCheckSoftObj,
+      ADLCMCheckPromotionRequest, ADLCMCheckFlow</td>
+  </tr>
+  <tr>
+    <td valign="TOP">Version: <b>1</b> [May 2001]</td>
+    <td valign="TOP">Document created</td>
+  </tr>
+  <tr>
+    <td align="RIGHT" valign="TOP" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

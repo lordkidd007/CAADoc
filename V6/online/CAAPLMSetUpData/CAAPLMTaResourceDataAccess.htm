@@ -1,0 +1,248 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Application Resource Data Access</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Application Resource Data Access</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Your application are requiring resources which can be customized by an 
+		administrator. So you have described each resource through an xml file [<a href="#References">1</a>]. 
+		Now, your application must be able to retrieve the current data set by an 
+		administrator. The framework PLMSetupDataInterfaces exposes API to retrieve 
+		the data that your application must use. This article presents and explains 
+		them.</p>
+		<ul>
+			<li><a href="#SetUpData Finder">Resource Data Management</a></li>
+			<li><a href="#Methods per Data Type">Methods per Data Type</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SetUpData Finder"></a>Resource Data Management</h2>
+<p>Do you remember [<a href="#References">2</a>], a Resource Set is defined by an 
+application, and the administrator creates as many Resource Table as link to a P&amp;0 
+project. The aim for your application is to retrieve the data of the Resource Table 
+associated with the current P&amp;0 project. Let&#39;s us introduce this APIs. In the following, 
+&quot;Resource Data&quot; will be a short cut for the data of a Resource Table.</p>
+<p>The management of Resource data is done through an object implementing <em>PLMISetupDataFinder. 
+T</em>his interface contains the methods to retrieve data for any application. To 
+manage the life cycle of such an object, you have a class, <em>PLMSetupDataGlobalFunctions.</em></p>
+<p>There are two possible scenarios:</p>
+<ul>
+	<li><strong>Data Always Available,</strong> you could always access data, all 
+	along the session.
+	<ol>
+		<li><code>PLMSetupDataGlobalFunctions::GetPLMSetupDataFinder</code>()
+		</li>
+		<li>You use the returned <em>PLMISetupDataFinder</em> interface pointer
+		</li>
+	</ol>
+	</li>
+	<li><strong>Data Temporary Available</strong>, your data will be available while 
+	you don&#39;t release the object managing the resource data.
+	<ol>
+		<li>You get a &quot;finder&quot; by giving a name, <code>PLMSetupDataGlobalFunctions::GetPLMSetupDataFinder(CATUnicodeString&amp;
+		<strong>iNameFinderObject</strong>).</code> This method creates a &quot;finder&quot; 
+		if it does not exist, or retrieves it thanks its name.</li>
+		<li>You use the returned <em>PLMISetupDataFinder</em> interface pointer 
+		while you need it</li>
+		<li>You release the finder<code> PLMSetupDataGlobalFunctions::RemovePLMSetupDataFinder(CATUnicodeString&amp; 
+		iNameFinderObject)</code></li>
+	</ol>
+	</li>
+</ul>
+<p>&quot;Data available&quot; means that data are in session, or downloaded in a directory, 
+and it is safe to use it. But once the object managing the Resource data is released 
+(never possible with scenario 1), PLM data are no more accessible. Only, the downloaded 
+files are still accessible till the end of the session.</p>
+<p>For PLM Object you can compare this management to the bag [<a href="#References">3</a>] 
+management. The comparison is so similar, that you don&#39;t have to put in a bag the 
+data whose the type is PLM as you usually do when you create or retrieve a PLM object.
+</p>
+<p>The object managing the data can be used whatever the application resource set, 
+and not only one. Let&#39;s us details this object.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Methods per Data Type"></a>Methods per Data Type</h2>
+<p><em>PLMISetupDataFinder</em> contains three methods:</p>
+<ul>
+	<li><code>FindDocument</code></li>
+	<li><code>FindPointedResource</code></li>
+	<li><code>FindSheet</code></li>
+</ul>
+<p>These three methods are based on the same schema:</p>
+<ul>
+	<li>You give the <strong>name of the resource.</strong>
+	<p>The name is unique by giving the Application Resource Set Identifier, and 
+	the resource item identifier. The input string must have this format:</p>
+	<pre class="code">XXXAppResourceSetId|ResourceId</pre>
+	where <code>XXXAppResourceSetId</code> is the name of your xml file, and
+	<code>ResourceId</code> is the identifier of on resource item inside this xml 
+	file.</li>
+	<li>You give<strong> a criteria</strong> as a <em>CATICkeOject</em>
+	<p>As of today, this functionality is not open. So the only possible value is
+	<code>NULL_VAR</code>.</p>
+	</li>
+	<li>It returns the data as a <em>CATUnicostring</em> (<code>FindDocument</code>), 
+	as a <em>CATBaseUnknown</em> (<code>FindPointedResource</code>), and as a
+	<em>CATICkeSheet</em> (<code>FindSheet</code>)</li>
+</ul>
+<p>But how to handle the data to get what it contains? This table sums up for each 
+type of Resource item, the required<em> PLMISetupDataFinder</em> method, and how 
+to handle the data.</p>
+<table class="fill">
+	<tr>
+		<th>Resource Data Type</th>
+		<th>PLMISetupDataFinder Method</th>
+		<th>Interface to work with Data</th>
+	</tr>
+	<tr>
+		<td>Catalog</td>
+		<td>FindPointedResource</td>
+		<td rowspan="2">First use the CATIPLMComponent interface to retrieve the 
+		CATIAdpPLMIdentificator, then use the API of PLMLibraryNavUseItf to work 
+		with these two objects [<a href="#References">4</a>]. The Catalog is a Library 
+		modeler object, and a Chapter a Class modeler object. The use case [<a href="#References">2</a>] 
+		shows the piece of code to start with this data.</td>
+	</tr>
+	<tr>
+		<td>Chapter</td>
+		<td>FindPointedResource</td>
+	</tr>
+	<tr>
+		<td>PLMReference</td>
+		<td>FindPointedResource</td>
+		<td rowspan="2">Use the API exposed by the modeler. For example, <em>CATIPLMProducts</em> 
+		(PLM reference of Product modeler), <em>CATIPsiRepresentationReference</em> 
+		(PLM Representation reference of Product modeler). Refer to the &quot;PLM Modelers&quot; 
+		node in the CAA Encyclopedia.</td>
+	</tr>
+	<tr>
+		<td>PLMRepReference</td>
+		<td>FindPointedResource</td>
+	</tr>
+	<tr>
+		<td>PowerCopy</td>
+		<td>FindPointedResource</td>
+		<td>CATIUdfInstantiate (CATRepTemplateUseItf framework) [<a href="#References">5</a>]</td>
+	</tr>
+	<tr>
+		<td>User Feature</td>
+		<td>FindPointedResource</td>
+		<td>CATIUdfInstantiate/CATIUdfFeatureInstance (CATRepTemplateUseItf framework) 
+		[<a href="#References">5</a>]</td>
+	</tr>
+	<tr>
+		<td>Sheet</td>
+		<td>FindSheet</td>
+		<td>CATICkeSheet (KnowledgeInterfaces)</td>
+	</tr>
+	<tr>
+		<td>TextDocument</td>
+		<td>FindDocument</td>
+		<td>FindDocument returns the file path of the txt file. Use <code>CATFOpen</code>,
+		<code>CATFGets</code>, <code>CATFClose</code> (functions included in the 
+		header CATStdIO of System framework) to scan the txt file contents [<a href="#References">2</a>]</td>
+	</tr>
+	<tr>
+		<td>XMLDocument</td>
+		<td>FindDocument</td>
+		<td>FindDocument returns the file path of the XML file. Use the API of the 
+		XMLParserItf framework to scan the XML file [<a href="#References">6</a>]</td>
+	</tr>
+</table>
+<p>The data retrieved are those associated with the current project. You don&#39;t have 
+to manage this aspect. The API retrieves the data inside the Resource table associated 
+with the project where the end user is currently connected.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The data are accessible through the PLMSetupDataInterfaces framework, but then 
+to handle them -usually to browse them- you have to use the API dedicated to each 
+type of Resource item. We suggest the reader to pursue with the use case illustrating 
+these API [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPLMTaAppResourceSetDefinition.htm">Defining Application 
+		Resource Set</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPLMTaProjectResourcePrinciples.htm">V6 Application Resource</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbUcPLMCompLifeCycle.htm')">
+		Managing PLM Component Lifecycle</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAACLGLibraryNav/CAACLGUcBrowsingLibraryModel.htm')">
+		Browsing a Library Model</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaTaPowerCopyAndUserFeatures.htm')">
+		An Overview of Power Copies and User Features</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAXmlParser/CAAXmlTaIntroduction.htm')">
+		Introduction to XML</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAPLMUcRetrievingApplicationData.htm">Retrieving Application 
+		Resource Data</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

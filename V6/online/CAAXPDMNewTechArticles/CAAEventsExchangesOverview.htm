@@ -1,0 +1,346 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Events Exchanges</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Events Exchanges</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+			<h2>Abstract</h2>
+			<p>This article gives you information on the basic concepts behind 
+			Event Bus as well as a guideline on how to use 
+			the Events Exchanges Services to develop an Adapter.</p>
+			<ul>
+				<li><a href="#About">About Events Exchanges</a></li>
+				<li><a href="#FactsOnProcessing">Facts about Processing</a>
+				    <ul>
+						<li><a href="#RetrievingEventstoProcess">Retrieving 
+						Events to Process</a></li>
+						<li><a href="#TimeOut">Processing Time Out</a></li>
+						<li><a href="#ProcessingLocation">Processing Location</a></li>
+					</ul>
+				</li>
+				<li><a href="#LocalEventsSendingAndProcessing">Sending and 
+				Processing Local Events</a>
+					<ul>
+						<li><a href="#ProcessingBefore">Processing local events 
+						before sending them to the Gateway</a></li>
+						<li><a href="#ProcessingAfter">Processing local events 
+						after sending them to the Gateway</a></li>
+					</ul>
+				</li>
+				<li><a href="#RemoteEventsProcessing">Processing Remote Events</a></li>
+
+				<li><a href="#References">References</a></li>
+			</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="About"></a>About Events Exchanges</h2>
+<p>The principle of Events Exchanges is based on firing events from one 
+system in direction to another, the source and the target endpoints. </p>
+<p>The events have static parameters like the types of data that need to be 
+associated with (Meta data, bulk data or both) as well as the processing 
+locations (local, remote or local and remote). These parameters are described in 
+a configuration file that is known to both sides of the system. The rest of the 
+parameters are described by the application in charge of the event in the form 
+of a documentation that explains the content of the data exchanged as well as 
+the associated business logic necessary to process the event.</p>
+<p>The events are transferred via the HTTP protocol between the two Gateways and 
+the data associated via file server protocols like (S)FTP or UNC.</p>
+<p>The illustration describes the architecture of the Event Bus, the blue 
+parts are provided out of the box by Dassault Systemes, the purple ones by a 
+partner and the xPDM vendor.</p>
+<p>The rest of this document will be dedicated to the events web services and their expected uses by the Adapter.</p>
+
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: Event Bus Architecture</caption>
+	<tr>
+		<td>
+		<img src="images/CAAXPDMArchitecture.jpg"/></td>
+	</tr>
+</table>
+
+<p>On the xPDM side the main two components of the event exchanges are:</p>
+
+<dl>
+    <dt>The Gateway whose role is to:</dt>
+	<dd>
+	    <ul>
+	        <li>Receive events from the <strong>3D</strong>EXPERIENCE Gateway and to make them available 
+			for processing to the Adapter</li>
+	        <li>Receive events from the Adapter and dispatch them to the 
+			<strong>3D</strong>EXPERIENCE Gateway</li>
+	        <li>Manage event state, queues, persistency and error retries</li>
+	        <li>Transfer meta and bulk data from/to <strong>3D</strong>EXPERIENCE Gateway through file 
+			transfer protocol</li>
+	        <li>Download/upload these data to/from a directory accessible to the 
+			Adapter from/to the fileserver</li>		    
+	    </ul>
+	</dd>
+	<dt>The Adapter whose role is to:</dt>
+	<dd>
+	    <ul>
+	        <li>Send event to the Gateway in direction of the <strong>3D</strong>EXPERIENCE Gateway</li>
+	        <li>Poll and process events</li>
+	        <li>Prepare meta and bulk data when necessary</li>
+	    </ul>
+	</dd>
+</dl>
+
+<p>This rest of this document will explains how to use the Event Bus's Event 
+Services to develop an Adapter that will comply to these three roles.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FactsOnProcessing"></a>Facts about Processing</h2>
+
+<h3><a name="RetrievingEventstoProcess"></a>Retrieving Events to Process</h3>
+<p>When the Gateway receive events either from the <strong>3D</strong>EXPERIENCE Gateway, or its Adapter, it will guess if they need processing on the xPDM side. 
+If this is the case these events will be put into a special queue that will make them retrievable by the Adapter so it can process them.</p>
+<p>It is the responsibility of the Adapter to periodically retrieve events from 
+this queue to process them.</p>  
+<p>The events are retrieved by polling the <code>GetNextEventsForProcessing</code> 
+method. The end of the processing must be signaled by calling the <code>
+SendEventProcessingFeedback</code> method.</p>
+
+<h3><a name="TimeOut"></a>Processing Time Out</h3>
+<p>Once the events have been retrieved from the Gateway a processing time out is 
+set to avoid having zombies events if the Adapter has failed or did not send the 
+feedback properly.</p>
+<p>The time out value is configured in the Gateway config file, and the time 
+left to process each event is given to the Adapter in the <code>
+GetNextEventsForProcessing</code> method.</p>
+<p>If the processing of an event is going to take more time than allowed, then 
+the Adapter is able to reset the timer at anytime by sending a feedback process 
+of value <code>STILL_PROCESSING</code> (with the <code>
+SendEventProcessingFeedback</code> method).</p>
+
+<h3><a name="ProcessingLocation"></a>Processing Location</h3>
+<p>Each event has a "Processing Location" parameter which could have three values : <code>LocalOnly</code>, <code>RemoteOnly</code> or <code>LocalRemote</code>.</p>
+<p><code>LocalOnly</code> means that this event will only need processing on the site that fired it (the local site). It will be delegated to the Adapter but not sent to the 
+<strong>3D</strong>EXPERIENCE site.
+<br><code>RemoteOnly</code> means that this event will only need processing on the 
+<strong>3D</strong>EXPERIENCE site. It will not be delegated to the Adapter and will directly be sent to the <strong>3D</strong>EXPERIENCE site.
+<br><code>LocalRemote</code> means that this event will need processing by the two sites. It will be delegated to the Adapter and will be sent to the 
+<strong>3D</strong>EXPERIENCE site after successful processing.
+</p>
+<p>What we call "Local Event" in the following text is an event that was fired by Adapter. A "Remote Event" is an event that was received by the Gateway from the 
+<strong>3D</strong>EXPERIENCE site.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="LocalEventsSendingAndProcessing"></a>Sending and Processing Local 
+Events</h2>
+
+<p>Before sending an event the Adapter needs to determine the target and source 
+site ids as well as the name of the supported events using respectively <code>
+GetListOfSites</code> and <code>GetListOfSupportedEvents</code>. The source site 
+must be the local site and the target site the <strong>3D</strong>EXPERIENCE site. The <code>GetListOfSupportedEvents</code> output list will 
+contain all the static parameters associated with the events (processing 
+location, type of associated data ...) as they are defined into the Gateway 
+configuration file.</p>
+<p>The next steps will differ depending on the processing location.</p>
+<p>If the events has a <code>RemoteOnly</code> processing location then the Adapter will not 
+need to process this event and can directly send it using <code>SendEvent</code>. On the contrary if the event has a <code>LocalOnly</code> or <code>LocalRemote</code> processing location then the Adapter 
+will have to process data.<br>
+The Adapter has the choice of when the processing takes place: before or after 
+sending the event to the local Gateway.</p>
+
+<p>The two cases are described below:</p>
+
+    <h3><a name="ProcessingBefore"></a>Processing local events before sending 
+	them to the Gateway</h3>
+        
+        <p>The following text refers to (with the bold numbers) and explains the <a href="#Fig.2">
+		Fig.2</a>.</p>
+
+        <p>A new <code>AttachmentContentType</code> object must be created with 
+		the method <code>GenerateNewAttachmentContent</code> that will we be 
+		filled with a unique event path. The Adapter must now process and 
+		generate the data needed for this event. (<strong>1</strong> and <strong>
+		2</strong>)
+        <br>Depending of the associated file type there are two ways of sending 
+		the Meta data file.</p>
+        <p>If the events only require Meta data and if this file size is small 
+		then it can be directly sent to the Gateway without any file transfer by 
+		adding the content of this file as a <code>string</code> inside the <code>
+		inline</code> choice of the <code>xpgxml</code> element of the <code>
+		iLocallyProcessedEventContent</code> input parameter (<strong>4</strong>).</p>
+        <p>If the event also requires bulk data files or if the xml file size 
+		is too big then it must be firstly stored into the event path and 
+		secondly referenced inside the <code>fileReference</code> choice of the <code>
+		xpgxml</code> element of the <code>iLocallyProcessedEventContent</code> 
+		input parameter (<strong>3</strong>). 
+        <br>Similarly, the bulk data files must be stored into the event path 
+		then referenced into the <code>bulkDatareferences</code> element of the <code>
+		iLocallyProcessedEventContent</code> input parameter(<strong>3</strong>)</p>
+        <p>By setting the <code>iLocallyProcessedEventContent</code> parameter 
+		the Gateway will recogniz the fact that this event has already been 
+		locally processed thus will directly send it to the <strong>3D</strong>EXPERIENCE Gateway alongside 
+		the associated data.</p>
+        <p>The last step is to effectively call <code>SendEvent</code> (<strong>4</strong>) 
+		with all the previously determined parameters : target site id, event
+		name, processed file reference, etc...</p>
+        
+        <br>
+        <table>
+	        <caption><a name="Fig.2"></a>Fig.2: Processing local events before 
+			sending them to the Gateway</caption>
+	        <tr>
+		        <td><img alt="Process local events before sending them to the Gateway" src="images/CAAXpgLocalProcessingBefore.png"></td>
+	        </tr>
+        </table>
+        <br>  
+        
+        <table class="Remark">
+            <tr>
+                <td class="Remark"><span class="run-in">Warning</span>: Sending 
+				the meta data file content directly via the web services (<strong>4</strong>) 
+				is only recommended for relatively small file size. If the file 
+				is too big the method call might fail due to HTTP transfer 
+				errors and your event will not be properly sent.
+                </td>
+            </tr>
+        </table>
+
+    
+    <h3><a name="ProcessingAfter"></a>Processing local events after sending them 
+	to the Gateway</h3>
+    
+            <p>The following text refers to (with the bold numbers) and explains 
+			the <a href="#Fig.3">Fig.3</a>.</p>
+			
+			<p>The main benefits of processing the events after sending it is to 
+			be able to quickly send event that would need a significant time of 
+			processing without blocking any other process (UI ...), therefore 
+			the Gateway will add it in its queues and the processing order 
+			will be respected.</p>
+
+    
+            <p><b>Step 1 : Sending the event</b></p>
+
+            <p>The event can be sent to the Gateway from anywhere (Client, 
+			directly the Adapter ... - <strong>1</strong>) and will later be 
+			delegated for processing on the Adapter (Step 2).
+            <br>When sending the event, useful parameters necessary for later processing can be 
+			stored in to the<code> iProcessingArgs</code> element of the <code>SendEvent</code> 
+			method.</p>
+            <p>After the event has been sent to the Gateway it will be made 
+			available for processing to the Adapter.</p>
+            
+            <p><b>Step 2 : Processing the event</b></p>
+
+            <p>The event will be retrieved via the <code>
+			GetNextEventsForProcessing</code> method (<strong>2</strong>) along 
+			with its parameters (event name, id, processing args, queue type 
+			...). To know that the event comes from the local site the Adapter must check its <code>queueType</code> element that will have the value <code>LOCAL</code>.
+			<br>From the other parameters the Adapter can decide and apply the 
+			needed business logic to generate the events associated files. (<strong>3</strong>)</p>
+            <p>If the event need processing on the <strong>3D</strong>EXPERIENCE site (.i.e if the Processing location is <code>LocalRemote</code> : see <a href="#ProcessingLocation">Processing Location</a>) the resulting files must be stored into the event path (<strong>4</strong>) as well as referenced 
+            into the <code>iProcessedAttachmentContent</code> element of the <code>SendEventProcessingFeedback</code> method.</p>  
+
+            <p>In all cases a processing feedback must be sent to the Gateway (<strong>5</strong>).</p>
+       
+        <br>
+        <table>
+            <caption><a name="Fig.3"></a>Fig.3: Processing local events after 
+			sending them to the Gateway</caption>
+            <tr>
+	            <td><img alt="Processing local events after sending them to the Gateway" src="images/CAAXpgLocalProcessingAfter.png"></td>
+            </tr>
+        </table>
+        <br>
+
+<script type="text/javascript">    insertLinkToTop();</script>
+
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="RemoteEventsProcessing"></a>Processing Remote Events</h2>
+
+    <p>The following text refers to (with the bold numbers) and explains the <a href="#Fig.4">
+	Fig.4</a>.</p>
+	
+	<p>Like with for a local event, the remote events in need of processing will 
+	be retrieved via the <code>GetNextEventsForProcessing</code> method (<strong>1</strong>). 
+	To know that an event is Remote the Adapter has to check the <code>
+	queueType</code> element of the <code>EventForProcessing</code> which value 
+	will be <code>REMOTE</code>.</p>
+	<p>From the supported event name the Adapter can know if meta and bulk data 
+	are associated with this type of event. If it's the case they will be 
+	referenced into the <code>attachmentContent</code> element of the <code>
+	EventForProcessing</code> which will allow the Adapter to fetch them from 
+	the event path (<strong>2</strong>) before applying the corresponding 
+	business logic (<strong>3</strong>).</p>
+	<p>Finally according to the result (error, success) of the processing the 
+	Adapter must send a processing feedback to the Gateway using the <code>
+	SendEventProcessingFeedback</code> method (<strong>4</strong>).</p>
+	<br>
+	<table>
+	<caption><a name="Fig.4"></a>Fig.4: Processing Remote Events</caption>
+	<tr>
+		<td><img alt="Remote events processing" src="images/CAAXpgRemoteProcessing.png"></td>
+	</tr>
+	</table>
+	<br>
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	
+	<tbody>
+	<tr>
+		<td valign="top">[1] </td>
+		<td>&nbsp;</td>
+	</tr>
+	
+	<tr>
+		<td valign="top">[2]</td>
+		<td>&nbsp;</td>
+	</tr>
+	
+	</tbody>
+
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+</body>
+
+</html>

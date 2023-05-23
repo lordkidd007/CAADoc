@@ -1,0 +1,477 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Cut Copy Paste Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Cut Copy Paste Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article details step by step the Cut, Copy and Paste operations 
+		[<a href="#References">1</a>] in order to show where are the entry point for customization. </p>
+		<ul>
+			<li ><a href="#Introduction">Introduction</a>
+			</li>
+			<li ><a href="#Copy Operation">Copy Operation</a></li>
+			<li ><a href="#Paste Operation">Paste Operation</a></li>
+			<li ><a href="#Cut Operation">Cut Operation</a></li>
+			<li ><a href="#Recommendations">Recommendations</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>The Cut, Copy, Paste operations can be done either interactively, or by code using the APIs of the DataCommonProtocolUse 
+framework.</p>
+<ul>  
+<li>Copy + Paste :   DataCommonProtocolCCPServices:: CopyAndPaste</li>
+<li>Copy + Paste as Special  : DataCommonProtocolCCPServices:: CopyAndPasteAsSpecial</li>
+<li>Cut : no APIs</li>
+</ul>
+<p>During these three operations Feature modeler gives the hand to the application. The feature can implement methods, 
+called by the Feature modeler engine, in order to give more information, or to produce operations, that 
+Feature modeler cannot imagine, and do for the application. 
+These entry points are four methods of the <em>CATIFmFeatureBehaviorCustomization</em> interface. </p>
+<ul>
+<li>211  </li>
+<li>CcpUpdate</li>
+<li>CcpPaste</li>
+<li>CcpRegisterAdditionalObjectsForRemove</li>
+</ul>	
+<p>The objective of this article is to explain when these four methods are called during the CCP operations, and the role they are playing.</p>
+<p>All along this article the feature <code>FeatA</code> [<a href="#Fig.1">Fig.1</a>] 
+is used to illustrate the different operations, 
+and different implementation of <em>CATIFmFeatureBehaviorCustomization </em>.  </p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Data Model</caption>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCCPCustoDataModel.gif"></td>
+	</tr>
+</table>
+<p><code>FeatA</code> is a feature having four attributes </p>
+<ul>
+<li><code>Attr_AB</code>  to aggregate a feature. The current value is <code>FeatB</code> . </li>
+<li><code>Attr_AC</code>  to point a feature in the same stream. The current value is 
+<code>FeatC</code>. </li>
+<li><code>Attr_AD</code>  to point a feature in another stream. The current value is 
+<code>FeatD</code> . </li>
+<li><code>Attr_AE</code>  is an integer (symbolized by E) representing the level 
+of duplication of the feature.&nbsp; </li>
+</ul>
+<p> <code>FeatB</code>&nbsp; is a feature having 1 attribute,	<code>Attr_BC</code> to aggregate a feature in the same stream. 
+The current value is <code>FeatC</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Copy Operation"></a>Copy Operation</h2>
+<p>You want to copy some features. Interactively you select them in the viewer or in the spec tree. By code you use 
+the <code>CopyAndPaste </code>method, this method doing the Copy and Paste operations consecutively. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step by Step - copy"></a>Step by Step</h3>
+<p>The Copy operation consists in to copy in the clipboard the selected elements and other ones as described just further. So, 
+the Feature modeler engine does successively the following operations:</p>
+<ol>
+<li><strong>Defines</strong> the additional features from the selected ones
+<p>The additional (or dependencies) are the features aggregated by the selected features and their feature extensions. The dependencies are computed recursively. </p>
+</li>
+<li><strong>Calls</strong> <code>CcpRegisterAdditionalObjectsForCopy</code> on each selected features and  their dependencies. 
+<p>The <code>CcpRegisterAdditionalObjectsForCopy</code> method  is the means to add  features in the copy process, the ones that Feature modeler cannot find itself. </p>
+
+<li><strong>Computes and simplifies</strong>  all the features to copy </li>
+<p>Feature modeler defines the total list of features to copy (selected ones + their dependencies features + additional features), and then proceeds to 
+some simplification: add or remove redundant or missing features. </p>
+<li><strong>Copies</strong> all the features in the clipboard  </li>
+<li><strong>Updates</strong> links on the new copied features </li>
+<li><strong>Calls</strong> <code>CcpUpdate</code> on the new copied features.</li>
+<p>To do the model operations that the feature modeler engine cannot do for you.  </p>
+</ol>
+
+<p>If you have used the <code>CopyAndPaste</code> method, the method continues 
+with the <a href="#Paste Operation">Paste operation </a>steps.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Illustration - copy"></a>Illustration</h3>
+<p>The features are copied from the source stream to the clipboard.  The clipboard being a temporary structure, therefore 
+the <strong>Copy </strong>operation is a <strong>non persistent operation.</strong> </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtSourceClip.png"></td>
+	</tr>
+</table>
+ 
+<p>Let us explain what is the contents of the clipboard when FeatA is selected to be copied according to the implementation 
+of the 211 method on this feature. </p>
+<p><strong>Note</strong>: To simplify the example, there is no implementation of <em>CATIFmFeatureBehaviorCustomization </em>
+for the other StartUp than the one of <code>FeatA</code> , and the source stream is unique.
+</p>
+<h4>case 1 :no additional features for FeatA  </h4>
+<p>The picture just below shows the final result of the copy of <code>FeatA</code> when no additional feature is given for the copy of <code>FeatA</code> .</p>
+
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCopy11.gif"></td>
+	</tr>
+</table>
+<p>When <code>FeatA</code> is copied</p>
+<ul>
+<li>Feature engine computes <code>FeatA</code> , <code>FeatB </code>and <code>FeatC</code></li>
+<li>The 211 method is called on this list. Only <code>FeatA</code> has an implementation. No additional feature is added.</li>
+<li>The computed list contains, of course, <code>FeatA</code>, its aggregating features <code>FeatB</code>, and  <code>FeatC</code>. No element to change to this list.</li>
+<li> <code>FeatA</code>&#8217;, <code>FeatB</code>&#8217; and  <code>FeatC</code>&#8217; are created in the clipboard.</li>
+<li>The update links operation changes the value of one attribute of <code>FeatA</code>&#8217;
+<ul>
+	<li><code>Attr_AC</code> pointing  <code>FeatC </code>inside <code>FeatA </code>is now pointing FeatC&#8217; for <code>FeatA</code>&#8217;
+	</li>
+	<li><code>Attr_AD</code> is still pointing <code>FeatD </code>for <code>FeatA</code>&#8217; </li>
+</ul>
+</li>
+<li>The CcpUpdate method is called on the copied features <code>FeatA</code>&#8217;, <code>FeatB</code>&#8217;, <code>FeatC</code>&#8217;.  On <code>FeatA</code>&#8217; the counter value (E) is not changed.  ( it&#8217;s our implementation)</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>case 2 :Additional features for FeatA  </h4>
+<p>The picture just below shows the final result of the copy of <code>FeatA</code> .</p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCopy21.gif"></td>
+	</tr>
+</table>
+<p>When <code>FeatA</code> is copied</p>
+<ul>
+<li>Feature engine computes <code>FeatA</code> , <code>FeatB </code>and <code>FeatC</code></li>
+<li>The 211 method is called on this list. Only <code>FeatA</code> has an implementation. <code>FeatD </code>is added to the output  list.</li>
+<li>The computed list contains <code>FeatA</code> , <code>FeatB</code>, <code>FeatC </code>and <code>FeatD </code>added by <code>FeatA</code> </li>
+<li> <code>FeatA</code>&#8217;, <code>FeatB</code>&#8217;,  <code>FeatC</code>&#8217; and <code>FeatD</code>&#8217;  are created in the clipboard.</li>
+<li>The update links operation changes the value of two attribute of <code>FeatA</code>&#8217;</li>
+<ul>
+<li>Attr_AC pointing  <code>FeatC </code>(inside <code>FeatA</code>) is now  pointing <code>FeatC</code>&#8217; on <code>FeatA</code>&#8217;</li>
+<li>Attr_AD pointing  <code>FeatD </code>(inside <code>FeatA</code>) is now  pointing <code>FeatD</code>&#8217; on <code>FeatA</code>&#8217;</li>
+</ul>
+<li>The CcpUpdate method is called on the copied features : <code>FeatA</code>&#8217;, <code>FeatB</code>&#8217;, <code>FeatC</code>&#8217; and <code>FeatD</code>&#8217;.  On <code>FeatA</code>&#8217; the counter value (E) is not changed.  ( it&#8217;s our implementation)  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Paste Operation"></a>Paste Operation</h2>
+<p>You want to paste the features of the clipboard on a target. The target is interactively selected, or it is the second argument of the 
+CopyAndPaste/ CopyAndPasteAsSpecial methods. 
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step by Step - paste"></a>Step by Step</h3>
+<p>The Paste operation consists in copying the contents of the clipboard within a target. So, the Feature modeler engine does successively the following operations:</p>
+<ol>
+<li><strong>Defines </strong>the additional features (itself)</li>
+<li><strong>Computes and simplifies</strong>  all the features to paste</li>
+<li><strong>Copies </strong>the features to paste in the target stream.   </li>
+<li><strong>Updates </strong>links on the new copied features </li>
+<li><strong>Calls </strong><code>CcpUpdate </code>on the copied features </li>
+<li><strong>Calls </strong><code>CcpPaste </code>on the target feature with the 
+root features as arguments: those representing the original ones selected and 
+all features newly created by the specs but without a parent.<p>Nota: if the method fails, the features copied in the target stream are removed.</p>
+<li><strong>Empties </strong>the clipboard if the Paste is done by API </li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Illustration- paste"></a>Illustration</h3>
+<p>The objects are copied from the clipboard to the target stream.  </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCliptarget.png"></td>
+	</tr>
+</table>
+<p>Let us illustrate the Paste with the case 2 of the Copy (when an additional feature is provided when <code>FeatA </code>is copied). 
+The picture just above is the result of the Paste on a feature, <code>FeatR</code>. </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtPaste2.gif"></td>
+	</tr>
+</table>
+<p>When the elements of the clipboard are pasted on <code>FeatR</code>:</p>
+<ul>
+<li>Feature Modeler has automatically computed <code>FeatA</code>&#8217;, <code>Feat
+</code>&#8217;, <code>FeatC</code>&#8217; and <code>FeatD</code>&#8217; from the clipboard (step 1 and 2) </li>
+<li><code>FeatA&#8217;&#8217;,</code> <code>FeatB&#8217;&#8217;,</code> <code>FeatC&#8217;&#8217;</code> and
+<code>FeatD&#8217;&#8217; </code>are created in the target stream </li>
+<li>The links on the newly created features are updated.  <code>FeatA</code>&#8217;&#8217; pointes 
+<code>FeatC</code>&#8217;&#8217; and <code>FeatD</code>&#8217;&#8217;.  </li>
+<li>CCpUpdate is called on <code>FeatA</code>&#8217;&#8217;, <code>FeatB</code>&#8217;&#8217;, 
+<code>FeatC</code>&#8217;&#8217; and 
+<code>FeatD</code>&#8217;&#8217;.  Here we increment the value of the attribute E of 
+<code>FeatA</code>&#8221; of one : its value is 1.   </li>
+<li>CCpPaste is called on <code>FeatR</code>. The input argument is a list containing 
+the root features, so <code>FeatA</code>&#8217;&#8217; and <code>FeatD</code>''. In our example,&nbsp;
+<code>FeatA</code>&#8217;&#8217; must be pointed by <code>FeatR.</code> For <code>FeatD</code> 
+, here, nothing specific to do.&nbsp; 
+<code>FeatA</code>&#8221; already pointes it.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Cut Operation"></a>Cut/Delete Operation</h2>
+<p>This section is available when the end user launches either the Cut or the Delete commands, or when using the Delete method of 
+the DataCommonProtocolServices when the implementation is based on the CCP protocol 
+(it is possible for some DS features).
+</p>
+<p>That you want to Delete or Cut features, interactively you select them in the viewer or in the spec tree.  </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Step by Step - Cut"></a>Step by Step</h3>
+<p>The Cut operation consists in copying in the Clipboard the objects to cut, and then deleting the originals from the source target, 
+while the Delete operation only deletes them. 
+So, the Feature modeler engine does successively the following operations:</p>
+
+<p>Cut and Delete:</p>
+<ol>
+<li><strong>Calls </strong><code>CcpRegisterAdditionalObjectsForRemove </code>on the selected features and their dependencies.</li>
+<p>The dependencies are the features aggregated by the selected feature (recursively) and their feature extensions. </p>
+<p>The CcpRegisterAdditionalObjectsForRemove method  is the means to add features to the list of feature to delete, those 
+that the Feature modeler cannot find itself.</p>
+<li><strong>Computes and simplifies </strong> all the features to delete 
+<p>Feature modeler defines the total list of features to delete (selected ones + their aggregated features + additional features), 
+and then can proceed to some simplification: add or remove some redundant or missing features.</p>
+</ol>
+ <p>Cut only</p>
+ <ol>
+<li><strong>Calls </strong><code>CcpRegisterAdditionalObjectsForCopy </code>on the selected features and their dependencies.</li>
+<li><strong>Computes and simplifies</strong>  all the features to copy</li>
+<li><strong>Copies  </strong>the features in the clipboard  (those to be copied)</li>
+<li><strong>Updates</strong> links on the new copied features</li>
+<li><strong>Calls <code>CcpUpdate </code> </strong>on the new copied feature.</li>
+</ol>
+ <p>Cut and Delete</p>
+ <ol>
+ <li><strong>Deletes </strong>the features in the source stream ( those of 1 and 2 )</li>
+
+</ol>
+
+ 
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Illustration - cut"></a>Illustration</h3>
+<p>The objects are copied in the clipboard (if Cut), and then deleted from the original stream (cut and delete) </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCutClipboard.png"></td>
+	</tr>
+</table>
+<p>Let us illustrate what is copied in the clipboard, and what is deleted in the source stream, according to the combination 
+of the CcpRegisterAdditionalObjectsForRemove and 211 implemented on FeatA.  </p>
+<p><strong>Note</strong>: To simplify the example, there is no implementation of CATIFmFeatureBehaviorCustomization for the other features,and the source stream is unique. 
+Have a look to the section &#8220;Multi Container and multi Stream&#8221; chapter.</p>
+
+<h4>Case 1: both have no additional features</h4>
+<p>On left the result of the deletion, on right the result of the copy.  </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCut1.gif"></td>
+	</tr>
+</table>
+<ul>
+<li>When FeatA is copied you get the same result as Copy-Case 1 : the Att_AD attribute of FeatA&#8217; still points to FeatD .</li>  
+<li>When FeatA is deleted,  only is staying FeatD. The aggregating features of FeatA (FeatB,FeatC), are deleted too.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Case 2: both have additional features (FeatD)</h4>
+<p>On left the result of the deletion, on right the result of the copy.  </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCut2.gif"></td>
+	</tr>
+</table>
+<ul>
+<li>When FeatA is copied you got the same result as Copy-Case 2 : the Att_AD attribute of FeatA&#8217; points the new copied feature FeatD&#8217; .  </li>
+<li>When FeatA is deleted, it deletes FeatB,FeatC (aggregated) and FeatD (added)  too  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Case 3: additional features  for Copy (FeatD), and no one for remove</h4>
+<p>On left the result of the deletion, on right the result of the copy.  </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCut3.gif"></td>
+	</tr>
+</table>
+<ul>
+<li>When FeatA is copied you got the same result as Copy-Case 2 : the Att_AD attribute of FeatA&#8217; points the new copied feature FeatD&#8217; .  </li>
+<li>When FeatA is deleted only is staying FeatD. The aggregating features of FeatA (FeatB,FeatC), are deleted too.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Case 4: no additional feature  for Copy, and additional (FeatD) for remove</h4>
+<p>On left the result of the deletion, on right the result of the copy.  </p>
+<table>
+	<tr>
+		<td>
+		<img src="images/CAAFmExtCut4.gif"></td>
+	</tr>
+</table>
+<ul>
+<li>When FeatA is copied you got the same result as Copy-Case 1 : the Att_AD attribute of FeatA&#8217; still points FeatD which has been deleted &#8230;. .  </li>
+</ul>
+<ul>
+<li>When FeatA is copied you got the same result as Copy-Case 2 : the Att_AD attribute of FeatA&#8217; points the new copied feature FeatD&#8217; .  </li>
+<li>When FeatA is deleted only is staying FeatD. The aggregating features of FeatA (FeatB,FeatC), are deleted too.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Recommendations"></a>Recommendations</h2>
+<p>When you implement the <em>CATIFmFeatureBehaviorCustomization</em> interface there are some important rules to respect. 
+Lets start by the common ones.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Generic Remarks"></a>Generic Remarks</h3>
+<ol>
+<li>No View operations in all methods implementing this interface. No call to <em>CATIRedrawEvent</em> (to update the spec tree) or 
+<em>CATIModelEvents</em> (to update the Viewers). </li>
+<li>Do not use CATThrow in all methods, use the CATError mechanism to return an error. It is a strong recommendation.  </li>
+<li>No data model operations inside <code>CcpRegisterAdditionalObjectsForCopy </code>and
+<code>CcpRegisterAdditionalObjectsForRemove</code>. </li>
+<p>The reason is simple. 
+Just on example to illustrate the purpose. These two methods are called by the UI to disable or enable the Copy, Cut or Delete icons in the edit menu. If the method fails the related icon is grayed.  
+But these methods are invoked as soon as the icons must be displayed. You can easily understand why these methods must not contain model operations. </p>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="CATIFmFeatureBehaviorCustomization"></a>CATIFmFeatureBehaviorCustomization </h3>
+<p>This interface is implemented on the late type [<a href="#References">2</a>] 
+of a StartUp.</p>
+<h4>About CcpRegisterAdditionalObjectsForCopy </h4>
+<p>This method enables an application to provide additional feature to be copied 
+when a feature is copied. </p>
+<p><strong>Pay attention:</strong>&nbsp; No model operation in the 
+implementation. See <a href="#Generic Remarks">generic remarks</a></p>
+<p><strong>input</strong> : <code>iInitialSetOfObjects </code></p>
+<p>It is the features initially selected by the end user, or the ones of the <em>DataCommonProtocolCCPServices</em> 
+methods.</p>
+<p><strong>output</strong> <code>HRESULT</code>:&nbsp; if the value is E_FAIL, the 
+operation is interrupted.&nbsp; </p>
+<h4>About CcpRegisterAdditionalObjectsForRemove </h4>
+<p>This method enables an application to provide additional feature to be deleted when a feature is deleted. </p>
+<p><strong>Pay attention:</strong>&nbsp; No model operation in the 
+implementation. See <a href="#Generic Remarks">generic remarks</a></p>
+<p><strong>Recommendation</strong>: Don&#8217;t add in the output list the features which will be deleted by a 
+<code>DeleteSelf</code> like the ones automatically deleted by the Feature modeler, 
+like those added by the <code>BeforeRemove</code> method of <em>CATIFmFeatureBehaviorCustomization</em>. </p>
+<p><strong>input</strong> : <code>iInitialSetOfObjects </code></p>
+<p>It is the features initially selected by the end user, or the ones of the <em>DataCommonProtocolCCPServices</em> 
+methods.</p>
+<p><strong>output</strong> <code>HRESULT</code>:&nbsp; if the value is E_FAIL, the 
+operation is interrupted.</p>
+<h4>About CcpUpdate</h4>
+<p>This method enables an application to perform model operations.</p>
+<p><strong>input</strong> <code>iContext</code> a <em>CATFmCCPContext </em>class instance</p>
+<ul>
+	<li>According to the context<ul>
+		<li>Paste :&nbsp; the source is the clipboard container, the target is the target container
+		</li>
+		<li>Copy :&nbsp; the source is the original container, and the target is 
+		the clipboard container</li>
+	</ul>
+	</li>
+	<li><code>GetImpactedObjects</code> returns all object impacted by the 
+	CcpUpdate - one is <code>This</code> -there are objects of the target 
+	container</li>
+	<li><code>GetSourceObjectFromCopy</code> , for each object returned by <code>GetImpactedObjects</code> 
+	you can got its associating object in the source.</li>
+	<li><code>GetCopyObjectFromSource</code>&nbsp; ,&nbsp; can be used</li>
+	<li> <code>GetPasteTargets </code>, the selected objects chosen as target by 
+	the end user, or the&nbsp; <em>DataCommonProtocolCCPServices</em> 
+methods. It works only in Paste context.</li>
+</ul>
+<p><strong>output</strong> <code>HRESULT</code>:&nbsp; If this method fails, 
+return E_FAIL,&nbsp; the operation is interrupted, and the model is restored as before the command. </p>
+ 
+<h4>About CcpPaste</h4>
+<p>This method enables an application to perform model operations when a feature is the target of the copy. </p>
+<p><strong>input</strong> <code>iContext</code> a <em>CATFmCCPContext </em>class instance</p>
+<ul>
+	<li>The source is the clipboard, the target is the target container</li>
+	<li><code>GetImpactedObjects</code> returns the <strong>root</strong> features (no 
+	aggregated) newly created in the target</li>
+	<li><code>GetSourceObjectFromCopy</code> , to get the features in the 
+	clipboard for each object of the target (the one returned by <code>GetImpactedObjects</code> 
+	)</li>
+	<li><code>GetCopyObjectFromSource</code>&nbsp; , the opposite, but less 
+	interesting</li>
+	<li> <code>GetPasteTargets </code>, the selected objects chosen as target by 
+	the end user, or the&nbsp; <em>DataCommonProtocolCCPServices</em> 
+methods. <code>This</code> is one object of the list.</li>
+</ul>
+<p><strong>output</strong> <code>HRESULT</code>:&nbsp; If this method fails, 
+return E_FAIL, the operation is interrupted, and the model is restored as before the command. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has explained how you can customize the CCP protocols. A 
+practical example has been implemented for the copy/paste by the referenced use 
+case [<a href="#References">2</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td ><a href="CAAFmExtTaCCPPrinciple.htm">Cut, Copy and 
+		Paste Principle</a></td>
+	</tr>
+		<tr>
+		<td>[2]</td>
+		<td ><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td ><a href="CAAFmExtUcCopyPasteCusto.htm">Customizing Copy/Paste</a></td>
+	</tr>
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

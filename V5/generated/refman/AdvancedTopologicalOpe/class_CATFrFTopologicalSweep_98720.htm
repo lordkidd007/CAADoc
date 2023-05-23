@@ -1,0 +1,1253 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>AdvancedTopologicalOpe Class CATFrFTopologicalSweep</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../AdvancedTopologicalOpe.htm">This Framework</a>  <a href="class_CATGeodesicDistanceTool_107966.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>AdvancedTopologicalOpe Class CATFrFTopologicalSweep</h1>
+<pre>
+<a href="../Mathematics/class_CATCGMVirtual_33296.htm">Mathematics.CATCGMVirtual</a>
+  |
+  +---<a href="../GeometricObjects/class_CATCGMOperator_38910.htm">GeometricObjects.CATCGMOperator</a>
+    |
+    +---<a href="../NewTopologicalObjects/class_CATTopOperator_41154.htm">NewTopologicalObjects.CATTopOperator</a>
+      |
+      +---CATFrFTopologicalSweep
+ </pre>
+<p><b>Usage: you must use this class as is. You should never derive it.</b></p>
+<hr>
+<p>
+ public class <b>CATFrFTopologicalSweep</b>
+</p>
+<p>
+<b><i> Class representing the topological operator that computes swept surfaces.</i></b><br>
+
+ <br>A sweep operation is defined by:
+ <ul><li> One or several guides that are along the sweeping direction.
+ <li>One profile that is swept, or several profiles thru which the swept surface passes. 
+ In case of segment or circle profile, the profile is implicitely given.
+ <li>Optionally a spine curve, that defines the sweeping plane (also called moving frame <a href="../FreeFormOperators/enum_CATMovingFrameType_66340.htm">CATMovingFrameType</a> ). </ul>
+ This operator can create, according to the chosen options:
+ <ul>
+ <li> Unspec sweep: one profile, one guide
+ <li> BiRail sweep: one profile, two guides
+ <li> Segment sweep: Define:
+ <ul><li>A1, A2: Angle Laws
+ <li>R: Radius Law
+ <li>LG, MG, FG: Limit, Middle, Functional Guide
+ <li>R1, R2: Length Laws
+ <li>LS, MS, FS: Limit, Middle, Functional Surface
+</ul>
+ The following describes the needed inputs for each case: 
+ <pre> 
+          R2         R1
+ Case 1: <--*-----*----->   2 Limit Guides
+ ------     L2    L1        2 Length Laws
+
+
+           R2  LG  R1
+ Case 2:  <-----*----->      1 Limit Guide + 1 Functional Guide
+ ------        A \           2 Length Laws + 1 Angle Law
+                  *FG
+
+
+
+ Case 3:   LG    MG
+ ------     *-----*-----      1 Limit Guide + 1 Middle Guide
+
+
+           R2  LG  R1
+ Case 4:  <-----*----->      1 Limit Guide (PCurve)
+ ------       |---|S         2 Length Laws +
+                A            1 Angle Law(% Surface Reference)
+
+ </pre>
+ <li>Circle sweep: For the same notations as those for the segment sweep, 
+ <pre>
+ Case 1: *-----*-----*     3 Limit Guides
+ ------  L1    L2    L3    No Laws
+
+
+
+ Case 2:  *----------*      2 Limit Guides
+ ------   L1    \    L2     1 Radius Law
+                 R
+
+ Case 3:     A1 *
+ ------     *  / \           1 Middle Guide + 1 Functional Guide
+            | /A2 \          2 Angular Laws
+            *------*
+
+
+ Case 4:     ------          1 Middle Guide
+ ------     |  R|  |         1 Radius Law
+            |   *  |
+             ______
+
+
+           A1  MG  A2
+ Case 5:  <-----*----->      1 Middle Guide
+ ------       |---|S         2 Angle Laws (% Surface Reference)
+                R            1 Radius Law
+
+     
+             -
+        L1 .   .        
+ Case 6: *       * L2        2 Limit Guides
+ ------  ! .   .             1 Reference Surface
+         !  -
+         !
+         ! Reference Surface 
+
+ </pre>
+ <li>Conic sweep: For the same notations as those for the segment or circle 
+ sweep, 
+ <pre>
+ Case 1:                     5 Limit Guides
+ ------ 
+  L1   
+   *
+    .
+     .
+       * L2
+           .    
+             .  L3 
+                *   .   L4      L5
+                       *  .  .  *
+
+ Case 2:                     4 Limit Guides
+ ------                      1 Slope (angle law % reference surface)
+
+  L1   
+   *
+    .
+     .
+       * L2
+          .
+             .  L3 
+                *   .           L4  
+                       .  .  .  *----------------------- slope 
+                                 -    angle
+                                   -
+                                     -
+                                       - reference surface
+                      
+ Case 3:                     3 Limit Guides
+ ------                      2 Slopes (angle law % reference surface)
+                      
+  L1   
+  !*
+  ! .
+  !  .
+  !    .
+  !       .    
+  !          .  L2 
+  !             *   .           L3  
+  !                    .  .  .  *----------------------- slope 
+  slope                          -    angle
+ (angle + reference)               -
+                                     -
+                                       - reference surface
+                      
+ Case 4:                     2 Limit Guides
+ ------                      2 Slopes (angle law % reference surface)
+                             1 Rho Law
+  L1   
+  !*
+  ! .
+  !  .
+  !    .
+  !       .    
+  !          .  
+  !             .              L2  
+  !                 .   .  .  .  *----------------------- slope 
+  slope                          -    angle
+ (angle + reference)               -
+                                     -
+                                       - reference surface
+                      
+ </pre>
+</ul>
+<br>
+ The CATFrFTopologicalSweep operator follows the global frame of the topological operators 
+ and satisfies the smart mechanism: 
+ the input bodies are not modified. A new resulting body is created, 
+ possibly sharing data with the input bodies.
+<ul>
+ <li>A CATFrFTopologicalSweep operator is created with the <tt>CreateFrFTopologicalSweep</tt> global method:
+ It must be directly <tt>delete</tt>d after use. It is not streamable. 
+<li>In case of <tt>BASIC</tt>
+ mode, the operation is automatically performed at the operator creation. 
+ In case of <tt>ADVANCED</tt>
+ mode, options can be precised with the <tt>SetXxx</tt> methods, before
+ asking for the computation with the <tt>Run</tt> method.  
+<li>In both cases, the result is accessed with the <tt>GetResult</tt> method. If you do not want 
+ to keep the resulting body, use the 
+<a href="../GeometricObjects/interface_CATICGMContainer_49680.htm#Remove">CATICGMContainer.Remove</a> method to remove it from the  geometric factory.
+</ul>
+</p>
+<hr>
+ <h2>Constructor and Destructor Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#~CATFrFTopologicalSweep()"><b>~CATFrFTopologicalSweep</b></a>()
+<dd> </dl>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#ChooseOriginGuide(CATGeometry*,CATGeometry*)"><b>ChooseOriginGuide</b></a>(CATGeometry*,CATGeometry*)
+<dd>  Internal use.
+ <dt> o 
+    <a href="#GetAllProfiles(double)"><b>GetAllProfiles</b></a>(double)
+<dd>  Returns the computed curves at a given section of the sweep.
+ <dt> o 
+    <a href="#GetFrame(double,CATMathAxis*&amp;)"><b>GetFrame</b></a>(double,CATMathAxis*&amp;)
+<dd>  Retrieves the moving frame at a given ratio parameter.
+ <dt> o 
+    <a href="#GetNonCoupledSectionVertices(CATLISTP(CATVertex)*,CATListOfInt*,CATListOfInt*,CATListOfInt*,CATListOfInt*)"><b>GetNonCoupledSectionVertices</b></a>(CATLISTP(CATVertex)*,CATListOfInt*,CATListOfInt*,CATListOfInt*,CATListOfInt*)
+<dd>  Gets vertices non coupled by automatic section vertices coupling.
+ <dt> o 
+    <a href="#GetProfilePosition(CATMathAxis*&amp;)"><b>GetProfilePosition</b></a>(CATMathAxis*&amp;)
+<dd>  Retrieves the axes system of the profile (Sweep unspec.
+ <dt> o 
+    <a href="#GetResult()"><b>GetResult</b></a>()
+<dd>  Returns the result of <tt>this</tt> operator.
+ <dt> o 
+    <a href="#GetSpine()"><b>GetSpine</b></a>()
+<dd>  Returns the spine.
+ <dt> o 
+    <a href="#GetTwistedAreas(CATListOfDouble&amp;,CATListOfDouble&amp;)"><b>GetTwistedAreas</b></a>(CATListOfDouble&amp;,CATListOfDouble&amp;)
+<dd>  Retrieves the limiting parameters of the twisted areas ot the wrap areas.
+ <dt> o 
+    <a href="#Run()"><b>Run</b></a>()
+<dd>  Runs <tt>this</tt> operator.
+ <dt> o 
+    <a href="#SetAnchorPoints(CATMathPoint&amp;,CATMathPoint&amp;)"><b>SetAnchorPoints</b></a>(CATMathPoint&amp;,CATMathPoint&amp;)
+<dd>   Defines the anchor points for profile positionning.
+ <dt> o 
+    <a href="#SetAngularLaw(CATCompositeLaw*)"><b>SetAngularLaw</b></a>(CATCompositeLaw*)
+<dd>  Defines an angular law to rotate the moving frame around its <tt>Z</tt> axis.
+ <dt> o 
+    <a href="#SetAngularLaws(CATCompositeLaw**,int)"><b>SetAngularLaws</b></a>(CATCompositeLaw**,int)
+<dd>  Defines the angular laws for defining limiting guides.
+ <dt> o 
+    <a href="#SetAreasToEliminate(CATLISTP(CATVertex)&amp;,CATLISTP(CATVertex)&amp;)"><b>SetAreasToEliminate</b></a>(CATLISTP(CATVertex)&amp;,CATLISTP(CATVertex)&amp;)
+<dd>  Defines the vertices limiting areas to eliminate from final sweep.
+ <dt> o 
+    <a href="#SetCanonicSurfacesDetection(CATBoolean)"><b>SetCanonicSurfacesDetection</b></a>(CATBoolean)
+<dd>  Sets the canonic surfaces detection mode (cones/cylinders/planes).
+ <dt> o 
+    <a href="#SetCleanGuidesOption(int,double*,double*,double*)"><b>SetCleanGuidesOption</b></a>(int,double*,double*,double*)
+<dd>  Defines clean guides option, and clean parameter values.
+ <dt> o 
+    <a href="#SetCleanProfilesOption(int,double*,double*,double*)"><b>SetCleanProfilesOption</b></a>(int,double*,double*,double*)
+<dd>  Defines clean profiles option, and clean parameter values.
+ <dt> o 
+    <a href="#SetClosureMode()"><b>SetClosureMode</b></a>()
+<dd>  Asks for the body closure.
+ <dt> o 
+    <a href="#SetConeOption()"><b>SetConeOption</b></a>()
+<dd>  Defines cone option for segment sweep computation with reference element
+ (behaves like a draft computation).
+ <dt> o 
+    <a href="#SetCouplingGuides(CATLISTP(CATGeometry)*)"><b>SetCouplingGuides</b></a>(CATLISTP(CATGeometry)*)
+<dd>  Defines additional guides to be used only for profile sections coupling.
+ <dt> o 
+    <a href="#SetFunctionalGuides(CATLISTP(CATGeometry)*)"><b>SetFunctionalGuides</b></a>(CATLISTP(CATGeometry)*)
+<dd>  Defines the references for the (start and end) angles measurement for a segment or circle sweep.
+ <dt> o 
+    <a href="#SetGuideContinuityCondition(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)"><b>SetGuideContinuityCondition</b></a>(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)
+<dd>  Sets the continuity constraints (for multi profiles sweep) for a guide.
+ <dt> o 
+    <a href="#SetLengthLaws(CATCompositeLaw**,int)"><b>SetLengthLaws</b></a>(CATCompositeLaw**,int)
+<dd>  Defines the length laws for a segment sweep.
+ <dt> o 
+    <a href="#SetLimitGuideSlopeCondition(int,CATGeometry*,CATCompositeLaw*)"><b>SetLimitGuideSlopeCondition</b></a>(int,CATGeometry*,CATCompositeLaw*)
+<dd>  Defines a slope condition for a conic or a circle sweep.
+ <dt> o 
+    <a href="#SetLimitGuides(CATLISTP(CATGeometry)*)"><b>SetLimitGuides</b></a>(CATLISTP(CATGeometry)*)
+<dd>  Defines the limiting guides of a segment or circle sweep.
+ <dt> o 
+    <a href="#SetMiddleGuides(CATLISTP(CATGeometry)*)"><b>SetMiddleGuides</b></a>(CATLISTP(CATGeometry)*)
+<dd>  Defines the guide defining the center of the circle for a segment or circle sweep.
+ <dt> o 
+    <a href="#SetPlanesDetection(CATBoolean)"><b>SetPlanesDetection</b></a>(CATBoolean)
+<dd>  Sets the plane detection mode.
+ <dt> o 
+    <a href="#SetProfileAutomaticCouplingMode(CATFrFTopologicalSweepAutomaticCoupling_Type,CATBoolean,CATBoolean)"><b>SetProfileAutomaticCouplingMode</b></a>(CATFrFTopologicalSweepAutomaticCoupling_Type,CATBoolean,CATBoolean)
+<dd>  Defines the profile automatic coupling mode.
+ <dt> o 
+    <a href="#SetProfileContinuityCondition(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)"><b>SetProfileContinuityCondition</b></a>(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)
+<dd>  Sets the continuity constraints on start and end profiles (for multi profiles sweep).
+ <dt> o 
+    <a href="#SetProfileOrientation(int,CATFrFTopologicalSweepOrientation_Type)"><b>SetProfileOrientation</b></a>(int,CATFrFTopologicalSweepOrientation_Type)
+<dd>  Sets the profiles orientation (for multi profiles sweep).
+ <dt> o 
+    <a href="#SetProfilePosition(CATMathAxis*)"><b>SetProfilePosition</b></a>(CATMathAxis*)
+<dd>  Defines the axes system of the profile.
+ <dt> o 
+    <a href="#SetProfilePositionType(CATLONG32)"><b>SetProfilePositionType</b></a>(CATLONG32)
+<dd>   Definition of profile positioning type for a sweep with one or two guides (Sweep unspec and birail).
+ <dt> o 
+    <a href="#SetProfileScalingOption(CATLONG32)"><b>SetProfileScalingOption</b></a>(CATLONG32)
+<dd>  Defines the scaling mode to apply to the profile.
+ <dt> o 
+    <a href="#SetRadiusLaw(CATCompositeLaw*)"><b>SetRadiusLaw</b></a>(CATCompositeLaw*)
+<dd>  Defines the radius law of a circle sweep.
+ <dt> o 
+    <a href="#SetRadiusLaw(CATLaw*)"><b>SetRadiusLaw</b></a>(CATLaw*)
+<dd>  Defines the radius law of a circle sweep.
+ <dt> o 
+    <a href="#SetReferenceElement(CATGeometry*)"><b>SetReferenceElement</b></a>(CATGeometry*)
+<dd>  Defines a variable viewing direction (sweep unspec).
+ <dt> o 
+    <a href="#SetRelimitationMode(CATFrFTopologicalSweepRelimitation_Type)"><b>SetRelimitationMode</b></a>(CATFrFTopologicalSweepRelimitation_Type)
+<dd>  Sets the relimitation mode by the extremity profiles.
+ <dt> o 
+    <a href="#SetSimplification(CATBoolean)"><b>SetSimplification</b></a>(CATBoolean)
+<dd>  Sets the simplification mode.
+ <dt> o 
+    <a href="#SetSmoothAngleThreshold(double)"><b>SetSmoothAngleThreshold</b></a>(double)
+<dd>  Defines the smooth angle threshold.
+ <dt> o 
+    <a href="#SetSmoothOption(int)"><b>SetSmoothOption</b></a>(int)
+<dd>  Defines a smooth option for moving frame and comb extraction.
+ <dt> o 
+    <a href="#SetSolutionChoice(CATLONG32)"><b>SetSolutionChoice</b></a>(CATLONG32)
+<dd>  Defines the conic, circle or segment to keep if case of ambiguous case.
+ <dt> o 
+    <a href="#SetSpine(CATGeometry*,CATFrFTopologicalSweepSpine_Type)"><b>SetSpine</b></a>(CATGeometry*,CATFrFTopologicalSweepSpine_Type)
+<dd>  Defines the spine.
+ <dt> o 
+    <a href="#SetTwistDetection(int)"><b>SetTwistDetection</b></a>(int)
+<dd>  Defines the twist detection mode.
+ <dt> o 
+    <a href="#SetUntwistMode(int,double)"><b>SetUntwistMode</b></a>(int,double)
+<dd>  Defines the untwist mode, in which every twisted area will be computed.
+ <dt> o 
+    <a href="#SetWrapDetection(int)"><b>SetWrapDetection</b></a>(int)
+<dd>  Defines the wrap detection mode.
+ <dt> o 
+    <a href="#ValidateCaseNumber(CATLONG32)"><b>ValidateCaseNumber</b></a>(CATLONG32)
+<dd>  Checks the input data according to the sweep case.
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Constructor and Destructor</h2> <br>
+<a name="~CATFrFTopologicalSweep"></a><a name="~CATFrFTopologicalSweep()"></a> <dt> o <b>~CATFrFTopologicalSweep</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../DNBSystem/struct__0.htm"></a>  <b>~CATFrFTopologicalSweep</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="ChooseOriginGuide"></a><a name="ChooseOriginGuide(CATGeometry*,CATGeometry*)"></a> <dt> o <b>ChooseOriginGuide</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>ChooseOriginGuide</b>(<td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iChosenGuide</tt>,<tr><td></td><td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iReferenceElement</tt><td><tt>=NULL</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Internal use.
+ Defines the guide to be used for positionning the moving axis origin.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iChosenGuide</tt>
+   <dd> The guide chosen (that must belong to the set of limit or functional guides). 
+ </dd>
+    <dt><tt> iReferenceElement</tt>
+   <dd> The reference element chosen for normal computation.</dd>
+</dl>
+</dl>
+</dl>
+<a name="GetAllProfiles"></a><a name="GetAllProfiles(double)"></a> <dt> o <b>GetAllProfiles</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../AdvancedTopologicalOpe/define_CATFrFTopologicalSweep_ListPOfCATCurve_281832.htm">CATFrFTopologicalSweep_ListPOfCATCurve*</a>  <b>GetAllProfiles</b>(<td>double <td><tt>iLambda</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Returns the computed curves at a given section of the sweep.
+ <br>The number of the curves depends on the number of edges
+ of the initial profiles and the number of guides.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLambda</tt>
+   <dd> The parameter <tt>0 <= iLambda <=1 </tt> indicating where the curves are computed.
+ </dd>
+</dl>
+  <dt> <b>Returns:</b> 
+  <dd>  The list of the pointers to the created curves. If you do not want to keep
+ the curves, use the 
+<a href="../GeometricObjects/interface_CATICGMContainer_49680.htm#Remove">CATICGMContainer.Remove</a> method. <tt>Delete</tt> the list after use.
+</dl>
+</dl>
+<a name="GetFrame"></a><a name="GetFrame(double,CATMathAxis*&amp;)"></a> <dt> o <b>GetFrame</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>GetFrame</b>(<td>double <td><tt>iLambda</tt>,<tr><td></td><td><a href="../Mathematics/class_CATMathAxis_24327.htm">CATMathAxis*&amp;</a> <td><tt>oFrame</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Retrieves the moving frame at a given ratio parameter.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLambda</tt>
+   <dd> The parameter <tt>0 <= iLambda <=1 </tt> indicating where the frame is retrieved.
+ </dd>
+    <dt><tt> oFrame</tt>
+   <dd> The moving frame, that may or may not have been allocated before call
+  and must be deallocated after</dd>
+</dl>
+</dl>
+</dl>
+<a name="GetNonCoupledSectionVertices"></a><a name="GetNonCoupledSectionVertices(CATLISTP(CATVertex)*,CATListOfInt*,CATListOfInt*,CATListOfInt*,CATListOfInt*)"></a> <dt> o <b>GetNonCoupledSectionVertices</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>GetNonCoupledSectionVertices</b>(<td><a href="../NewTopologicalObjects/class_CATLISTP(CATVertex)_62095.htm">CATLISTP(CATVertex)*</a> <td><tt>oVertices</tt><td><tt>=0</tt>,<tr><td></td><td><a href="../System/typedef_CATListOfInt_28620.htm">CATListOfInt*</a> <td><tt>oSectionNumbers</tt><td><tt>=0</tt>,<tr><td></td><td><a href="../System/typedef_CATListOfInt_28620.htm">CATListOfInt*</a> <td><tt>oEdgeNumbers</tt><td><tt>=0</tt>,<tr><td></td><td><a href="../System/typedef_CATListOfInt_28620.htm">CATListOfInt*</a> <td><tt>oLevels</tt><td><tt>=0</tt>,<tr><td></td><td><a href="../System/typedef_CATListOfInt_28620.htm">CATListOfInt*</a> <td><tt>oDomains</tt><td><tt>=0</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Gets vertices non coupled by automatic section vertices coupling.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> oVertices</tt>
+   <dd> The list of non coupled section vertices.
+ </dd>
+    <dt><tt> oSectionNumbers</tt>
+   <dd> The list of section numbers for non coupled vertices.
+ </dd>
+    <dt><tt> oEdgeNumbers</tt>
+   <dd> The list of edge numbers for non coupled vertices (the vertex oVertices[i] is
+ between edge oEdgeNumbers[i] and edge 1+oEdgeNumbers[i])
+ </dd>
+    <dt><tt> oLevels</tt>
+   <dd> The list of discontinuity levels for non coupled vertices
+ (1 for C0 non C1 vertices, 2 for C1 non C2 vertices) 
+ </dd>
+    <dt><tt> oDomains</tt>
+   <dd> The list of domain numbers for non coupled vertices
+ (internal numerotation within current level management; same domain number
+ may be given during non C1 vertices management and during non C2 vertices 
+ management)</dd>
+</dl>
+</dl>
+</dl>
+<a name="GetProfilePosition"></a><a name="GetProfilePosition(CATMathAxis*&amp;)"></a> <dt> o <b>GetProfilePosition</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>GetProfilePosition</b>(<td><a href="../Mathematics/class_CATMathAxis_24327.htm">CATMathAxis*&amp;</a> <td><tt>oProfileAxis</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Retrieves the axes system of the profile (Sweep unspec.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> oProfileAxis</tt>
+   <dd> The pointer to the input or computed axes system of the profile. 
+ The computed axes system belongs to
+ this operator and is deleted at the operator deletion.</dd>
+</dl>
+</dl>
+</dl>
+<a name="GetResult"></a><a name="GetResult()"></a> <dt> o <b>GetResult</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../NewTopologicalObjects/interface_CATBody_9728.htm">CATBody*</a>  <b>GetResult</b>(<td>)= 0   </table></dt>
+<dl>
+  <dd>
+ Returns the result of <tt>this</tt> operator.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>  The pointer to the created body. You must delete it with the 
+<a href="../GeometricObjects/interface_CATICGMContainer_49680.htm#Remove">CATICGMContainer.Remove</a>  method if you do not want to keep it.
+</dl>
+</dl>
+<a name="GetSpine"></a><a name="GetSpine()"></a> <dt> o <b>GetSpine</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a>  <b>GetSpine</b>(<td>)= 0  </table></dt>
+<dl>
+  <dd>
+ Returns the spine.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>  The pointer to the input or computed spine. The computed (or implicit) spine belongs to
+ this operator and is deleted at the operator deletion.
+</dl>
+</dl>
+<a name="GetTwistedAreas"></a><a name="GetTwistedAreas(CATListOfDouble&amp;,CATListOfDouble&amp;)"></a> <dt> o <b>GetTwistedAreas</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>GetTwistedAreas</b>(<td><a href="../System/typedef_CATListOfDouble_45052.htm">CATListOfDouble&amp;</a> <td><tt>oTwistBegin</tt>,<tr><td></td><td><a href="../System/typedef_CATListOfDouble_45052.htm">CATListOfDouble&amp;</a> <td><tt>oTwistEnd</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Retrieves the limiting parameters of the twisted areas ot the wrap areas.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> oTwistBegin</tt>
+   <dd> the beginning parameters of the twisted areas.
+ </dd>
+    <dt><tt> oTwistEnd</tt>
+   <dd> the ending parameters of the twisted areas.</dd>
+</dl>
+</dl>
+</dl>
+<a name="Run"></a><a name="Run()"></a> <dt> o <b>Run</b>
+
+<dt>  <table><tr><td>  public virtual int  <b>Run</b>(<td>)= 0  </table></dt>
+<dl>
+  <dd>
+ Runs <tt>this</tt> operator.
+</dl>
+<a name="SetAnchorPoints"></a><a name="SetAnchorPoints(CATMathPoint&amp;,CATMathPoint&amp;)"></a> <dt> o <b>SetAnchorPoints</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetAnchorPoints</b>(<td> const <a href="../Mathematics/class_CATMathPoint_29498.htm">CATMathPoint&amp;</a> <td><tt>iPoint1</tt>,<tr><td></td><td> const <a href="../Mathematics/class_CATMathPoint_29498.htm">CATMathPoint&amp;</a> <td><tt>iPoint2</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+  Defines the anchor points for profile positionning.
+ <br>Moving the anchor points
+ from their initial position to intersection points between the sweeping plane 
+ and the guides, defines the 3D transformation to apply to the initial profile.
+ Anchor points should be in the profile plane for correct behaviour of
+ profile positionning software.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iPoint1</tt>
+   <dd> The point to anchor on first guide.
+ </dd>
+    <dt><tt> iPoint2</tt>
+   <dd> The point to anchor on second guide.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetAngularLaw"></a><a name="SetAngularLaw(CATCompositeLaw*)"></a> <dt> o <b>SetAngularLaw</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetAngularLaw</b>(<td><a href="../GeometricObjects/interface_CATCompositeLaw_46429.htm">CATCompositeLaw*</a> <td><tt>iAngularLaw</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines an angular law to rotate the moving frame around its <tt>Z</tt> axis.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iAngularLaw</tt>
+   <dd> The pointer to the angular law.
+ (Angles must be given in radian for circular sweep, in degree for other types of sweep)</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetAngularLaws"></a><a name="SetAngularLaws(CATCompositeLaw**,int)"></a> <dt> o <b>SetAngularLaws</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetAngularLaws</b>(<td><a href="../GeometricObjects/interface_CATCompositeLaw_46429.htm">CATCompositeLaw**</a> <td><tt>iLaws</tt>,<tr><td></td><td>int <td><tt>iNbLaws</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the angular laws for defining limiting guides.
+<br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLaws</tt>
+   <dd> The array of the pointers to the laws. 
+ </dd>
+    <dt><tt> iNbLaws</tt>
+   <dd> The number of laws. 
+ (Angles must be given in radian for circular sweep, in degree for other types of sweep)</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetAreasToEliminate"></a><a name="SetAreasToEliminate(CATLISTP(CATVertex)&amp;,CATLISTP(CATVertex)&amp;)"></a> <dt> o <b>SetAreasToEliminate</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetAreasToEliminate</b>(<td><a href="../NewTopologicalObjects/class_CATLISTP(CATVertex)_62095.htm">CATLISTP(CATVertex)&amp;</a> <td><tt>iStartVertices</tt>,<tr><td></td><td><a href="../NewTopologicalObjects/class_CATLISTP(CATVertex)_62095.htm">CATLISTP(CATVertex)&amp;</a> <td><tt>iEndVertices</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines the vertices limiting areas to eliminate from final sweep.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iStartVertices</tt>
+   <dd> The starting vertices for each areas to eliminate.
+ </dd>
+    <dt><tt> iEndVertices</tt>
+   <dd> The ending vertices for each area to eliminate.
+ The same number of vertices must be defined for start and end. The vertices must be located
+ on the first guide, but not necessarily logically related to it.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetCanonicSurfacesDetection"></a><a name="SetCanonicSurfacesDetection(CATBoolean)"></a> <dt> o <b>SetCanonicSurfacesDetection</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetCanonicSurfacesDetection</b>(<td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iCanonicSurfacesDetection</tt><td><tt>= CATBoolean(1)</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Sets the canonic surfaces detection mode (cones/cylinders/planes).
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCanonicSurfacesDetection</tt>
+   <dd> The canonic surface detection mode.
+ <br><b>Legal values</b>: <tt>TRUE</tt> for replacing nurbs surfaces by canonic surfaces,
+ <tt>FALSE</tt> otherwise (default mode at the operator creation).</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetCleanGuidesOption"></a><a name="SetCleanGuidesOption(int,double*,double*,double*)"></a> <dt> o <b>SetCleanGuidesOption</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetCleanGuidesOption</b>(<td>int <td><tt>iCleanOption</tt><td><tt>=0</tt>,<tr><td></td><td>double* <td><tt>iCleanMaxDeformation</tt><td><tt>=NULL</tt>,<tr><td></td><td>double* <td><tt>iCleanSmallCurvesMaxLength</tt><td><tt>=NULL</tt>,<tr><td></td><td>double* <td><tt>iCleanCurvatureThreshold</tt><td><tt>=NULL</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines clean guides option, and clean parameter values. Pointers
+ to parameter values are to be given only when corresponding parameter
+ is redefined, otherwise, standard parameter value will be used. Pointers
+ may contain addresses of local variables that will be lost after call: 
+ parameter values will be copied by this method.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCleanOption</tt>
+   <dd> The cleaning option
+ <br><b>Legal values</b>: <tt>0</tt> no cleaning will be done
+ (default mode at operator creation),
+ <tt>1</tt> cleaning will be done.
+ </dd>
+    <dt><tt> iCleanMaxDeformation</tt>
+   <dd> The pointer to max deformation authorized.
+ </dd>
+    <dt><tt> iCleanSmallCurvesMaxLength</tt>
+   <dd> The pointer to maximum length of curves to be kept.
+ </dd>
+    <dt><tt> iCleanCurvatureThreshold</tt>
+   <dd> The pointer to the curvature threshold.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetCleanProfilesOption"></a><a name="SetCleanProfilesOption(int,double*,double*,double*)"></a> <dt> o <b>SetCleanProfilesOption</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetCleanProfilesOption</b>(<td>int <td><tt>iCleanOption</tt><td><tt>=0</tt>,<tr><td></td><td>double* <td><tt>iCleanMaxDeformation</tt><td><tt>=NULL</tt>,<tr><td></td><td>double* <td><tt>iCleanSmallCurvesMaxLength</tt><td><tt>=NULL</tt>,<tr><td></td><td>double* <td><tt>iCleanCurvatureThreshold</tt><td><tt>=NULL</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines clean profiles option, and clean parameter values. 
+ Same as for guides
+</dl>
+<a name="SetClosureMode"></a><a name="SetClosureMode()"></a> <dt> o <b>SetClosureMode</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetClosureMode</b>(<td>)= 0   </table></dt>
+<dl>
+  <dd>
+ Asks for the body closure. 
+<br> To use in cases the closed and planar profiles for example.
+</dl>
+<a name="SetConeOption"></a><a name="SetConeOption()"></a> <dt> o <b>SetConeOption</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetConeOption</b>(<td>)= 0   </table></dt>
+<dl>
+  <dd>
+ Defines cone option for segment sweep computation with reference element
+ (behaves like a draft computation).
+</dl>
+<a name="SetCouplingGuides"></a><a name="SetCouplingGuides(CATLISTP(CATGeometry)*)"></a> <dt> o <b>SetCouplingGuides</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetCouplingGuides</b>(<td><a href="../GeometricObjects/class_CATLISTP(CATGeometry)_78003.htm">CATLISTP(CATGeometry)*</a> <td><tt>iCouplingGuides</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines additional guides to be used only for profile sections coupling.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCouplingGuides</tt>
+   <dd> The list of pointers to the coupling guides (wire bodies).</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetFunctionalGuides"></a><a name="SetFunctionalGuides(CATLISTP(CATGeometry)*)"></a> <dt> o <b>SetFunctionalGuides</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetFunctionalGuides</b>(<td><a href="../GeometricObjects/class_CATLISTP(CATGeometry)_78003.htm">CATLISTP(CATGeometry)*</a> <td><tt>iFunctionalGuides</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the references for the (start and end) angles measurement for a segment or circle sweep.
+<br>To use according of the chosen sweep case.The sweep may not pass thru the functional guides.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iFunctionalGuides</tt>
+   <dd> The list of pointers to the one or two reference guides.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetGuideContinuityCondition"></a><a name="SetGuideContinuityCondition(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)"></a> <dt> o <b>SetGuideContinuityCondition</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetGuideContinuityCondition</b>(<td>int <td><tt>iRankGuide</tt>,<tr><td></td><td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iReferenceElement</tt>,<tr><td></td><td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepContinuity_Type_285396.htm">CATFrFTopologicalSweepContinuity_Type</a> <td><tt>iContinuityCondition</tt><td><tt>=CATFrFTopologicalSweepContinuity_G1 </tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ Sets the continuity constraints (for multi profiles sweep) for a guide.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iRankGuide</tt>
+   <dd> The rank (beginning at 1) of the guide to constraint.
+ </dd>
+    <dt><tt> iReferenceElement</tt>
+   <dd> The pointer to the reference element (CATPlane or skin CATBody) on which the guide
+ must lay. Each sweep moving section is tangent to a skin CATBody reference element and normal to 
+ a CATPlane reference element.
+ </dd>
+    <dt><tt> iContinuityCondition</tt>
+   <dd> The type of continuity constraint.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetLengthLaws"></a><a name="SetLengthLaws(CATCompositeLaw**,int)"></a> <dt> o <b>SetLengthLaws</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetLengthLaws</b>(<td><a href="../GeometricObjects/interface_CATCompositeLaw_46429.htm">CATCompositeLaw**</a> <td><tt>iLaws</tt>,<tr><td></td><td>int <td><tt>iNbLaws</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the length laws for a segment sweep.
+<br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLaws</tt>
+   <dd> The array of the pointers to the laws.
+ </dd>
+    <dt><tt> iNbLaws</tt>
+   <dd> The number of laws.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetLimitGuideSlopeCondition"></a><a name="SetLimitGuideSlopeCondition(int,CATGeometry*,CATCompositeLaw*)"></a> <dt> o <b>SetLimitGuideSlopeCondition</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetLimitGuideSlopeCondition</b>(<td>int <td><tt>iLimitGuideRank</tt>,<tr><td></td><td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iReferenceElement</tt>,<tr><td></td><td><a href="../GeometricObjects/interface_CATCompositeLaw_46429.htm">CATCompositeLaw*</a> <td><tt>iAngularLaw</tt><td><tt>=0</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines a slope condition for a conic or a circle sweep.
+<br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iGuideRank</tt>
+   <dd> The rank of the guide on which the slope condition applies
+ (first or last guide).
+ </dd>
+    <dt><tt> iReferenceElement</tt>
+   <dd> The pointer to the reference element (CATPlane or skin CATBody or wire CATBody)
+ defining the angular reference. For a null angle, conic will be tangent
+ to the plane or skin reference element, or to the line joining guide 
+ and a wire reference element. 
+ </dd>
+    <dt><tt> iAngleLaw</tt>
+   <dd> The pointer to the angle law.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetLimitGuides"></a><a name="SetLimitGuides(CATLISTP(CATGeometry)*)"></a> <dt> o <b>SetLimitGuides</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetLimitGuides</b>(<td><a href="../GeometricObjects/class_CATLISTP(CATGeometry)_78003.htm">CATLISTP(CATGeometry)*</a> <td><tt>iLimitGuides</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the limiting guides of a segment or circle sweep.
+ According to the number of guides, an appropriate build method is chosen.
+ This choice can also be explicitely given for a circle sweep
+ by the <tt>SetSolutionChoice</tt> method.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLimitGuides</tt>
+   <dd> The pointer to the list of pointers to the (wire body or curve) guides.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetMiddleGuides"></a><a name="SetMiddleGuides(CATLISTP(CATGeometry)*)"></a> <dt> o <b>SetMiddleGuides</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetMiddleGuides</b>(<td><a href="../GeometricObjects/class_CATLISTP(CATGeometry)_78003.htm">CATLISTP(CATGeometry)*</a> <td><tt>iMiddleGuides</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the guide defining the center of the circle for a segment or circle sweep.
+ <br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iMiddleGuides</tt>
+   <dd> The list of pointers to the one middle guide.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetPlanesDetection"></a><a name="SetPlanesDetection(CATBoolean)"></a> <dt> o <b>SetPlanesDetection</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetPlanesDetection</b>(<td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iPlanesDetection</tt><td><tt>= CATBoolean(1)</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Sets the plane detection mode.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iPlanesDetection</tt>
+   <dd> The plane detection mode.
+ <br><b>Legal values</b>: <tt>TRUE</tt> for replacing planar surfaces by planes,
+ <tt>FALSE</tt> otherwise (default mode at the operator creation).</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfileAutomaticCouplingMode"></a><a name="SetProfileAutomaticCouplingMode(CATFrFTopologicalSweepAutomaticCoupling_Type,CATBoolean,CATBoolean)"></a> <dt> o <b>SetProfileAutomaticCouplingMode</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfileAutomaticCouplingMode</b>(<td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepAutomaticCoupling_Type_399238.htm">CATFrFTopologicalSweepAutomaticCoupling_Type</a> <td><tt>iCouplingType</tt>,<tr><td></td><td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iForceErrorOnImpossibleCoupling</tt><td><tt>= FALSE</tt>,<tr><td></td><td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iCoupleFirstVerticesOnImpossibleCoupling</tt><td><tt>= FALSE </tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ Defines the profile automatic coupling mode.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iCouplingType</tt>
+   <dd> The coupling type.
+ </dd>
+    <dt><tt> iForceErrorOnImpossibleCoupling</tt>
+   <dd> The error management.
+ <br><b>Legal values:</b>
+ <dl><dt>FALSE</dt><dd> If the required coupling mode is not possible, the operator tries to couple
+ in a lower mode (the lowest mode is the coupling by curvilinear length).
+ <dt>TRUE</dt><dd> An error is thrown if the required coupling is not possible.
+ </dl>
+ </dd>
+    <dt><tt> iCoupleFirstVerticesOnImpossibleCoupling</tt>
+   <dd> The coupling strategy when coupling is impossible.
+ <br><b>Legal values:</b>
+ <dl><dt>FALSE</dt><dd> If the required coupling mode is not possible, the operator tries to couple
+ in a lower mode or raises an error (according to <tt>iForceErrorOnImpossibleCoupling</tt> param)
+ <dt>TRUE</dt><dd> The first vertices with same continuity of the corresponding domains are coupled, 
+ even if some vertices counts are different in these domains: vertices may be left in some domains.
+ </dl></dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfileContinuityCondition"></a><a name="SetProfileContinuityCondition(int,CATGeometry*,CATFrFTopologicalSweepContinuity_Type)"></a> <dt> o <b>SetProfileContinuityCondition</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfileContinuityCondition</b>(<td>int <td><tt>iProfileRank</tt>,<tr><td></td><td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iReferenceElement</tt>,<tr><td></td><td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepContinuity_Type_285396.htm">CATFrFTopologicalSweepContinuity_Type</a> <td><tt>iContinuityCondition</tt><td><tt>=CATFrFTopologicalSweepContinuity_G1 </tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ Sets the continuity constraints on start and end profiles (for multi profiles sweep).
+ <br>The start and end profiles are not necessarily the first and last
+ profile of the list given at the operator creation.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iProfileRank</tt>
+   <dd> The rank (beginning at 1) of the profile to constraint.
+ </dd>
+    <dt><tt> iReferenceElement</tt>
+   <dd> The pointer to the reference element (CATPlane or skin CATBody) on which the profile
+ must lay. The sweep is tangent to a skin CATBody reference element and normal to 
+ a CATPlane reference element.
+ </dd>
+    <dt><tt> iContinuityCondition</tt>
+   <dd> The type of continuity constraint.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfileOrientation"></a><a name="SetProfileOrientation(int,CATFrFTopologicalSweepOrientation_Type)"></a> <dt> o <b>SetProfileOrientation</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfileOrientation</b>(<td>int <td><tt>iRankProfile</tt>,<tr><td></td><td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepOrientation_Type_299126.htm">CATFrFTopologicalSweepOrientation_Type</a> <td><tt>iOrientation</tt><td><tt>=CATFrFTopologicalSweepOrientation_Positive </tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ Sets the profiles orientation (for multi profiles sweep).
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iRankProfile</tt>
+   <dd> The rank (beginning at 1) of the profile.
+ </dd>
+    <dt><tt> iOrientation</tt>
+   <dd> The orientation of the profile: 
+ <br><b>Legal values</b>: <tt>CATFrFTopologicalSweepOrientation_Positive</tt>
+ to take the natural orientation of the profile,  
+ <tt>CATFrFTopologicalSweepOrientation_Negative</tt> for the opposite orientation.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfilePosition"></a><a name="SetProfilePosition(CATMathAxis*)"></a> <dt> o <b>SetProfilePosition</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfilePosition</b>(<td><a href="../Mathematics/class_CATMathAxis_24327.htm">CATMathAxis*</a> <td><tt>iProfileAxis</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines the axes system of the profile.
+ <br>To use in case of profile position type <tt>iPositionType=1</tt>.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iProfileAxis</tt>
+   <dd> The axes system of the profile.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfilePositionType"></a><a name="SetProfilePositionType(CATLONG32)"></a> <dt> o <b>SetProfilePositionType</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfilePositionType</b>(<td><a href="../SpecialAPI/typedef_CATLONG32_11531.htm">CATLONG32</a> <td><tt>iPositionType</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+  Definition of profile positioning type for a sweep with one or two guides (Sweep unspec and birail).
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iPositionType</tt>
+   <dd> The type of profile positioning.
+ <br><b>Legal values</b>:
+ <dl>
+ <dt><tt>1</tt></dt><dd>The profile is moved according to the transformation of its
+ axes system to the axes system of the beginning of the guide.
+ It is possible to redefine the profile axis system
+ by using the <tt>SetProfilePosition</tt>. 
+ If not, the axis system of the beginning of the guide is used and
+ the sweep starts at the profile location (default mode).
+ <dt><tt>2</tt></dt><dd>The sweep surface passes thru the profile: the profile axes system is
+ computed by intersecting the mean profile plane and the guide. 
+ This mean profile plane must be perpendicular to the guide.
+ <dt><tt>3</tt></dt><dd>The profile axes system is automatically computed as follows:
+ <ul>
+ <li>The origin is the start point of the profile.
+ <li>The third (Z) direction is normal to the profile medium plane.
+ <li>The first (X) direction joins the start and end points of the profile and is normalized.
+ <li>The second (Y) direction is completed by the vectorial product <tt>Y = Z^X</tt>.
+ </ul>
+<pre>     ^Y
+     ! ****
+     !*    *
+     *--->X * </pre>
+ <dt><tt>4</tt></dt><dd>The sweep surface passes thru the profile. This is the same
+ as <tt>iPositionType=2</tt>, except that the mean profile plane need not 
+                     intersect guide and be perpendicular to guide.
+ <dt><tt>5</tt></dt><dd> for two guides sweeps only: same as <tt>iPositionType=2</tt>,
+ except that the extremities of the profile are not moved to the intersection with guides
+<pre>
+                     * guide points, - profile points, o profile extremities
+                     initial profile:
+                     o----*--...--*---o 
+                     current profile with iPositionType=2:
+                         *o---...---o*  (zoomed)
+                     moving profile with iPositionType=4:
+                     o----*--...--*---o   </pre>
+ </dl></dd>
+</dl>
+</dl>
+</dl>
+<a name="SetProfileScalingOption"></a><a name="SetProfileScalingOption(CATLONG32)"></a> <dt> o <b>SetProfileScalingOption</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetProfileScalingOption</b>(<td><a href="../SpecialAPI/typedef_CATLONG32_11531.htm">CATLONG32</a> <td><tt>iScalingOption</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines the scaling mode to apply to the profile.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iScalingOption</tt>
+   <dd> The scaling option
+ <br><b>Legal values:</b>
+ <dl><dt>0</dt><dd> Inactive scaling
+ <dt>1</dt><dd> Active scaling (default mode).
+ </dl></dd>
+</dl>
+</dl>
+</dl>
+<a name="SetRadiusLaw"></a><a name="SetRadiusLaw(CATCompositeLaw*)"></a> <dt> o <b>SetRadiusLaw</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetRadiusLaw</b>(<td><a href="../GeometricObjects/interface_CATCompositeLaw_46429.htm">CATCompositeLaw*</a> <td><tt>iLaw</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the radius law of a circle sweep.
+<br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLaw</tt>
+   <dd> The pointer to the radius law.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetRadiusLaw"></a><a name="SetRadiusLaw(CATLaw*)"></a> <dt> o <b>SetRadiusLaw</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetRadiusLaw</b>(<td><a href="../GeometricObjects/interface_CATLaw_6952.htm">CATLaw*</a> <td><tt>iLaw</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the radius law of a circle sweep.
+<br>To use according of the chosen sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iLaw</tt>
+   <dd> The pointer to the radius law.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetReferenceElement"></a><a name="SetReferenceElement(CATGeometry*)"></a> <dt> o <b>SetReferenceElement</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetReferenceElement</b>(<td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iReferenceElement</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines a variable viewing direction (sweep unspec).
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iReferenceElement</tt>
+   <dd> The pointer to the geometry (CATSurface, skin CATBody). The current point
+ is projected onto the reference element. The viewing direction is the normal
+ to the reference element at the projected point. 
+ <ul><li>In case of a plane, the
+ viewing direction is constant.
+ <li>In case of a skin body, the guide must lay on the reference element.
+ </ul></dd>
+</dl>
+</dl>
+</dl>
+<a name="SetRelimitationMode"></a><a name="SetRelimitationMode(CATFrFTopologicalSweepRelimitation_Type)"></a> <dt> o <b>SetRelimitationMode</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetRelimitationMode</b>(<td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepRelimitation_Type_314911.htm">CATFrFTopologicalSweepRelimitation_Type</a> <td><tt>iRelimitationMode</tt><td><tt>=CATFrFTopologicalSweepRelimitation_Off </tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ Sets the relimitation mode by the extremity profiles.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iRelimitationMode</tt>
+   <dd> The relimitation mode.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetSimplification"></a><a name="SetSimplification(CATBoolean)"></a> <dt> o <b>SetSimplification</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetSimplification</b>(<td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iSimplify</tt><td><tt>= CATBoolean(1)</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Sets the simplification mode.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iSimplify</tt>
+   <dd> The simplification mode.
+ <br><b>Legal values</b>: <tt>TRUE</tt> for simplifying the adjacent faces on the same surface
+ (typically plane), <tt>FALSE</tt> otherwise (default mode at the operator creation).</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetSmoothAngleThreshold"></a><a name="SetSmoothAngleThreshold(double)"></a> <dt> o <b>SetSmoothAngleThreshold</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetSmoothAngleThreshold</b>(<td>double <td><tt>iAngleThreshold</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the smooth angle threshold. 
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iSmoothAngleThreshold</tt>
+   <dd> The threshold for smooth (in radian); any angle below this value will be smoothed
+ if smooth option has been activated by SetSmoothOption method.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetSmoothOption"></a><a name="SetSmoothOption(int)"></a> <dt> o <b>SetSmoothOption</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetSmoothOption</b>(<td>int <td><tt>iSmoothOption</tt><td><tt>=0</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines a smooth option for moving frame and comb extraction.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iSmoothOption</tt>
+   <dd> The smoothing option
+ <br><b>Legal values</b>: <tt>0</tt> no smoothing will be done
+ (default mode at operator creation),
+ <tt>1</tt> smoothing will be done.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetSolutionChoice"></a><a name="SetSolutionChoice(CATLONG32)"></a> <dt> o <b>SetSolutionChoice</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetSolutionChoice</b>(<td><a href="../SpecialAPI/typedef_CATLONG32_11531.htm">CATLONG32</a> <td><tt>iSolutionChoice</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the conic, circle or segment to keep if case of ambiguous case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iSolutionChoice</tt>
+   <dd> The chosen part. Refer to the encyclopedia documentation.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetSpine"></a><a name="SetSpine(CATGeometry*,CATFrFTopologicalSweepSpine_Type)"></a> <dt> o <b>SetSpine</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetSpine</b>(<td><a href="../GeometricObjects/interface_CATGeometry_25640.htm">CATGeometry*</a> <td><tt>iSpine</tt>,<tr><td></td><td><a href="../AdvancedTopologicalOpe/enum_CATFrFTopologicalSweepSpine_Type_209316.htm">CATFrFTopologicalSweepSpine_Type</a> <td><tt>iSpineType</tt><td><tt>=CATFrFTopologicalSweepSpine_Explicit</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Defines the spine.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iSpine</tt>
+   <dd> The pointer to the CATCurve or the wire body defining the spine. For a multi profiles sweep,
+ if <tt>iSpine=NULL</tt> and if
+ <tt>iSpineType=CATFrFTopologicalSweepSpine_Implicit</tt>, the spine is automatically computed
+ using the input profiles.
+ </dd>
+    <dt><tt> iSpineType</tt>
+   <dd> The spine type.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetTwistDetection"></a><a name="SetTwistDetection(int)"></a> <dt> o <b>SetTwistDetection</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetTwistDetection</b>(<td>int <td><tt>iTwistDetection</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the twist detection mode.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iTwistDetection</tt>
+   <dd> The twist detection mode. If <tt>0</tt>, no twist detection.
+ If <tt>1</tt>, twists will be detected.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetUntwistMode"></a><a name="SetUntwistMode(int,double)"></a> <dt> o <b>SetUntwistMode</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetUntwistMode</b>(<td>int <td><tt>iUntwistMode</tt>,<tr><td></td><td>double <td><tt>iRecoilDistance</tt><td><tt>=0.0</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the untwist mode, in which every twisted area will be computed.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iUntwistMode</tt>
+   <dd> The untwist mode. If <tt>0</tt>, no twisted areas computation.
+ If <tt>1</tt>, twisted areas will be computed and available.
+ If <tt>2</tt>, twisted areas will be computed and suppressed from the resulting body.
+ </dd>
+    <dt><tt> iRecoilDistance</tt>
+   <dd> The recoil curvilinear distance on master guide to be used
+ before and after each twisted area in suppress mode.</dd>
+</dl>
+</dl>
+</dl>
+<a name="SetWrapDetection"></a><a name="SetWrapDetection(int)"></a> <dt> o <b>SetWrapDetection</b>
+
+<dt>  <table><tr><td>  public virtual void  <b>SetWrapDetection</b>(<td>int <td><tt>iWrapDetection</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Defines the wrap detection mode.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iWrapDetection</tt>
+   <dd> The wrap detection mode. If <tt>0</tt>, no wrap computation.
+ If <tt>1</tt>, wrap areas will be computed.</dd>
+</dl>
+</dl>
+</dl>
+<a name="ValidateCaseNumber"></a><a name="ValidateCaseNumber(CATLONG32)"></a> <dt> o <b>ValidateCaseNumber</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../SpecialAPI/typedef_CATLONG32_11531.htm">CATLONG32</a>  <b>ValidateCaseNumber</b>(<td><a href="../SpecialAPI/typedef_CATLONG32_11531.htm">CATLONG32</a> <td><tt>iExpectedCase</tt><td><tt>=0</tt>) = 0   </table></dt>
+<dl>
+  <dd>
+ Checks the input data according to the sweep case.
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iExpectedCase</tt>
+   <dd> The expected sweep case to test. If <tt>0</tt>, the method tries to determine
+ the appropriate case in function of the input arguments.
+ <br>Refer to the encyclopedia for the detailed options of the different sweep cases.
+ </dd>
+</dl>
+  <dt> <b>Returns:</b> 
+  <dd>  The case number if it is relevant, <tt>0</tt> if the the case number is 
+ irrelevant, or if the inputs do not correspond to the specified case.
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>CATFrFTopologicalSweep.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>CATAdvancedTopologicalOpe</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

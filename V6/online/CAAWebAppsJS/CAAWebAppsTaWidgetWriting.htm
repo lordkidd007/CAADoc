@@ -1,0 +1,511 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Widget Development Principles</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Widget Development Principles</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article presents the fundamentals for developing a <b>3D</b>EXPERIENCE platform widget.</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Context"></a>3D Dashboard Context</h2>
+<p>Your goal is to develop a widget to run into the 3D Dashboard of the <b>3D</b>EXPERIENCE platform. So, at first it is important to know in which context your widget will run, 
+and what  it implies for your widget code.</p>
+<h3><a name="Run"></a>UWA, the run protocol</h3>
+<p>Your widget application will be loaded and executed inside the UWA environment. It means .... </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="hosting"></a>Server Hosting the Widget Code</h3>
+<p>Your widget code has to be hosted on a HTTP/HTTPS server. The url must be accessible by the 3D Dashboard, since the widget runs in its context. But pay notice, it implies
+that the widget, even hosted by your server, runs in the <b>3D Dashboard domain</b>. So your code has to ensure the cross-domain access. The point is seen further.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="iframe"></a>iframe Widget</h3>
+<p>The widget code is loaded and executed in the 3DDashboard context, after a slight transformation. </p>
+<table> 
+    <tr>
+		<td><img alt="iframe" width="50%" height="50%" src="images/CAAWebAppsiframe.png"/></td>
+	</tr>
+</table> 
+<p>Indeed, the widget code is encapsulated inside an <b>iframe</b>. It means:</p>
+<ul>
+<li>Do not create this iframe yourself, it is automatically created by the 3DDashboard infrastructure.</li>
+<li>The UWA version is the one imbedded into the 3DDashboard.</li>
+<li>All external scripts and CSS are kept and executed in the iframe context (no impact on parent document).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="trusted"></a>Trusted - Untrusted Widget</h3>
+<p>The iframed widget can be <b>trusted</b> or not. </p>
+<ul>
+<li>If the widget is trusted, its code runs on 3ddashboard.3dexperience.3ds.com domain, and can use 
+authenticated services of the <b>3D</b>EXPERIENCE platform. </li>
+<li>If the widget is not trusted, its code runs in another domain,  which prevents it to use the authenticated services of the <b>3D</b>EXPERIENCE platform.</li>
+</ul>
+<p>A widget is trusted, or not, according to its instantiation context as described by the referenced article [<a href="#References">8</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Template"></a>Widget Template</h3>
+<p>The structure of the widget is an html page containing at least those lines:</p> 
+  <pre class="code">
+&lt;?<b>xml</b> version="1.0" encoding="utf-8"?&gt; 
+&lt;!<b>DOCTYPE</b> html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xmlns:widget="http://www.<b>netvibes</b>.com/ns/"&gt;
+    &lt;head&gt;
+    ...
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>The first three lines are mandatory:</p>
+ <ol>
+        <li>Extensible Markup Language (<b>HTML</b>) is a markup language that defines a set of rules for encoding documents in a format that is both human-readable and machine-readable. It is defined in the HTML <b>1.0</b> Specification produced by the W3C, and several other related specifications, all free open standards. The encoding is <b>utf-8 </b>to support unicode characters. </li>
+        <li>The <b> <i>DOCTYPE</i></b> is an instruction to the web browser about what version of HTML the page is written in.</li>
+        <li>The last line is about the <b>namespaces</b>. You can see the <b>w3</b> namespace, and the one of Netvibes </li>
+    </ol>
+<h4><a name="head"></a>head section</h4>
+<p>The contents of the <code>head</code> section is your widget application. You are free to use your favorite libraries, since DS do not provide, or
+neither recommend, a specific JavaScript framework. 
+<p>Among the <code>head</code> section you can find several <code>script</code> sections, but at least one. Inside such a section you can reach  the object <code>widget</code> 
+which  is automatically instantied by the 3D Dashboard.</p>
+<p>In the example just below, the <code>body</code> property of the <code>widget</code> object is used to change the DOM contents:</p> 
+<pre class="code">
+&lt;head&gt;
+...
+&lt;script&gt;
+   <b>widget.body</b>.innerHTML= "Hello World!";	
+&lt;/script"&gt;
+...
+&lt;/head&gt;
+</pre>
+<p>The complete list of the DS exposed APIs applicable on the <code>widget</code> object is  available  in the Widget Class Reference article [<a href="#References">1</a>].
+In the next chapter <a href="#Widget">Widget Class Use<a> we introduce them.</p>
+<h4><a name="body"></a>body section</h4>
+<p>The <code>body </code> section is usually empty. Your javascript code will fill  it in. </p> 
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Widget"></a>Widget Class Use</h2>
+<p>The <code>widget</code> object, automatically instantiated by the 3D Dashboard, and accessible in the widget html page, is a<i> Widget</i> class instance. This chapter is an 
+introduction of its contents.</p> 
+<h3><a name="UserPreference"></a>User Preferences</h3>
+<p>User preferences are widget attributes that the end user is able to edit. The values are persisted by the 3D Dahsboard environment. Note, that once a preference has been valuated, and stored, the
+preference cannot be removed.</p> 
+<h4><a name="UserPreference-Description"></a>Description</h4>
+<p>Let's suppose a widget representing a demonstrator for mathematical operations. The application's designer considering the change of the operation as a rare action, the 
+developer will put as user preference the choice of the operation instead to integrate an editor (a combo) inside the widget body. Just below you have an example extracted from
+the referenced use case  [<a href="#References">2</a>]:</p>
+<table> 
+    <tr>
+		<td><img alt="mkmk-g" src="images/CAAWebAppsucAMDDo2.png"/></td>
+	</tr>
+</table> 
+<p>In the panel to edit the preferences, you can observe a combo (with Operation Choices as title) containing two values (NFirst/Abs). The first value (NFirst) is the current user 
+preference.</p>
+<p> To create this panel the developer has inserted a <code><b>widget:preferences</b></code> section into the <code>head</code> section:</p>
+<pre class="code">
+&lt;head&gt;
+...
+&lt;<b>widget:preferences&gt;</b>
+        &lt;widget:preference name="OperationChoice" <b>type="list"</b> label="Operation Choices" defaultValue="NFirst" &gt;
+			&lt;widget:option label="NFirst" value="NFirst">&lt;/widget:option&gt;
+			&lt;widget:option label="Abs" value="Abs">&lt;/widget:option&gt;
+        &lt;/widget:preference&gt;
+&lt;<b>/widget:preferences&gt;</b>
+...
+&lt;/head&gt;
+</pre>	
+<p>Please refer to the referenced article [<a href="#References">3</a>] for a full description of the <code>widget:preferences</code> section (begin/end preferences section), and 
+an explanation about all kind of user preferences you can declare using the <code>type</code> attribute of the <code>widget:preference</code> HTML tag.</p>
+<h4><a name="UserPreference-APIs"></a>APIs Access</h4>
+<p>You can get the value of a user preference  by using  the <i>getValue(name)</i> method of the <i>Widget</i> class,  and set its value by using the <i>setValue(name,value)</i> 
+ method .</p> 
+<p>Where the argument <code>name</code> is the attribute name in the HTML tag: </p>
+<pre class="code">  &lt;widget:preference <b>name</b>="PreferenceName"  .... &gt; &lt;/widget:preferences&gt;</pre>
+
+<h4><a name="UserPreference-EVTs"></a>Events</h4>
+<p>There are 4 events to know about the user preferences. They are all  triggered by the platform, i.e. the <i>setValue</i>  method does not trigger an event.  </p>
+<ul>
+<li><b>Before entering</b> the Preferences dialog box 
+<p>The <code>onEdit</code> action is triggered when the end user clicks on the Preferences item in the widget action menu.</p>
+<p>You can dispatch this event to trigger a refresh of the preference dialog  box. It is usefull for dynamic preferences as described in the referenced use case [<a href="#References">12</a>].</p>
+</li>
+<li><b>After leaving</b> the Preferences  dialog box 
+
+<p>For the refresh of the widget body, as usual you have two possibilities: </p>
+<ul>
+<li>You only use the <code>onLoad</code> event because you have the same process when launching or refreshing the widget. </li>
+<li>You use  <code>onLoad</code> and <code>onRefresh</code> events, because you want to differentiate the process between the launch (once), and the refresh (several times). This last event is
+triggered   when the end user requests a refresh (widget action menu), and after the Preferences  dialog box closure. </li>
+</ul>
+<p>Besides, there is a special event triggered when the Preferences  dialog box is closed. It  is the    <code>endEdit</code> event. </p>
+<p>The execution order between  <code>endEdit</code> and the refresh of the body is not guaranteed.</p>
+
+
+</li>
+</ul>
+
+<p>This piece of code, still extracted from the referenced use case [<a href="#References">2</a>], only uses  the <i>onRefresh</i> and <i>onLoad</i>  events.</p>
+<pre class="code">
+...
+&lt;script&gt;
+   'use strict'; 
+		
+   var myWidget = {	
+      <b>onLoad</b>:function () {	
+           // ....
+        },
+      <b>onRefresh</b>:function () {	
+            var operation= <b>widget.getValue</b>('OperationChoice');
+            if ( operation == 'NFirst' )  {
+		      ...		   
+            } 
+            if ( operation == 'Abs' )  {
+			...					
+            }
+        },
+   };
+   widget.addEvent('onLoad', myWidget.onLoad);
+   widget.addEvent('onRefresh', myWidget.onRefresh);   
+&lt;/script&gt;
+...  </pre>
+<p>In this example, when the widget is launched, the <i>onLoad</i> callback function is executed, and when the widget is refreshed (Refresh action menu) or when the Preferences
+dialog box is closed, the <i>onRefresh</i> callback function  is executed.</p> 
+<p>In this other piece of code, it  uses  <i>onRefresh</i> ,  <i>onLoad</i>  and <i>endEdit</i> events.</p>
+<pre class="code">
+...
+&lt;script&gt;
+   'use strict'; 
+		
+    var myWidget = {	
+      <b>onLoad</b>:function () {	
+           // ....
+        },
+      <b>onRefresh</b>:function () {	
+           // 
+        },
+       <b>endEdit</b>:function () {	
+           //
+        },
+   } );
+   widget.addEvent('onLoad', myWidget.onLoad);
+   widget.addEvent('onRefresh', myWidget.onRefresh);   
+   widget.addEvent('endEdit', myWidget.endEdit);   
+&lt;/script&gt;
+...  </pre>
+<p>In this example, when the widget is launched, the <i>onLoad</i> callback function is executed, when the widget is refreshed (Refresh action menu) the <i>onRefresh</i> callback function  is executed,
+and when the Preferences dialog box is closed, the <i>onRefresh</i> and <i>endEdit</i> callback functions are executed. </p > 
+
+<h4><a name="UserPreference-value"></a>Value</h4>
+<p>The value of a user preference can be:</p>
+<ul>
+<li><b>undefined</b>, if no default value has been declared in the <code>widget:preference</code> HTML tag, and the preference has not been valuated (code/ui) yet. </li>
+<li><b>a value</b>, either the default value declared in the <code>widget:preference</code> HTML tag, or a data coming from a valuation (code/ui).</li>
+</ul>
+<p>Once the user preference is valuated, it cannot come back to the "undefined" status. </p>
+<p>The value is kept by the 3D Dashboard, so even if you empty the browser cache it does not change 
+the user preference values.</p> 
+<p>We strongly recommend the developer associates an <b>explicit  default value</b> with a user preference. Indeed, if there is no explicit value, the API will return undefined, while the UI
+will display its own default value. Therefore the behaviour of the widget can be different from the one expected by the end user. The default value can be the one of the HTML tag, or a value
+assigned by an API  before the first UI Preference edition.</p>
+<p>Finally, we recommended to read/work with the referenced use case [<a href="#References">9</a>]  to be more familiar with the user preferences principles and usages.</p>
+
+<h4><a name="dynamic"></a>Dynamicity</h4>
+<p>During the widget lifecycle you can create and update dynamically a user preference. It is possible with the <i>addPreference</i>  method. However, it is not possible to delete preferences, you can only hide them.</p>
+<p>The referenced article [<a href="#References">11</a>] is the description of a use case demonstrating dynamic user preferences.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Events"></a>Events</h3>
+<p>The event mechanism is based on the DOM event protocol [<a href="#References">X</a>]. Your code can add a listener for exposed events [<a href="#References">1</a>], as 
+for yours. In this latter case, your code will dispatch your own event.</p>
+<h4><a name="events-Listener"></a>Event Listener</h4>
+<p>The method to add a listener for an event is <i>addEvent</i>. <p> 
+<pre class="code">
+...
+&lt;script&gt;
+   'use strict'; 
+	
+    var MyWidget = {
+       <b>onLoadCB</b>:function () {	
+          ...
+        },
+        <b>onViewChangeCB</b>:function (TheViewArg) {	
+           ...
+        },
+        <b>onMyOwnEventCB</b>:function () {	
+          ...
+        }
+    };	
+    widget.<b>addEvent</b>('onLoad', MyWidget.onLoadCB);
+    widget.<b>addEvent</b>('onViewChange', MyWidget.onViewChangeCB);
+    widget.<b>addEvent</b>('onMyOwnEvent', MyWidget.onMyOwnEventCB);
+	...
+&lt;/script&gt;
+...  </pre>
+<p>Some events can have arguments like <code>onViewChange</code>. For 3D Dashboard events, the arguments are described for each exposed event [<a href="#References">1</a>]. </p>
+<p>The <code>onMyOwnEvent</code> event is a custom event that you will send yourself.</p>
+<h4><a name="events-Dispatcher"></a>Event Dispatcher</h4>
+<p>The method to send an event is <i>dispatchEvent</i> <p> 
+<pre class="code">
+...
+&lt;script&gt;
+   ...
+   widget.<b>dispatchEvent</b>('onMyOwnEvent');
+   ...
+   var ObjectArg= [..,...];
+   widget.<b>dispatchEvent</b>('onMyOwnEventWithArgs', ObjectArg);
+	...
+&lt;/script&gt;
+...  </pre>
+<p>The first event is dispatched without argument, while the second has a argument.</i> <p> 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="DOM"></a>DOM access</h3>
+<p>We strongly recommend the developer to use the exposed API to get and handle the DOM (Document Object Model). You get it through the <i>body</i> 
+property of the <code>widget</code> object. </p> 
+<pre class="code">
+  <b>widget.body</b>.innerHTML=textToDisplay;	
+</pre>
+<p><i>body</i>  is an HTMLElement you handle with standard DOM APIs. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Meta"></a>Meta Data</h3>
+<p>The widget can have static data we call meta data </p>
+ <pre class="code" >...
+&lt;meta <b>name</b>="description" content="CAA Web Apps basic use case" /&gt;
+&lt;meta <b>name</b>="keywords" content="CAA Use Case" /&gt;
+...</pre>
+<p>You get the value of a meta data using the <i>metas</i> property of the <code>widget</code> object. </p> 
+<pre class="code" >...
+var myDataDescription= <b>widget.metas</b>.description;
+...</pre>
+<p>The name after metas is the meta data name.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Identification"></a>Identification</h3>
+<p>The widget once instantiated in the 3D Dashboard is assigned an identificator. This id is a random value, but once associated with the widget instance, it stays constant. </p>
+<p>You access it through the <i>id</i> property of the <code>widget</code> object. </p> 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Title"></a>Title</h3>
+<p>You handle it through the <i>getTitle</i> and <i>setTitle</i>  methods.</p> 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="capabilities"></a>Widget Capabilities</h2>
+<p>Let's see what you can, or cannot, do inside your widget application.</p>
+<h3><a name="usewidget"></a>Using widget object</h3>
+<p>We have seen that the widget is an html page loading in the 3D Dashboard. In this context you can use the <code>widget</code> object - an instance of the  Widget class. This object 
+is used to manage the widget lifecycle, and to interact with the 3D Dashboard frame. </p>
+<p>We draw your attention on the fact this <code>widget</code> object must only be used inside the &lt;script&gt; section of the html page. Do not use the object in an external JavaScript file, and do not 
+pass it as an argument of JavaScript function.</p>
+<p><b>Correct Example:</b></p>
+<pre class="code">
+&lt;script&gt; 
+    require(['DS/CAAWebAppsUserPreference/CAAWebAppsUPMngt'], function (CAAWebAppsUPMngt) {
+      'use strict';
+       var MyWidget = {
+          onLoad: function() {
+             var line = CAAWebAppsUPMngt.displayUP(<b>widget.getValue</b>('username'),
+                                                   widget.getValue('category'),
+                                                   widget.getValue('openfile'),
+                                                   widget.getValue('nb_max_item'));
+...
+</pre>
+<p>In this example the purpose of the <i>displayUP</i> method exported by an AMD module [<a href="#References">6</a>] is to generate a string containing  the user preference values (let's see the referenced use case 
+[<a href="#References">9</a>] to understand the complete context). The values of the  user preferences are passed as argument of the function. The <i>displayUP</i> method builds the string using the input strings, and does
+no use the widget object to retrieve itself the values, like the following two examples.</p>
+<p><b>Wrong Example:</b></p>
+<pre class="code">
+define('DS/CAAWebAppsUserPreference/CAAWebAppsUPMngt',  function () {
+    'use strict';
+     var exports;
+     exports = {
+       displayUP : function (  ) {
+           var line = '' ;
+           var txt_up = <b>widget.getValue</b>('username') ;
+           line = line + 'User Name: ' + txt_up + '&ltbr&gt;';
+...
+</pre>
+<p>In this example the external JavaScript file use  <code>widget</code> object as a global object. It will not work in 3D Dashboard context.</p> 
+<p><b>Other wrong Example:</b></p>
+<pre class="code">
+define('DS/CAAWebAppsUserPreference/CAAWebAppsUPMngt',  function () {
+    'use strict';
+     var exports;
+     exports = {
+       displayUP : function ( <b>widgetarg</b> ) {
+           var line = '' ;
+           var txt_up = <b>widgetarg</b>.getValue('username') ;
+           line = line + 'User Name: ' + txt_up + '<br>';
+...
+</pre>
+<p>In this example, the widget is passed as argument. It is possible, but strongly not recommended to enforce loose coupling.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h3><a name="Accessing"></a>Accessing Server Data</h3>
+<p>For data hosted on an HTTP/HTTPS server, there are two protection systems which can prevent you to access them, the <b>authentication</b> and the <b>cross-domain</b> protections.</p>
+<h4><a name="Authentication"></a>Authentication</h4>
+<p>The Authentication's goal is to verify the login person identity.</p>
+ 
+<p>For the <b>3D</b>EXPERIENCE platform, there is the <b>CAS</b> protocol, implemented and managed by the 3D Passport [<a href="#References">12</a>]. If your widget is
+ <a href="#trusted">trusted</a>, you can reach the <b>3D</b>EXPERIENCE platform servers through the Single Sign On authentication, otherwise the access to your widget will be prohibited.   
+</p>
+<p>For the others kind of servers, your widget should be compliant with the authentication protocol put in place by the servers, if any.</p>
+</ul>
+<h4><a name="Cross-domain"></a>Cross-domain</h4>
+<p>Browsers certified for the <b>3D</b>EXPERIENCE platform prevent cross-domain HTTP/HTTPS requests. Nevertheless, there are some means to pass over, like the proxy or the CORS [<a href="#References">10</a>] mechanisms. </p>
+<p>DS provides API to access data from any servers, those of the <b>3D</b>EXPERIENCE platform like others. Let's see the dedicated article in the reference section
+[<a href="#References">13</a>].
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Guidelines"></a>Development Guidelines</h2>
+<p>We do not have strong recommendations for writing widget, but anyway we have a list of guidelines. By following them your code should be more readable, and more reusable,
+ so eventually leading to less maintenance.</p>
+<ul>
+<li><b>Mkmk and web module </b>
+<p>DS has created a new type of mkmk module, the web module. If you use mkmk to build your widget code, you will take beneficit of two advantages:</p>
+<ul>
+<li><i>Concatenation</i>: If your widget is made of several js files, all will be gathered in one file. 
+</li>
+<li><i>Minification </i>: Comments and blank lines are removed. Moreover, during the code parsing, some code checks are made.  
+</li>
+</ul>
+<p>Usually, there are a number of reasons why compressing your JavaScript files is a good idea: </p>
+<ul>
+<li>Quicker download times for your users</li>
+<li>Reduced bandwidth consumption of your website</li>
+<li>Reduced number of HTTP requests on your server when combining many JavaScript files into one compressed file, 
+thus reducing the server load and allowing more visitors to access your website</li>
+<li>Comments and whitespace are not needed for JavaScript execution.</li>
+</ul>
+<p>The Getting Started use case [<a href="#References">4</a>] shows you how to create a file tree structure compliant with Mkmk DS tools, 
+and the referenced article [<a href="#References">5</a>] details how to use the mkmk options according the development
+ stage of your widget: development, check and production.</p>
+ <p>Nevertheless, we draw your attention to the fact that <b>using mkweb modules and mkmk tool is not mandatory</b>, as long as 
+ your widget code is placed in the expected place of the runtime view.</p>
+<li><b>AMD Pattern </b>
+<p>AMD (Asynchronous Module Definition) is a pattern commonly shared by the JavaScript developpers. It enables you mainly two things:</p>
+<ul>
+<li><i>Encapsulation</i> : your module is like a C/C++ class with public and private methods/data. </li>
+<li><i>Loading code dynamically</i> without blocking your application thanks to an asynchronous mechanism </li>
+</ul>
+<p>You can you refer to the referenced article [<a href="#References">6</a>] for a longer introduction to the pattern, and you 
+will find some advice when using it in the <b>3D</b>EXPERIENCE platform context.</p>
+</li>
+<li><b>Naming Guides</b>
+<p>We suggest some guidelines when writing JavaScript code in the referenced article [<a href="#References">7</a>]</p>
+</ul>
+</li>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+ <p>This article has presented the basic structure of a <b>3D</b>EXPERIENCE platform  widget, and introduced the APIs to handle the <code>widget</code> object automatically instantiated by 
+ the UWA environment in which the widget is running. </p>
+ <p>The reader is invited to continue with the article "Widget 3D Dashboard Integration" [<a href="#References">8</a>] </p>
+ <script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+    
+	 <tr>
+		<td>[1]</td>
+		<td><a href="../CAAWebAppsJSRef/CAAWebAppsQrWidgetClass.htm">Widget Class Reference</a></td>
+	</tr>
+	 <tr>
+		<td>[2]</td>
+		<td><a href="../CAAWebAppsJSGuides/CAAWebAppsUcOperationApp.htm">Defining and Using AMD Modules</a></td>
+	</tr>
+	 <tr>
+		<td>[3]</td>
+		<td><a href="../CAAWebAppsJSRef/CAAWebAppsQrPreferences.htm">User Preference Reference</a></td>
+	</tr>
+	 <tr>
+		<td>[4]</td>
+		<td> <a href="CAAWebAppsUcHelloWorld.htm">Getting Started</a></td>
+	</tr>
+	 <tr>
+		<td>[5]</td>
+		<td> <a href="../CAAWebAppsJSGuides/CAAWebAppsTamkmkbuild.htm">Concatenation and Minification, Web Module Build Options</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="../CAAWebAppsJSGuides/CAAWebAppsTaAMDConcepts.htm">AMD Concepts</a></td>
+	</tr>
+    <tr>
+		<td>[7]</td>
+		<td><a href="../CAAWebAppsJSGuides/CAAWebAppsTaNamingRules.htm">JavaScript Naming Guides</a></td>
+	</tr>
+	 <tr>
+		<td>[8]</td>
+		<td><a href="CAAWebAppsTaWidgetIntegration.htm">Widget 3D Dashboard Integration</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAWebAppsUcUserPreferences.htm">Using User Preferences</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://www.html5rocks.com/en/tutorials/cors/');return false;">Using CORS</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAAWebAppsUcDynamicPreference.htm">Creating User Preferences Dynamically</a></td>	
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td><a href="../CAAiamPassport/CAAiamPassportUsageOpenness.htm">3DPassport Role and Openness</a></td>	
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="../CAAWebAppsJSWS/CAAWebAppsTaDataAccess.htm">About Service Data Access</a></td>	
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

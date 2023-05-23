@@ -1,0 +1,263 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Managing Command Undo/Redo</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing Command Undo/Redo</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to add undo/redo capabilities to a command to 
+		enable the end user to undo and redo the command result when the command 
+		is completed.</p>
+		<ul>
+			<li><a href="#100000">What You Will Learn With This Use Case</a></li>
+			<li><a href="#200000">The Polyline Command Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the Polyline Command Do</a></li>
+					<li><a href="#How">How to Launch the Polyline Command</a></li>
+					<li><a href="#Where">Where to Find the Polyline Command Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show how to manage the command undo/redo, that is 
+how to undo and redo the command effect after the command has completed. It deals 
+with a non transactional model, that is a model that doesn't include model object 
+undo/redo by means of the CATIUndoTransaction interface implementation. As a consequence, 
+the model object undo/redo must be coded in the undo/redo methods.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>The Polyline Command Use Case</h2>
+<p>The Polyline command is a use case of the CAADialogEngine.edu framework that 
+illustrates the DialogEngine framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the Polyline Command Do</h3>
+<p>The Polyline command creates a polyline by successively indicating or selecting 
+points, or entering their coordinates using a dialog box. A right click stops the 
+polyline creation and exits the command. When the command is completed, and when 
+other successive commands are also over, the command undo process can sequentially 
+undo the command effects, starting from the last command and going up until the 
+maximum number of undo is reached. Conversely, the polyline undone can be redone.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the Polyline Command</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+the &quot;<a href="../CAAAfrApplicationFrame/CAAAfrUcCAAGeometryOverview.htm">The 
+CAAGeometry Sample</a>&quot; use case for a detailed description of how this use 
+case should be launched.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module 
+name on the command line, but type 3DEXPERIENCE instead. When the application is ready, do the 
+following:</p>
+<ul>
+    <li>Click on <strong>3D</strong>, the west quadrant of Compass.</li>
+    <li>In the <strong>3D Modeling apps</strong> section, select <strong>CAA: Create Geom</strong> app. </li>
+    <li>Launch the <strong>Polyline</strong> command situated in the flyout of 
+	the<strong> Rectangle </strong>command,&nbsp; in <strong>&quot;CAA Geometry Creation Section&quot;</strong> 
+    of the action bar.</li>
+	<li>Click to create the points that make up the polyline, and right click to 
+		end.</li>
+</ul>
+<p>You can create several polylines. Then, clicking undo several times removes the 
+polylines in their creation reverse order, and clicking redo restores them in their 
+creation order.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the Polyline Command Code</h3>
+<p>The Polyline command is made of a single class named <em>CAADegCreatePolylineCmd</em> 
+located in the CAADegGeoCommands.m module of the CAADialogEngine.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADialogEngine.edu\CAADegGeoCommands.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To create the command undo/redo, there are four steps:</p>
+<table>
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+		<th>Where</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td><a href="#Step1">Declare the command undo/redo methods</a></td>
+		<td>Header file</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td><a href="#Step2">Create the command undo/redo object</a></td>
+		<td>Command member function</td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td><a href="#Step3">Provide the static undo and redo methods</a></td>
+		<td>Command member functions</td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td><a href="#Step4">Provide the static deallocation method</a></td>
+		<td>Command member function</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Declaring the Command Undo/Redo Methods</h3>
+<p>The command undo/redo methods are declared in the command class header file.</p>
+<pre class="code">...
+  CATCommandGlobalUndo * GetGlobalUndo();
+
+  static void DeallocatePolyline(void * iUsefulData); 
+  static void UndoCreatePolyline(void * iUsefulData);
+  static void RedoCreatePolyline(void * iUsefulData); 
+...	</pre>
+<p>These methods are as follows:</p>
+<ul>
+	<li><code>GetGlobalUndo</code> is a CATCommand redefined method that returns 
+		a CATCommandGlobalUndo object. This object contains pointers to the de-allocation, 
+		undo, and redo methods to be accessed when the command itself is deleted.
+		<code>GetGlobalUndo</code> is called just before the command completes.</li>
+	<li><code>DeallocatePolyline</code> is a command static method that is called 
+		to de-allocate the polyline when the maximum number of undo steps is reached. 
+		At this moment, the polyline cannot be redone, and the polyline stored for 
+		redo must be de-allocated.</li>
+	<li><code>UndoCreatePolyline</code> is a command static method that is called 
+		to undo the command result, that is the created polyline.</li>
+	<li><code>RedoCreatePolyline</code> is a command static method that is called 
+		to redo the command result.</li>
+</ul>
+<p>These last three methods are static because they should be accessible when the 
+command has completed and is no more active. The class instance is deleted when 
+the command undo process takes place.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating the Command Undo/Redo Object</h3>
+<p>The command undo/redo object is created using the <code>GetGlobalUndo</code> 
+method.</p>
+<pre class="code">CATCommandGlobalUndo * CAADegCreatePolylineCmd::GetGlobalUndo()
+{
+  CATCommandGlobalUndo * pCommandUndoRedo = NULL;
+
+  if ( _EltPolyline )  <em>// The created polyline</em>
+  {
+    pCommandUndoRedo = new <strong>CATCommandGlobalUndo</strong>(
+       (CATGlobalUndoMethod)&amp; CAADegCreatePolylineCmd::UndoCreatePolyline,
+       (CATGlobalUndoMethod)&amp; CAADegCreatePolylineCmd::RedoCreatePolyline,
+       (void *) _EltPolyline,
+       (CATGlobalUndoMethod)&amp; CAADegCreatePolylineCmd::DeallocatePolyline);
+  }
+  return pCommandUndoRedo;
+}</pre>
+<p>The CATCommandGlobalUndo instance returned by GetGlobalUndo contains pointers 
+to</p>
+<ul>
+	<li>The undo method</li>
+	<li>The redo method</li>
+	<li>The created polyline</li>
+	<li>The deallocation method.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Providing the Static Undo and Redo Methods</h3>
+<p>The <code>UndoCreatePolyline</code> and <code>RedoCreatePolyline</code> methods 
+have the following signatures.</p>
+<pre class="code">void CAADegCreatePolylineCmd::UndoCreatePolyline(void *iData)
+{
+  CAAISysPolyline * Elt  = (CAAISysPolyline *) iData;
+  if ( Elt )
+  {
+    ... <em>// Provide undo code here</em>
+  }
+}
+
+void  CAADegCreatePolylineCmd::RedoCreatePolyline(void *iData)
+{
+  CAAISysPolyline * Elt  = (CAAISysPolyline *) iData;
+  if ( Elt )
+  {
+    ... <em>// Provide redo code here</em>
+  }
+}</pre>
+<p>The pointer to the polyline is passed as a void *. Cast it to the appropriate 
+interface pointer before using it to undo or redo the command result.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Providing the Static Deallocation Method</h3>
+<p>The <code>DeallocatePolyline</code> deallocates the created polyline when the 
+maximum number of undo steps is reached.</p>
+<pre class="code">void CAADegCreatePolylineCmd::DeallocatePolyline(void * iData)
+{
+  if (iData)
+  {
+    CAAISysPolyline * Elt  = (CAAISysPolyline *) iData;
+    if (Elt) Elt-&gt;<strong>Release</strong>();
+  }
+}</pre>
+<p>The pointer to the polyline is passed as a void *. Cast it to the appropriate 
+interface pointer before releasing it.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to add command undo/redo capabilities to a command using 
+an undo/redo object that remains alive after the command is completed and that holds 
+pointers to the created object, to command static undo and redo methods, and to 
+a command static deallocation method of the created object.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Mar 2014]</td>
+		<td>Migration to 3DEXPERIENCE platform</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

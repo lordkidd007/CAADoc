@@ -1,0 +1,759 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Meshing Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Meshing Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This article explains which paradigms CAA uses to show objects and let 
+		end users play with them.</p>
+		<ul>
+			<li><a href="#WhatChange">What Has Changed?</a> </li>
+			<li><a href="#User">In Terms of User Interface</a></li>
+			<li><a href="#Architecture">In Terms of User Architecture</a></li>
+			<li><a href="#Mapping">Status and Mapping of the V5 CAA APIs</a></li>
+			<li><a href="#Status">Status 
+			and mapping of Surface Mesher attributes</a></li>
+			<li><a href="#MappingOctree">Status and Mapping of Octree Mesher Attributes</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="WhatChange"></a>What Has Changed?</h2>
+<p>The modifications in the Meshing APIs are due to some reasons:</p>
+<ul>
+	<li>Code architecture has changed due to PLM objects : Model Scenario Result 
+	concepts and removal of Document</li>
+	<li>Removal of Field model </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="User"></a>In Terms of User Interface</h2>
+<p>The figure below shows a typical CATIA V5 work session within the Structural 
+Analysis application. This Analysis document contains a reference to a design document 
+(in this case, a Part document) on which a stress analysis is computed. This feature 
+tree summarizes the different kinds of analysis features that are manipulated by 
+the user interface. This same structure is used in order to scan the model when 
+programming. What is the role of the different Analysis feature objects:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Analysis Model" src="images/ModeleAnalysis.jpg" width="301" height="341"/></td>
+		<td>An Analysis model is made of some different features. The <strong>Analysis 
+		Manager</strong> is the root feature that manages:
+		<ul>
+			<li>The <strong>Links Manager</strong> role is to keep the link to the 
+			referenced design document. It can be a Part for single part analysis, 
+			a Product for analysis of a design assembly or other external documents. 
+			It is here a rod Part </li>
+			<li>The <strong>Finite Element Model</strong> is dedicated to the discretization 
+			(meshing global and local specifications) and idealization (behavior 
+			of the part as physical properties). By default it contains a meshing 
+			set called <strong>Nodes and Elements</strong>, a property set, a material 
+			set, and an axis set. </li>
+			<li>Relative to a <strong>Finite Element Model</strong>, some
+			<strong>Analysis Cases</strong> are created in order to group all kinds 
+			of external data applied on the idealization. (In this case, Boundaries, 
+			Loads and the solution set that will give access to all the physical 
+			data that can be computed by the solver.) </li>
+			<li>The <strong>Analysis Case</strong> is defined for a given solver 
+			and for a specific computation. (In this case, static linear.) It is 
+			made of <strong>Analysis Sets</strong> that groups some <strong>Analysis 
+			Entities</strong>, which represent some physical preprocessing actions 
+			applied to the design. (For this example, apply a clamp or a momentum 
+			to B-rep elements of the part.) </li>
+			<li>In order to have the result visualization, <strong>images</strong> 
+			appear in the tree. They are connected in the tree under the set that 
+			provides the values for the display. In this example, they are connected 
+			under the <em>Static Case Solution.1</em>. </li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<p>This article will only illustrate the <strong>adoption for Finite Element Model 
+in V6</strong>. The figure below shows a typical CATIA V6 specifications tree. The 
+Product contains a design representation as well as a FEM representation.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAACenMeshingAdoption_01.jpg" width="258" height="297"/></td>
+		<td>The <em><strong>Finite Element Representation</strong></em> is an alternative 
+		representation of the product which contains finite element meshes and structural 
+		properties. It is made of different features:
+		<ul>
+			<li>The <strong>Nodes and Elements</strong> set is the entity that collects 
+			all the mesh parts created in the FEM representation.</li>
+			<li>The<strong> </strong><strong>Mesh Part</strong><em> </em>is the 
+			feature that represents the finite elements and nodes.</li>
+			<li>The <strong>Group</strong><em> </em>is the entity that allow to 
+			group finite elements or nodes based on a user selection (geometry, 
+			proximity, spatial, boundary). Groups can be mesh part specific or not 
+			following they are created under the mesh part or the group set.
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Architecture"></a>In Terms of Architecture</h2>
+<p>All Analysis data are stored inside the Analysis document. The extension of this 
+document is &quot;<strong>CATAnalysis</strong>&quot;. The data are stored in different containers.</p>
+<p>The figure shows the contents of the CATAnalysis document in term of containers. 
+All are created at the document initialization.</p>
+<p>
+<img alt="Containers" src="images/CAACenCATAnalysisDocument.jpg" width="366" height="303"/></p>
+<ol>
+	<li>The &quot;<strong>Analysis Feature</strong>&quot; container groups the Specifications. 
+	It is based on features and literals in order to capture as much as possible 
+	the user&#39;s design intent. After, the Spec objects build an analysis model supported 
+	by finite element entities by using standard physical type description. </li>
+	<li>The &quot;<strong>Field Model</strong>&quot; container groups the concrete classes 
+	that define the view of the physics based on finite element entities. </li>
+	<li>The &quot;<strong>Meshing</strong>&quot; container is the result view of the mesh 
+	specifications. It groups concrete classes. </li>
+	<li>The &quot;<strong>Images</strong>&quot; container groups the Specifications that define 
+	the display of the analysis model. The Images container allows the physical 
+	types to be displayed once the are defined on finite element entities. </li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Mapping"></a>Status and Mapping of the V5 CAA APIs</h2>
+<table class="fill">
+	<tr>
+		<th>V5 Frameworks</th>
+		<th>V5 API</th>
+		<th>Status</th>
+		<th>V6 Frameworks</th>
+		<th>V6 API</th>
+	</tr>
+	<tr>
+		<td>AnalysisMeshingToolsItf</td>
+		<td><strong>CATMSHCustomHighlight</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td rowspan="42">AnalysisMeshingModel</td>
+		<td><strong>CATIMSHAdvWorkbenchAddin</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtUIInterfaces</td>
+		<td><strong>CATIFmtWorkbenchAddin</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHAssociativity</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtAssociativity</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHConnectivity</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtConnectivity</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHCriterion</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtCriterion</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHGroup</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtGroup<br />
+		CATIFmtGroupManager</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHLocalSpecification</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtLocalSpecification</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHMesh</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtMesh</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHMeshDomain</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtMeshDomain</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHMesher</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtMesher</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHMeshManager</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtMeshManager</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHMeshPart</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtMeshPart</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHSelectedEdge</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtSelectedEdge</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHSelectedElement</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtSelectedElement</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHSelectedFace</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtSelectedFace</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHSelectedNode</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATIFmtSelectedNode</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHTrapSelector</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtToolsInterfaces</td>
+		<td><strong>CATIFmtTrapSelector</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATIMSHVisuManager</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtUIInterfaces</td>
+		<td><strong>CATIFmtViewManager</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHAssociativityStruct</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtFEEntityType</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHConnectivityServices</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtConnectivityServices</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHCriterionServices</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtCriterionServices</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHElement</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtElement<br />
+		CATFmtMeshElementIter</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHElementVisuAttribute</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHExtIConnectivity</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtExtIConnectivity</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHExtICriterion</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtExtICriterion</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHExtIMesher</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtExtIMesher</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHGeometricalEngine</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtGeometricalEngine</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHListOfMeshPart</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtListOfMeshPart</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHMeshDomain</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtMeshDomain</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHMeshManagerServices</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHModifyNotification</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHNode</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtModelInterfaces</td>
+		<td><strong>CATFmtNode<br />
+		CATFmtMeshNodeIter</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHNodeVisuAttribute</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHSelectionTrap</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtToolsInterfaces</td>
+		<td><strong>CATFmtSelectionTrap</strong></td>
+	</tr>
+	<tr>
+		<td><strong>CATMSHTrapMode</strong></td>
+		<td>Replaced</td>
+		<td>CATFmtToolsInterfaces</td>
+		<td><strong>CATFmtTrapMode</strong></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Status">Status and Mapping of Surface Mesher Attributes</a></h2>
+<p>The following table describes the equivalence between V5 global or local specifications 
+and V6 ones. For additional information see <strong>Surface Mesh Part Attributes</strong> 
+document.</p>
+<table class="fill">
+	<tr>
+		<th>Attributes Type</th>
+		<th>V5 Attributes</th>
+		<th>Status</th>
+		<th>V6 Attributes</th>
+	</tr>
+	<tr>
+		<td><strong>Global Mesh Attributes</strong></td>
+		<td><strong>GlobalSize</strong></td>
+		<td>Replaced</td>
+		<td><strong>MeshSizeValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>GlobalMethod</strong></td>
+		<td>Replaced</td>
+		<td><strong>ElementShape</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>ElementOrder</strong></td>
+		<td>Replaced</td>
+		<td><strong>ElementOrder</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>StripOptimization</strong></td>
+		<td>Removed</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshCapture</strong></td>
+		<td>Replaced</td>
+		<td><strong>AutomaticMeshCapture</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshCaptureTol</strong></td>
+		<td>Replaced</td>
+		<td><strong>AutomaticMeshCaptureTol</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MinimizeTriangles</strong></td>
+		<td>Removed</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>OptimizeRegularity</strong></td>
+		<td>Removed</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshAbsSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>AbsoluteSag</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshAbsSagValue</strong></td>
+		<td>Replaced</td>
+		<td><strong>AbsoluteSagValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshRelSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>ProportionalSag</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MeshRelSagValue</strong></td>
+		<td>Replaced</td>
+		<td><strong>ProportionalSagValue</strong></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><strong>MinSizeForSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>MinSizeForSagsValue</strong></td>
+	</tr>
+	<tr>
+		<td><strong>Global Topology Attributes</strong></td>
+		<td><strong>ConstraintSagValue</strong></td>
+		<td>Removed</td>
+		<td><strong></strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>FaceAngle</strong></td>
+		<td>Replaced</td>
+		<td><strong>AngleBetweenFacesValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>CurveAngle</strong></td>
+		<td>Replaced</td>
+		<td><strong>AngleBetweenCurvesValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>DetailsElimination</strong></td>
+		<td>Replaced</td>
+		<td><strong>GeometrySimplification</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MinimumSize</strong></td>
+		<td>Replaced</td>
+		<td><strong>MinimumSizeValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>CleanSize</strong></td>
+		<td>Replaced</td>
+		<td><strong>SuppressHoles SuppressHolesValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>Offset</strong></td>
+		<td>Replaced</td>
+		<td><strong>OffsetValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>OffsetFromThickness</strong></td>
+		<td>Replaced</td>
+		<td><strong>OffsetFromThickness</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>CurveCapture</strong></td>
+		<td>Replaced</td>
+		<td><strong>AutomaticCurveCapture</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>CurveCaptureTol</strong></td>
+		<td>Replaced</td>
+		<td><strong>AutomaticCurveCaptureTolValue</strong></td>
+	</tr>
+	<tr>
+		<td><strong>Local Mesh Specifications </strong></td>
+		<td><strong>MSHDistributionElement</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtStudioDistributionSpec</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHCaptureElement</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtStudioCaptureSpec</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHMeshAroundHole</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtStudioHoleSpec</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHMeshDomain</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtGroupingLocalSpec,<br />
+		CATFmtStudioFrontQuadSpec,<br />
+		CATFmtStudioFrontTriaSpec,<br />
+		CATFmtStudioMappedSpec;<br />
+		CATFmtStudioMappedFreeSpec,<br />
+		CATFmtStudioBeadSpec,<br />
+		CATFmtStudioHalfBeadSpec</strong></td>
+	</tr>
+	<tr>
+		<td><strong>Local Topology Specifications </strong></td>
+		<td><strong>MSHSuppressHole</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtConstrainHoleLocalSpec, CATFmtUnconstrainHoleLocalSpec, 
+		SewAllButtonHoles</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHSuppressCrack</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHSuppressFace</strong></td>
+		<td>Replaced</td>
+		<td><strong>CleanedGeometry, CleaningMode</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHConstrainEdge</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtConstrainEdgeLocalSpec, CATFmtUnconstrainEdgeLocalSpec</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHConstrainVertex</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHConstrainCurve</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtExternalCurveLocalSpec</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHConstrainPoint</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtExternalPointLocalSpec</strong></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="MappingOctree">Status and Mapping of Octree Mesher Attributes</a></h2>
+<p>The following table describes the equivalence between V5 global or local specifications 
+and V6 ones. For additional information see <strong>Octree Mesh Part Attributes</strong> 
+document.</p>
+<table class="fill">
+	<tr>
+		<th>Attributes Type</th>
+		<th>V5 Attributes</th>
+		<th>Status</th>
+		<th>V6 Attributes</th>
+	</tr>
+	<tr>
+		<td><strong>Global Mesh Attributes</strong></td>
+		<td><strong>SizeValue</strong></td>
+		<td>Replaced</td>
+		<td><strong>SizeValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>ElementOrder</strong></td>
+		<td>Replaced</td>
+		<td><strong>ElementOrder</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MaxWarpAngle</strong></td>
+		<td>Replaced</td>
+		<td><strong>MaxWarpAngleValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MinJacobian</strong></td>
+		<td>Replaced</td>
+		<td><strong>MinJacobianValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>ProportionalSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>ProportionalSag</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>ProportionalSagValue</strong></td>
+		<td>Replaced</td>
+		<td><strong>ProportionalSagValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>AbsoluteSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>AbsoluteSag</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>AbsoluteSagValue</strong></td>
+		<td>Replaced</td>
+		<td><strong>AbsoluteSag</strong><strong>Value</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>Criteria</strong></td>
+		<td>Replaced</td>
+		<td><strong>Criteria</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MinGeometrySize</strong></td>
+		<td>Replaced</td>
+		<td><strong>MinGeometrySize (Topology Attribute)</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MinSizeForSags</strong></td>
+		<td>Replaced</td>
+		<td><strong>MinSizeForSagsValue</strong></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><strong>MeshGeometryViolation</strong></td>
+		<td>Replaced</td>
+		<td><strong>MeshGeometryViolation<br />
+		MeshGeometryViolationValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>InteriorSize</strong></td>
+		<td>&nbsp;</td>
+		<td><strong>InteriorSize</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MaxInteriorSize</strong></td>
+		<td>&nbsp;</td>
+		<td><strong>InteriorSizeValue</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MaxAttemps</strong></td>
+		<td>Removed</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td><strong>Local Mesh Specifications </strong></td>
+		<td><strong>MSHLocalMeshSize</strong></td>
+		<td>Replaced</td>
+		<td><strong>SizeValue (under CATFmtLocalSpecSize bag)</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHLocalMeshSag</strong></td>
+		<td>Replaced</td>
+		<td><strong>AbsoluteSag<br />
+		AbsoluteSagValue<br />
+		(under CATFmtLocalSpecSize bag)</strong></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>MSHLocalMeshImposedPoints</strong></td>
+		<td>Replaced</td>
+		<td><strong>CATFmtImposedGeometries</strong></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><strong>MSHLocalMeshDistribution</strong></td>
+		<td>Replaced</td>
+		<td><strong>NbElementsValue<br />
+		Size1Value<br />
+		(under CATFmtLocalMeshDistribution bag)</strong></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="InShort"></a>In Short</h3>
+<p>Most important API&#39;s modifications are due to the <em>CATDocument</em> removal, 
+the Product Model transformations and the concept of PLM.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="References"></a>References</h3>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="History"></a>History</h3>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

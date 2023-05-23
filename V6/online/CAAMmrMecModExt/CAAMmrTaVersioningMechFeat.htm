@@ -1,0 +1,222 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Configuration and Versionning</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Configuration and Versioning</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table id="table20" class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Mechanical Modeler and Geometrical Modeler have several internal algorithms 
+		to manage generic naming, topological operator etc.</p>
+		<p>For many reasons (enhancements etc...), those algorithms may change. 
+		As side effects, some behaviors could not be exactly the same after the 
+		code modification.</p>
+		<p>A solution to keep stable and defined behaviors on your feature is to 
+		version them.</p>
+		<p>The aim of this article is to make an overview of versioning in Mechanical 
+		Modeler and to describe the steps needed to version correctly a Mechanical 
+		Feature.</p>
+		<ul>
+			<li><a href="#100000">Why Versioning? - Software Configuration</a></li>
+			<li><a href="#200000">What Kind of Algorithms Are Versioned?</a></li>
+			<li><a href="#300000">How to Version a Mechanical Feature?</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Why Versioning? - Software Configuration</h2>
+<p>Mechanical Modeler and Geometrical Modeler have different internal algorithms, 
+which differ from software releases. Consequently, Mechanical Feature instantiated, 
+inserted in MechanicalPart, and built on a specific date, should -potentially- have 
+different behaviors when it is used on new software level.</p>
+<p>For instance, between &quot;CATIA Rxx&quot; and &quot;CATIA Ryy&quot;, BRep behaviors 
+could have changed, which could impact visualization or Colorization.</p>
+<table>
+	<caption>Example of Color Behaviors between &quot;CATIA Rxx&quot; &amp; &quot;CATIA 
+		Ryy&quot;</caption>
+	<tr>
+		<th>&quot;In CATIA Rxx&quot;</th>
+		<th>&quot;In CATIA Ryy&quot;</th>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" height="147" src="images/CAAMmrVersioningMechFeat1.gif" width="195"/></td>
+		<td>
+		<img alt="" height="147" src="images/CAAMmrVersioningMechFeat2.gif" width="194"/></td>
+	</tr>
+</table>
+<p>To keep the same behaviors on your mechanical features, release after release 
+and build after build, it is necessary to version them when they are instantiated 
+and built.</p>
+<p>This is done setting and storing the <strong>CATSoftwareConfiguration</strong> 
+on the feature.</p>
+<p>This Class defines the software (Algorithm) configuration which is a set of code 
+modifications and a level on which the code must be run.</p>
+<p>With this data stored on the instance, feature's update and mechanical behaviors 
+will be the same as at the first time it was instantiated and built!</p>
+<p>Indeed, for example during the build step, retrieving the <strong>CATSoftwareConfiguration</strong> 
+stored on the feature, you will determine the <strong>CATTopData</strong> to use 
+on <strong>TopologicalOperator</strong> and the level of Mechanical Modeler (and 
+CGM ) algorithms to execute in order to retrieve the same behaviors as the first 
+time you build the feature.</p>
+<p><em>In Consequence, versioning your Mechanical Feature guarantees ascendant stability 
+and continuity in your parts: there will always be the same build for your feature 
+as at the first time whenever you call it!</em>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>What Kind of Algorithms Are Versioned?</h2>
+<p>With provided services <strong><em>CATIMmiAlgoConfigServices</em></strong>, you 
+just take care about <strong>internal</strong> algorithms.</p>
+<p>This means that those services are <strong>just</strong> used to keep the level 
+of <strong>internal</strong> Algorithms (in Mechanical and Geometric Modelers).</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>How to Version a Mechanical Feature?</h2>
+<p>Versioning a Mechanical feature is done in two steps.</p>
+<ol>
+	<li><em><strong>First, prepare the instance to be versioned</strong></em>:
+		<p>At the instantiation time, the Feature instance has to be prepared to 
+		store the Algorithm Configuration, i.e. the <strong>CATSoftwareConfiguration</strong>.</p>
+		<p>To prepare it and so, to initialize the versioning of your instance, 
+		you just need to call the <strong>CreateConfigurationData</strong> method 
+		of <em><strong>CATIMmiAlgoConfigServices</strong></em> interface during 
+		the factory implementation. [<a href="#References">1</a>].</p>
+		<pre class="code">...
+CATIMmiAlgoConfigServices *piAlgoConfigServices = NULL;  
+rc = <strong>CATMmiExtendServicesFactory::CreateAlgoConfigServicesAccess</strong>(piAlgoConfigServices);
+  
+if (SUCCEEDED(rc) &amp;&amp; piAlgoConfigServices)
+{
+  rc = piAlgoConfigServices-&gt;<strong>CreateConfigurationData</strong>(*piFeatureInstance);
+
+  if (FAILED(rc))
+    return rc;
+...</pre>
+		<p>This step prepares instance to store the CATSoftwareConfiguration. It 
+		is a primordial step in Versioning MechanicalFeature process.</p>
+	</li>
+	<li><strong><em>Second, version the instance of the feature</em></strong>:
+		<p>At the first build time, the current Algorithm Configuration need to 
+		be retrieved in order to know the current Algorithm level of current software 
+		code.</p>
+		<p>This is done thanks to the call of <strong>GetConfiguration</strong> 
+		method of <em><strong>CATIMmiAlgoConfigServices</strong></em>.</p>
+		<pre class="code">...
+rc = pGeomFeature-&gt;QueryInterface(IID_CATIMmiMechanicalFeature,(void **) &amp; piGeomFeat);
+  
+if (SUCCEEDED(rc))
+{
+  rc = piAlgoConfigServices-&gt;<strong>GetConfiguration</strong>(piGeomFeat, pSoftConfig ,IsConfigToStore);
+
+  if (SUCCEEDED(rc))
+  {
+    TopData.<strong>SetSoftwareConfiguration</strong>(pSoftConfig) ;
+    // release pSoftConfig after the procedural report ending
+  }
+}
+...</pre>
+		<p>With this <strong>CATSoftwareConfiguration</strong>, you could define 
+		the good <strong>CATTopData</strong> to use to build feature's result.</p>
+		<p>Then, at the end of the first build time, this Algorithm Configuration 
+		needs to be stored on the instance, to keep it for following builds. This 
+		is done by calling <strong>StoreConfiguration</strong> method of <em>CATIMmiAlgoConfigServices</em> 
+		interface.[<a href="#References">2</a>].</p>
+		<pre class="code">  ...
+if (NULL != pResultBody )
+{
+  int BoolOper = 0 ; 
+  piProcReport-&gt;<strong>StoreProcReport</strong>(pResultBody,NoCopy,BoolOper); 
+              
+  if(IsConfigToStore == 1) 
+  { 
+    rc = piAlgoConfigServices-&gt;<strong>StoreConfiguration</strong>(piCombinedCurveFeat ,pSoftConfig); 
+  } 
+}
+...</pre>
+		<p><em>Please, note that after this storage, the configuration can not be 
+		modified anymore. It is impossible to by-pass this restriction. It's the 
+		only way to assure that the configuration used during the following builds 
+		will be the same that during the first one</em>.</p>
+		<p><strong><em>Other build times:</em></strong></p>
+		<p>On following build times, the stored Algorithm Configuration is retrieved 
+		using <strong>CATIMmiAlgoConfigServices::GetConfiguration</strong> method 
+		and this data is used to define the only corresponding <strong>CATTopData</strong> 
+		used in Topological et geometrical operator.</p>
+		<p>With this unique <strong>CATTopData</strong>, Build result is guaranteed 
+		equal to the first built result. And your feature will not be impacted by 
+		enhancement or maintenance side effect.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In order to protect your feature from Algorithm changes in <strong>MechanicalModeler</strong> 
+or in <strong>GeometricalModeler</strong> code, it is necessary to version your 
+mechanical feature.</p>
+<p>The way to do this is to use <strong>CATIMmiAlgoConfigServices</strong> services 
+on instantiate and build steps.</p>
+<p>Using correctly those services, your feature will not be &quot;release dependent 
+on <strong>internal</strong> algorithms&quot;. This means that its behaviors (in 
+particular for Build and update operation) will not depend on Mechanical or Geometrical 
+Modeler <strong>internal</strong> algorithm changes.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaCreatingNewFeat.htm">Creating a New StartUp Deriving 
+		from a Mechanical StartUp</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaBuildIntegrating.htm">Integrating a New Geometrical 
+		Feature in the Update Mechanism</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Feb 2011]</td>
+		<td>Document updated for V6 modifications</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

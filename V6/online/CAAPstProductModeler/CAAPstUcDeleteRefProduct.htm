@@ -1,0 +1,442 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Deleting Product Reference</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Deleting Product Reference</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This Use Case clarifies certain key concepts related to deleting a PLM 
+		Product Reference / PLM Product Representation Reference from the database. 
+		These are:</p>
+		<ul>
+			<li>Delete is a &quot;<strong>Short Transaction</strong>&quot; operation 
+				done directly on the database. Hence, a PLM Reference can be deleted 
+				only if it is no longer loaded in the current session.</li>
+			<li>A PLM Reference / PLM Representation Reference is deleted only if 
+				all the product contexts in which it is instantiated, are within 
+				the scope of the current deletion.</li>
+			<li>A Techno Representation Reference is deleted, as soon as the product 
+				context in which it is instantiated gets deleted. Hence its lifecycle 
+				is in sync with its mono-instance existing in the product context.</li>
+			<li>A PLM Reference / PLM Representation Reference cannot be deleted 
+				if it exists in a Lock state.</li>
+		</ul>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstDeleteRefProduct Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAPstDeleteRefProduct Do</a></li>
+					<li><a href="#How">How to Launch CAAPstDeleteRefProduct</a></li>
+					<li><a href="#Where">Where to Find the CAAPstDeleteRefProduct 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>Most importantly, the user learns to delete the Product Structure objects (Product 
+and Representation References) using the CATPLMPrdDeleteServices::DeleteProductStructure 
+APIs.</p>
+<p>In the process user also learns to:</p>
+<ul>
+	<li>Retrieve the Identificator of an input PLM Component, an input for the delete 
+		API.</li>
+	<li>Deploy CATOmbLifeCycleRootsBag in the client code, to gain complete control 
+		over the lifecycle of a PLM Component.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstDeleteRefProduct Use Case</h2>
+<p>CAAPstDeleteRefProduct is a use case of the CAAProductStructure.edu framework 
+that illustrates ProductStructureAccess framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstDeleteRefProduct Do</h3>
+<p>The Use Case attempts to delete a list of PLM Product References / PLM Product 
+Representation References, an input for the Use Case execution.</p>
+<p>The scenario is as follows:</p>
+<ul>
+	<li>Looks for a list of PLM Product Reference or PLM Product Representation 
+		Reference (given as input).</li>
+	<li>Loads them in session.</li>
+	<li>Tries to delete the loaded element (failure).</li>
+	<li>Unloads all these components from the current session.</li>
+	<li>Subject to other factors being favorable for the delete operation, the delete 
+		operation, this time succeeds.</li>
+</ul>
+<p>We propose you to execute this use case with the following data model. So, consider 
+the PLM Components depicted in <a href="#Fig1">Fig.1</a> below</p>
+<table>
+	<caption><a name="Fig1"></a>Fig.1 Input Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Model" height="335" src="images/CAAPstDeleteRefProduct_Fig1.jpg" width="627"/></td>
+	</tr>
+</table>
+<ul>
+	<li>The Root has an instance of CAAPstDeleteRefProduct_ChildRef namely. Inst1 
+		beneath it. It also aggregates an instance of a Techno Rep Ref CAAPstDeleteRepTechno 
+		under it.</li>
+	<li>The CAAPstDeleteRefProduct_ChildRef aggregates an instance of a Rep Ref 
+		CAAPstDeleteRepShape beneath it.</li>
+	<li>A Standalone Rep Ref CAAPstDeleteRepShape1, meaning not instantiated in 
+		any product context, is also an input for this Use Case execution.</li>
+</ul>
+<p>This Use Case execution enables us to run various scenarios listed below, with 
+inputs as a subset of the PLM Components above:</p>
+<ul>
+	<li>Input : CAAPstDeleteRefProduct_Root ---
+		<ul>
+			<li>Success: the root is deleted with all its aggregated PLM Insts, 
+				PLM Rep Insts, Ports and Connections, like the mono-instantiable 
+				Techno rep (CAAPstDeleteRepTechno).</li>
+		</ul>
+	</li>
+	<li>Input : CAAPstDeleteRefProduct_ChildRef ---
+		<ul>
+			<li>Deletion fails, since CAAPstDeleteRefProduct_ChildRef instantiated 
+				in CAAPstDeleteRefProduct_Root context, which is <strong>NOT</strong> 
+				one of the PLM Components being deleted.</li>
+		</ul>
+	</li>
+	<li>Input : CAAPstDeleteRepShape ---
+		<ul>
+			<li>Deletion fails, since CAAPstDeleteRepShape instantiated by a product, 
+				CAAPstDeleteRefProduct_ChildRef which is <strong>NOT</strong> included 
+				in the list of PLM Refs for deletion.</li>
+		</ul>
+	</li>
+	<li>Input : CAAPstDeleteRepShape1 ---
+		<ul>
+			<li>Deletion succeeds, since CAAPstDeleteRepShape1 is not instantiated 
+				in any product context.</li>
+		</ul>
+	</li>
+	<li>Input : CAAPstDeleteRepShape --- CAAPstDeleteRefProduct_ChildRef --- CAAPstDeleteRefProduct_Root 
+		---<ul>
+			<li>Deletion succeeds, since
+				<ul>
+					<li>CAAPstDeleteRepShape deleted since its only immediate product 
+						context CAAPstDeleteRefProduct_ChildRef included in the 
+						list for deletion.</li>
+					<li>CAAPstDeleteRefProduct_ChildRef, deleted since its only 
+						immediate product context CAAPstDeleteRefProduct_Root is 
+						included in the list for deletion.</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</ul>
+<p>If the scenario returns a SUCCESS after deletion, the 3dxml file will have to 
+be re-imported to restore the input data to execute the next scenario. To actually 
+confirm that the input PLM Component is indeed deleted user can interactively run 
+a query on the database, through CATIA, and ensure that those components do not 
+exist in the output list</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstDeleteRefProduct</h3>
+<p>To launch CAAPstDeleteRefProduct, you will need to set up the build time environment, 
+then compile CAAPstDeleteRefProduct along with its prerequisites, set up the run 
+time environment, and then execute the use case [<a href="#References">2</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot;CAAPstDeleteRefProduct Repository Server User Password SecurityCtx 
+PLMType PLMChildType PLM_ExternalID1 V_version1 [PLM_ExternalID2 V_version2 ...]&quot;</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as ServerName:ServerPort/rootURI</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String Representing PLM Type</td>
+	</tr>
+	<tr>
+		<th>PLMChildType</th>
+		<td>A String Representing PLM Type for Child</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID1</th>
+		<td>The PLM_ExternalID of a PLM Reference or PLM Representation Reference 
+		for deletion</td>
+	</tr>
+	<tr>
+		<th>V_version1</th>
+		<td>The V_version of a PLM Reference or PLM Representation Reference for 
+		deletion</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID#</th>
+		<td>The PLM_ExternalID of another PLM Reference for deletion (optional)</td>
+	</tr>
+	<tr>
+		<th>V_version#</th>
+		<td>The V_version of another PLM Reference for deletion (optional)</td>
+	</tr>
+</table>
+<p>The input model for this use case is retrieved by importing the CAAPstDeleteRefProduct_Root.3dxml 
+and CAAPstDeleteRepShape1.3dxml file which located at:</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure.edu\InputData</code></p>
+<p>In order to better understand the concepts listed in the &quot;<a href="#What">What 
+Does CAAPstDeleteRefProduct Do</a>&quot; section, we recommend the Use Case be run 
+on the input model retrieved by importing the two 3dxmls listed above. User has 
+an option to import the input model with or without prefix. The Use Case deletes 
+certain components of the input model. Hence we advise re-importing the 3dxml, each 
+time the deletion succeeds while running each scenario of the Use Case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstDeleteRefProduct Code</h3>
+<p>The CAAPstDeleteRefProduct use case is defined at the location:</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure.edu\CAAPstDeleteRefProduct.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<ul>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Retrieving Identificators of Input PLM Components</a></li>
+	<li><a href="#Step2">Deleting the Input PLM Components Currently Loaded in the 
+		Session</a></li>
+	<li><a href="#Step3">Unloading the Input PLM Components from the Session</a></li>
+	<li><a href="#Step4">Deleting the Input PLM Components just Unloaded from the 
+		Session</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAPstDeleteRefProduct use case begins by creating a session and connecting 
+to the Input Repository with an appropriate role (Designer, in this case). The Use 
+Case &quot;Connecting to V6 Server&quot; [<a href="#References">3</a>] deals with 
+Opening and Closing a PLM Session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Retrieving Identificators of Input PLM Components</h3>
+<p>We begin by retrieving the Identificator [<a href="#References">1</a>] of each 
+input PLM Component. This is done by loading the input PLM Component in session 
+and then seeking the Identificator from the loaded component.</p>
+<pre class="code">...
+	CATUnicodeString PLM_ExternalIDValue;
+	CATUnicodeString V_versionValue;
+
+	CATLISTP(CATIAdpPLMIdentificator) <strong>PrdReferencesToDelete</strong>;
+	CATOmbLifeCycleRootsBag <strong>Bag</strong>;
+...
+	CATIPLMComponent* pPLMCompOnInputComp = NULL;
+	...
+	CATIAdpPLMIdentificator* opiIDComp = NULL;	
+	const char* istrPLMType = iArgv[6];
+
+	    rc = ::CAARetrieveIDofUniquePLMObject(iListAttributeName,iListAttributeValue,														
+					     istrPLMType,opiIDComp);
+          if(FAILED(hr) || (opiIDComp==NULL))
+          {
+	    const char* istrPLMType_RepRef = iArgv[7];
+	    rc = ::CAARetrieveIDofUniquePLMObject(iListAttributeName,iListAttributeValue,														
+					     istrPLMType_RepRef,opiIDComp);
+            } ...
+	CATAdpOpenParameters params(CATAdpExpandParameters::Navigation);
+	CATAdpOpener <strong>opener</strong>(Bag,params);
+	hr= opener.<strong>CompleteAndOpen</strong>(opiIDComp,IID_CATIPLMComponent, (void**) &amp;pPLMCompOnInputComp);	
+...</pre>
+<p>The input PLM Component can either be a PLM Product Ref or a PLM Rep Ref. We 
+initially attempt loading it in session as a PLM Product Ref and on failure as a 
+PLM Rep Ref.</p>
+<p>The opening product detailed in the Use Case [<a href="#References">4</a>] is 
+a global routine which has the CAA calls to load a PLM Product Reference in session. 
+The PLM_ExternalIDValue, V_versionValue, <strong>PLMType</strong> are available 
+to this routine through the inputs we provide for the Use Case execution.</p>
+<p>If the input PLM Ref fails to get loaded as a PLM Product Ref, it is likely to 
+be a PLM Rep Ref. Hence we proceed to load it as a PLM Rep Ref in session.</p>
+<p>The opened component is already inserted in bag while opening thanks to method
+<code>CompleteAndOpen</code>. Please refer to the tech article [<a href="#References">5</a>] 
+to understand the details of the BAG concept.</p>
+<p>It is easy to retrieve the Identificator of this PLM Component by a call to
+<code>CATIPLMComponent::GetAdpId</code>. The API returns a <em>CATIAdpPLMIdentificator</em>* 
+type namely. pAdpIDOnInputComp, which is appended to a list of Identificators namely. 
+PrdReferenceToDelete. This list has the Identificators of all PLM Components input 
+by the user, for deletion.</p>
+<p>An alternative way of retrieving an Identificator is by a call to the CAA API 
+CATAdpQueryServices::GetElementByIdentificationSet. This is made possible since 
+the PLM_ExternalID and V_version attributes input, uniquely identify an input custo 
+in the database.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Deleting the Input PLM Components Currently Loaded in the 
+Session</h3>
+<p>The input PLM References are all loaded in the current session. An attempt to 
+delete them is expected to fail, since a PLM Component can be deleted only if it 
+is not loaded in the current session.</p>
+<pre class="code">...
+	hr = <strong>CATPLMPrdDeleteServices::DeleteProductStructures</strong>(<strong>PrdReferencesToDelete</strong>);
+	if (<strong>S_OK == hr</strong>)
+		<strong>return 1</strong>;
+...</pre>
+<p>The CATPLMPrdDeleteServices::DeleteProductStructures call takes a list namely. 
+PrdReferencesToDelete, as an input. This list has the Identificators of all PLM 
+Components for deletion. Since this call is expected to return FAILURE, we exit 
+the execution if it returns SUCCESS.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Unloading the Input PLM Components from the Session</h3>
+<p>We proceed to unload all the input PLM Components from the current session, one 
+of the pre-requisites to successfully delete a PLM Component, a &quot;<strong>short 
+transaction</strong>&quot; operation done directly on the database.</p>
+<pre class="code">...
+	hr = <strong>Bag.RemoveAll</strong>();
+...</pre>
+<p>CATOmbLifeCycleRootsBag::RemoveAll call empties the contents of the BAG, and 
+thus unloads all PLM Components, controlled through this BAG, from the current session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Deleting the Input PLM Components just Unloaded from the 
+Session</h3>
+<p>The final step is to delete the input PLM References from the database. Since 
+none of the input components are loaded in the current session, the delete operation 
+is expected to succeed, ofcourse, subject to the other pre-requisites for it, being 
+met.</p>
+<pre class="code">...
+	hr = <strong>CATPLMPrdDeleteServices::DeleteProductStructures</strong>(<strong>PrdReferencesToDelete</strong>);
+	if (E_FAIL == hr)
+		return 1;
+...</pre>
+<p>The CATPLMPrdDeleteServices::DeleteProductStructures call takes a list namely. 
+PrdReferencesToDelete, as an input. This list has the Identificators of all PLM 
+Components for deletion. These Identificators are still valid, though the corresponding 
+components have been unloaded from the current session. The technical article &quot;PLM 
+Component Identifier&quot; [<a href="#References">1</a>] delves deeper into this 
+subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAPstDeleteRefProduct use case ends by simply closing the PLM session. Since 
+all use cases necessarily conclude by closing the PLM session, we have a dedicated 
+article on this topic namely &quot;Connecting to V6 Server&quot; [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Use Case illustrates the deletion of Product Structure objects (Product and 
+Representation References) using the CATPLMPrdDeleteServices::DeleteProductStructure 
+APIs. It enables an end-user run a list of scenarios on a data model provided, which 
+serve to clarify the following concepts related to the delete operation:</p>
+<ul>
+	<li>A PLM Reference can be deleted from the database, only if it does not exist 
+		in the current session. Reason being, delete is a &quot;<strong>short transaction</strong>&quot; 
+		operation done directly on the database. With this PLM Reference, the aggregated 
+		PLM Instances, PLM Rep Instances and Ports are also deleted.</li>
+	<li>A PLM Product Ref / Rep Ref can be deleted only if all product contexts 
+		in which it is instantiated are also included within the scope of the current 
+		deletion.</li>
+	<li>A Techno Rep Ref also gets deleted, if the product context in which it is 
+		instantiated is deleted. Reason being, a techno rep ref is <strong>mono-instantiated</strong>, 
+		and hence its lifecycle is exactly the same as that of its instance. The 
+		lifecycle of a techno rep instance is in turn governed by its aggregating 
+		PLM Product Reference.</li>
+	<li>A Stand-Alone Rep Ref can be independently deleted. Since it is not instantiated 
+		in any product contexts, it itself completely governs its own lifecycle.</li>
+	<li>A PLM Product Ref / Rep Ref, cannot be deleted if it is in the Locked state.</li>
+</ul>
+<p>The delete APIs identifies a PLM Components for deletion by its Identificator. 
+Since one of the pre-requisites for the delete operation is to unload the PLM Component 
+from session, it is significant to note here that an Identificator still remains 
+valid, even after the unloading. The article &quot;PLM Component Identifier&quot; 
+[<a href="#References">1</a>] delves deeper into that subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		PLM Component Identifier</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm">
+		Understanding PLM Component Life Cycle</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jun 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

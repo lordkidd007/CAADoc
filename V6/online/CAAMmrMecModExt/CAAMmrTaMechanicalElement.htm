@@ -1,0 +1,290 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Non Geometrical Features</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Non Geometrical Features</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A new StartUp, especially designed to define Non Geometrical Features, 
+		was born. It is named &quot;<strong>MechanicalElement</strong>&quot; and 
+		derives from &quot;<strong>MechanicalFeature</strong>&quot; .</p>
+		<p>In the following article, we are going to introduce it.</p>
+		<ul>
+			<li><a href="#100000">What Is a MechanicalElement?</a></li>
+			<li><a href="#200000">How to Use MechanicalElement Structure?</a></li>
+			<li><a href="#300000">Field of Application</a></li>
+			<li><a href="#400000">Default Behaviors</a></li>
+			<li><a href="#500000">BackUp/StartUp Mode</a></li>
+			<li><a href="#600000">How to Use MechanicalElements?</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What Is a MechanicalElement?</h2>
+<p>In internal view, <strong>MechanicalElement</strong> derives directly from
+<strong>MechanicalFeature</strong>, just like other Mechanical Features.</p>
+<table>
+	<caption>&#8220;MechanicalElement&#8221; Is a StartUp Deriving from MechanicalFeature</caption>
+	<tr>
+		<td>
+		<img alt="" height="151" src="images/CAAMmrMechanicalElementStruct.jpg" width="616"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>How to Use MechanicalElement Structure?</h2>
+<p><strong>MechanicalElement</strong> has to be used to design <strong>features 
+without geometry</strong>.<br />
+It&#8217;s a StartUp which cannot be instantiated directly: it is <strong>only derivable</strong>.</p>
+<p>Consequently, to use a kind of MechanicalElement, you will have to create a new 
+StartUp, derived from &#8220;<strong>MechanicalElement</strong>&#8221;, in your 
+feature catalog, just like you do when you want to create a StartUp deriving from 
+a Mechanical Feature [<a href="#References">1</a>].</p>
+<p>For example, let&#8217;s create a StartUp &#8220;<em>CAAMechaElem</em>&#8221;, 
+derived from MechanicalElement, in the catalog &#8220;CAAMechanicalUseCase.CATfct&#8221;:</p>
+<pre class="code">document &#96;<strong>CAAMechanicalUseCase.CATfct</strong>&#96;
+{
+    history("CreatorId","","2013-01-11 16:25",0., 0uf1ce8025-0000-1a48-50f03d0400000008)
+    check_revision(0uf1ce8025-0000-1a48-50f03d0400000008)
+	
+    container `RootCont` #root #uuid(0uf1ce8025-0000-1a48-50f03d0400000003)
+    {
+
+// insert here your startups
+       Feature CAAMechaElem MechanicalElement@`MechMod.feat` #startup #backup_startup(FeatureBackUpMechaElem@`MechMod.feat`)  
+       {
+         ...
+       }
+    }
+}
+</pre>
+<p>By default, <strong>MechanicalElement</strong> does not have any 3DVizualisation. 
+However, it is possible to add manually Visualization to your derivate feature by 
+implementing correctly specific APIs for Visualization (<strong><em>CATIVisProperties</em></strong>,
+<strong><em>CATI3DGeoVisu</em></strong>).</p>
+<p>Moreover, your feature will be included in traditional mechanisms like Update, 
+or UI with its visualization under the SpecTree.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Field of Application</h2>
+<p><strong>MechanicalElement</strong> can be used, for instance, to design
+<strong>&quot;Analysis Features&quot;</strong>, or <strong>&quot;Measure Features&quot;</strong> 
+which don't have geometrical result but which could have visual result.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Default Behaviors</h2>
+<p>In this section, we are going to list all behaviors supported initially by MechanicalElement's 
+derivates.</p>
+<ol>
+	<li><em><strong>Insertion in Graph / Aggregation Rules</strong></em>:
+		<p>A &#8220;<strong>MechanicalElement</strong>&#8221; can be aggregated 
+		under the <strong>MechanicalPart</strong>, <strong>a Hybrid Body</strong>,
+		<strong>a GS</strong> or a <strong>kind of MechanicalSet derivate</strong>[<a href="#References">1</a>].</p>
+		<p>It cannot be instantiated directly: to use it, you must create a
+		<strong>derivate</strong> StartUp. (For instance, &quot;CAAMechaElem&quot; 
+		defined in &quot;CAAMechanicalUseCase.CATfct&quot;).</p>
+	</li>
+	<li><strong><em>Copy / Paste</em></strong>:
+		<p>In front of &quot;Cut/Copy/Paste&quot;, MechanicalElement (and its derivates) 
+		has the same default behavior as MechanicalFeature.</p>
+	</li>
+	<li><strong><em>Replace</em></strong>:
+		<p>&quot;<strong>CATIReplace</strong>&quot; has to be implemented specifically 
+		on your own feature. In deed, this implementation must agree with your feature 
+		design defining which types of attribute have to be replaced.</p>
+	</li>
+	<li><strong><em>Reorder</em></strong>:
+		<p>MechanicalElement supports reorder, according to aggregation rules.</p>
+	</li>
+	<li><strong><em>Drag 'n Drop:</em></strong>
+		<p>MechanicalElement supports &#8220;Drag and Drop&#8221;, according to 
+		aggregation rules, using CCP protocol.</p>
+	</li>
+	<li><strong><em>Define in Work Object</em></strong>:
+		<p>MechanicalElement can <strong>only</strong> be defined In Work Object 
+		(<strong>DIWO</strong>) if it is aggregated under an <strong>ordered</strong> 
+		set.</p>
+		<p>As a consequence, under a MechanicalSet, a MechanicalElement cannot be 
+		defined In Work Object.</p>
+	</li>
+	<li><strong><em>CATIContextualSubMenu</em></strong>:
+		<p>A default implementation of this interface define this default contextual 
+		SubMenu:</p>
+		<table>
+			<caption>Default MechanicalElement's Contextual Sub Menu</caption>
+			<tr>
+				<td>
+				<img alt="" height="53" src="images/CAAMmrMechanicalElementSubMenu.jpg" width="141"/></td>
+			</tr>
+		</table>
+	</li>
+	<li><strong><em>Update Mechanism</em></strong>:
+		<p><strong>MechanicalElement</strong> supports Update mechanism according 
+		to Feature Modeler's rules (Attr IN, OUT, NEUTRAL).</p>
+	</li>
+	<li><strong><em>CATINavigateObject &#8211; Visualization in the SpecTree</em></strong>:
+		<p>A default implementation of this interface is provided.</p>
+		<p>It consists in showing <strong>all authorised</strong> features
+		<strong>aggregated</strong> under MechanicalElement.</p>
+		<p>In other words, all features retrieved by <strong>CATIMmiMechanicalSet::GetMechanicalFeatures()</strong> 
+		and which are not filtered by <strong>CATINavigateFilter::IsShown()</strong> 
+		are shown under the MechanicalElement Node in the SpecTree.</p>
+		<p>A special behavior is dedicated to Parameters (adhering to CATICkeParm): 
+		for those features, the default behavior is to show them if they are concidered &quot;not 
+		hidden&quot; (<strong>CATICkeParm::IsHidden</strong> returns <strong>CATICke::false</strong>)</p>
+	</li>
+	<li><strong><em>CATIParmPublisher</em></strong>:
+		<p>A default implementation of this interface shows aggregated parameters 
+		(&quot;<strong>CATICkeParms</strong>&quot;).</p>
+		<p>If you want to see parameters aggregated under specific attributes, this 
+		interface must be re-implemented.</p>
+	</li>
+	<li><strong><em>3D Visualisation</em></strong>:
+		<p>By default, MechanicalElement <strong>does not</strong> have any visualization. 
+		In deed as <strong>MechanicalElement</strong> is dedicated to design
+		<strong>non Geometrical Feature</strong>, we decided to provide the littlest 
+		implementation for Visualisation (No 3DRep, No Graphic Properties, no Hide/Show)</p>
+		<p>However, it is possible to implement directly visualization on your own 
+		feature, using correct A.P.I and services (<strong><em>CATIVisProperties</em></strong>,
+		<strong><em>CATI3DGeoVisu</em></strong>).</p>
+	</li>
+	<li><strong><em>CATISelectShow &amp; CATIVisProperties - Hide/Show Command</em></strong>:
+		<p>As <strong>MechanicalElement</strong> does not have, by default, any 
+		3D Representation, we provide a default implementations of <strong>CATISelectShow</strong> 
+		and <strong>CATIVisProperties</strong> interface which disable <strong>Hide/Show</strong> 
+		command.</p>
+		<p>This means that nothing occurs when &#8220;user&#8221; clicks on Hide/Show 
+		defined in the contextual menu.</p>
+		<p>However, it is possible to implement directly those behavior on your 
+		own feature, using correct A.P.I and services.</p>
+	</li>
+	<li><strong><em>User Feature / PowerCopy</em></strong>:
+		<p>MechanicalElement supports &quot;User Feature&quot; and PowerCopy. [<a href="#References">3</a>]</p>
+	</li>
+	<li><strong><em>Parent / Children</em></strong>:
+		<p>Relations between features are linked to attributes and qualities.</p>
+		<p>To have a Parent/Children mechanism on MechanicalElement, it is mandatory 
+		to create a new attribute on your own StartUp deriving from &quot;MechanicalElement&quot;, 
+		and to value it with its parents.</p>
+		<p>Let's take the example described in the table below:</p>
+		<table>
+			<caption>Structure Example for Parent / Children</caption>
+			<tr>
+				<td>
+				<img alt="" height="265" src="images/CAAMmrMechanicalElementDiagForParentChildren.jpg" width="655"/></td>
+			</tr>
+		</table>
+		<p>In this example, Feature F.1 will be seen as a Parent of the applicative 
+		Feature deriving from MechanicalElement StartUp. Moreover, Feature Feat.1 
+		will be seen as one of its children.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="500000"></a>BackUp/StartUp Mode</h2>
+<p>A BackUp/StartUp [<a href="#References">5</a>] has been defined to support basic 
+behaviors for Mechanical Element subtypes if code is not present. In BackUp / StartUp 
+mode, <strong>MechanicalElement</strong> instances are replaced by instances of 
+its backup StartUp.</p>
+<p>Most of default behaviors, defined in the last part of this documentation, works 
+in BackUp/StartUp mode. However, some behaviors are specifically restricted in order 
+to prevent data's corruption.</p>
+<p>Default Behaviors restricted in BackUp / StartUp:</p>
+<ul class="wide">
+	<li><strong><em>Update Mechanism / Update Error:</em></strong>:<br />
+		An Update Error is raised when you try to update a kind of MechanicalElement&#8217;s 
+		instance without its dedicated code or catalogue.</li>
+	<li><strong><em>Visualization 3D View</em></strong>:<br />
+		In BackUp / StartUp Mode, visualization won&#8217;t be available under backup 
+		instance.</li>
+	<li><em><strong>CATIReplace</strong></em>:<br />
+		In BackUp / StartUp Mode, replace is allowed. In this specific mode, Replace 
+		operation consists in unsetting the attribute value replaced.</li>
+	<li><strong><em>Cut / Copy / Paste</em></strong>:<br />
+		The backup instances can be deleted but it cannot be pasted. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="600000"></a>How to Use Mechanical Elements?</h2>
+<p>To have a look at the use of MechanicalElement, please refer to specified article 
+[<a href="#References">4</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p><strong>MechanicalElement</strong> is a derivable StartUp designed to define
+<strong>non geometrical features</strong>.</p>
+<p>This feature can be aggregated under the <strong>MechanicalPart</strong>,
+<strong>a Hybrid Body</strong>, <strong>a GS</strong> or a <strong>kind of MechanicalSet 
+derivate</strong>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaMechanicalSet.htm">Non Geometrical Feature Sets</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaCreatingNewFeat.htm">Creating a New StartUp Deriving 
+		from a Mechanical StartUp</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaTaPowerCopyAndUserFeatures.htm')">
+		An Overview of Power Copies and User Features</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrUcMultiMeasureAndMeasureSetSamplesOverview.htm">Creating 
+		Non Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAMmrTaBackupStartUp.htm">Geometrical Backup StartUp</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

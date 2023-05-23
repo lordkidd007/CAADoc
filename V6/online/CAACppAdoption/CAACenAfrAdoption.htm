@@ -1,0 +1,499 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<style type="text/css">
+table.adoption {
+	width: 96%;
+}
+table.adoption td {
+	width: 50%;
+}
+tr.adoption th {
+	width: 50%;
+}
+</style>
+<title>Wintop Frame Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Wintop Frame Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows the wintop frame changes.</p>
+		<ul>
+			<li><a href="#New">New V6 Frameworks</a></li>
+			<li><a href="#CmdHdrs">Command Headers</a></li>
+			<li><a href="#Workbenches">Workbenches and Add-ins</a></li>
+			<li><a href="#Misc">Miscellaneous Changes</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="New"></a>New V6 Frameworks</h2>
+<p>The V5 wintop frame frameworks change as follows with V6:</p>
+<ul>
+	<li>ApplicationFrame does not expose any classes of interfaces any longer. It 
+	is replaced with:
+	<ul>
+		<li>AfrFoundation for most of the ApplicationFrame contents.</li>
+		<li>AfrStandard that contains the palette and the progress bar classes.</li>
+		<li>InteractiveInterfaces, a V5 framework that still exists in V6, for the 
+		workbench and the workbench add-in interfaces.</li>
+		<li>BatchMonitorUI for the batch frame class.</li>
+	</ul>
+	<p>The complete mapping of ApplicationFrame classes and interface is described 
+	in the <cite>ApplicationFrame Moved Classes or Interfaces</cite> [<a href="#References">1</a>].</p>
+	</li>
+	<li>CATIAApplicationFrame still exists in V6. Some of its classes and interfaces 
+	are moved in new frameworks. You can get the detail in <cite>CATIAApplicationFrame 
+	Moved Classes or Interfaces</cite> [<a href="#References">2</a>].</li>
+	<li>InteractiveInterfaces also still exists in V6. Its classes and interfaces 
+	moves are described in <cite>InteractiveInterfaces Moved Classes or Interfaces</cite> 
+	[<a href="#References">3</a>].</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CmdHdrs"></a>Command Headers</h2>
+<p>The V5 command header mechanism is still the same with V6. Changes are in the 
+API only. The V5 command header class <em>CATCommandHeader</em> is not exposed any 
+longer, and is replaced with:</p>
+<ul>
+	<li>A command header factory class: <em>CATAfrCommandHeader</em>.</li>
+	<li>A command header interface: <em>CATIAfrCommandHeader</em>.</li>
+</ul>
+<p>The main command header usages, common to V5 and V6, are:</p>
+<ul>
+	<li>Creating Standard Command Headers.</li>
+	<li>Retrieving Command Headers.</li>
+	<li>Using Command Headers.</li>
+	<li>Creating Customized Command Headers.</li>
+	<li>Reusing Existing Command Headers.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="StandardCmdHdrs"></a>Creating Standard Command Headers</h3>
+<p>Command headers are usually created when creating menus and toolbars within the
+<code>CreateCommands</code> methods of workbenches or add-ins:</p>
+<ul>
+	<li>V5 command header classes are created using the <code>MacDeclareHeader</code> 
+	macro that creates a class deriving from <em>CATCommandHeader</em>. These classes 
+	are then instantiated using their own constructors.</li>
+	<li>V6 command headers are created using the static method <code>CATCreateCommandHeader</code> 
+	of the command header factory class <em>CATAfrCommandHeader</em>.</li>
+</ul>
+<table class="adoption">
+	<tr>
+		<th>V5</th>
+		<th>V6</th>
+	</tr>
+	<tr>
+		<td>
+		<pre class="code">...
+#include &quot;CATCommandHeader.h&quot;
+...
+// Create the class<strong>
+MacDeclareHeader</strong>(CAAAfrCommandHeader);
+...
+// Instantiate
+new <strong>CAAAfrCommandHeader</strong>(&quot;CAAAfrMyCmdHdr&quot;,
+                        &quot;CAAAfrCmdLibName&quot;,
+                        &quot;CAAAfrCmdClass&quot;,
+                        (void *) ipParameter);
+...</pre>
+		</td>
+		<td>
+		<pre class="code">...
+#include &quot;CATAfrCommandHeader.h&quot;
+...
+// Instantiate
+<strong>CATAfrCommandHeader::CATCreateCommandHeader</strong>(
+    &quot;CAAAfrMyCmdHdr&quot;,
+    &quot;CAAAfrCmdLibName&quot;,
+    &quot;CAAAfrCmdClass&quot;,
+    (void *) ipParameter,
+    &quot;CAAAfrMyCmdResourceFileName&quot;,
+    CATFrmAvailable);
+...</pre>
+		</td>
+	</tr>
+</table>
+<p>The common arguments are:</p>
+<table>
+	<tr>
+		<th>Arguments</th>
+		<th>Meanings</th>
+	</tr>
+	<tr>
+		<td><code>CAAAfrMyCommandHdr</code></td>
+		<td>The command header identifier.</td>
+	</tr>
+	<tr>
+		<td><code>CAAAfrCommandLibName</code></td>
+		<td>The name of the shared library or DLL that contains the command code.</td>
+	</tr>
+	<tr>
+		<td><code>CAAAfrCommandClass</code></td>
+		<td>The command header class name.</td>
+	</tr>
+	<tr>
+		<td><code>ipParameter</code></td>
+		<td>The argument to pass to the command. Set it to NULL if the command does 
+		not require an argument</td>
+	</tr>
+</table>
+<p>Note that the resource file name is passed with V6 when creating the command 
+header instance, whilst it is declared with V5 in the command header class header 
+file and source file thanks to the <code>CATDeclareHeaderResources</code> and
+<code>CATImplementHeaderResources</code> macros respectively.</p>
+<p>The command availability, that is whether the command representation is grayed 
+(unavailable) or not (available) in the menu or toolbar, is declared when creating 
+the command header with V6 thanks to the last argument of <code>CATCreateCommandHeader</code>, 
+that can take two self-explanatory values: <code>CATFrmAvailable</code> (default) 
+and <code>CATFrmUnavailable</code>. With V5, the command is available by default 
+when it is created, and must be set unavailable just after if necessary.</p>
+<p>If you have explicitly created command header classes in V5 by deriving from
+<em>CATCommandHeader</em> rather than using the <code>MacDeclareHeader</code> macro, 
+you can forget about these classes and use the command header factory class.</p>
+<p>Refer to the use case <cite>Creating Standard Command Headers</cite> for a complete 
+example [<a href="#References">4</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CustomizedCmdHdrs"></a>Retrieving Command Headers</h3>
+<p>You can retrieve a pointer to the command header just after being creating it. 
+With V5, a command header is handled using the <em>CATCommandHeader</em> class. 
+With V6 it is handled using the <em>CATIAfrCommandHeader</em> interface.</p>
+<table class="adoption">
+	<tr>
+		<th>V5</th>
+		<th>V6</th>
+	</tr>
+	<tr>
+		<td>
+		<pre class="code">...
+#include &quot;CATCommandHeader.h&quot;
+...
+// Create the class<strong>
+MacDeclareHeader</strong>(CAAAfrCommandHeader);
+...
+
+CATCommandHeader * pCmdHdr = NULL;
+
+// Instantiate
+pCmdHdr = new <strong>CAAAfrCommandHeader</strong>(
+      &quot;CAAAfrMyCmdHdr&quot;,
+      &quot;CAAAfrCmdLibName&quot;,
+      &quot;CAAAfrCmdClass&quot;,
+      (void *) ipParameter);
+
+
+
+
+
+if (NULL != pCmdHdr) {
+  // Use pCmdHdr
+...</pre>
+		</td>
+		<td>
+		<pre class="code">...
+#include &quot;CATAfrCommandHeader.h&quot;
+...
+// Instantiate
+CATBaseUnknown * piBukCmdHdr = NULL;
+pBukCmdHdr<strong> = CATAfrCommandHeader::CATCreateCommandHeader</strong>(
+    &quot;CAAAfrMyCmdHdr&quot;,
+    &quot;CAAAfrCmdLibName&quot;,
+    &quot;CAAAfrCmdClass&quot;,
+    (void *) ipParameter,
+    &quot;CAAAfrMyCmdResourceFileName&quot;,
+    CATFrmAvailable);
+
+CATIAfrCommandHeader * piCmdHdr = NULL;
+HRESULT rc = E_FAIL;
+
+if (NULL != piBukCmdHdr) {
+  rc = piBukCmdHdr -&gt;QueryInterface(IID_CATIAfrCommandHeader,
+                                    (void**)&amp;piCmdHdr);
+
+  if (SUCCEEDED(rc)) {
+    // Use piCmdHdr
+...</pre>
+		</td>
+	</tr>
+</table>
+<p>With V5, the command header is retrieved thanks to a pointer to the <em>CATCommandHeader</em> 
+class. With V6, the <code>CATCreateCommandHeader</code> static method returns a 
+pointer to <em>CATBaseUnknown</em>. Call <code>QueryInterface</code> onto this pointer 
+to retrieve a pointer to <em>CATIAfrCommandHeader</em>.</p>
+<p>Refer to <cite>Creating a Check Item</cite> for a complete example [<a href="#References">5</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>Using Standard Command Headers</h3>
+<p>The methods of the <em>CATCommandHeader</em> map to those of <em>CATAfrCommandHeader</em> 
+and <em>CATIAfrComandHeader</em> as follows:</p>
+<table>
+	<tr>
+		<th>Functions</th>
+		<th>V5</th>
+		<th>V6</th>
+		<th>Comments</th>
+	</tr>
+	<tr>
+		<td>Create</td>
+		<td>Constructor and copy constructor</td>
+		<td><code>CATCreateCommandHeader</code> of <em>CATAfrCommandHeader</em></td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>Delete</td>
+		<td>Destructor</td>
+		<td>The command header is automatically deleted by the editor.</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>Manage visibility in the <strong>Customize</strong> command of the
+		<strong>Tools</strong> menu</td>
+		<td><code>GetVisibility</code><br />
+		<code>SetVisibility</code></td>
+		<td><code>SetVisibility</code></td>
+		<td><code>GetVisibility</code> is not available any longer [<a href="#References">1</a>].</td>
+	</tr>
+	<tr>
+		<td>Manage availability</td>
+		<td><code>BecomeAvailable</code><br />
+		<code>BecomeUnavailable</code></td>
+		<td><code>SetAvailability</code></td>
+		<td>The V6 method replaces the two V5 ones [<a href="#References">1</a>].</td>
+	</tr>
+	<tr>
+		<td>Retrieve argument to pass to the command</td>
+		<td><code>GetArgument</code></td>
+		<td><code>GetArgument</code></td>
+		<td>The V5 method is static, whilst the V6 one is not [<a href="#References">1</a>].</td>
+	</tr>
+</table>
+<h3>Creating Specialized Command Headers</h3>
+<p>Specializing (also referred to as customizing in V5) a command header is achieved 
+with V5 by creating an Object Modeler component made up of:</p>
+<ul>
+	<li>An implementation class that derives from the <em>CATAfrDialogCommandHeader</em> 
+	class.</li>
+	<li>An extension class that implements the <em>CATIAfrCommandHeaderRep</em> 
+	interface.</li>
+</ul>
+<p>Since this <em>CATAfrDialogCommandHeader</em> class is not exposed with V6 any 
+longer, the V6 way is to create a single class, extension of a DS-supplied implementation 
+class the type of which is created at run time, and that implements the <em>CATIAfrCommandHeaderRep</em> 
+interface. Refer to the command header description [<a href="#References">6</a>] 
+and to the specialized command header use cases [<a href="#References">7</a>] [<a href="#References">8</a>].</p>
+<h3><a name="ReusingCmdHdrs"></a>Reusing Existing Command Headers</h3>
+<p>Command header ids can still be retrieved thanks to the <strong>Workshop Exposition</strong> 
+command. There are no changes with command header reusability.</p>
+<h3><a name="CmdHdrsForDialogAgents"></a>Creating Command Headers for Dialog Agents</h3>
+<p>A dialog agent associated with the SDO (Set of Dialog Objects) in a state dialog 
+command requires a specific command header, instance of the <em>CATCommandHeaderSDOForAgent</em>. 
+This class, and its base class <em>CATCommandHeaderSDO</em>, are no longer exposed. 
+To create such a command header, in the <code>CreateCommands</code> method of your 
+workbench or add-in implementation, instead of using the constructor of <em>CATCommandHeaderSDOForAgent</em>, 
+use the static method <code>CATCreateCmdHeaderWithSDOForAgent</code> of the <em>
+CATCmdHeaderWithSDOForAgent</em> class.</p>
+<table class="adoption">
+	<tr>
+		<th>V5</th>
+		<th>V6</th>
+	</tr>
+	<tr>
+		<td>
+		<pre class="code">...
+#include &quot;CATIAfrDialogForAgent.h&quot;
+
+// DialogEngine Framework
+#include &quot;<strong>CATCommandHeaderWithSDOForAgent</strong>.h&quot;
+...
+
+void CAADegGeoSDOAdn::CreateCommands()
+{
+   new <strong>CATCommandHeaderWithSDOForAgent</strong>(
+               &quot;CAADegSDOHdr&quot;,
+               IID_CATIAfrDialogForAgent);
+...</pre>
+		</td>
+		<td>
+		<pre class="code">...
+#include &quot;CATIAfrDialogForAgent.h&quot;
+
+// DialogEngine Framework
+#include &quot;<strong>CATCmdHeaderWithSDOForAgent</strong>.h&quot;
+...
+
+void CAADegGeoSDOAdn::CreateCommands()
+{
+  <strong>CATCmdHeaderWithSDOForAgent::CATCreateCmdHeaderWithSDOForAgent</strong>(
+               &quot;CAADegSDOHdr&quot;,
+               IID_CATIAfrDialogForAgent);
+...</pre>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Workbenches"></a>Workbenches and Add-ins</h2>
+<p>CATCmd-prefixed classes are the main classes to deal with workbenches and add-ins 
+in V5. They do not expose anything, except their types handled using pointers. All 
+these classes are removed from V6, but can still be used as they are used with V5.</p>
+<table>
+	<tr>
+		<th>V5 Classes</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>CATCmdWorkshop</td>
+		<td>The whole set of commands available for a given UI-activable object. 
+		Workshops are exposed, but cannot be used with V5, since no new UI-activable 
+		object can be created with CAA V5.</td>
+	</tr>
+	<tr>
+		<td>CATCmdWorkbench</td>
+		<td>The whole set of commands available at a given time for a given UI-activable 
+		object.</td>
+	</tr>
+	<tr>
+		<td>CATCmdContainer</td>
+		<td>A starter container. Workshops and workbenches are containers, and menu 
+		bars and toolbars as well. A container also contains separators. </td>
+	</tr>
+	<tr>
+		<td>CATCmdAccess</td>
+		<td>The base class of all the other classes.</td>
+	</tr>
+	<tr>
+		<td>CATCmdStarter</td>
+		<td>The leaf object in a container to which a command header is attached.</td>
+	</tr>
+	<tr>
+		<td>CATCmdSeparator</td>
+		<td>An object used to visually separate commands in menus and toolbars.</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<p> Note: To reference these classes you should declare them as <code>Class</code> objects. 
+You cannot include their header files.</p>
+
+<p> For example, to be able to reference <code>CACmdContainer</code> class, you 
+should declare:</p>
+<pre class="code">...
+class CATCmdContainer; 
+...</pre>
+<p>Instead of:</p>
+<pre class="code">...
+#include "CATCmdContainer.h"; 
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Misc"></a>Miscellaneous Changes</h2>
+<p>CATCafSetApplyFilterMode is a global function that enables you in V5 to set the 
+Apply Filter mode setting attribute. It is located in CATIAApplicationFrame/PublicInterfaces/CATVisuFilterServices.h. 
+This function does not exist any longer in V6 and is replaced with the CATSysSettingRepository 
+setting generic interface.</p>
+<p>Nevertheless, as any setting attribute, you should never set it from within an 
+application, except if this application is dedicated to setting administration. 
+Otherwise, if the setting is not administered, you change the value the end user 
+has set without warning, and if the setting is administered and the setting attribute 
+value locked, the change you intend to apply has no effect. See the setting adoption 
+section [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Wintop frame changes are mostly limited to application IdentityCard and Imakefile 
+changes because of the V5 framework cutting, and to command headers. These are handled 
+using a factory and an interface rather than a class. Specialized command header 
+class creation uses a single class instead of two, and command header for dialog 
+agent creation use a static method instead of a class constructor. All the CATCmd-prefixed 
+classes are removed, but can be still used through macros as they are in V5 without 
+code changes.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>V6 Adoption for <a href="CAACenBUApplicationFrame.htm">ApplicationFrame</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>V6 Adoption for <a href="CAACenBUCATIAApplicationFrame.htm">CATIAApplicationFrame</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>V6 Adoption for <a href="CAACenBUInteractiveInterfaces.htm">InteractiveInterfaces</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrTaStdCommandHeader.htm'); return false">
+		How to Create Standard Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrUcCheckHeader.htm'); return false">
+		Creating a Check Item</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrTaCommandHeaders.htm'); return false;">
+		Understanding the Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrUcSampleComboHdr.htm'); return false;">
+		Creating a Combo Command Header</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrUcSampleEditorHdr.htm'); return false;">
+		Creating Editors in Toolbars</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAACenSysAdoption.htm">Middleware and Security Changes</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

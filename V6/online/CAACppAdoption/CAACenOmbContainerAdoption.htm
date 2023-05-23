@@ -1,0 +1,275 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Container Access Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Container Access Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article deals with the changes occurring on the container object. 
+		The involved APIs are part of the ObjectModelerBase, ObjectModelerSystem, 
+		and ObjectSpecsModeler frameworks. This article assumes that you have previously 
+		read the article about File Persistency modifications [<a href="#References">1</a>].</p>
+		<ul>
+			<li><a href="#What">What Is a Container?</a></li>
+			<li><a href="#Changes">What Has Changed?</a><ul>
+				<li><a href="#Retrieving">Retrieving a Container</a></li>
+				<li><a href="#Creating">Creating a Container</a></li>
+				<li><a href="#Integrating">Integrating 
+				a Container in DS Protocols</a></li>
+				<li><a href="#Scanning">Scanning a Container</a></li>
+				<li><a href="#Renaming">Renaming a Container</a></li>
+				<li><a href="#Adding">Adding Features to 
+				a Container</a></li>
+				<li><a href="#CCP">Cut Copy Paste 
+				Features from/to a Container</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>What Is a Container?</h2>
+<p>A container in V5 is a structure stored in a V5 document. A container in V6 is 
+a structure stored inside a stream, itself associated with a PLM Representation 
+Reference. If the persistency storage has changed, the contents is always the same. 
+A container still contains mainly features. For some specific DS containers, it 
+can be different, but in generally, and specifically for CAA containers (created 
+by CAA API), it is always container of features. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Changes"></a>What Has Changed?</h2>
+<p>We have split this section according to common processes when handling objects: 
+retrieval, creation, scanning, renaming, and finally changing the contents.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving"></a>Retrieving a Container</h3>
+<p>In product context, i.e. when the PLM Representation Reference associated with 
+the stream is a Product Representation Reference, instead to use the global function<code>
+<strong>CATGetApplicativeContainer</strong> </code>(CATAppliContServices.h), use 
+the method <code>RetrieveApplicativeContainer</code> of <em>CATIPLMNavRepReference</em> 
+(CAT3DPhysicalRepInterfaces framework). Thanks to this API you can get a <em>CATBaseUnknown</em> 
+pointer to any container from its name.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Creating"></a>Creating a Container</h3>
+<p>Creating a container is no more available in &quot;Use&quot; scenario [<a href="#References">2</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Integrating"></a>Integrating a Container 
+in DS Protocols</h3>
+<p>This section is available for your containers.&nbsp; Useless for &quot;Use&quot; scenario 
+[<a href="#References">2</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scanning"></a>Scanning a Container</h3>
+<p>The interface <em>CATIContainer</em> enabling you to retrieve the object of any 
+container has been removed from the exposed view. For DS containers, or those of 
+a third party, you have to use the APIs provided by the application when they exist. 
+For your own containers there is no replacement.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Renaming"></a>Renaming a Container</h3>
+<p>The interface <strong>CATIUserId</strong>, dedicated to change the name of your 
+containers, is no longer available.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Adding"></a>Adding Features to a Container
+</h3>
+<p>If the operation consists in creating and inserting a DS feature in a DS container 
+(*), most of the APIs have changed but the operation is still possible. They have 
+changed mainly to remove a dependence to the <em>CATISpecObject</em> interface. 
+Refer to the application adoption articles to have the exhaustive list of the new 
+APIs.</p>
+<p>If the operation consists in creating and inserting a CAA feature in a container 
+(DS or not), the operation is no more possible since the <em>CATISpecObject</em> 
+and CATOsmSUHandler APIs, like all ObjectSpecsModeler APIs, are no longer exposed.</p>
+<p>(*) non DS container is a non sense</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CCP"></a>Cut Copy Paste Features 
+from/to a Container</h3>
+<p>These operations were possible through the <em>CATICutAndPastable</em> interface. 
+You called this interface on the source and target containers. Now the protocol 
+has been replaced by two services of the DataCommonProtocolUse framework:</p>
+<ul>
+	<li>Copy/Paste: with the methods of the class DataCommonProtocolCCPServices
+	</li>
+	<li>Cut: with the Delete method of the class DataCommonProtocolServices.</li>
+</ul>
+<p>Refer to the article [<a href="#References">3</a>] explaining how to work with 
+these two classes.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This table sums up the main changes:</p>
+<table class="fill">
+	<tr>
+		<th>V5 Headers</th>
+		<th>V5 Frameworks</th>
+		<th>V6 Headers</th>
+		<th>V6 Frameworks</th>
+		<th>Comments</th>
+	</tr>
+	<tr>
+		<td>CATIProviders</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+		<td>No replacement</td>
+	</tr>
+	<tr>
+		<td>CATIUpdadeProvider</td>
+		<td>ObjectSpecsModeler</td>
+		<td>No change</td>
+		<td>DataCommonProtocolUse</td>
+		<td rowspan="5"><a href="#Integrating">Integrating 
+		a Container in DS Protocols</a></td>
+	</tr>
+	<tr>
+		<td>CATI3DVisuProvider</td>
+		<td>ObjectModelerBase</td>
+		<td>No change</td>
+		<td>DataCommonProtocolUse</td>
+	</tr>
+	<tr>
+		<td>CATIParmProvider</td>
+		<td>ObjectModelerBase</td>
+		<td>No change</td>
+		<td>DataCommonProtocolUse</td>
+	</tr>
+	<tr>
+		<td>CATINavigateProvider</td>
+		<td>ObjectModelerNavigator</td>
+		<td>No change</td>
+		<td>DataCommonProtocolUse</td>
+	</tr>
+	<tr>
+		<td>CATICtxMenuProvider</td>
+		<td>ProductStructure</td>
+		<td>No change</td>
+		<td>ProductStructureInterface</td>
+	</tr>
+	<tr>
+		<td>CATIContainer</td>
+		<td>ObjectModelerBase</td>
+		<td>No generic API</td>
+		<td>NA</td>
+		<td><a href="#Scanning">Scanning a Container</a></td>
+	</tr>
+	<tr>
+		<td>CATContainersInSession</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+		<td>The list of CATIContainer</td>
+	</tr>
+	<tr>
+		<td>CATIUserId</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+		<td><a href="#Renaming">Renaming a Container</a></td>
+	</tr>
+	<tr>
+		<td>CATICutAndPastable</td>
+		<td>ObjectModelerBase</td>
+		<td>DataCommonProtocol*Services </td>
+		<td>DataCommonProtocolUse </td>
+		<td><a href="#CCP">Cut Copy Paste Feature 
+		in a Container </a></td>
+	</tr>
+	<tr>
+		<td>CATFormat</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+		<td rowspan="5">Used in de-exposed API </td>
+	</tr>
+	<tr>
+		<td>CATFormats</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>CATBaseUnknown_Associations</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>CATBaseUnknowns</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>CATIDomain</td>
+		<td>ObjectModelerBase</td>
+		<td>No API</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>CATAppliContServices</td>
+		<td>ObjectModelerBase</td>
+		<td>CATIPsiRepRefApplicativeDataAccess </td>
+		<td>CAT3DPhysicalRepInterfaces </td>
+		<td>New API to new in Product context only </td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAACenPLMTaAllDocumentRemoval.htm">File Persistency Removal 
+		Impacts</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAACenAdoptionOverview.htm">V6 Adoption Overview</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatMod/CAAFmTaCommonProtocols.htm'); return false;">
+		Understanding Common Protocols</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

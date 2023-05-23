@@ -1,0 +1,192 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Middleware and Security Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Middleware and Security Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows the changes that happen to the Middleware and to the 
+		Security modelers.</p>
+		<ul>
+			<li><a href="#Part1">Object Model for Automation</a>
+			<ul>
+				<li><a href="#NotSupported">Non-Supported Methods</a></li>
+				<li><a href="#REPREQ">REPREQ Typelib Removed 
+				Keyword</a></li>
+				<li><a href="#VBModel">Extended VB Model</a></li>
+			</ul>
+			</li>
+			<li><a href="#Part2">File Encryption</a></li>
+			<li><a href="#Settings">Settings</a>
+			<ul>
+				<li><a href="#SettingAccess">Accessing Settings</a></li>
+				<li><a href="#SettingCreation">Creating Your Setting Repository</a></li>
+				<li><a href="#SettingStill">Some V5 Setting Interfaces Are Still 
+				in V6</a></li>
+			</ul>
+			</li>
+			<li><a href="#Part3">People &amp; Organization</a></li>
+			<li><a href="#IOFile">IO File</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Object Model for Automation</h2>
+<h3><a name="NotSupported"></a>Non-Supported Methods</h3>
+<p>The methods <code>GetDefaultMacroLibraries</code>, <code>SetDefaultMacroLibraries</code>,
+<code>SetDefaultMacroLibrariesLock</code>, and <code>GetDefaultMacroLibrariesInfo</code> 
+of the <em>CATIScriptMacrosSettingAtt</em> interface are not supported in this release.</p>
+<p>This implies that the default macro libraries functionality is not available, 
+and that any CAA application that requires this functionality cannot be candidate 
+for CAA V6 adoption without attempting to get rid of it. </p>
+<h3><a name="REPREQ"></a>REPREQ Typelib Removed Keyword</h3>
+<p>When using existing IDL interfaces, remove the typelib prerequisite definition 
+using REPREQ keyword from the typelib definition file, and replace it with a declaration 
+in the typelib Imakefile.mk file.</p>
+<p>For example, remove from the .tplib file all the statements like the following 
+one:</p>
+<pre class="code">#pragma <span class="keyword">REPREQ</span> InfTypeLib</pre>
+<p>Replace each of them with LINK_WITH statements in the typelib Imakefile.mk file:</p>
+<pre class="code">LINK_WITH = InfTypeLib</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="VBModel"></a>Extended VB Model</h3>
+<p>The <em>CATIVBExtension</em> interface is removed from the exposed view without 
+replacement. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>File Encryption</h2>
+<p>The following interfaces and classes (*) allow customer specific actions on files 
+(e.g., file usage audit, file integrity management, etc.). As V6 does not rely on 
+files, these interfaces and classes do not make sense any longer. There is no similar 
+database openness so far.</p>
+<p>(*) CATIUExitDRMAuthorization.h, CATIUExitDRMSession.h, CATIUExitDRMDocument.h, 
+CATSysDRMHR.h, CATIUExitDRMILockBytes.h, CATSysDRMRights.h, CATIUExitCryptedILockBytes.h, 
+CATIUExitDRMEditorFrame.h, CATIUExitDRMEditorDRMEditorFactory.h</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Settings"></a>Settings</h2>
+<p>The way to access settings through C++ API is simplified and can be performed 
+most of the time using the generic methods of the <em>CATSysSettingRepository</em> 
+class relying on the XML-based description of the setting repositories and attributes.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="SettingAccess"></a>Accessing Settings</h3>
+<p>V5 setting attributes are each managed from setting controller dedicated to each 
+setting repository using a set of four dedicated methods to read, write, lock/unlock, 
+and retrieve information about the setting attribute. For each setting attribute, 
+in addition to its name and role, the tab page where it is accessed interactively, 
+you then need to know or find its setting controller object and the way to retrieve 
+it, and the property and method names to manage the setting attribute.</p>
+<p>V6 setting attributes are declared in XML files and managed using the set of 
+five generic methods of the single <em>CATSysSettingRepository</em> class:</p>
+<ul>
+	<li><code>GetAttr</code> and <code>WriteAttr</code> to retrieve and set the 
+	value of a simple type, or an array of simple types, setting attribute. A couple 
+	of such methods exists for attributes of types: integer, short integer, float, 
+	double, character, and of pointers to <em>CATString</em> and <em>CATUnicodeString</em>.</li>
+	<li><code>GetInfo</code> to retrieve information about a setting attribute: 
+	is it administrated, locked, modified at the current administration level?</li>
+	<li><code>Lock</code> and <code>Unlock</code> to lock or unlock a setting attribute.</li>
+</ul>
+<p>To access a V6 setting attribute, you just need to know its name and in which 
+setting repository it is stored [<a href="#References">1</a>].</p>
+<h3><a name="SettingCreation"></a>Creating Your Own Setting Repository</h3>
+<p>A V5 setting repository is defined either using a dedicated class that makes 
+use of the <em>CATSettingRepository</em> class, or thanks to a dedicated C++ interface.&nbsp;
+</p>
+<p>A V6 setting repository is defined thanks to an XML file. The generic setting 
+controller <em>CATSysSettingRepository</em> enables you to manages its attributes 
+[<a href="#References">2</a>].</p>
+<h3><a name="SettingStill"></a>Some V5 Setting Interfaces Are Still in V6</h3>
+<p>Note that the following V5 setting controller interfaces still exist in V6. The 
+associated setting repositories cannot thus be managed using the generic setting 
+controller:</p>
+<ul>
+	<li><em>CATISysDLNameSettingAtt</em></li>
+	<li><em>CATISysDynLicenseSettingAtt</em></li>
+	<li><em>CATISysLicenseSettingAtt</em><br />
+	The <strong>Demo</strong> option is no more valid in V6. So the methods to handle 
+	it like <code>GetDemoMode</code>, <code>GetDemoModeInfo</code>, <code>SetDemoMode</code>,
+	<code>SetDemoModeLock</code> do not exist in V6.</li>
+	<li><em>CATIScriptMacrosSettingAtt</em></li>
+</ul>
+<p>In addition, note that the <em>CATISysFileAccessStatisticsSettingAtt</em> interface 
+does not exist in V6, since no files are used any longer.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>People &amp; Organization</h2>
+<p>The V5 <em>PLMISecSSOCLogContentProvider</em> interface is used to log the ENOVIA/SmarTeam 
+connections. ENOVIA V6 provides open APIs from scratch to log this information. 
+However, note that this information is only available from the server side.</p>
+<p>The V5 Single Sign-On programming interfaces are updated and simplified in order 
+to reflect the V6 Single Sign-On solution, which no longer depends on a Dassault 
+Syst&#232;mes&#8217; proprietary Single Sign-On server. See the Single Sign-On use case [<a href="#References">3</a>] 
+for details on how to use V6 Single Sign-On programming interfaces.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="IOFile"></a>IO File</h2>
+<p>Since V6 does not rely on files, CATIUExitIO.h has been removed from the exposed 
+view without replacement. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAScrSettings/CAAScrTocSettings.htm'); return false;">
+		Setting Repository Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysMiddleware/CAASysTcMidSettingsToc.htm'); return false;">
+		Settings</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAASSOClientTest.htm'); return false;">
+		Using the Single Sign-On User Exit</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,586 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Workspace Management</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top"><h1>RADE</h1>
+    </td>
+    <td valign="top"><h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top"><h3><a name="Top"></a>Workspace Management</h3>
+    <p><em>Creating and populating a workspace</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+    <p>This article explains how to create a workspace and how to start working in it. <ul>
+      <li><b><a href="#Setting up">Setting Up the SCM Environment</a></b></li>
+      <li><a href="#creating"><b>Creating a New Workspace</b></a> <ul>
+          <li><a href="#images">Creating Images</a></li>
+          <li><a href="#multi-trees">Creating a Multi-tree Workspace</a></li>
+        </ul>
+      </li>
+      <li><b><a href="#Attaching">Attaching Components</a></b></li>
+      <li><a href="#files and directories"><b>Creating Files and Directories</b></a> <ul>
+          <li><a href="#Chosing the right type">Choosing the Right Type</a></li>
+        </ul>
+      </li>
+      <li><a href="#InShort"><b>In Short</b></a></li>
+      <li><a href="#References"><b>References</b></a></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Setting up"></a>Setting Up the SCM Environment</h3>
+
+<p>SCM is provided as a set of commands. The same commands are available on both
+Windows and Unix platforms.<br>
+To have access to these commands, open a shell window (on Unix) and a command window (on
+Windows) and set up your environment by calling the tck_init profile and executing the
+tck_profile command. Please ask your administrator for the exact locations of the tck_init
+profile and the tck_profile command.</p>
+
+<p>Once the environment has been set up, all commands are available in the current window.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="creating"></a>Creating a New Workspace</h3>
+
+<p>A workspace is created in a tree [<a href="#References">1</a>] and under an existing
+workspace.</p>
+
+<p>For the first workspace to be created in a tree, the command to execute is the <b>adl_mk_root_ws</b>
+command.<br>
+For the other workspaces, the command to execute is the <b>adl_mk_ws</b> command.</p>
+
+<p>A full description of all parameters and options is available for all SCM commands by
+executing the command either with the <code>-h</code> option or <code>-help</code> option
+or <code>-?</code> option.</p>
+
+<p>A workspace is identified by a unique name and is created under an existing workspace
+(except for the root [<a href="#References">2</a>] workspace). This existing workspace is
+called the parent workspace and the new workspace is called a child workspace of this
+parent workspace.</p>
+
+<p>If the name of the parent workspace is know by the user, it is not mandatory to specify
+the tree where the new workspace will be created. Otherwise the user must select a tree
+and lists workspaces belonging to it in order to chose a parent workspace: 
+
+<ul>
+  <li>the command to list trees is the <b>adl_ls_tree</b> command.</li>
+  <li>the command to list workspaces in a tree is the <b>adl_ls_ws</b> command.</li>
+</ul>
+
+<p>Note that choosing a parent workspace has a consequence for the way the new workspace
+will deliver its developments: 
+
+<ul>
+  <li>components available in the workspace will be only those available in the parent
+    workspace</li>
+  <li>new components or changes to existing components will come from the parent workspace
+    only.</li>
+  <li>any development will be delivered to the parent workspace.</li>
+</ul>
+
+<p>According to these rules, workspaces should be created regarding the way development
+teams work together. For example, developers working in a common project should create
+their workspaces under a common workspace whose purpose will be the integration of their
+developments.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of the root workspace &quot;SampleRoot1&quot; in the tree &quot;SampleTree1&quot; whose Unix image root path is &quot;/u/lego/WS/SampleRoot1&quot; and whose associated tool level is V5R5.
+
+$ adl_mk_root_ws SampleRoot1 -tree SampleTree1 -dir /u/lego/WS/SampleRoot1 -tck V5R5
+Creating the root workspace &quot;SampleRoot1&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the image &quot;UNIX&quot; in the workspace &quot;SampleRoot1&quot;.
+Command successful.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of a workspace named &quot;project&quot; as a child of the &quot;SampleRoot1&quot; workspace and having an Unix image projected under &quot;/u/lego/WS/project&quot;. No tool level is specified choosing to inherit the one defined by the parent workspace.
+
+$ adl_mk_ws project -parent_ws SampleRoot1 -dir /u/lego/WS/project
+Creating the workspace &quot;project&quot; child of &quot;SampleRoot1&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the image &quot;UNIX&quot; in the workspace &quot;project&quot;.
+Command successful.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="images"></a>Creating Images</h4>
+
+<p>Images [<a href="#References">3</a>] are associated with workspaces and a workspace can
+have from 0 to n images. The first image can be created when creating a workspace. Others
+images are created afterwards by using the <b>adl_mk_image</b> command.</p>
+
+<p>All images have a name and default names are WINDOWS and UNIX regarding the current
+platform where they have been created.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of a Windows image for the &quot;project&quot; workspace.
+
+$ E:\WS&gt;adl_mk_image -ws project -dir \\algue\home\WS\project
+Creating the image &quot;WINDOWS&quot; in the workspace &quot;project&quot;.
+Command successful.
+
+Refreshing the image &quot;WINDOWS&quot; of the workspace &quot;project&quot;.
+Command successful.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p>On Windows, an image path using the UNC format: \\machine\share_name\directory. This
+is the default format considering an image can be accessed from different hosts. If a
+given image will never be accessed from another host than the one where it is created, a
+local path can be used. In that case the <code>-local_dir</code> option must be specified.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of a local Windows image for the &quot;integration&quot; workspace.
+
+$ adl_mk_image -ws integration -dir E:\WS\integration -local_dir 
+Creating the image &quot;WINDOWS&quot; in the workspace &quot;integration&quot;.
+Command successful.
+
+Refreshing the image &quot;WINDOWS&quot; of the workspace &quot;integration&quot;.
+Command successful.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="multi-trees"></a>Creating a Multi-tree Workspace</h4>
+
+<p>A multi-tree workspace is a workspace existing in more than one tree. Usually all data
+composing a product are managed in a same tree and all users developing this product
+create their workspaces in the same tree.</p>
+
+<p>Sometimes, a project development is composed of a lot of components and some users are
+working on a subset of these components while others need to have the whole set in their
+workspaces. In such a case, the first users will create their workspace in only one tree
+(the one managing the subset they need) while the others will create their workspace in
+all the trees managing the whole set of components.</p>
+
+<table width="100%">
+  <tr>
+    <td align="center"><table>
+      <caption>Fig 1: Multi-tree Workspaces</caption>
+      <tr>
+        <td><img src="../CAAWsmTechArticles/images/MultiTreeWs2.gif" width="510" height="300"></td>
+      </tr>
+    </table>
+    </td>
+    <td>The figure 1 shows three trees containing both single and multi-tree workspaces: <ul>
+      <li>&quot;Dev1&quot;, &quot;Dev2&quot;, &quot;Dev3&quot;, &quot;Dev4&quot;, &quot;Dev5&quot;
+        and &quot;Int3&quot; are single-tree workspaces</li>
+      <li>&quot;Int1&quot; is a multi-tree workspace (existing in three trees)</li>
+      <li>&quot;Int2&quot; is a multi-tree workspace (existing in two trees)</li>
+      <li>&quot;Int1&quot; and &quot;Int2&quot; can operate on components pertaining to several
+        trees while the other workspace can access only components from one tree.</li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<p>Single or multi-tree workspaces are created by the same command: <b>adl_mk_ws</b>. The
+difference between these two kinds of workspaces is made by using the -tree option when
+creating them: if no tree or just one tree is specified at creation time, the workspace is
+a (single-tree) workspace, if more than one tree is specified, the workspace will be a
+multi-tree workspace.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of the &quot;project&quot; multi-trees workspace in the trees &quot;system&quot; and &quot;foundation&quot;.
+    
+    $ adl_mk_ws project -parent_ws integration -tree system foundation -dir \\algue\home\ws\project
+Creating the workspace &quot;project&quot; child of &quot;integration&quot; in the workspace tree &quot;system&quot;.
+Command successful.
+
+Creating the workspace &quot;project&quot; child of &quot;integration&quot; in the workspace tree &quot;foundation&quot;.
+Command successful.
+
+Creating the image &quot;WINDOWS&quot; in the workspace &quot;project&quot;.
+Command successful.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p>The adl_mk_ws command provides the <code>-alltrees</code> option for creating a
+multi-tree workspace in the same trees as it parent workspace (no need to specify them).</p>
+
+<p><b>Notes</b>: 
+
+<ul>
+  <li>An existing workspace can be turned into a multi-tree workspace using the <b>adl_link_ws</b>
+    command.</li>
+  <li>A multi-tree workspace can be turned into a (single-tree) workspace using the <b>adl_unlink_ws</b>
+    command.</li>
+</ul>
+
+<table class="code">
+  <tr>
+    <td><pre>Creation of the &quot;team&quot; multi-trees workspace in the same trees as its parent workspace.
+
+$ adl_mk_ws team -parent_ws project -all_trees -dir /u/lego/WS/team
+Creating the workspace &quot;team&quot; child of &quot;project&quot; in the workspace tree &quot;system&quot;.
+Command successful.
+
+Creating the workspace &quot;team&quot; child of &quot;project&quot; in the workspace tree &quot;foundation&quot;.
+Command successful.
+
+Creating the image &quot;UNIX&quot; in the workspace &quot;team&quot;.
+Command successful.
+
+$ </pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Attaching"></a>Attaching Components</h3>
+
+<p>A workspace is created empty, components must be added to it. Components can either
+created or attached in the workspace: 
+
+<ul>
+  <li>If a new component is to be managed in a tree, one must chose the workspace where it
+    will be registered in SCM. A component can be created in only one workspace.</li>
+  <li>The commands to create new components are <b>adl_mk_fw</b>, <b>adl_mk_mod</b> or <b>adl_mk_data</b>
+    according to the type of component: framework, module or data.</li>
+  <li>If a workspace must contain components declared elsewhere in the same tree, it must
+    attach them.</li>
+  <li>The command to attach any type of component is the <b>adl_attach</b> command.</li>
+</ul>
+
+<p>The attachment follows the rules defined for data flows: 
+
+<ul>
+  <li>A component can be attached in a workspace if its parent workspace has already attached
+    this component.</li>
+  <li>If the parent workspace has not attached the component, it must be synchronized with a
+    version of its own parent workspace where this component exists.</li>
+</ul>
+
+<p>Like for any modifications the creation of new components in a workspace is made
+visible to the others only when this workspace publishes them and that child workspaces
+synchronized themselves. The two following examples show the steps to go through for
+attaching in a workspace a component created in another one.</p>
+
+<table width="100%">
+  <tr>
+    <td align="center"><img src="images/scenario1.gif" width="270" height="360"></td>
+    <td>In this scenario the goal is to attach in &quot;Dev1&quot; a new component created in
+    &quot;Int&quot; workspace: <ol>
+      <li>The component is created in &quot;Int&quot; workspace</li>
+      <li>&quot;Int&quot; publishes its content to make the new component visible</li>
+      <li>&quot;Prj&quot; synchronizes with the last published version of &quot;Int&quot; in order
+        to see the new component</li>
+      <li>&quot;Prj&quot; publishes its content to make it visible to its own child workspaces</li>
+      <li>&quot;Dev1&quot; synchronizes with the published version of &quot;Prj&quot; in order to
+        see the new component</li>
+      <li>&quot;Dev1&quot; attaches the new component</li>
+    </ol>
+    <p><b>Notes</b>: <ul>
+      <li>even the new component is not attached in &quot;Prj&quot; workspace, it is visible for
+        the child workspaces (as soon as &quot;Prj&quot; is synchronized with the right state of
+        &quot;Int&quot; workspace)</li>
+      <li>if some changes are done in the &quot;Dev1&quot; workspace and if it promotes them, the
+        collect in &quot;Prj&quot; workspace will attach automatically the framework.</li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<table width="100%">
+  <tr>
+    <td align="center"><img src="images/scenario2.gif" width="270" height="270"></td>
+    <td>In this scenario, the new component is created in a sibling workspace of the workspace
+    willing to work on it: <ol>
+      <li>The component is created in the &quot;Dev1&quot; workspace</li>
+      <li>&quot;Dev1&quot; promotes the new component</li>
+      <li>&quot;Prj&quot; collects this promotion</li>
+      <li>&quot;Prj&quot; published its content to make available the new component</li>
+      <li>&quot;Dev2&quot; synchronizes with the published version of &quot;Prj&quot;</li>
+      <li>&quot;Dev2&quot; attaches the new component</li>
+    </ol>
+    </td>
+  </tr>
+</table>
+
+<p>SCM manages two kinds of components: the frameworks and the modules (code or data
+modules).<br>
+There are different ways to attach components depending on the parts the user is
+interested in.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Attachment of the public part of the &quot;fw1&quot; framework, internal modules are not attached:
+
+$ adl_attach fw1
+
+Attachment of the &quot;fw1&quot; framework, including all its internal code and data modules:
+      
+$ adl_attach fw1 -mod
+
+&quot;fw1&quot; being attached in the workspace, attachment of two of its internal modules:
+
+$ adl_attach fw1/mod1.m fw1/CNext.specifics_UNIX
+
+&quot;fw1&quot; being attached in the workspace, attachment of all internal modules not already attached:
+
+$ adl_attach fw1 -attached_fw_mod</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="files and directories"></a>Creating Files and Directories</h3>
+
+<p>Like for components, files and directories come into a workspace either by attaching
+them or by creating them. If one user is interested in working on some files already
+managed by SCM, he/she can get a copy of them by <a href="#Attaching">attaching</a> the
+embedding module and/or framework. Conversely if the files and directories are not yet
+registered in SCM, they must be declared using the <b>adl_mk_elem</b> and <b>adl_mk_dir</b>
+commands.</p>
+
+<p>An empty file can be declared to SCM but it must exist when calling the adl_mk_elem
+command. A empty directory can be declared to SCM but its registration does not lead to
+register the internal files at the same time, they must be registered one by one using the
+adl_mk_elem command. It is not needed to declared all directories in the path of files,
+the registration of a file causes all embedding directories to be registered at the same
+time (except for frameworks and modules that must be explicitly registered using either
+adl_mk_fw, adl_mk_mod or adl_mk_data commands).</p>
+
+<p>Files and directories cannot be created anywhere under an image [<a href="#References">3</a>]
+root directory, SCM commands check that the file and directory paths correspond to a right
+location regarding their purpose: 
+
+<ul>
+  <li>header files must be created one of the four predefined directories according to their
+    scope: <ul>
+      <li>&quot;fw/PublicInterfaces&quot; directory contains header files that can be used by
+        other components</li>
+      <li>&quot;fw/ProtectedInterfaces&quot; directory contains header files that can be used by
+        &quot;friend&quot; components (relationships are expressed in IdentityCard.h files)</li>
+      <li>&quot;fw/PrivateInterfaces&quot; directory contains header files private to the
+        framework and shared by internal modules</li>
+      <li>&quot;fw/module/LocalInterfaces&quot; directory contains header files private to the
+        module</li>
+    </ul>
+  </li>
+  <li>framework are created right under the image root directory</li>
+  <li>modules are created right under the corresponding framework directory</li>
+</ul>
+
+<p>The following example shows the registration of files that will be associated with the
+embedding module and framework. Each &quot;Command successful&quot; message indicates the
+end of a transaction, that is to say that each file is created in a separate command.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>Registration of files in the current directory:
+
+$ adl_ch_ws team
+...
+$ cd SampleFw1\SampleMod1.m\src
+
+$ dir
+...
+Directory of E:\WS\team\SampleFw1\SampleMod1.m\src
+
+10/04/00 11:30 &lt;DIR&gt; .
+10/04/00 11:30 &lt;DIR&gt; ..
+27/03/00 08:40 5 333 ADLEContext.c
+31/03/00 15:03 5 329 ADLECustom.c
+19/10/99 16:04 4 729 ADLEEnv.c
+03/01/00 17:00 7 031 ADLELog.c
+27/03/00 08:56 10 440 ADLEMain.c
+...
+
+$ adl_mk_elem *
+Creating the element &quot;SampleFw1\SampleMod1.m\src\ADLEContext.c&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the element &quot;SampleFw1\SampleMod1.m\src\ADLECustom.c&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the element &quot;SampleFw1\SampleMod1.m\src\ADLEEnv.c&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the element &quot;SampleFw1\SampleMod1.m\src\ADLELog.c&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Creating the element &quot;SampleFw1\SampleMod1.m\src\ADLEMain.c&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Chosing the right type"></a>Choosing the Right Type</h4>
+
+<p>Some predefined types are recognized by SCM. Those types are useful for setting a
+specific behavior to all files being registered in SCM.</p>
+
+<p>The type to be associated with a new file is chosen according to the file suffix. If
+this suffix is also the name of a predefined type, this type is selected, otherwise the
+command is canceled by asking the user to specify a predefined type.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ adl_mk_elem unknown.suffix
+Looking for a file type &quot;suffix&quot;.
+# ADLCMD - 1161: No file type &quot;suffix&quot; found.
+You have to specify the file type with the option -type.
+Use adl_ls_type in order to list all file types.
+
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p>The list of predefined types is displayed by the <strong>adl_ls_type</strong> command:</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ adl_ls_type
+File type      Content type   Unix Executable
+---------------------------------------------
+CATDlg         Text           Not exec
+CATNls         Text           Not exec
+CATPart        Bin            Not exec
+CATProduct     Bin            Not exec
+CATRsc         Text           Not exec
+...</pre>
+    </td>
+  </tr>
+</table>
+
+<p>When a file has a suffix which does not correspond to any predefined suffix, the user
+must chose between one of the four basic types that SCM provides: 
+
+<ul>
+  <li>txt: to be used for any editable <strong>text</strong> file having no executable rights
+    on Unix platform</li>
+  <li>sh: to be used for any editable <strong>text</strong> file having executable rights on
+    Unix platform</li>
+  <li>bin: to be used for any <strong>binary</strong> file having no executable rights on Unix
+    platform</li>
+  <li>exe: to be used for any <strong>binary</strong> file having executable rights on Unix
+    platform</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+
+<p>The location of a new workspace (tree, parent workspace) is chosen regarding the
+development project this workspace will be involved in.<br>
+The commands to create a workspace are either adl_mk_root_ws or adl_mk_ws depending
+whether it is the first workspace created in a tree.<br>
+The command to get copies of components is the adl_attach command.<br>
+The command to register new files in SCM is the adl_mk_elem command.<br>
+Predefined types are listed by the adl_ls_type command.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmTechArticles/CAAWsmConcepts.htm#Trees">Tree</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td><a href="../CAAWsmTechArticles/CAAWsmConcepts.htm#The root workspace">Root
+    Workspace</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[3]</td>
+    <td><a href="../CAAWsmTechArticles/CAAWsmConcepts.htm#Images">Images</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Mar 2000]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+</body>
+</html>

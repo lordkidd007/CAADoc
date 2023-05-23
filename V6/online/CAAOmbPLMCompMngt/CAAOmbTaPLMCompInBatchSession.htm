@@ -1,0 +1,353 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding PLM Component</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Component</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>So far you have handled a PLM Object [<a href="#References">1</a>] only 
+		through an object which identifies it in database. From the session, and 
+		this identifier [<a href="#References">2</a>] you have performed short transaction 
+		operations [<a href="#References">10</a>] like database query, versioning, 
+		or another PLM life cycle operations. Now it is important to understand 
+		how you can author a PLM Object inside a session, and therefore what are 
+		the session's objects to represent this PLM Object.</p>
+		<p>This article is valid whatever the context, interactive or not. But If 
+		you work with editor, read first this article, and then continue with the 
+		dedicated article about editors [<a href="#References">3</a>].</p>
+		<ul>
+			<li><a href="#Part1">PLM Component Definition</a>
+				<ul>
+					<li><a href="#Part11">The PLM Object Representative in Session</a></li>
+					<li><a href="#Part12">For Authoring Purpose</a></li>
+					<li><a href="#Part13">Instance/Reference Model Representation</a></li>
+					<li><a href="#Part14">Limitation</a></li>
+				</ul>
+			</li>
+			<li><a href="#Part2">PLM Component Management</a>
+				<ul>
+					<li><a href="#Part21">A Unique PLM Component per PLM Object</a></li>
+					<li><a href="#Part22">Retrieving PLM Component</a></li>
+					<li><a href="#Part23">Life Cycle</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>PLM Component Definition</h2>
+<p>That you work by batch, or interactively, you deal with PLM Components to author 
+your PLM Object. Let use explain what is this object.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part11"></a>The PLM Object Representative in Session</h3>
+<p>A <strong>PLM Component</strong> represents a <strong>PLM Object</strong> in 
+session. After a Query in database, and then an <strong>Open</strong>, you get a 
+PLM Component , like after a <strong>New</strong>, you have a new PLM Component, 
+the PLM Object being created in database at the first propagate (i.e. save) (*).</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: PLM Component, a PLM Object in Session</caption>
+	<tr>
+		<td>
+		<img alt="PLM Component" src="images/CAAOmbPLMCompVersusPLMObj_OpenNew.jpg"/></td>
+	</tr>
+</table>
+<p>(*)Short Transaction Modeler does not require to save yourself the newly created 
+PLM component: For such modeler, like folder, when the PLM Component is created 
+in session, the PLM Object is immediately saved in database.</p>
+<p>Be careful, while the PLM Object in database is, of course, the complete view, 
+the PLM Component is a partial view. When a PLM Object is loaded in session only 
+a part of its attributes are loaded. Indeed, only its &quot;client&quot; PLM Attributes 
+are loaded as explained in the referenced article [<a href="#References">4</a>].</p>
+<p>To finish with this presentation, we must add that a PLM Component is internally 
+an <strong>Object Modeler component</strong> implementing the <em>CATIPLMComponent</em> 
+interface.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="PLM Component" src="images/CAAOmbPLMCompVersusPLMObj_PLMComp.gif"/></td>
+	</tr>
+</table>
+<p>From this interface you can reach identification information like:</p>
+<ul>
+	<li>the <strong>database identification object</strong>, a component implementing
+		<em>CATIAdpPLMIndentificator</em> [<a href="#References">2</a>].</li>
+	<li>the <strong>PLM type object</strong>, a component implementing <em>CATIAdpType</em>.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part12"></a>For Authoring Purpose</h3>
+<p>The PLM Component is the object to <strong>author</strong> in session a PLM Object.</p>
+<p>Author a PLM component consists in changing PLM Attribute's values, adding links, 
+inserting or deleting instances and so one. Most of the capabilities are Modeler's 
+dependent, but some are generic as saving or accessing PLM Attributes [<a href="#References">5</a>].</p>
+<p>When you use a CAA API, either for open or new purpose, you always get a PLM 
+Component as result. But interactively, only <strong>authoring</strong> editors 
+create PLM Components. Have a look to [<a href="#Fig2">Fig. 2</a>] showing two kind 
+of authoring editors.</p>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2: PLM Component in Authoring Editors</caption>
+	<tr>
+		<td>
+		<img alt="PLM Component in Authoring Editors" src="images/CAAOmbPLMCompVersusPLMObj_AuthoringEdt01.jpg"/></td>
+	</tr>
+</table>
+<p>On left, two VPM Editors editing respectively <code>CAAProduct01</code> and
+<code>CAAProduct02</code> , and on right a RFLP Editor editing <code>CAAProduct03</code> 
+and <code>CAALogical01</code>. These 3 editors have created, at least, four PLM 
+Components, to represent respectively <code>CAAProduct01</code> , <code>CAAProduct02</code>, 
+<code>CAAProduct03</code> and <code>CAALogical01</code>. We said &quot;at least', 
+because loading a PLM Reference can imply to load another PLM objects which are 
+not visible on the screen. It is fully explained in the next section &quot;<a href="#Part13">Instance/Reference 
+Model Representation</a>&quot;</p>
+<p>By opposite, PLM Search editor or Navigator Editors don't create PLM Component.</p>
+<table>
+	<caption>Fig. 3: Non PLM Component in Search &amp; Navigator Editors</caption>
+	<tr>
+		<td>
+		<img alt="Non PLM Component in Search &amp; Navigator Editors" src="images/CAAOmbPLMCompVersusPLMObj_OtherEdt.jpg"/></td>
+	</tr>
+</table>
+<p>On left the Search editor showing four products <code>CAAProduct01</code>,
+<code>CAAProduct02</code>, <code>CAAProduct03</code>, and <code>CAAProduct04</code>, and on right the Navigator 
+editor showing <code>CAAProduct04.</code> Even if you can select the objects handled 
+by these editors [3], these objects are not PLM Component.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part13"></a>Instance/Reference Model Representation</h3>
+<p>The PLM Component object in session is the reflect of the instance/reference 
+model as described in database.</p>
+<p>When you open or create a PLM Representation Reference you only get one PLM Component. 
+But when it is a PLM Reference you can get more than one PLM Component. You get 
+all the structure coming from the root. Just below [<a href="#Fig.4">Fig. 4</a>] 
+shows a PLM Reference and its structure in database</p>
+<table>
+	<caption><a name="Fig.4"></a>Fig. 4: A PLM Reference in Database</caption>
+	<tr>
+		<td>
+		<img alt="PLM Reference in Database" src="images/CAAOmbPLMCompVersusPLMObj_AllElt.jpg"/></td>
+	</tr>
+</table>
+<p>When you load this structure in session, six PLM Components (*) are created: 
+two representing a PLM References, one a PLM Instance, one a PLM Representation 
+Instance, and one for the Connection , each one implementing the <em>CATIPLMComponent</em> 
+interface as depicted by [<a href="#Fig5">Fig. 5</a>].</p>
+<table>
+	<caption><a name="Fig5"></a>Fig. 5: A PLM Reference in Session</caption>
+	<tr>
+		<td>
+		<img alt="PLM Reference in Session" src="images/CAAOmbPLMCompVersusPLMObj_AllEltInSession.jpg"/></td>
+	</tr>
+</table>
+<p>(*) Be careful by APIs a PLM Reference can be loaded with less PLM Component 
+than its exact structure in database. According to the reference loading mode, you 
+can get more and less PLM Components in session. Refer to the referenced article 
+[<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part14"></a>Limitation</h3>
+<p>The limitation is about the Instance/Reference model, and thus the PLM Component. 
+If you want to apply a color or a position to an instance on a complex structure, 
+the instance/reference is insufficient. How to apply a specific color to the rear 
+right wheel of a car when you only have the instance/reference data model.</p>
+<p>So, in session, in parallel with this database like model, we have another model 
+representing the unfolded view of the structure. This unfolded view is represented 
+by object named PLM Occurrence. Product model uses PLM Occurrences. There are these 
+kind of objects that you get in the VPM editor when you select the root or one instance.
+</p>
+<p>Read the referenced article [<a href="#References">9</a>], you will learn all 
+the details about the occurrences, and specially that the Instance/Reference model, 
+and thus the PLM Components are always the &quot;master&quot; and persistent data.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>PLM Component Management</h2>
+<p>This section deals with important concepts when working with PLM Component.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part21"></a>A Unique PLM Component per PLM Object</h3>
+<p>A PLM Component exists only and only once in session. Let's use explain with 
+an illustration.</p>
+<table>
+	<caption><a name="Fig6"></a>Fig. 6: Two Visualizations, but One PLM Component</caption>
+	<tr>
+		<td>
+		<img alt="Two Visualizations, but One PLM Component" src="images/CAAOmbPLMCompVersusPLMObj_AuthoringEdt.jpg"/></td>
+	</tr>
+</table>
+<p>On this picture [<a href="#Fig6">Fig. 6</a>] you can see that <code>CAAProduct03</code> 
+is used by two editors: but both use the same PLM Component. When selecting
+<code>CAAProduct03</code> within RFLP editor, you get the same one as if you select 
+those of the VPM editor. Moreover, imagine you use a CAA command to open <code>CAAProduct03</code>, 
+the result of the open is always the same PLM Component, <code>CAAProduct03,</code> 
+already in session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part22"></a>Retrieving PLM Components</h3>
+<p>There are a lot of means to retrieve PLM Components, through a selection [<a href="#References">3/</a>], 
+thanks to Navigation APIs [<a href="#References">7</a>]], or by any other APIs exposed 
+by modelers. There is also <code>GetPLMComponentsInSession</code> method of the
+<em>CATPLMComponentInterfacesServices</em> class. This method retrieves all the 
+PLM Components representing a PLM Reference and a PLM Representation Reference in 
+the current session.</p>
+<table>
+	<caption>Fig. 7</caption>
+	<tr>
+		<td>
+		<img alt="PLM Components" src="images/CAAOmbPLMCompVersusPLMObj_ListINSession.jpg"/></td>
+	</tr>
+</table>
+<p>That you load <code>CAAProduct03</code> interactively or by CAA APIs, the elements 
+returned by <code>GetPLMComponentsInSession</code> is only 2: <code>CAAProduct03</code> 
+and <code>CAAProduct01.</code>The instance of <code>CAAProduct01</code> aggregated 
+by<code> CAAProduct03</code>, is also a session PLM Component, but not returned 
+by this API.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part23"></a>Life Cycle</h3>
+<p>Like any Object Modeler component its <strong>physical</strong> life cycle is 
+managed with the AddRef/Release mechanism. When the counter decrements to zero the 
+OM object is deleted from the memory. But this elementary and essential life cycle 
+management is not enough for complex and big data. So we have introduced a
+<strong>logical</strong> life cycle. The principle is simple: while a PLM Component 
+is logically alive, you can work with it, when it is logically dead, you cannot 
+work anymore with it: the PLM Component is said &quot;unloaded' from the session 
+because we are able to remove from the session a part of the PLM Component.</p>
+<p>This logical life cycle is managed by the <strong>BAG object</strong> [<a href="#References">8</a>]. 
+Have a look to the referenced article, you will discover how both processes have 
+been implemented, what does mean 'unloaded&quot;, why we have introduced this logical 
+life cycle, and how to work with the a bag object.</p>
+<p>But, nevertheless, before leaving this section, just two scenarios to see the 
+interest of the bag object.</p>
+<p>First, we propose a good scenario involving the bag use.</p>
+<ul>
+	<li>You open or create a PLM Component in session.</li>
+	<li>You set the PLM Component in a bag.</li>
+	<li>You work with your PLM Component while it is necessary.</li>
+	<li>When you no longer need it:
+		<ul>
+			<li>Release all interface pointers on your OM component to enable the 
+				physical end of life of the OM component (*).</li>
+			<li>Remove the PLM Component from the bag - if you are the last to use 
+				this PLM Component, it will be unload from the session.</li>
+		</ul>
+	</li>
+</ul>
+<p>(*)Release the pointer can be done after or before the removal of the PLM Component 
+from the bag, the order doesn't matter like it is developed in the referenced article 
+[<a href="#References">8</a>]</p>
+<p>Now, a second and bad scenario where the bag is not used.</p>
+<ul>
+	<li>You open or create a PLM Component in session within your CAA command.</li>
+	<li>You release all your interface pointers on the PLM Component (or not).</li>
+	<li>You leave your command.</li>
+</ul>
+<p>It is a bad scenario since living your command your PLM Component will be still 
+logically alive, and nobody knows when it will be unloaded from the session. For 
+a little model, it is not a big problem, but with large data model, your memory 
+can be quickly uselessly full. The fact to leave the command without to release 
+the interface pointers is, of course, not recommended, but the memory leak will 
+be minor in comparison with the ones introduced by the none PLM Component unloading.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>While a PLM Object is an object in database, a PLM Component is its representation 
+for authoring purpose.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaPLMObject.htm">
+		Understanding PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		Understanding PLM Object Identifier</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAOmbTaInteractiveSession.htm">Key Features for Interactivity</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">
+		Understanding PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAPlmPLMCompAttribute/CAAPLMTaAllKnowPLMAttributes.htm">
+		Accessing PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpenPLMRefWithDiffExpandMode.htm">
+		Query, Expand and Open a PLM Reference with various Expand Modes</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAAOmbPLMCompNavigation/CAACor2TaNavigateCoreData.htm">
+		Navigation on PLM Core data</a></td>
+	</tr>
+	<tr>
+		<td>[[8]</td>
+		<td><a href="CAAAdpTaBAGMechanism.htm">Understanding PLM Component Life 
+		Cycle</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>Product Occurrence Model</td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>Short Versus Long Transaction</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

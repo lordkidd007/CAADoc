@@ -1,0 +1,313 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Feature Catalog Compatibility</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Feature Catalog Compatibility</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>When there are several code level (ex V5R18, V5R19, V6R2010x) still 
+		opened to the development, upgrading a Feature catalog must be done very 
+		carefully. If the previous article &quot;Managing StartUp Catalog&quot; [<a href="#References">1</a>] 
+		gives you the technical information to realize this upgrade, this 
+		article presents the problematic, the issue, and finally advice to do 
+		safely a catalog modification. </p>
+		<ul>
+			<li ><a href="#Problematic">Problematic</a></li>
+			<li ><a href="#Issue">Issue</a></li>
+			<li ><a href="#Process">Process</a><ul>
+				<li ><a href="#Process details">In Details</a></li>
+				<li ><a href="#Illustration">Illustration</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Problematic"></a>Problematic</h2>
+<p>DS has a simple rule : Any CATIA version must be able to read any documents 
+created in a previous version. Usually DS calls this &quot;Downward&quot; 
+compatibility.&nbsp;&nbsp; </p>
+<ul>
+	<li>A document created in V5Rn is older than one created N releases later, 
+	V5Rn &lt;V5Rn +N</li>
+	<li>A document created in V5RnSPx is older that one created at the next 
+	release, V5RnSPx &lt;V5Rn+1</li>
+	<li>Between V5 and V6, the date of the GA of each level, defines which is 
+	older.&nbsp;&nbsp; V62009 (GA&nbsp; in 2009) is older than V521 (GA 2010).
+	</li>
+</ul>
+<p>For Feature data, it means that the current run-time view (RTV) must contain the 
+definition of all StartUp (and their attributes) that are required to read a 
+document of a previous version.&nbsp; It's why the Feature catalog upgrade 
+process only adds new StartUps, new attributes, and never deletes them. Taken a 
+simple example: in V5R18 you create a StartUp, and documents containing 
+instances of this StartUp are created. Some releases later, you change the 
+format of one attribute from one integer to three integers. If the CATFctEditorAssistant tool&nbsp; [<a href="#References">1</a>] 
+removed the &quot;old&quot; attribute, to only create the new one (with 3 integers), how 
+you could read the feature created in V5R18 and containing one attribute? </p>
+<p>When you create or update a catalog, the objects you create (Containers, Startups) are assigned new UUIDs. 
+When a catalog is upgraded to higher levels, no UUID is ever changed, so that 
+when data is read on higher versions, all links stand resolved. </p>
+<p>Also one cannot downgrade a catalog. There is no CATBack for catalogs. 
+CATBack is only for user documents.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Issue"></a>Issue</h2>
+<p>The issue will be exposed through two examples: the first is a modification 
+between two V5 levels, and the second one is between a V5 and V6 level. </p>
+<p><strong>V5/V5 Modification</strong></p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompV5V5.gif"></td>
+	</tr>
+</table>
+<ul>
+	<li>First (1), you modify MyCatalog.CATfct in V5R20 to add the new StartUp 
+	&quot;Extrude&quot;. The current CATfct in your RTV comes from V5R18. The 
+	identifier of the new StartUp is #3. </li>
+	<li>Then (2), you need a change in a version lower that V5R20, here V5R19. 
+	Suppose that MyCatalog.CATfct in the V5R19 RTV comes from V5R18. So the new StartUp, here Chamfer, has also the number 
+	#3. </li>
+</ul>
+<p>When you will read a document created in V5R19 in a version upper or equal to 
+V5R20, you will have a problem. All instances of StartUp #3 inside a V5R19 document
+read in V5R20 are considered as Extrude and not Chamfer.</p>
+<p><strong>V5/V6 Modification</strong></p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompV5V6.gif"></td>
+	</tr>
+</table>
+<ul>
+	<li>First (1), you modify MyCatalog.CATfct in V6R2011x to add the new StartUp 
+	&quot;Chamfer&quot;.&nbsp; You upgrade it from the current level in V5 (V5R18). The 
+	identifier of the new StartUp is #3. </li>
+	<li>Then (2), you need a change in V5R20, so 
+	you upgrade the catalog MyCatalog.CATfct from the same catalog coming from 
+	the V5 RTV (V5R18). So the new StartUp, here Extrude, has also the number 
+	#3. </li>
+</ul>
+
+<p>When you will read a document created in V5R20 in V6R2011x (which is more 
+recent that V5R20), you will have a problem. All instances of StartUp #3 inside a V5R20 document 
+read in V6R2011x are considered as Chamfer and not Extrude.   </p>
+<p>Infact this issue is the same as the one illustrated earlier, except that we 
+deal with two versions here namely. V5 and V6. But fundamentally what we intend 
+to emphasize here is that V5 and V6 must not be considered as distinct branches.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Process"></a>Process</h2>
+<p>When you have to upgrade a Feature catalog you have rules to follow:</p>
+<ol>
+	<li>Use the right release for the CATFctEditorAssistant tool</li>
+	<li>Use the right CATfct to upgrade</li>
+	<li>Place the upgraded catalog at the right places </li>
+</ol>
+<p>First, let us describe each rules, and then an example will be used to 
+illustrate the purpose.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Process details"></a>Process details</h3>
+<p>This section explains each rules. </p>
+<h4>Use the Right Release for the CATFctEditorAssistant Tool</h4>
+<p>You must use the older version where you have still code to maintain. </p>
+<ul>
+	<li>Your catalog has been created in V5, whatever the upgrade's level (for 
+	V5 or V6) , if you have still code in V5, use a V5 version</li>
+	<li>Your catalog has been created in V6, and for only V6 purpose, use a V6 
+	version</li>
+</ul>
+<p>The reason is simple: As soon as a catalog is created on a version, all older 
+CATIA versions could not use it anymore.&nbsp; </p>
+<h4>Use the Right CATfct to Upgrade</h4>
+<p>Whatever the version where do you want an upgrade of your catalog, you must 
+always use the LAST upgraded CATfct. It means that in the time you must be able 
+to know which is the lastest version of the CATfct. </p>
+<h4>Deliver the Upgraded Catalog at the Right Places </h4>
+<p>The new catalog must be delivered in all versions from the current to update and 
+the newer ones. </p>
+<p>If the catalog exists in V5 and V6, and the catalog modification occurs in 
+V5, deliver the new catalog on V5 and V6 levels, and if the modification 
+occurs in V6, you deliver the new catalog in V6 and V5 too. In this last case, 
+the delivery in V5 levels is a recommendation to enable the CATBack tool.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Illustration"></a>Illustration</h3>
+<p>To avoid any confusion with existing (or future) releases, this section uses 
+&quot;generic&quot; release numbers : V5R1 , V5R2, ..., V6R1, V6R2, ...,&nbsp; where&nbsp; 
+the number of the release only means that RX is older than X+1. The timing 
+between V5 and V6 is arbitrarily chosen as depicted by this schema:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompReleases.gif"></td>
+	</tr>
+</table>
+<ul>
+	<li>The upper line represents the V5 versions in the time</li>
+	<li>The lower line represents the V6 versions in the time</li>
+</ul>
+<p>Suppose you have 2 catalogs, one created in V5R2 (A) and one created in 
+V6R1 (B), and only for V6 development. </p>
+	<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep1.gif"></td>
+	</tr>
+</table>
+
+		<ul>
+			<li>V1 means the version 1. </li>
+			<li>Catalog A exists from V5R2 to V5R6, and from V6R1 to V6R4, and 
+			catalog B exists for all versions from V6R2 to V6R4. </li>
+	</ul>
+	<p>Now, suppose that level V5R1 , V5R2 and V5R3 are closed for the 
+	maintenance. </p>
+	
+	<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep2.gif"></td>
+	</tr>
+</table>
+
+		<p>Lets us consider five cases of upgrade.</p>
+		<script type="text/javascript">insertLinkToTop();</script>
+
+<h4><a name="Upgrade the catalog A for V5R5."></a>Upgrade the catalog A for V5R5.</h4>
+<ul>
+	<li>CATFctEditorAssistant is run on V5R4 level, the lowest version still under maintenance. </li>
+	<li>A to upgrade is V1</li>
+	<li>The new version V2 is delivered in V5R5 and all subsequent releases: V5R5 and V5R6, and V6R3 to V6R4 </li>
+</ul>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep3.gif"></td>
+	</tr>
+</table>
+
+		
+		<p><strong>Note</strong>: B has been temporary removed from the picture for a lighter schema.</p>
+		<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Upgrade the catalog A for V5R4.</h4>
+<ul>
+	<li>CATFctEditorAssistant is run on V5R4 level, the lowest version still under maintenance</li>
+	<li>A to upgrade is V2</li>
+	<li>The new version V3 is delivered in  V5R4 and all subsequent releases, therefore  V5R4 and V6R2 to V6R4  </li>
+</ul>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep4.gif"></td>
+	</tr>
+</table>
+<p>This example shows the significance to use the lowest version still under 
+maintenance for the CATFctEditorAssistant tool. If in the previous upgrade,
+<a href="#Upgrade the catalog A for V5R5.">Upgrade the catalog A for V5R5</a>, 
+A-V2 would have been generated with the V5R5 version of CATFctEditorAssistant, 
+this catalog would be disable in V5R4. CATFctEditorAssistant and all CATIA 
+version lower than V5R5 cannot use a catalog created in a upper level. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Upgrade the catalog A for V6R2.</h4>
+<ul>
+	<li>CATFctEditorAssistant is run on V5R4 level, the lowest version still under maintenance</li>
+	<li>A to upgrade is V3</li>
+	<li>The new version V4 is delivered in V6R2 and all subsequent releases, therefore V6R2 to V6R4, and 
+	as recommended <a href="#Process details">#</a> , in the V5 versions too, so V5R5 and V5R6</li>
+</ul>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep5.gif"></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4>Upgrade the catalog  B for V6R4.</h4>
+<ul>
+	<li>CATFctEditorAssistant is on V6R1 level ,the lowest version still under maintenance for catalog B </li>
+	<li>B to upgrade is V1</li>
+	<li>The new version V2 is delivered in V6R4 and all subsequent releases, so only V6R4.
+ Here the update of the V5 is useless , there is no impact on that version.</li>
+</ul>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAFmExtTaCatalogCompCatalogStep6.gif"></td>
+	</tr>
+</table>
+<p>Note: A has been temporary removed from the picture for a lighter schema.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>Special Upgrade</h4>
+<p>For some special kind of catalog's modifications, it is possible to use the 
+current version of the CATFctEditorAssistant tool. Some examples of possible 
+operations are:</p>
+<ul>
+	<li>Change the default value of a string attribute</li>
+	<li>Transform the local property of a feature extension (local -&gt; non local) </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>Upgrading a Feature catalog requires a strict process to ensure the correct reading 
+of documents created with a lower version.</p>
+<ol>
+	<li>Use the right release for the CATFctEditorAssistant tool</li>
+	<li>Use the right CATfct to upgrade</li>
+	<li>Deliver the upgraded catalog at the right places </li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td ><a href="CAAFmExtTaMaintainingCatalogs.htm">Managing StartUp Catalogs</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

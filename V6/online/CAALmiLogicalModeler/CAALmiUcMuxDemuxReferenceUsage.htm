@@ -1,0 +1,457 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+ 
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Mux-Demux Usage</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+
+
+
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Mux-Demux Usage</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This use case demonstrates usage of Multiplexer (Mux) Demultiplexer 
+		(Demux) Reference. <p><a href="#Learn">What You Will Learn With This Use Case</a></p>
+      <ul>
+        <li><a href="#UseCase">The CAALmiMuxDemuxReferenceUsage Use Case</a>
+          <ul>
+            <li><a href="#What">What does the CAALmiMuxDemuxReferenceUsage do</a></li>
+            <li><a href="#How">How to launch CAALmiMuxDemuxReferenceUsage</a></li>
+            <li><a href="#Where">Where to find the </a><a href="#Where">
+			CAALmiMuxDemuxReferenceUsage</a><a href="#Where">code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+
+<p>The leanings from this Use Case are:</p>
+<ul>
+	<li>The necessity of Mux/Demux Reference</li>
+	<li>The usage of Mux/Demux Reference</li>
+	<li>The connection should respect compatibility rule of the Port type</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="UseCase"></a>The CAALmiMuxDemuxReferenceUsageUse Case</h2>
+<p> <code>CAALmiMuxDemuxReferenceUsage </code>is a use case of the <code>
+CAALogicalModelerUseItf.edu</code>
+framework that illustrates the <code>CATLogicalModelerUseItf</code>&nbsp; 
+frameworks&nbsp; capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAALmiMuxDemuxReferenceUsage Do</h3>
+<p>This use case mainly demonstrates the usage of Mux/Demux reference. In case 
+of Mux/demux the main difference is Mux reference takes multiple inputs and 
+returns it to single output. While on the other hand the Demux takes single 
+input and output multiple outputs.</p>
+<p><strong>/!\ The Multiplexer/Demultiplexer lose is interest since the existence of the 
+Interfaces (System Type Exposition Instance: Port's evolution). Even when data (System Type Reference) 
+is Structured, Interfaces allow to connect the sub-decomposition of the data.</strong></p>
+<p>In this use case we are actually using Demux to demonstrate its use. 
+</p>
+<p>We have following three reference with port as per following description,</p>
+<ol>
+	<li>The Logical Reference 1 has one output port - Structured Type (Commonly 
+	Logical System Root type known as Structure Type)</li>
+	<li>The Logical Reference 2 has one input port - Sub Type 1 (Commonly 
+	Logical System Instance Type known as Sub Type)</li>
+	<li>The Logical Reference 3 has one input port - Sub Type 2</li>
+</ol>
+<p>Now the problem is the Logical Reference 1 port (output) transmits the signal/data for 
+Reference 2 Port (Input) and&nbsp; Reference 3 Port (Input). To resolve this problem we need one entity which will 
+serve the both purpose </p>
+<ul>
+	<li>Split the signals required for two input ports.</li>
+	<li>Maintain compatibility of the type </li>
+</ul>
+<p>Here comes the solution -&nbsp;Demultiplexer.&nbsp; To execute this solution 
+we will instantiate all three Logical References and Demux under one logical 
+Reference. (This is data model input to this Use Case. This data model consists 
+of one logical reference aggregating three instances and one Demux instance with 
+ports as described)</p>
+<p>So we 
+introduced a Demux Reference. Demux Reference has following Ports </p>
+<ul>
+	<li>Input port of Demux Reference (Structured Type)</li>
+	<li>Output port 1 of Demux Reference (Sub Type 1)</li>
+	<li>Output port 2 Of Demux Reference (Sub Type 2)</li>
+</ul>
+<p>Now actually when we create a connection between ports as per following 
+description. but while creation of connection we&nbsp; need to take care of 
+Direction as well type of ports in between we will do connection.</p>
+<p>The next step is to create a connection between these entities as depicted in the 
+[<a href="#Fig.1">Fig.1</a>] There are three connections created, as listed below
+                </p>
+<ul>
+	<li>Inst1 Out Port of type Structure Type with Demux Inst In Port of type Structure </li>
+	<li>Inst2 In Port of type Sub Type 1 with Demux Inst OUT Port of Sub Type1
+                </li>
+	<li>Inst3 In Port of type Sub Type 2 with Demux Inst OUT Port of Sub Type2 </li>
+</ul>
+<p>We now explain the logic deployed to create these 3 connections. </p>
+<p>First we retrieve the direction of all Instance Ports. Next we retrieve the type for all Instance Ports and the type of one of the Demux sub types (assume Sub 
+Type 1). We first begin with the Demux Port direction IN, of type 
+Structure. We next parse through all Instance Ports, and check for the one with direction OUT. As soon as we get one, we create a connection and set the bool for the part to TRUE, meaning connection done. </p>
+<p>We then proceed to the next Demux Inst, which will be of one of the two Sub Types. Its direction is known to be OUT. We then once again parse through all the Instance Ports, to 
+retrieve the first one among those which is not connected as yet. Once we retrieve it, we retrieve its 
+Sub Type. If it matches with our Demux Port type, we create a connection. </p>
+<p>We finally proceed to the last Demux Inst, which will be again of one of the 
+two sub types. Its direction is again known to be OUT. We then once again parse 
+through all Instance Ports, to retrieve the last one which is not connected as 
+yet. Once we retrieve it, we create a connection. </p>
+<p>And problem we resolve by making connections between three Instances and Demux 
+Instance as per following </p>
+<ul>
+	<li>Instance 1 out Port -&gt; Input port of Demux (Structured Type)</li>
+	<li>Output port 1 of Demux Instance -&gt; Instance 2 input Port (Sub Type 1)</li>
+	<li>Output port 2 of Demux Instance -&gt; Instance 3 input Port (Sub Type 2)</li>
+</ul>
+<table cellspacing="1" class="style1">
+	<caption><a name="Fig.1"></a>Fig.1 Demux Reference Usage</caption>
+	<tr>
+		<td>
+		<img src="images/CAALmiUcMuxDemuxReferenceUsage_Image1.jpg"></td>
+	</tr>
+</table>
+<p>the above [<a href="#Fig.1">Fig.1</a>] shows the three Instances connected 
+trough Demultiplexer. </p>
+<table cellspacing="1" class="style1" style="width: 460px; height: 775px">
+	<caption><a name="Fig.2"></a>Fig.2 Demux Reference Usage Structure</caption>
+	<tr>
+		<td>
+		<img src="images/CAALmiUcMuxDemuxReferenceUsage_Image2.png" width="413" height="751"></td>
+	</tr>
+</table>
+<p>The above [<a href="#Fig.2">Fig.2</a>] shows sample structure of the Reference 
+model which is using Demux Reference.&nbsp;We could notice that the Port 
+connections respect compatibility of Port types while creating connections.</p>
+<p>The details of compatibility given in Logical Modeler Technical article[<a href="#References">4</a>]. </p>
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="How"></a>How to Launch CAALmiMuxDemuxReferenceUsage </h3>
+<p>To launch <code>CAALmiMuxDemuxReferenceUsage</code>, you will need to set up the build time
+environment, then compile <code>CAALmiMuxDemuxReferenceUsage<b> </b></code>along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p> <a><code>mkrun -c &quot; CAALmiMuxDemuxReferenceUsage Repository Server User 
+Password SecurityCtx PLMType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IDAttribute1&nbsp;AttrValue1 [IDAttribute2 Value2 ...] <b>&quot;</b></code></a> </p>
+<p>where:</p>
+
+
+<table class="border1"  id="table13" style="border-style: solid" >
+  <tr>		
+  	<th> <b>Repository</b> </th>
+			<td><script type="text/javascript">insertRepository();</script> </td>
+		</tr>
+		<tr>
+			<th> <b> Server</b> </th>
+			<td>The name and port of the server as <i>name</i>:<i>port_number/RootURI</i></td>
+		</tr>
+		<tr>
+			<th> <b> User</b> </th>
+			<td>The user name</td>
+		</tr>
+		<tr>
+			<th> <b> Password</b> </th>
+			<td>The user password to authenticate the user</td>
+		</tr>
+		<tr>
+			<th> <b>SecurityCtx</b> </th>
+			<td>a string
+              representing the security context ( Role. Organization. Project&nbsp;
+              )<o:p>
+              . Choose Role as Designer ( as the use case  modifies/creates the PLM Data) </o:p>
+              </td>
+		</tr>
+		<tr>
+			<th> <b>PLMType</b></th>
+			<td>A String Representing PLM Type</td>
+		</tr>
+		
+		
+  <tr>
+    <th height="35">IDAttribute1*<td height="16">Identification attribute name for opening Root</td>
+  </tr>
+		
+		 <tr>
+    <th height="35">AttrValue1*<td height="16">Identification attribute name value for opening Root</td>
+  </tr>
+		</table>
+
+
+
+
+<p align="left">* We could have several such Attribute-Value set. </p>
+<p align="left">CAALmiMuxDemuxReferenceUsage.3dxml this 3D XML file contains the root Product&nbsp; Reference with the
+following attributes:</p>
+<ul>
+  <li><a><code>PLM_ExternalID</code></a>:
+    CAALmiMuxDemuxReferenceUsage_Root</li>
+  <li><a><code>Version</code></a>:
+    ---</li>
+</ul>
+<p align="left"><b>Attention</b>:  Please refer to the document [<a href="#References">1</a>]
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where"></a>Where to Find the CAALmiMuxDemuxReferenceUsage
+Code</h3>
+<p>The <a><code>CAALmiMuxDemuxReferenceUsage</code></a> use case is located in the
+<a><code>CAALmiMuxDemuxReferenceUsage.m</code></a> module of the <a><code>CAALogicalModelerUseItf.edu</code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAADoc\CAALogicalModelerUseItf.edu\CAALmiMuxDemuxReferenceUsage.m</code></td>
+  </tr>
+</table>
+<p>where <code><a>InstallRootDirectory</code></a> [<a href="#References">1</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Step"></a>Step-by-Step</h2>
+ <p>There are several logical steps in CAALmiMuxDemuxReferenceUsage use case.</p>
+   <ol>
+     <li><a href="#Prolog">Prolog</a> </li>
+		<li><a href="#RetrievePortAndInst">Retrieves Instance and ports From Input Structure</a></li>
+		<li> <a href="#RetrieveDirAndType">Retrieves Direction and Types of Ports</a></li>
+     <li><a href="#Creates Connection to StructurePort">Creates Connection to StructurePort Under 
+		Demux Inst with In Port</a><li>
+		<a href="#Creates Connection to Sub Type">Creates Connection to Sub Type Port Under 
+		Demux Inst with Out Ports
+		</a>     <li>
+     <a href="#Epilog">
+		Epilog</a></li>
+		
+   </ol>
+   <script type="text/javascript">insertLinkToTop();</script>
+   <!---------------------------------comment------------------------------------->
+   
+   <h3><a name="Prolog"></a> Prolog</h3>
+<p>We connect to the input repository and a PLM session is created. A 
+PLM session is an environment essential for running a CAA use case. The article 
+[<a href="#References">1</a>]delves further into the process of building and launching a CAA use case.</p>
+<p>Initially we load the Logical Reference. The loading mode is &quot;Authoring&quot; mode 
+[<a href="#References">3</a>] to enable to load in session all the Logical 
+structure including Ports and Demux Instance.</p>
+
+
+	
+  
+   <script type="text/javascript">insertLinkToTop();</script><h3>
+<a name="RetrievePortAndInst"></a>Retrieves Instance and ports From Input Structure</h3>
+<p>In this step we retrieve ten objects from the input Logical structure. The 
+objects retrieved are as follows</p>
+<ul>
+	<li>4 instances :
+	<ul>
+		<li>
+<ol>
+	<li>Logical Instance 1 has one output port - Structured Type (<code>piLogicalInstanceOnFirstInst</code>)</li>
+	<li>Logical Instance 2 has one input port - Sub Type 1 (<code>piLogicalInstanceOnSecondInst</code>)</li>
+	<li>Logical Instance 3 has one input port - Sub Type 2 (<code>piLogicalInstanceOnThirdInst</code>)</li>
+</ol>
+		</li>
+		<li>One Demux Instance (<code>piLogicalInstanceOnMuxInst</code>)</li>
+	</ul>
+	</li>
+	<li>6 Ports
+	<ul>
+		<li>3 Under Logical Instances</li>
+		<li>
+		<ul>
+	<li>Instance 1 Out Port (Structured Type)(<code>piLogicalPortOnPortUnderFirstChildInst </code>)</li>
+	<li>&nbsp;Instance 2 Input Port (Sub Type 1)(<code>piLogicalPortOnPortUnderSecondChildInst </code>)</li>
+	<li>Instance 3 Input Port (Sub Type 2)(<code>piLogicalPortOnPortUnderThirdChildInst </code>)</li>
+</ul>
+		</li>
+		<li>3 Under Demux Instance </li>
+		<li>
+<ul>
+	<li>Input port Of Demux (Structured Type)(<code>piLogicalPortOnStructurePortUnderMuxInst </code>)</li>
+	<li>Output port 1 Of Demux&nbsp; (Sub Type 1)(<code>piLogicalPortOnSubType1PortUnderMuxInst </code>)</li>
+	<li>Output port 2 Of Demux&nbsp; (Sub Type 2)(<code>piLogicalPortOnSubType2PortUnderMuxInst </code>)</li>
+</ul>
+		</li>
+	</ul>
+	</li>
+</ul>
+   <script type="text/javascript">insertLinkToTop();</script><h3>
+<a name="RetrieveDirAndType"></a>Retrieves Direction and Types of Ports</h3>
+
+   <p>Retrieval of the direction and Type is necessary to match the 
+	appropriate ports, since the Demux instance/ connection respect the convention 
+	rule of the Type and direction. </p>
+<p>In next steps according to the Port direction and type we could proceed for 
+the connection as per the case. </p>
+<p>Now use case finds direction of each instance port.&nbsp; The directions 
+	could be In/Out in this case as per our specific input structure. </p>
+   
+   
+       <pre class="code">...    
+    CATILogPort::PortDirection PortDir1;
+    hr = piLogicalPortOnPortUnderFirstChildInst-&gt;<strong>GetDirection</strong>(PortDir1);
+    ...  </pre>
+  <p>A call to <code>GetDirection</code> of <em>CATILogPort</em> retrieves port direction&nbsp;<code>PortDir1</code>.&nbsp;</p>
+
+   <p>Next the use case retrieves type of each Instance port and the Demux port . 
+	The return object is&nbsp;&nbsp;<em>CATILogTypeReference</em> type.&nbsp;&nbsp;&nbsp; </p>
+   
+   
+       <pre class="code">...    
+    CATILogTypeReference * piLogicalTypeRefOnTypeofPortUnderFirstChildInst = NULL;
+    hr = piLogicalPortOnPortUnderFirstChildInst-&gt;<strong>GetType</strong>(piLogicalTypeRefOnTypeofPortUnderFirstChildInst);
+...  </pre>
+  <p>A call to <code>GetType </code> of <em>CATILogPort</em> returns the type of the Port (<code>piLogicalTypeRefOnTypeofPortUnderFirstChildInst </code>).</p>
+   <script type="text/javascript">insertLinkToTop();</script>
+
+<h3>
+<a name="Creates Connection to StructurePort"></a>Creates Connection to StructurePort Under 
+Demux Inst with In Port</h3>
+   <p>Now use case creates a connection between Structure port of the Demux and 
+	the In port. Following code snipit showing one example case in which First 
+	Child instance has Out port as consideration, the other cases we could see 
+	in detail in source code. The arrangement of finding Direction and Types is 
+	described in [<a href="#What">#</a>] section . &nbsp; </p>
+   
+   
+       <pre class="code">...    
+	CATListValCATICkeParm_var iLFctAttributesValues;
+	<strong>CATILogConnection</strong> *opLogicalConnection = NULL;
+    ...
+	hr = piLogicalInstanceOnMuxInst-&gt;<strong>Connect</strong>(piLogicalPortOnStructurePortUnderMuxInst,
+					    piLogicalInstanceOnFirstInst, 
+					    piLogicalPortOnPortUnderFirstChildInst,
+					    NULL_var,
+					    NULL, 
+					    iLFctAttributesValues, 
+					    opLogicalConnection);
+...  </pre>
+  <p>A call to <code>Connect </code>of <em>CATILogInstance</em> creates&nbsp;connection 
+	between the Structured type port (<code>piLogicalPortOnStructurePortUnderMuxInst</code>) of the 
+	Demux instance and the 
+	In instance port (<code>piLogicalPortOnPortUnderFirstChildInst</code>).</p>
+	   <script type="text/javascript">insertLinkToTop();</script>
+<h3>
+<a name="Creates Connection to Sub Type"></a>Creates Connection to Sub Type Port Under 
+Demux Inst with Out Ports</h3>
+   <p>Now use case creates a connection between Sub Type port of the Demux 
+	instance and the Out Instance port. In this article section we are showing 
+	as one case code as an example. The details about other cases we can see in 
+	the source code. </p>
+   
+   
+       <pre class="code">...
+       <strong>CATILogConnection</strong> *opLogicalConnection2 = NULL;
+       ...    
+       hr = piLogicalInstanceOnMuxInst-&gt;<strong>Connect</strong>(piLogicalPortOnSubType1PortUnderMuxInst,
+					  piLogicalInstanceOnSecondInst, 
+					  piLogicalPortOnPortUnderSecondChildInst,
+					  NULL_var,
+					  NULL, 
+					  iLFctAttributesValues, 
+					  opLogicalConnection2);
+...  </pre>
+  <p>A call to <code>Connect </code>of <em>CATILogInstance</em> creates connection 
+	between the Sub type port&nbsp; (<code>piLogicalPortOnSubType1PortUnderMuxInst</code>) 
+	of the Demux instance and the Out instance port (<code>piLogicalPortOnPortUnderSecondChildInst</code>).</p>
+         <script type="text/javascript">insertLinkToTop();</script>
+   <!---------------------------------comment------------------------------------->
+
+	 <h3><a name="Epilog"></a>Epilog<p>The <code>CAALmiMuxDemuxReferenceUsage</code> use case ends by simply 
+saving and closing the PLM
+session. Since all use cases&nbsp; necessarily conclude by saving and closing the PLM
+session, we have a dedicated article on this topic viz.&nbsp; &quot;<b>Creating a
+Basic PLM Batch</b>&quot; [<a href="#References">2</a>].&nbsp;</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this use case we are showing the usage of the Demux reference. In this we 
+are showing how the one reference port signals/Data converted suitable for the 
+other two reference but ofcourse all these connections and ports respect 
+compatibility rule.&nbsp;&nbsp; </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="References"></a>References</h2>
+   <table >
+   <tr>
+       <td valign="top" height="12">[1]</td>
+       <td height="12"><a href="../CAADocUseCases/CAADocRunSample.htm">
+       Building and Launching a CAA Use Case</a></td>
+   </tr>
+   
+   <tr>
+       <td valign="top" height="12">[2]</td>
+       <td height="12"><a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">Creating
+       a Basic PLM Batch</a></td>
+      
+    </tr>
+
+	<tr>        
+        <td valign="top" height="12">[3]</td>
+        <td height="12"><a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">Querying, Expanding &amp; Opening PLM Components</a></td>
+    </tr>
+    <tr>        
+        <td valign="top" height="12">[4]</td>
+        <td height="12">Logical Modeler</td>
+    </tr>
+
+         
+  
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Aug 2010]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

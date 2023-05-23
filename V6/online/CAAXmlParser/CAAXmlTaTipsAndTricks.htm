@@ -1,0 +1,368 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>XML Tips and Tricks</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>XML Tips and Tricks</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article presents several tips to help you make the best use of the 
+		XMLParserItf framework.</p>
+		<ul>
+			<li><a href="#100000">Frequently Used Patterns</a>
+				<ul>
+					<li><a href="#110000">Manage Errors Using the HRESULT / CATError 
+						Pattern</a></li>
+					<li><a href="#120000">Pass Options Using CATListOfCATUnicodeStrings</a></li>
+				</ul>
+			</li>
+			<li><a href="#200000">Validation Tips</a>
+				<ul>
+					<li><a href="#210000">Default DOM Parsers Are Validating</a></li>
+					<li><a href="#220000">How to Reference a DTD</a></li>
+					<li><a href="#230000">How to Reference an XSD Schema</a></li>
+				</ul>
+			</li>
+			<li><a href="#300000">XML Generation Tips</a>
+				<ul>
+					<li><a href="#310000">Encoding Defaults to UTF-8</a></li>
+					<li><a href="#320000">Use the CATIndentation and CATIndentationCharacter 
+						Options to Control Formatting</a></li>
+					<li><a href="#330000">Use CATSortAttributes for Stable Output</a></li>
+					<li><a href="#340000">Generate XML More Efficiently without 
+						Using the DOM API</a></li>
+				</ul>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Frequently Used Patterns</h2>
+<p>The XMLParserItf framework uses several patterns to help you get used to the 
+API more quickly.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="110000"></a>Manage Errors Using the HRESULT / CATError Pattern</h3>
+<p>The XMLParserItf framework uses the HRESULT / <em>CATError</em> mechanism to 
+manage errors.</p>
+<pre class="code">if (FAILED(hr)) {
+    CATUnicodeString message = "XMLParserItf call has failed:\n";
+    CATError* error = <strong>CATError::CATGetLastError</strong>(hr);
+    if (error != NULL) {
+        message.Append(error-&gt;GetNLSMessage());
+        error-&gt;Release();
+        error = NULL;
+    }
+    CATError::CATCleanLastError();
+    cerr &lt;&lt; message.ConvertToChar() &lt;&lt; endl;
+}</pre>
+<p>XML parsers have rich error reporting capabilities and will often give you a 
+precise diagnostic when an operation fails. For instance, when parsing an XML file, 
+the parser will give you a message like the one below telling you:</p>
+<ul>
+	<li>The URI of the invalid XML resource</li>
+	<li>A line and column number to locate the error precisely</li>
+	<li>An error message to help you to fix the not well-formed or invalid XML input.</li>
+</ul>
+<pre class="code">XMLParserItf call has failed:
+SAX parse exception : Expected an attribute name
+SystemId : car_invalid.xml
+Line : 6
+Column : 12</pre>
+<p>In the same way, when you are building a DOM tree, the parser will also tell 
+you precisely which well-formedness rule has been broken if you try to make an incorrect 
+operation. Make sure to use the <code>CATError::CATGetLastError</code> function 
+to obtain the associated <em>CATError</em> to help you debug your XML developments. 
+More information about error management is available here <a href="#Ref1">[1]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="120000"></a>Pass Options Using CATListOfCATUnicodeStrings</h3>
+<p>Several methods of the XMLParserItf framework (for instance: <code>CATIXMLDOMDocumentBuilder::Parse</code> 
+and <code>CATIXMLDOMDocumentBuilder::Write</code>) accept options. Options are passed 
+to these methods using two <em>CATListOfCATUnicodeStrings</em>. The first one contains 
+the option names, the second one contains the option values. For instance, the following 
+code instructs a DOM component to generate a file, which uses the UTF-16 encoding 
+and indents the output with one TAB character per indentation level:</p>
+<pre class="code">CATIXMLDOMDocumentBuilder_var builder;
+...
+CATListOfCATUnicodeString writeOptions;
+writeOptions.Append(<strong>"CATEncoding"</strong>);
+writeOptions.Append(<strong>"CATIndentation"</strong>);
+writeOptions.Append(<strong>"CATIndentationCharacter"</strong>);
+CATListOfCATUnicodeString writeOptionValues;
+writeOptionValues.Append("UTF-16");
+writeOptionValues.Append("1");
+writeOptionValues.Append("\t");
+hr = builder-&gt;WriteToFile(document, outputFile, <strong>writeOptions, writeOptionValues</strong>);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Validation Tips</h2>
+<p>When parsing XML files, you will have to decide if you want to use the grammar 
+validation capabilities of the parser, or not. This section explains how to turn 
+validation on and off.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Default DOM Parsers Are Validating</h3>
+<p>DOM parsers can run in two modes: non-validating and validating. Non validating 
+parsers just verify that the XML document is well-formed, whereas validating parsers 
+verify that that the XML document is both well-formed and valid. The following code 
+shows how to turn off validation for a DOM parser:</p>
+<pre class="code">...
+<strong>CATListOfCATUnicodeString options;
+CATListOfCATUnicodeString optionValues;
+options.Append("CATDoValidation");
+optionValues.Append("false");</strong>
+CATIXMLDOMDocumentBuilder_var builder;
+CATIDOMDocument_var document;
+hr = builder-&gt;Parse("myFile.xml", document, <strong>options</strong>, <strong>optionValues</strong>);
+...</pre>
+<p><span class="run-in">Warning:</span> If no option is specified, a validating 
+parser will be used. A validating parser requires the document to have an associated 
+DTD or XSD schema at a location the parser can access. If the document does not 
+specify its DTD or XSD schema, the parsing will fail. For instance the following 
+XML document cannot be parsed by a validating parser, but will work fine with a 
+non-validating parser.</p>
+<pre class="code">&lt;?xml version="1.0"?&gt;
+&lt;car/&gt;
+    ^
+    |
+Cannot be validated because there is no reference to an XSD schema or a DTD
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>How to Reference a DTD</h3>
+<p>To use a validating parser, you need to pass to the parser a document which references 
+a grammar. If your grammar is a DTD, this reference takes the form of a document 
+type declaration. This declaration appears on the second line of the XML document, 
+after the XML declaration and can take one of three forms:</p>
+<pre class="code">&lt;!DOCTYPE car SYSTEM "automotive.dtd"&gt;
+&lt;!-- System ID --&gt;</pre>
+<pre class="code">&lt;!DOCTYPE car PUBLIC "automotive" "automotive.dtd"&gt;
+&lt;!-- Combination of a public and system ID --&gt;</pre>
+<pre class="code">&lt;!DOCTYPE car [
+&lt;!ELEMENT car (part)+&gt;
+&lt;!ELEMENT part (#PCDATA)&gt;
+&lt;!ATTLIST part name ID #REQUIRED
+          quantity CDATA #IMPLIED&gt;]&gt;
+&lt;!-- Embedded DTD --&gt;</pre>
+<p>If the DTD is specified in an external resource, as in the two first forms, the 
+parser will use the system ID to try to locate the resource. The system ID can be 
+either a URI relative to the position of the XML document, or an absolute URI.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="230000"></a>How to Reference an XSD Schema</h3>
+<p>To use a validating parser, you need to pass to the parser a document which references 
+a grammar. If your grammar is an XSD schema, this reference takes the form of special 
+attributes of the <code>http://www.w3.org/2001/XMLSchema-instance</code> namespace. 
+These attributes appear in the start tag of the first element defined in the grammar. 
+There are two attributes, depending on whether several XSDs need to be imported.</p>
+<pre class="code">&lt;?xml version='1.0' ?&gt;
+&lt;car xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  <strong>xsi:noNamespaceSchemaLocation="automotive.xsd"</strong>
+  xmlns="urn:com:dassault_systemes:automotive&gt;...&lt;/car&gt;
+&lt;!-- without namespaces --&gt;</pre>
+<pre class="code">&lt;?xml version='1.0' ?&gt;
+&lt;car xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  <strong>xsi:schemaLocation="urn:com:dassault_systemes:automotive automotive.xsd"</strong>
+  xmlns="urn:com:dassault_systemes:automotive"&gt;...&lt;/car&gt;
+&lt;!-- with namespaces --&gt;</pre>
+<p>The schema is always specified in an external resource. The parser will use the 
+value of the system ID contained in the <code>noNamespaceSchemaLocation</code> and
+<code>schemaLocation</code> attributes to try to locate the resource. The system 
+ID can be either a URI relative to the position of the XML document, or an absolute 
+URI.</p>
+<p><span class="run-in">Warning:</span> Note that schema validation depends on namespaces. 
+For DOM, make sure to activate the <code>CATEnableNameSpaces</code> option in the
+<code>CATIXMLDOMDocumentBuilder::Parse</code> when using schemas. For SAX, make 
+sure to activate the the <code>CATSAXXMLReaderOptions::NamespacesFeature</code> 
+feature when using schemas.</p>
+<p>A more detailed description on relationship between XML documents and XML schemas 
+can be found here <a href="#Ref4">[4]</a></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>XML Generation Tips</h2>
+<p>This section explains how to customize XML documents generated by the <code>CATIXMLDOMDocumentBuilder::Write</code> 
+and <code>CATIXMLDOMDocumentBuilder::WriteToFile</code> methods and how to generate 
+XML documents without using the DOM API.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>Encoding Defaults to UTF-8</h3>
+<p>The <code>CATIXMLDOMDocumentBuilder::WriteToFile</code> method accepts the
+<code>CATEncoding</code> option to explicitly specify the encoding used by the resulting 
+document. If you do not specify this option, you will have an XML file with no
+<code>encoding</code> attribute specified in the XML declaration. The file itself 
+uses the UTF-8 encoding. This corresponds to the default behavior of XML parsers 
+as per the section F1 of the XML specification. See <a href="#Ref3">[3]</a> for 
+more information.</p>
+<pre class="code">&lt;?xml version="1.0"?&gt;</pre>
+<p>If you use the <code>CATEncoding</code> option, you will have an XML file with 
+an <code>encoding</code> attribute set to "UTF-8". This second approach is recommended.</p>
+<pre class="code">&lt;?xml version="1.0" <strong>encoding="UTF-8"</strong>?&gt;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Use the CATIndentation and CATIndentationCharacter Options 
+to Control Formatting</h3>
+<p>Humans and XML parsers tend not to treat white space (indentations, line feeds) 
+in the same way. Whereas humans view it as a hint of the structure of the underlying 
+XML document, they are just wasted space for an XML parser. If you open XML files, 
+which contain no white space in a text editor, they will look like this:</p>
+<pre class="code">&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE car SYSTEM "automotive.dtd"&gt;&lt;car&gt;&lt;!--list of part
+s for a convertible car--&gt;&lt;part name="seat" quantity="2"&gt;&lt;/
+part&gt;&lt;part name="wheel" quantity="4"/&gt;&lt;part name="engine" q
+uantity="1"&gt;low consumption engine&lt;/part&gt;&lt;part name="body" 
+quantity="1"&gt;weight must be &lt; 1200 kg&lt;/part&gt;&lt;/car&gt;</pre>
+<p>If your XML files need to be manually edited by humans or for debugging purposes, 
+you might want to use the <code>CATIndentation</code> and <code>CATIndentationCharacter</code> 
+options of the <code>CATIXMLDOMDocumentBuilder::WriteToFile</code> and <code>CATIXMLDOMDocumentBuilder::Write</code> 
+methods. These options enable you to indent the generated XML, making it much easier 
+to read. The <code>CATIndentationCharacter</code> specifies the character to use 
+for indentation (tabulation or space), whereas the <code>CATIndentation</code> option 
+is a positive integer specifying how many indentation characters to use for each 
+level. Using these options, you will get a more readable XML file:</p>
+<pre class="code">&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE car SYSTEM "automotive.dtd"&gt;
+&lt;car&gt;
+ &lt;!--list of parts for a convertible car--&gt;
+ &lt;part name="seat" quantity="2"&gt;&lt;/part&gt;
+ &lt;part name="wheel" quantity="4"/&gt;
+ &lt;part name="engine" quantity="1"&gt;low consumption engine&lt;/part&gt;
+ &lt;part name="body" quantity="1"&gt;weight must be &lt; 1200 kg&lt;/part&gt;
+&lt;/car&gt;</pre>
+<p><span class="run-in">Warning:</span> Note however that these two XML files are 
+not equivalent. If you use the <code>CATIndentation</code> and <code>CATIndentationCharacter</code> 
+options, white space is inserted in the XML document. Depending on the grammar file, 
+this might or might not be allowed. Furthermore, the resulting DOM structure will 
+be altered, since <em>CATIDOMText</em> nodes will be inserted at various places 
+in the DOM tree to represent this white space. An alternative approach to these 
+options is not to display XML in the console or a text editor, but to use an XML-enabled 
+tool to view the XML, such as a web browser, or a dedicated XML editor.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="330000"></a>Use CATSortAttributes for Stable Output</h3>
+<p>The XML specification does not mandate that XML attributes appear in a specific 
+order within a tag. Therefore, XML attributes are often stored internally in hashtables 
+by parser implementations. The consequence of this implementation choice is that 
+the ordering of XML attributes is not preserved when reading an XML file and writing 
+it back to disk. This can be a problem if you want to make comparisons between two 
+XML files. To avoid this problem, the <code>CATIXMLDOMDocumentBuilder::WriteToFile</code> 
+supports the <code>"CATSortAttributes"</code> option. If you use this option, attributes 
+will be sorted in ascending order by qualified name.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="340000"></a>Generate XML More Efficiently without Using the DOM API</h3>
+<p>When developers choose the SAX API for parsing or when they need to generate 
+large XML documents, it is best to use the XML writer (<em>CATIXMLPPWriter</em>) 
+API. Indeed, one of the shortcomings of the DOM API is that the whole XML document 
+must be present in memory before it can be saved to disk. Since a DOM tree can easily 
+occupy five to ten times the memory footprint of the equivalent XML document on 
+disk (because of the overhead caused by the DOM object model and character encodings), 
+XML generation using DOM is limited to documents of at most a few megabytes in size. 
+For other applications, such as server logs or persistence of arbitrary large data 
+models, the XML writer API is provided. It provides many advantages over writing 
+XML directly (with printf for instance).</p>
+<dl>
+	<dt>XML checking</dt>
+	<dd>The API checks that element names, attribute names, processing instructions, 
+	comments, CDATA sections, character data, entity references, document type declarations 
+	contain only authorized characters as per the <a href="#Ref3">XML 1.0 Third 
+	Edition</a> specification ; the API checks that namespace prefixes are bound 
+	to a URI ; it verifies that XML tokens are correctly ordered. (For instance, 
+	that there is an open start tag when one writes an attribute.)</dd>
+	<dt>Reserved XML character escaping</dt>
+	<dd>The API automatically inserts XML escapes (&amp;lt; &amp;quot; &amp;amp;) 
+	where required.</dd>
+	<dt>XML encoding</dt>
+	<dd>The API automatically converts passed <em>CATUnicodeString</em> to the proper 
+	encoding (UTF-8, UTF-16...) and manages the "encoding" attribute of the XML 
+	declaration accordingly.</dd>
+	<dt>Built-in element stack with namespace support</dt>
+	<dd>The API keeps track of an element stack and will automatically close elements 
+	which were left open. It will also remember the namespace and prefix bound to 
+	XML elements on the stack and recall XML prefixes where appropriate.</dd>
+	<dt>Pretty printing</dt>
+	<dd>The API can optionally indent the generated XML for better human readability 
+	and it will sort attributes alphabetically. It uses options which are compatible 
+	with the set of options supported by the <code>CATIXMLDOMDocumentBuilder::Write</code> 
+	and <code>CATIXMLDOMDocumentBuilder::WriteToFile</code> methods.</dd>
+	<dt>Pluggable output sources</dt>
+	<dd>The generated XML can be written to a file, to memory, or to any implementation 
+	of the <em>CATIXMLPPOutputSource</em> interface. </dd>
+</dl>
+<p>For more information on how to use the XML writer API, please see
+<a href="#Ref5">[5]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article presents several tips to help you make the best use of the XMLParserItf 
+framework.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidErrors.htm">
+		Managing Errors Using HRESULT</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td><a href="CAAXmlTaOverview.htm">Using XML</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref3"></a>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkUrl('http://www.w3.org/TR/REC-xml/');return false;">
+		Extensible Markup Language (XML) 1.0 (Third Edition) - W3C Recommendation 
+		04 February 2004</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref4"></a>[4]</td>
+		<td><a href="CAAXmlTaSchemas.htm">Using XML Schemas</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref5"></a>[5]</td>
+		<td><a href="CAAXmlUcWriter.htm">Generating XML Documents Efficiently</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2005]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

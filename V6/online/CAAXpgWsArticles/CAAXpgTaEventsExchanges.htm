@@ -1,0 +1,474 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Events Exchanges</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Events Exchanges</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+			<h2>Abstract</h2>
+			<p>This article gives you information on the basic concepts behind 
+			Event Bus as well as a guideline on how to use 
+			the Events Exchanges Services to develop an Adapter.</p>
+			<ul>
+				<li><a href="#Glossary">Glossary</a></li>
+				<li><a href="#About">About Events Exchanges</a></li>
+				<li><a href="#FactsOnProcessing">Facts about Processing</a>
+				    <ul>
+						<li><a href="#RetrievingEventstoProcess">Retrieving 
+						Events to Process</a></li>
+						<li><a href="#TimeOut">Processing Time Out</a></li>
+						<li><a href="#ProcessingLocation">Processing Location</a></li>
+					</ul>
+				</li>
+				<li><a href="#LocalEventsSendingAndProcessing">Sending and 
+				Processing Local Events</a>
+					<ul>
+						<li><a href="#ProcessingBefore">Processing local events 
+						before sending them to the Gateway</a></li>
+						<li><a href="#ProcessingAfter">Processing local events 
+						after sending them to the Gateway</a></li>
+					</ul>
+				</li>
+				<li><a href="#RemoteEventsProcessing">Processing Remote Events</a></li>
+				<li><a href="#FileTransfer">File Transfer between the Gateway 
+				and the Adapter</a></li>
+				<li><a href="#Configuration">Gateway Configuration</a>
+				    <ul>
+					    <li><a href="#SupportedEvents">Supported Events</a></li>
+				        <li><a href="#SitesMap">Sites Map</a></li>
+				    </ul>
+				</li>
+
+				<li><a href="#References">References</a></li>
+			</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Glossary"></a>Glossary</h2>
+<dl>
+
+	<dt>Event Bus</dt><dd>ENOVIA provides an Event Bus which role is to catch 
+	any V6 events (such as promote lifecycle state, new part version) and propagates 
+	them to any system that would have subscribed to these events. 
+	V6 Event Bus publishes a set of services to enable applications to process 
+	theses events and also to propagate their own events. 
+	(for instance validates that attribute values on new part versions comply with enterprise rules).</dd>
+    <dt>Gateways</dt><dd>Are the dispatchers of events. They receive events via 
+	http and dispatch them to their local Adapters or remote controller for 
+	processing. They also take care of event state, persistency and order.
+                     <br>In the following content the name <b>Gateway</b> will 
+	refer to the Gateway on the <b>xPDM side</b>, when talking of the Gateway on 
+	the ENOVIA side the term V6 Gateway will be used. (see <a href=#Fig.1>the Events Bus 
+	Architecture</a>)</dd>
+    <dt>Adapters</dt><dd>Are the links between the PDM servers and the Gateway. 
+	They retrieve events from their local controllers and fetch and process the 
+	associated data accordingly to the events types and documentation. The 
+	processing step is the one that will make (if necessary) changes to the PDMs 
+	objects. 
+				     <br>The Adapters are also responsible for sending new 
+	events to their controller.
+				     <br>In the following content the name <b>Adapter</b> will 
+	refer to the <b>xPDM side Adapter</b>, when talking of the ENOVIA side Adapter 
+	the term V6 Adapter will be used. (see <a href=#Fig.1>the Events Bus 
+	Architecture</a>)</dd>
+    <dt>Meta data</dt><dd>The PLM metadata definition and the non-CAD 
+	information.</dd>
+    <dt>XPDMXML</dt><dd>The xml file type that describes 
+	PLM Meta data.</dd>
+    <dt>Bulk Data</dt><dd>This is a generic expression which describes any kind 
+	of attachment files that are referenced in the meta data file and that need 
+	to be exchanged between ENOVIA and the xPDM servers.</dd>
+    <dt>Local events</dt><dd>Events that are fired from the local Gateway in 
+	destination of the remote side.</dd>
+    <dt>Remote events</dt><dd>Events that are fired from the remote side in 
+	destination of the local Gateway.</dd>
+    <dt>Shadow directory</dt><dd>It is a file repository of a Gateway where all 
+	the events data are located.</dd>
+    <dt>Event path</dt><dd>It&#8217;s the name of the unique directory in the Shadow 
+	directory where all data associated to an event will be stored.</dd>
+</dl>
+
+<script type="text/javascript">insertLinkToTopTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="About"></a>About Events Exchanges</h2>
+<p>The principle of Events Exchanges is based on firing events from one 
+system in direction to another, the source and the target endpoints. </p>
+<p>The events have static parameters like the types of data that need to be 
+associated with (Meta data, bulk data or both) as well as the processing 
+locations (local, remote or local and remote). These parameters are described in 
+a configuration file that is known to both sides of the system. The rest of the 
+parameters are described by the application in charge of the event in the form 
+of a documentation that explains the content of the data exchanged as well as 
+the associated business logic necessary to process the event.</p>
+<p>The events are transferred via the HTTP protocol between the two Gateways and 
+the data associated via file server protocols like (S)FTP or UNC.</p>
+<p>The illustration describes the architecture of the Event Bus, the blue 
+parts are provided out of the box by Dassault Systemes, the purple ones by a 
+partner and the xPDM vendor.</p>
+<p>The rest of this document will be dedicated to the events web services and their expected uses by the Adapter.</p>
+
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: Event Bus Architecture</caption>
+	<tr>
+		<td><img alt="Event Bus Architecture" src="images/CAAXpgArchitectureEvents.png"/></td>
+	</tr>
+</table>
+
+<p>On the xPDM side the main two components of the event exchanges are:</p>
+
+<dl>
+    <dt>The Gateway whose role is to:</dt>
+	<dd>
+	    <ul>
+	        <li>Receive events from the V6 Gateway and to make them available 
+			for processing to the Adapter</li>
+	        <li>Receive events from the Adapter and dispatch them to the 
+			V6 Gateway</li>
+	        <li>Manage event state, queues, persistency and error retries</li>
+	        <li>Transfer meta and bulk data from/to V6 Gateway through file 
+			transfer protocol</li>
+	        <li>Download/upload these data to/from a directory accessible to the 
+			Adapter from/to the fileserver</li>		    
+	    </ul>
+	</dd>
+	<dt>The Adapter whose role is to:</dt>
+	<dd>
+	    <ul>
+	        <li>Send event to the Gateway in direction of the V6 Gateway</li>
+	        <li>Poll and process events</li>
+	        <li>Prepare meta and bulk data when necessary</li>
+	    </ul>
+	</dd>
+</dl>
+
+<p>This rest of this document will explains how to use the Event Bus's Event 
+Services to develop an Adapter that will comply to these three roles.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FactsOnProcessing"></a>Facts about Processing</h2>
+
+<h3><a name="RetrievingEventstoProcess"></a>Retrieving Events to Process</h3>
+<p>When the Gateway receive events either from the V6 Gateway, or its Adapter, it will guess if they need processing on the xPDM side. 
+If this is the case these events will be put into a special queue that will make them retrievable by the Adapter so it can process them.</p>
+<p>It is the responsibility of the Adapter to periodically retrieve events from 
+this queue to process them.</p>  
+<p>The events are retrieved by polling the <code>GetNextEventsForProcessing</code> 
+method. The end of the processing must be signaled by calling the <code>
+SendEventProcessingFeedback</code> method.</p>
+
+<h3><a name="TimeOut"></a>Processing Time Out</h3>
+<p>Once the events have been retrieved from the Gateway a processing time out is 
+set to avoid having zombies events if the Adapter has failed or did not send the 
+feedback properly.</p>
+<p>The time out value is configured in the Gateway config file, and the time 
+left to process each event is given to the Adapter in the <code>
+GetNextEventsForProcessing</code> method.</p>
+<p>If the processing of an event is going to take more time than allowed, then 
+the Adapter is able to reset the timer at anytime by sending a feedback process 
+of value <code>STILL_PROCESSING</code> (with the <code>
+SendEventProcessingFeedback</code> method).</p>
+
+<h3><a name="ProcessingLocation"></a>Processing Location</h3>
+<p>Each event has a "Processing Location" parameter which could have three values : <code>LocalOnly</code>, <code>RemoteOnly</code> or <code>LocalRemote</code>.</p>
+<p><code>LocalOnly</code> means that this event will only need processing on the site that fired it (the local site). It will be delegated to the Adapter but not sent to the V6 site.
+<br><code>RemoteOnly</code> means that this event will only need processing on the V6 site. It will not be delegated to the Adapter and will directly be sent to the V6 site.
+<br><code>LocalRemote</code> means that this event will need processing by the two sites. It will be delegated to the Adapter and will be sent to the V6 site after successful processing.
+</p>
+<p>What we call "Local Event" in the following text is an event that was fired by Adapter. A "Remote Event" is an event that was received by the Gateway from the V6 site.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="LocalEventsSendingAndProcessing"></a>Sending and Processing Local 
+Events</h2>
+
+<p>Before sending an event the Adapter needs to determine the target and source 
+site ids as well as the name of the supported events using respectively <code>
+GetListOfSites</code> and <code>GetListOfSupportedEvents</code>.
+The source site must be the local site and the target site the V6 site (see <a href="#SitesMap">
+Sites Map</a>). The <code>GetListOfSupportedEvents</code> output list will 
+contain all the static parameters associated with the events (processing 
+location, type of associated data ...) as they are defined into the Gateway 
+configuration file.</p>
+<p>The next steps will differ depending on the processing location.</p>
+<p>If the events has a <code>RemoteOnly</code> processing location then the Adapter will not 
+need to process this event and can directly send it using <code>SendEvent</code>. On the contrary if the event has a <code>LocalOnly</code> or <code>LocalRemote</code> processing location then the Adapter 
+will have to process data.<br>
+The Adapter has the choice of when the processing takes place: before or after 
+sending the event to the local Gateway.</p>
+
+<p>The two cases are described below:</p>
+
+    <h3><a name="ProcessingBefore"></a>Processing local events before sending 
+	them to the Gateway</h3>
+        
+        <p>The following text refers to (with the bold numbers) and explains the <a href="#Fig.2">
+		Fig.2</a>.</p>
+
+        <p>A new <code>AttachmentContentType</code> object must be created with 
+		the method <code>GenerateNewAttachmentContent</code> that will we be 
+		filled with a unique event path. The Adapter must now process and 
+		generate the data needed for this event. (<strong>1</strong> and <strong>
+		2</strong>)
+        <br>Depending of the associated file type there are two ways of sending 
+		the Meta data file.</p>
+        <p>If the events only require Meta data and if this file size is small 
+		then it can be directly sent to the Gateway without any file transfer by 
+		adding the content of this file as a <code>string</code> inside the <code>
+		inline</code> choice of the <code>xpgxml</code> element of the <code>
+		iLocallyProcessedEventContent</code> input parameter (<strong>4</strong>).</p>
+        <p>If the event also requires bulk data files or if the xml file size 
+		is too big then it must be firstly stored into the event path and 
+		secondly referenced inside the <code>fileReference</code> choice of the <code>
+		xpgxml</code> element of the <code>iLocallyProcessedEventContent</code> 
+		input parameter (<strong>3</strong>). 
+        <br>Similarly, the bulk data files must be stored into the event path 
+		then referenced into the <code>bulkDatareferences</code> element of the <code>
+		iLocallyProcessedEventContent</code> input parameter(<strong>3</strong>)</p>
+        <p>By setting the <code>iLocallyProcessedEventContent</code> parameter 
+		the Gateway will recognize the fact that this event has already been 
+		locally processed thus will directly send it to the V6 Gateway alongside 
+		the associated data.</p>
+        <p>The last step is to effectively call <code>SendEvent</code> (<strong>4</strong>) 
+		with all the previously determined parameters : target site id, event
+		name, processed file reference, etc...</p>
+        
+        <br>
+        <table>
+	        <caption><a name="Fig.2"></a>Fig.2: Processing local events before 
+			sending them to the Gateway</caption>
+	        <tr>
+		        <td><img alt="Process local events before sending them to the Gateway" src="images/CAAXpgLocalProcessingBefore.png"></td>
+	        </tr>
+        </table>
+        <br>  
+        
+        <table class="Remark">
+            <tr>
+                <td class="Remark"><span class="run-in">Warning</span>: Sending 
+				the meta data file content directly via the web services (<strong>4</strong>) 
+				is only recommended for relatively small file size. If the file 
+				is too big the method call might fail due to HTTP transfer 
+				errors and your event will not be properly sent.
+                </td>
+            </tr>
+        </table>
+
+    
+    <h3><a name="ProcessingAfter"></a>Processing local events after sending them 
+	to the Gateway</h3>
+    
+            <p>The following text refers to (with the bold numbers) and explains 
+			the <a href="#Fig.3">Fig.3</a>.</p>
+			
+			<p>The main benefits of processing the events after sending it is to 
+			be able to quickly send event that would need a significant time of 
+			processing without blocking any other process (UI ...), therefore 
+			the Gateway will add it in its queues and the processing order 
+			will be respected.</p>
+
+    
+            <p><b>Step 1 : Sending the event</b></p>
+
+            <p>The event can be sent to the Gateway from anywhere (Client, 
+			directly the Adapter ... - <strong>1</strong>) and will later be 
+			delegated for processing on the Adapter (Step 2).
+            <br>When sending the event, useful parameters necessary for later processing can be 
+			stored in to the<code> iProcessingArgs</code> element of the <code>SendEvent</code> 
+			method.</p>
+            <p>After the event has been sent to the Gateway it will be made 
+			available for processing to the Adapter.</p>
+            
+            <p><b>Step 2 : Processing the event</b></p>
+
+            <p>The event will be retrieved via the <code>
+			GetNextEventsForProcessing</code> method (<strong>2</strong>) along 
+			with its parameters (event name, id, processing args, queue type 
+			...). To know that the event comes from the local site the Adapter must check its <code>queueType</code> element that will have the value <code>LOCAL</code>.
+			<br>From the other parameters the Adapter can decide and apply the 
+			needed business logic to generate the events associated files. (<strong>3</strong>)</p>
+            <p>If the event need processing on the V6 site (.i.e if the Processing location is <code>LocalRemote</code> : see <a href="#ProcessingLocation">Processing Location</a>) the resulting files must be stored into the event path (<strong>4</strong>) as well as referenced 
+            into the <code>iProcessedAttachmentContent</code> element of the <code>SendEventProcessingFeedback</code> method.</p>  
+
+            <p>In all cases a processing feedback must be sent to the Gateway (<strong>5</strong>).</p>
+       
+        <br>
+        <table>
+            <caption><a name="Fig.3"></a>Fig.3: Processing local events after 
+			sending them to the Gateway</caption>
+            <tr>
+	            <td><img alt="Processing local events after sending them to the Gateway" src="images/CAAXpgLocalProcessingAfter.png"></td>
+            </tr>
+        </table>
+        <br>
+
+<script type="text/javascript">    insertLinkToTop();</script>
+
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="RemoteEventsProcessing"></a>Processing Remote Events</h2>
+
+    <p>The following text refers to (with the bold numbers) and explains the <a href="#Fig.4">
+	Fig.4</a>.</p>
+	
+	<p>Like with for a local event, the remote events in need of processing will 
+	be retrieved via the <code>GetNextEventsForProcessing</code> method (<strong>1</strong>). 
+	To know that an event is Remote the Adapter has to check the <code>
+	queueType</code> element of the <code>EventForProcessing</code> which value 
+	will be <code>REMOTE</code>.</p>
+	<p>From the supported event name the Adapter can know if meta and bulk data 
+	are associated with this type of event. If it's the case they will be 
+	referenced into the <code>attachmentContent</code> element of the <code>
+	EventForProcessing</code> which will allow the Adapter to fetch them from 
+	the event path (<strong>2</strong>) before applying the corresponding 
+	business logic (<strong>3</strong>).</p>
+	<p>Finally according to the result (error, success) of the processing the 
+	Adapter must send a processing feedback to the Gateway using the <code>
+	SendEventProcessingFeedback</code> method (<strong>4</strong>).</p>
+	<br>
+	<table>
+	<caption><a name="Fig.4"></a>Fig.4: Processing Remote Events</caption>
+	<tr>
+		<td><img alt="Remote events processing" src="images/CAAXpgRemoteProcessing.png"></td>
+	</tr>
+	</table>
+	<br>
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FileTransfer"></a>File Transfer between the Gateway and the Adapter</h2>
+	
+    <p>After or before the processing and depending on the event processing 
+	locations the Adapter may have to fetch and store associated files into the 
+	event path.</p>
+    <p>There is no out of the box solution to transfer data between the Adapter 
+	and Gateway yet.</p>
+    <p>Therefore it is the responsibility of the Adapter to have a way to fetch 
+	and store data in the Shadow directory. One possible solution is to have the 
+	Shadow directory shared between the Adapter and Gateway machines.</p>
+    <p>It is also the responsibility of the Adapter to 
+	create the event path in the Shadow directory if it doesn't yet exist.</p>
+
+<script type="text/javascript">    insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Configuration"></a>Gateway Configuration</h2>
+	  
+    <h3><a name="SupportedEvents"></a>Supported Events</h3>
+    
+    <p>When developing an xPDM Adapter knowing the web service interface described 
+	in this document is necessary but not sufficient.</p>
+    <p>For example the xml meta data content associated with an event will be 
+	specific to it. With each application domain of exchanges comes a set of 
+	events that is defined OOTB with the product.</p>
+    <p>These sets of events will come with documentations that will describe 
+	what are the parameters of each events as well as a description of the 
+	content of the XPDMXML file.</p>
+    <p>The set of supported events is described in an xml file called 
+	event-config.xml which lies in the config/event directory of the Gateway. A 
+	bunch of parameters are set in this file like if the event has bulk or/and 
+	Meta data attached, its processing location, etc...</p>
+    <p>By default the Gateway will be installed with a limited set of events 
+	which purposes are to use the basic functionality of an Adapter. For example 
+	the event XPGTransferFile will only need attached bulk data.</p>
+    <p>When the Gateway will receive an event that is not installed then it will 
+	be rejected and not delegated to the Adapter.</p>
+    <p>Therefore when developing an Adapter you should decide which events your 
+	Adapter will support and install them accordingly into the config/event 
+	directory of the Gateway.</p>
+ 
+    <h3><a name="SitesMap"></a>Sites Map</h3>
+        
+    <p>Sites represent the Gateway endpoints of the Events Exchanges deployment 
+	(i.e. the Gateways) . Each site has a unique id and an url.</p>
+    <p>Each Gateway (xPDM and V6) has a site-ids-config.xml file in its config 
+	path. This file describes the sites that will communicate with the Gateway 
+	as well as the &quot;self site&quot; which represent the Gateway that owns this config 
+	directory.</p>
+    <p>Since the current focal point of the V6 Events Exchanges architecture is the 
+	V6 itself , the site-ids-config.xml of the V6 Gateway will list every endpoint 
+	of the deployment.
+    <p>On the xPDM Gateway side the only sites that will be declared are the 
+	&quot;self site&quot; as well as the V6 site.</p>
+    <p>Here is an xml example of an xPDM Gateway site-ids-config.xml:</p>
+
+    <pre class="code">
+    &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+    &lt;SiteMap&gt;
+        &lt;!-- the xPDM Gateway &quot;self site&quot; --&gt;
+        &lt;Site id=&quot;xPDMGateway&quot; url=&quot;http://XPDMGateway:8001/Gateway&quot; self=&quot;true&quot; /&gt; 
+        &lt;!-- the V6 Gateway site --&gt;
+        &lt;Site id=&quot;V6Gateway&quot; url=&quot;http://V6Gateway:8080/Gateway&quot; self=&quot;false&quot; /&gt;
+    &lt;/SiteMap&gt;</pre>
+
+    <table class="Remark">
+        <tr>
+            <td class="Remark"><span class="run-in">Warning</span>: The site ids 
+			must refer to the same endpoints on all the sites of the Event Bus 
+			deployment. i.e. for the previous example, the configured site id of 
+			the xPDM Side Gateway on the V6 Gateway must also be <code>
+			xPDMGateway</code>.
+            </td>
+        </tr>
+    </table>
+        
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	
+	<tbody>
+	<tr>
+		<td valign="top">[1] </td>
+		<td><a href="XPGServiceIndex.html">Events Service</a></td>
+	</tr>
+	
+	<tr>
+		<td valign="top">[2]</td>
+		<td><a href="CAAXpgEventsServiceUseCase.htm">Using Events Service to Develop an Adapter
+		</a></td>
+	</tr>
+	
+	</tbody>
+
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+</body>
+
+</html>

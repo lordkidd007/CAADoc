@@ -1,0 +1,981 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Modeling StartUps</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Modeling StartUps</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Applications create feature objects by instantiating feature startups 
+		stored in catalogs. This article covers the OSM language that is used to 
+		define catalogs and their contents including feature startups.</p>
+		<ul>
+			<li><a href="#Part2">The OSM Language</a><ul>
+				<li><a href="#document">The document Statement</a></li>
+				<li><a href="#container">The container Statement</a></li>
+				<li><a href="#feature">The feature Statement</a></li>
+				<li><a href="#metadata">The metadata Statement</a></li>
+				<li><a href="#extlink">The external_link_meta_data Statement</a></li>
+			</ul>
+			</li>
+			<li><a href="#Uuid and Diesele">Uuid and Diesele</a></li>
+			<li><a href="#A Commented Catalog Example">A Commented Catalog Example</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>The OSM Language</h2>
+<p>You should be familiar with the fundamentals of the Feature Modeler as outlined 
+in the <a href="#References">Feature Modeler Concepts</a> [<a href="#References">1</a>] 
+before reading this article.</p>
+<p>The purpose of the OSM language is to describe the contents of catalogs since 
+it is where feature startups get stored and accessed. An OSM statement has the following 
+syntax:</p>
+<table class="code" id="table1">
+	<tr>
+		<td>
+		<pre><em>statement</em> <em>identifier</em> [<em>super_identifier</em>] [<em>facets</em>..] {
+<strong>  </strong><em>     body
+</em><strong>  </strong><em>     /* a comment */
+</em><strong>       </strong><em>// another comment</em>
+} </pre>
+		</td>
+	</tr>
+</table>
+<p>where </p>
+<ul>
+	<li><em><code>statement (1) </code></em>is one of:<ul>
+		<li><strong>document</strong> to define the contents of a catalog.</li>
+		<li><strong>container</strong> to define the contents of a container.</li>
+		<li><strong>feature</strong> to define a StartUp with its attributes, and behaviors. 
+		A regular feature can also get defined by this statement. </li>
+		<li><strong>metadata </strong>to define StartUp behavior. </li>
+		<li><strong>external_link_meta_data</strong> to define meta data on an external link</li>
+	</ul>
+	</li>
+	<li><em><code>identifier</code> (2) </em>names the corresponding object (a catalog, 
+	a container, a StartUp or a feature).<br>
+	Identifier in OSM is case sensitive and not limited in length. It starts with 
+	a letter, an underscore (&#39;_&#39;) or a dollar sign (&#39;$&#39;) and contains alphanumerical 
+	characters (&#39;a&#39; to &#39;z&#39;, &#39;A&#39; to &#39;Z&#39;, &#39;0&#39; to &#39;9&#39;), the underscore (&#39;_&#39;) or the 
+	dollar sign (&#39;$&#39;). Identifiers can contain other characters if they are enclosed 
+	with backquotes (`).<br>
+	</li>
+	<li><code>[<em>super_identifier</em>]<em> </em></code>is also an identifier, designating 
+	the feature from which this feature is derived or instantiated. It is optional 
+	and is not present on every statement.</li>
+	<li><em><code>[facets...] </code></em>are optional qualifiers that change the 
+	statement defaults. They are prefixed with the sharpsign character (#)</li>
+	<li><em><code>body </code></em>represents in turn one or more OSM statements</li>
+	<li><em><code>comments </code></em>follow the C++ convention:<ul>
+		<li>any string enclosed with &#39;/*&#39; and */&#39; and possibly spanning multiple 
+		lines</li>
+		<li>any string from &#39;//&#39; to the end of the line</li>
+	</ul>
+	</li>
+</ul>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Note</span>:
+		<ul>
+			<li>(1) The statement <strong>meta_data_definition</strong> still appears 
+			in generated catalogs, but the statement is useless, and could completely 
+			disappear in the future.</li>
+			<li>(2) identifiers can have a suffix of the form <code>#<em>number</em></code>. 
+			These suffixes appear when the OSM is generated from a catalog and should
+			<strong>not be altered</strong>. (Uuid and Diesele)</li>
+			<li>The identifiers can be pre and post fixed by ` (`myattr1`) . They 
+			appear when the OSM is generated from a catalog. </li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<p>At the end of this article, you have a fully commented example in the
+<a href="#A Commented Catalog Example">A Catalog Example</a> section.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="document"></a>The document Statement</h3>
+<p>Because an OSM file describes the contents of a catalog, it always consists of 
+one <code>document </code>statement that names the resulting catalog. There is no 
+facet applicable to a <code>document </code>statement<code>.</code></p>
+<table class="code" id="table2">
+	<tr>
+		<td>
+		<pre><strong>document</strong> identifier {
+<strong>       </strong>...
+} </pre>
+		</td>
+	</tr>
+</table>
+<p>The identifier is the catalog name where the CATfct file extension must be included.
+</p>
+<table class="code" id="table35">
+	<tr>
+		<td>
+		<pre>document &#39;<strong>CAAFmExtMyCatalog.CATfct</strong>&#39; {
+<strong>       </strong>...
+} </pre>
+		</td>
+	</tr>
+</table>
+<p>About the catalog name</p>
+<ul>
+	<li>Since the identifier rule does not allow a dot (.), catalog names must be 
+	enclosed in backquotes (`).</li>
+	<li>The name given to the catalog must abide by the CAA Naming Rules [<a href="#References">2</a>], 
+	because all the catalogs will share the same directory in the run-time view 
+	[<a href="#References">3</a>] which is <code>resources/graphic</code>. So the 
+	string in red, is the prefix used in this article. </li>
+</ul>
+<p>Usually a CATNls file, having the same name as the catalog +NLS, <code>CAAFmExtMyCatalog<strong>NLS</strong>.CATNls</code>, 
+exists in the <code>resources/msgcatalog </code>directory to contain StartUp&#39;s NLS 
+[<a href="#References">10</a>]. </p>
+<p>The body of a <code>document </code>statement is simply one <code>container</code> 
+statement and optionally one or more <code>metadata</code> or <code>external_link_meta_data</code> 
+statements.</p>
+<table class="code" id="table30">
+	<tr>
+		<td>
+		<pre><strong>document</strong> `CAAFmExtMyCatalog.CATfct&#39; {
+       <strong>container</strong> id1{
+        ...
+       }
+       <strong>metadata</strong> id2{
+        ...
+       }
+       <strong>external_link_meta_data</strong> id3{
+        ...
+       }
+       <strong>metadata</strong> id4{
+        ...
+       }
+} </pre>
+		</td>
+	</tr>
+</table>
+<p>Let us present the <code>container</code>, <code>metadata</code> and <code>external_link_meta_data</code> 
+statements in the next sections.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="container"></a>The container Statement</h3>
+<p>The <code>container </code>statement describes the contents of a container in 
+a catalog. There can only be one root container in each catalog. The only facet 
+that applicable to the container statement is always specified: <code>#root</code>.</p>
+<table class="code" id="table3">
+	<tr>
+		<td>
+		<pre><strong>container</strong> CATFeatCont <strong>#root</strong> {
+<strong>        </strong>...
+}</pre>
+		</td>
+	</tr>
+</table>
+<p>The body of the <code>container </code>statement contains one or more
+<code>feature </code>statements.</p>
+<table class="code" id="table36">
+	<tr>
+		<td>
+		<pre><strong>container</strong> CATFeatCont <strong>#root</strong> {
+       <strong>feature</strong> id1 ...{
+        ...
+       }
+       <strong>feature</strong> id2 ...{
+        ...
+       }
+ ...
+} </pre>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="feature"></a>The feature Statement</h3>
+<p>This statement primarily defines a StartUp. The format of the <code>feature
+</code>statement is:</p>
+<table class="code" id="table5">
+	<tr>
+		<td>
+		<pre><strong>feature</strong> <em>identifier</em> [<em>super_identifier</em>] [<em>facets</em>..] {
+        [FeatureBehavior_facets]
+        <em>attribute_definitions
+</em><strong>        </strong>[<em>attribute_initializations</em>]
+}</pre>
+		</td>
+	</tr>
+</table>
+<p><em><code>identifier</code></em> must be chosen carefully:</p>
+<ul>
+	<li><code><em>identifier</em></code> is the internal name of the StartUp 
+	[<a href="#References">10</a>]. </li>
+	<li>By default, it is also the late type, that is the type on which behavior 
+	is added. You can define a late type that is not the internal name using the
+	<code>#isa</code> facet (see below), but this is not recommended as this introduces 
+	confusion. </li>
+	<li>As all late types share the same namespace, there is a naming convention 
+	to avoid collision. This convention is described in the various CAA Naming Rules 
+	documents [<a href="#References">2</a>] &amp; [<a href="#References">4</a>].</li>
+</ul>
+<p><code><em>identifier</em></code> is used in the CATNls file - see
+<a href="#document">document</a> statement - to define a localized name of the feature.
+</p>
+<table class="code" id="table37">
+	<tr>
+		<td>
+		<pre><code><em>identifier</em> =&quot;localized name of identifier&quot;;</code></pre>
+		</td>
+	</tr>
+</table>
+<p><code><em>super_identifier</em> </code>designates the StartUp from which this one 
+must be derived. <code><em>super_identifier</em> </code>is the identifier of another 
+StartUP.</p>
+<table class="code" id="table22">
+	<tr>
+		<td>
+		<pre>feature CAAFmExtPoint3D <strong>CAAFmExtPoint2D</strong> #startup {
+<strong>        </strong>...</pre>
+		</td>
+	</tr>
+</table>
+<p>Here &#39;CAAFmExtPoint3D&#39; is a StartUp which derives from CAAFmExtPoint2D. </p>
+<p>If the <code><em>super_identifier</em> </code>resides in another catalog, it must 
+be specified with the <code>@`<em>other_catalog</em>.CATfct`</code> notation:</p>
+<table class="code" id="table23">
+	<tr>
+		<td>
+		<pre>feature CAAFmExtPoint3D <strong>CAAFmExtPoint2D@`2DCatalog.CATfct`</strong> #startup {
+<strong>        </strong>...</pre>
+		</td>
+	</tr>
+</table>
+<p>Here &#39;CAAFmExtPoint3D&#39; is a StartUp which derives from CAAFmExtPoint2D 
+defined in the <code>2DCatalog </code>catalog. </p>
+<p>Note that catalogs are always specified with only their names, without any directory. 
+This is because they are supposed to be present in a specific directory of the run-time 
+view [<a href="#References">3</a>].</p>
+<p><strong>Attention</strong> : the tools creating/upgrading a catalog checks the 
+catalog&#39;s cyclicity: a catalog A cannot pre-requisits B itself requisiting A ( directly 
+or not).</p>
+<p>There are many facets to define a StartUp:</p>
+<table class="fill">
+	<tr>
+		<th>Feature Facet</th>
+		<th>Meaning</th>
+	</tr>
+	<tr>
+		<td><code>#startup</code></td>
+		<td>defines a Feature StartUp from which features can be instantiated (1)(2)</td>
+	</tr>
+	<tr>
+		<td><code>#extension</code></td>
+		<td>defines a Feature Extension StartUp, to be used in conjunction with 
+		#startup (1)(2)</td>
+	</tr>
+	<tr>
+		<td><code>#inheritability(caa)</code></td>
+		<td>indicates a derivable feature, i.e. can be used as supertype by other 
+		feature statement outside the catalog (3)</td>
+	</tr>
+	<tr>
+		<td><code>#isa(<em>late_type</em>)</code></td>
+		<td>specifies that the late type is <code><em>late_type</em></code> instead 
+		of the feature identifier. <code><em>late_type</em></code> is also the 
+		name of the key in the NLS file. <br>
+		The name of this string must be a valid C++ string. <br>
+		Its usage is not recommended </td>
+	</tr>
+</table>
+<ul>
+	<li>(1) if you forget to add #startUp before #extension, it is not wrong, because 
+	it is implicit that an extension is a StartUp</li>
+	<li>(2) if a StartUp (none declared as extension) derives from another one declared 
+	as extension, the Startup is implicitly an extension</li>
+	<li>(3) if your StartUp derives from another one defined in the same catalog, 
+	the <code>inheritability</code> facet is not mandatory for the derived StartUp</li>
+</ul>
+<p>Before leaving this section, we have to add that the feature statement can also 
+define a feature (an instance, and not a StartUp). You can create that to valuate 
+a component attribute of an StartUp. In this case the <code>feature </code>statement 
+is simplified:</p>
+<ul>
+	<li>no feature facet </li>
+	<li>no behavior facet </li>
+	<li>must derive (directly or not ) from a StartUp (add the catalog if the derived 
+	element is defined externally)</li>
+</ul>
+<table class="code" id="table31">
+	<tr>
+		<td>
+		<pre>feature <strong>CAAFmExtPoint0</strong> <strong>CAAFmExtPoint2D</strong>  {
+          CAAFmExt_X=0      
+          CAAFmExt_Y=0 
+}</pre>
+		</td>
+	</tr>
+</table>
+<p>In this example, <code>CAAFmExtPoint0</code> is an instance created from the
+<code>CAAFmExtPoint2D</code> StartUp. </p>
+<p>The body of a feature statement, for Startup purpose, contains the definition 
+of its behavior (optional), and then the definition of the feature&#39;s attributes 
+and optionally their initial values. let us detail that.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h4><a name="attrdef"></a><a name="Behavior_facet"></a>Feature Behavior_facet</h4>
+<p>A StartUp can have 0 to N behavior facets. Each behavior facet is of the form:</p>
+<table class="code" id="table28">
+	<tr>
+		<td>
+		<pre>#FeatureBehavior_type = value</pre>
+		</td>
+	</tr>
+</table>
+<p>Where :</p>
+<table class="fill">
+	<tr>
+		<th>FeatureBehavior_type</th>
+		<th>value contents</th>
+		<th>Meaning</th>
+	</tr>
+	<tr>
+		<td><code>interface::CATIUseEntity</code></td>
+		<td><a href="#metadata">metadata</a> name</td>
+		<td>To provide the capability to use generic api of DataCommonProtocolUse 
+		fw - See complete information in referenced article [<a href="#References">5</a>]</td>
+	</tr>
+	<tr>
+		<td><code>creation::parameter</code></td>
+		<td><a href="#metadata">metadata</a> name</td>
+		<td>To provide additional information for extension StartUp. See complete 
+		information in referenced article [<a href="#References">6</a>]</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h4>Attribute Definition</h4>
+<p>There is no specific statement to define the attributes. Each attribute definition 
+is of the form:</p>
+<table class="code" id="table7">
+	<tr>
+		<td>
+		<pre><em>attribute_type</em> <em>attribute_name </em>[<em>facets</em>]</pre>
+		</td>
+	</tr>
+</table>
+<p>The following table lists the possible values for an <em><code>attribute_type
+</code></em>, the corresponding data type in C++ (<strong>C++ type</strong> column) and the 
+corresponding enum value that is used in the Feature Modeler APIs (<strong>CATFmAttributeAndValueKind
+</strong>column):</p>
+<table class="fill">
+	<tr>
+		<th>Attribute_type</th>
+		<th>C++ Type</th>
+		<th>CATFmAttributeAndValueKind<br>
+		Enum</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><code>string</code></td>
+		<td>char *</td>
+		<td><code>CATFmKind_string</code></td>
+		<td>character string</td>
+	</tr>
+	<tr>
+		<td><code>double</code></td>
+		<td>double</td>
+		<td><code>CATFmKind_double</code></td>
+		<td>double precision floating point</td>
+	</tr>
+	<tr>
+		<td><code>boolean</code></td>
+		<td>CATBoolean</td>
+		<td><code>CATFmKind_boolean</code></td>
+		<td>boolean</td>
+	</tr>
+	<tr>
+		<td><code>octet</code></td>
+		<td>unsigned char</td>
+		<td><code>CATFmKind_byte</code></td>
+		<td>unsigned 8 bit value</td>
+	</tr>
+	<tr>
+		<td><code>int</code></td>
+		<td>int</td>
+		<td><code>CATFmKind_integer</code></td>
+		<td>signed 32 bit integer</td>
+	</tr>
+	<tr>
+		<td><code>specobject</code></td>
+		<td rowspan="3">N/A</td>
+		<td><code>CATFmKind_feature</code></td>
+		<td>&quot;referenced&quot; link [<a href="#References">8</a>]</td>
+	</tr>
+	<tr>
+		<td><code>component</code></td>
+		<td><code>CATFmKind_feature</code></td>
+		<td>&quot;aggregated&quot; link [<a href="#References">8</a>]</td>
+	</tr>
+	<tr>
+		<td><code>external</code></td>
+		<td><code>CATFmKind_external</code></td>
+		<td>&quot;external&quot; link [<a href="#References">8</a>]</td>
+	</tr>
+</table>
+<p>The <code><em>attribute_name</em></code>, must be chosen carefully too, specially 
+if you derive from another StartUp whose you don&#39;t know the internal attribute names, 
+or if your StartUp is designed to be derived. So a best practice is to prefix the 
+attribute name with <strong>&lt;prefix&gt;&lt;FWAlias&gt;</strong> [<a href="#References">4</a>]</p>
+<table class="code" id="table38">
+	<tr>
+		<td>
+		<pre>feature <strong>CAAFmExt</strong>MyFeat #startup{
+  double <strong>CAAFmExt_</strong>x
+  string <strong>CAAFmExt_</strong>y
+  }</pre>
+		</td>
+	</tr>
+</table>
+<p>Here CAA = prefix, and FWAlias = FmExt. </p>
+<p>The tools creating/Upgrading a catalog can check if an attribute already exists 
+in a &quot;upper&quot; class. But it cannot prevent that someone modifys the name of attribute 
+of &quot;upper&quot; level later.</p>
+<p>An attribute definition can have facets:</p>
+<table class="fill">
+	<tr>
+		<th>Facet</th>
+		<th colspan="2">Meaning</th>
+	</tr>
+	<tr>
+		<td><code>#list</code></td>
+		<td colspan="2">the attribute holds not single value but a list </td>
+	</tr>
+	<tr>
+		<td><code>#private</code></td>
+		<td colspan="2">the attribute is by default &quot;public&quot;.The value of a private 
+		attribute cannot be read from the feature&#39;s reference. [<a href="#References">7</a>]</td>
+	</tr>
+	<tr>
+		<td><code>#in</code></td>
+		<td>the attribute is a Specification (input)</td>
+		<td rowspan="3">Please refer to the technical Article [<a href="#References">9</a>]</td>
+	</tr>
+	<tr>
+		<td><code>#out</code></td>
+		<td>the attribute is a Result (output)</td>
+	</tr>
+	<tr>
+		<td><code>#neutral</code></td>
+		<td>the attribute is neither a Spec or a Result</td>
+	</tr>
+	<tr>
+		<td><code>#external_link_meta_data(<em>name</em>)</code></td>
+		<td>define link metadata for this <code>external </code>attribute: <code>
+		name </code>refers to an <code><a href="#extlink">external_link_meta_data</a>
+		</code>statement where the link metadata is defined</td>
+		<td></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td><code>#array</code></td>
+		<td>It is only available for the list of specobject and component. If you 
+		add this facet, the list can contain NULL elements, otherwise never. The 
+		array mode is strongly recommended as explained in the referenced article 
+		[<a href="#References">11</a>]</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>#<code>auto_update</code></td>
+		<td>If a feature A points through an &quot;in&quot; <code>auto_update</code> attribute 
+		another feature B, then A will be updated automatically after each update 
+		of B [<a href="#References">9]</a>.So this facet is available for in and 
+		specobject/component attribute.</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td><code>#sharp_type [(magnitude)]</code></td>
+		<td>The attribute is a new literal [<a href="#References">12</a>]. In this 
+		case, only string, double, boolean and int attribute&#39;s types are possible.
+		<code>magnitude </code>is the internal name of the knowledge magnitudes. 
+		In the referenced article you have the list of available magnitudes[<a href="#References">13</a>]. 
+		Such a magnitude is only valid for double type.<br>
+		<strong>double </strong>MyAttribute #sharp_type(ABSOLUTEVISCOSITY)
+		<br>
+		<strong>double </strong>MyAttribute #sharp_type (Real)
+		<p>For String, boolean and integer, the only one declarations are: </p>
+		<br>
+		<strong>string </strong>MyAttribute #sharp_type (String) <br>
+		<strong>boolean </strong>MyAttribute #sharp_type (Boolean) <br>
+		<strong>int </strong>MyAttribute #sharp_type (Integer) </td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<p>The order of the attribute definition is not kept and should be not relied on.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h4>Attribute Initialization</h4>
+<p>The attribute can be initialized with a value with a statement of the form:</p>
+<pre class="code"><em>attribute_name=value</em></pre>
+<p><code><em>value </em></code>is specified as constants, with list written using 
+square brackets and commas: <code>[1,2,...]</code>:</p>
+<table class="fill">
+	<tr>
+		<th>Attribute_type</th>
+		<th>Example of Value</th>
+	</tr>
+	<tr>
+		<td><code>string</code></td>
+		<td>&quot;a string&quot;</td>
+	</tr>
+	<tr>
+		<td><code>double</code></td>
+		<td>314.16e-2, 2.007</td>
+	</tr>
+	<tr>
+		<td><code>boolean</code></td>
+		<td>true, false</td>
+	</tr>
+	<tr>
+		<td><code>octet</code></td>
+		<td>255</td>
+	</tr>
+	<tr>
+		<td><code>int</code></td>
+		<td>1, 2, 3</td>
+	</tr>
+	<tr>
+		<td>list</td>
+		<td>[1,2,3], [&quot;a&quot;, &quot;list&quot;, &quot;of&quot;, &quot;strings&quot;],....</td>
+	</tr>
+	<tr>
+		<td><code>specobject</code></td>
+		<td rowspan="3"><em><code>feature_identifier</code></em></td>
+	</tr>
+	<tr>
+		<td><code>component</code></td>
+	</tr>
+	<tr>
+		<td><code>external</code></td>
+	</tr>
+</table>
+<p>Examples of attribute initialization for primitive types (all except <code>specobject</code>,
+<code>component </code>and <code>external</code>):</p>
+<pre class="code">...
+feature <strong>CAAFmExtPoint2D</strong> #startup{
+<strong> </strong> double CAAFmExt_x
+  double CAAFmExt_y
+  CAAFmExt_x= 0
+  CAAFmExt_y= 0
+}
+feature <strong>CAAFmExtMyFeat</strong> #startup{
+  double CAAFmExt_x
+  string CAAFmExt_y
+  string CAAFmExt_myList #list
+  CAAFmExt_x= 0
+  CAAFmExt_y= &quot;plant&quot;
+  CAAFmExt_mylist=[&quot;plant&quot;,&quot;building&quot;]
+}</pre>
+<p>For attributes that have feature objects as value (<code>specobject</code>,
+<code>component </code>and <code>external</code>) they can be initialized using 
+feature object identifiers. The following example shows a &quot;CAAFmExtLine3D&quot; StartUp 
+whose these 2 attributes (start and end) are initialized with two &quot;<code>CAAFmExtPoint3D</code>&quot; 
+feature objects, <code>CAAFmExtPoint0 </code>and <code>CAAFmExtPoint1</code>:</p>
+<pre class="code">...
+feature <strong>CAAFmExtPoint0</strong> CAAFmExtPoint3D {
+        CAAFmExt_x=0
+        CAAFmExt_y=0
+        CAAFmExt_z=0
+}
+feature <strong>CAAFmExtPoint1</strong> CAAFmExtPoint3D {
+        CAAFmExt_x=1
+        CAAFmExt_y=1
+        CAAFmExt_z=1
+}
+feature CAAFmExtLine3D #startup {
+        component CAAFmExt_start 
+        component CAAFmExt_end 
+        CAAFmExt_start=<strong>CAAFmExtPoint0</strong>
+        CAAFmExt_end=<strong>CAAFmExtPoint1</strong>
+}.</pre>
+<p>The order of the attribute initializations is not important with respect to the 
+attribute definitions.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="metadata"></a>The metadata definition Statement</h3>
+<p>The metadata statement appears at the same level as the container statement. 
+It is a block describing a feature behavior. </p>
+<pre class="code"><strong>metadata </strong><em>identifier</em> {
+<strong>        </strong>...
+}</pre>
+<p>The identifier of the metadata is the name that you retrieve in
+<a href="#Behavior_facet">feature behavior facet</a>. The scope of this identifier 
+is local to the OSM file.</p>
+<p>According to the behavior&#39;s type the block contents changes.</p>
+<ul>
+	<li><a href="#For interface-CATIUseEntity">#interface::CATIUseEntity</a>.</li>
+	<li><a href="#For creation-parameter">#create::parameter</a>.</li>
+</ul>
+<p>Have a look to each one.</p>
+<p><strong><a name="For interface-CATIUseEntity"></a>For #interface::CATIUseEntity</strong></p>
+<pre class="code">metadata identifier {
+       <strong>implementInterface</strong> = true | false
+       <strong>implementUpdateAspect</strong> = true | false
+       <strong>implementDeleteAspect</strong> = true | false
+       <strong>implementCopyPasteAspect</strong> = true | false
+}</pre>
+<p>The meaning of each line is as follows:</p>
+<table class="fill">
+	<tr>
+		<th>Line Name</th>
+		<th>Meaning</th>
+	</tr>
+	<tr>
+		<td>implementInterface </td>
+		<td>Does the StartUp implement the CATIUseEntity interface</td>
+	</tr>
+	<tr>
+		<td>implementUpdateAspect</td>
+		<td>Does the StartUp provide Update protocol for everybody?</td>
+	</tr>
+	<tr>
+		<td>implementDeleteAspect </td>
+		<td>Does the StartUp provide Delete protocol for everybody?</td>
+	</tr>
+	<tr>
+		<td>implementCopyPasteAspect</td>
+		<td>Does the StartUp provide Update protocol for everybody?</td>
+	</tr>
+</table>
+<p>This block is fully detailed in the referenced article [<a href="#References">5</a>]<a name="extlink"></a>.
+</p>
+<p><strong><a name="For creation-parameter"></a>For #creation::parameter</strong></p>
+<pre class="code">metadata identifier {
+      <strong>ContType </strong>=&quot;ContainerType&quot;
+      <strong>Container </strong>=&quot;ContainerName&quot;
+      <strong>Extends  </strong>=[ &quot;StartUp1&quot;,...]
+      <strong>IsLocal  </strong>= true | false
+}</pre>
+<p>The meaning of each line (all are mandatory) is as follows:</p>
+<table class="fill">
+	<tr>
+		<th>Line Name</th>
+		<th>Meaning</th>
+	</tr>
+	<tr>
+		<td>ContType </td>
+		<td>The type of the container, it can be &quot;CATFeatCont&quot;, but usually it is 
+		a late type enabling you to implement behavior on the container</td>
+	</tr>
+	<tr>
+		<td>Container</td>
+		<td>The name of the container, the name to retrieve it within a stream</td>
+	</tr>
+	<tr>
+		<td>Extends </td>
+		<td>The list of StartUps. It can be yours StartUp, third party Startups, 
+		or DS StartUps. The catalog of the StartUp is useless.</td>
+	</tr>
+	<tr>
+		<td>IsLocal</td>
+		<td><code>false</code> means that when the base feature is re-instantiated, 
+		its extension is instantiated too. <code>true</code> (no feature extension 
+		creation in case of base feature re-instantiation) is strongly recommended.</td>
+	</tr>
+</table>
+<p>This block is fully detailed in the referenced article [<a href="#References">6</a>]<a name="extlink0"></a>.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3>The external_link_meta_data Statement</h3>
+<p>This statement appears at the same level as the container statement. It defines 
+the metadata of an external link. Objects that are pointed to by an
+<a href="#attrdef">external </a>attribute can be located in a another PLM component. 
+When this happens, the link becomes exposed at the PLM level. The PLM kernel must 
+therefore know how to handle this link when certain operations like impact propagation 
+are under way.</p>
+<pre class="code"><strong>external_link_meta_data</strong> <em>identifier</em> {
+<strong>                meta_data_relation-&gt;category </strong><em>= &quot;category&quot;</em>
+<strong>                meta_data_relation-&gt;role </strong>=<em> &quot;role&quot;</em>}</pre>
+<p>Each <code>external_link_meta_data </code>block is defined by three things:</p>
+<ul>
+	<li>its <em><strong>identifier</strong></em>. <code>External </code>attributes are assigned 
+	a given metadata via the <code><a href="#attrdef">#external_link_meta_data(<em>identifier</em>)</a></code> 
+	facet. The scope of this identifier is local to the OSM file.
+	<pre class="code">feature <em>a_feature</em> {
+        ...
+        external <em>a_link</em> #<strong>external_link_meta_data</strong>(<em>identifier)</em>
+        ...</pre>
+	</li>
+	<li>a <strong>category</strong>, as defined by the <code>meta_data_relation-&gt;category</code> 
+	statement. The category qualifies the link from the PLM perspective and thus 
+	defining its associated PLM behaviors. There are two possibilities for a category:
+	<table class="fill">
+		<tr>
+			<th>Category</th>
+			<th>Description</th>
+		</tr>
+		<tr>
+			<td><code>Reference</code></td>
+			<td>The most generic link where no dependency is involved</td>
+		</tr>
+		<tr>
+			<td><code>Reference3</code></td>
+			<td>The source of the link depends on the target, i.e. a change of the 
+			target will initiate an update of the source object</td>
+		</tr>
+	</table>
+	</li>
+	<li>a <em><strong>role</strong></em> as defined by the <code>meta_data_relation-&gt;role</code> 
+	statement. The role does not have any PLM semantics or any effect on PLM behaviors. 
+	It just qualifies the link from the user perspective, enabling him/her know 
+	what it is (in an impact graph for example). A role can be combined with any 
+	category and must be selected from the following table. The label is what gets 
+	displayed in the user interface.
+	<table class="fill">
+		<tr>
+			<th>Role</th>
+			<th>Label</th>
+			<th>Description</th>
+		</tr>
+		<tr>
+			<td><code>CAAGenericGeometric </code></td>
+			<td>Generic Geometric </td>
+			<td>Represents a geometric dependence (shape or position). It combines 
+			most often with a <code>Reference3</code> category.</td>
+		</tr>
+		<tr>
+			<td><code>CAAGenericMechanical </code></td>
+			<td>Generic Mechanical </td>
+			<td>Depicts a mechanical relation in an assembly (joints, welds&#8230;).</td>
+		</tr>
+		<tr>
+			<td><code>CAAGenericImplement </code></td>
+			<td>Generic Implement </td>
+			<td>Describes a logical correspondence between objects of different 
+			semantics: typically applicable to relations between Requirement/Functional/Logical/Physical 
+			objects or Product/Process/Resource objects.</td>
+		</tr>
+		<tr>
+			<td><code>CAAGenericTechno </code></td>
+			<td>Generic Techno </td>
+			<td>Applies to schematics-like (electrical, piping&#8230;) relations. In most 
+			cases, it should qualify a link to an application-specific connector.
+			</td>
+		</tr>
+		<tr>
+			<td><code>CAAGenericGeneralPurpose </code></td>
+			<td>Generic General Purpose </td>
+			<td>To be used when none of the above applies.</td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<p>A role can be combined with any category.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Uuid and Diesele"></a>Uuid and Diesele</h2>
+<p>The OSM file generated by the CATFctEditorAssistant tool adds information 
+like uuid, #number (diesele), history and check-revision statements.</p>
+<p><strong>here just after the new-catalog option</strong></p>
+<pre class="code">/**
+* Copyright Dassault Systemes 2006
+* .osm file skeleton
+*/
+document `CAAFmExtForTest.CATfct` {
+	history(&quot;xxx&quot;,&quot;&quot;,&quot;2010-08-24 15:56&quot;,0., 0u7e6ff351-0000-0890-4c73ebb80000000e)
+	check_revision(0u7e6ff351-0000-0890-4c73ebb80000000e)
+	
+	container `RootCont` #root #uuid(0u7e6ff351-0000-0890-4c73ebb200000003) {
+		
+// insert here your startups
+
+	}
+}</pre>
+<p><strong>and just below, after an -upgrade-catalog and -generate-osm option</strong></p>
+<pre class="code">document `CAAFmExtForTest.CATfct` {
+	<span class="sample">history(&quot;xxx&quot;,&quot;&quot;,&quot;2010-08-24 15:59&quot;,1., 0u7e6ff351-0000-1154-4c73ec4a0000001e)</span>
+	history(&quot;xxx&quot;,&quot;&quot;,&quot;2010-08-24 15:56&quot;,0., 0u7e6ff351-0000-0890-4c73ebb80000000e)
+	<span class="sample">check_revision(0u7e6ff351-0000-1154-4c73ec4a0000001e)</span>
+	
+	container `RootCont` #root #uuid(0u7e6ff351-0000-0890-4c73ebb200000003) {
+		feature `CAAFmExtTest1`<span class="keyword">#2</span> #startup {
+			<span class="keyword">#mlc::version=1.
+			#uuid= 0u7e6ff351-0000-1154-4c73ec4a0000001c</span>
+			component `CAAFmExt_attr1` #list
+		}
+		
+// insert here your startups
+
+	}
+}</pre>
+<p>If you can remove the mlc, uuid and diesele statements, you can change their 
+values. </p>
+<p>Do not remove the history/check-revision statements to generate another catalog 
+version.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="A Commented Catalog Example"></a>A Commented Catalog Example</h2>
+<p>Here is an example of a basic catalog definition:</p>
+<pre class="code">ddocument `<strong>CAAFmExtMyCatalog.CATfct</strong>` {
+        container <strong>CATFeatCont</strong> #root {
+                /* CAAFmExtPoint2D startup */
+                feature <strong>CAAFmExtPoint2D</strong> #startup {
+                        double <strong>CAAFmExt_x</strong>
+                        double CAAFmExt_y
+                }
+                /* CAAFmExtPoint3D startup deriving from CAAFmExtPoint2D */
+                feature <strong>CAAFmExtPoint3D</strong> CAAFmExtPoint2D #startup {
+                        double       CAAFmExt_z
+                        double #list CAAFmExt_coordinates
+                }
+                /* CAAFmExtLine3D startup */
+                feature <strong>CAAFmExtLine3D</strong> #startup {
+                        specobject CAAFmExt_Start #in // start point
+                        specobject CAAFmExt_End #in   // end point
+                        double     CAAFmExt_length #out   // length
+                }
+                /* Create a point at the origin */
+                feature <strong>CAAFmExtPoint0</strong> CAAFmExtPoint3D {
+                        CAAFmExt_x=0.
+                        CAAFmExt_y=0.
+                        CAAFmExt_z=0.
+                }
+                /* Create CAAFmExtPoint1 at (1,1,1) */
+                feature <strong>CAAFmExtPoint1</strong> CAAFmExtPoint3D {
+                        CAAFmExt_x=1.
+                        CAAFmExt_y=1.
+                        CAAFmExt_z=1.
+                        CAAFmExt_coordinates=[1.,1.,1.]
+                }
+                feature <strong>CAAFmExtLine1</strong> CAAFmExtLine3D {
+                        CAAFmExt_start=<strong>CAAFmExtPoint0</strong>
+                        CAAFmExt_end  =<strong>CAAFmExtPoint</strong><strong>1</strong>
+                }
+        }
+}  </pre>
+<ul>
+	<li>The catalog name is <strong>CAAFmExtMyCatalog.CATfct</strong> (document statement).</li>
+	<li>The container name is <strong>CATFeatCont</strong>.</li>
+	<li>There are three feature startups defined:
+	<ul>
+		<li><code>CAAFmExtPoint2D </code>with two attributes: <code>CAAFmExt_x
+		</code>and <code>CAAFmExt_y </code>(both double).</li>
+		<li><code>CAAFmExtPoint3D </code>inheriting from <code>CAAFmExtPoint2D</code>, 
+		with two attributes: <code>CAAFmExt_z </code>(double) and <code>CAAFmExt_coordinates
+		</code>(a list of double).</li>
+		<li><code>CAAFmExtLine3D </code>with 3 attributes: <code>CAAFmExt_start</code>,
+		<code>CAAFmExt_end </code>(features) and <code>CAAFmExt_length </code>(double).
+		<code>CAAFmExt_start </code>and <code>CAAFmExt_end </code>are specs while
+		<code>CAAFmExt_length </code>is a result.</li>
+	</ul>
+	</li>
+	<li>There are three feature objects defined:<ul>
+		<li><code>CAAFmExtPoint0 </code>and <code>CAAFmExtPoint1</code>, instantiated 
+		from <code>CAAFmExtPoint3D </code>and initialized to (0.,0.,0). and (1.,1.,1.) 
+		respectively.</li>
+		<li><code>CAAFmExtLine1 </code>instantiated from <code>CAAFmExtLine3D
+		</code>and initialized with <code>CAAFmExtPoint0 </code>and <code>CAAFmExtPoint1</code>.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article, we have detailed the OSM language that is used to describe catalogs 
+and their contents: feature startups and feature objects.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAOsmTaOverview.htm">Feature Modeler Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocNamingRules.htm">
+		CAA Naming Rules</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAFmExtTaUnderstandingCatalogs.htm">Understanding Feature 
+		StartUp Catalogs</a> </td>
+	</tr>
+	<tr>
+		<td>[4] </td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocCppNamingRules.htm">
+		C++ Naming Rules</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAFmExtTaCommonProtocol.htm">Common Protocol Integration</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAFmExtTaFeatureExtension.htm">Understanding Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAFmExtTaFeatureAttribute.htm">Understanding Feature Attribute
+		</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAFmExtTaLinkingFeatures.htm">Understanding Link Attributes- 
+		1</a> </td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAFmExtTaAutoUpdateFacetPrincipleAndUsage.htm">Auto-Update 
+		Facet Principle and Usage</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="CAAFmExtTaNamingFeatures.htm">Understanding Feature Naming</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAAFmExtTaLinkingFeatures2.htm">Understanding Link Attributes- 
+		2</a> </td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td><a href="CAAFmExtTaUnderstandingKnowledge.htm">Understanding Knowledge 
+		Attribute</a> </td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="CAAFmExtTaMagnitudes.htm">List of Available Magnitude</a>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

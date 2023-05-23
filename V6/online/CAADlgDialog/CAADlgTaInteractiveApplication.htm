@@ -1,0 +1,201 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>How to Design Your Interactive Application</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Design Your Interactive Application</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains you how to create an interactive application, along 
+		with the methods you should overwrite from the interactive application base 
+		class.</p>
+		<ul>
+			<li><a href="#100000">What Is an Interactive Application?</a></li>
+			<li><a href="#200000">An Interactive Application Example</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What Is an Interactive Application?</h2>
+<p>A CAA interactive application is a program that you can launch and that can execute 
+generally with end user input until the end-user stops it. The base class for CAA 
+interactive applications is the the <em>CATInteractiveApplication</em> class. The 
+Dialog framework gives you some key components to design you interactive application. 
+They include:</p>
+<ul>
+	<li>The <em>CATInteractiveApplication</em> class to derive to create your application 
+		[<a href="#References">1</a>].</li>
+	<li>The <em>CATDlgDocument</em> class to derive to create your application main 
+		window and presentations [<a href="#References">2</a>].</li>
+	<li>The <em>CATDlgDialog</em> class to derive to create the transient window 
+		your dialog requires [<a href="#References">3</a>].</li>
+</ul>
+<p>The figure below shows the objects involved and their main methods using the 
+Unified Modeling Language (UML).</p>
+<p>
+<img alt="CATInteractiveApplication UML Diagram" height="269" src="images/CAADlgInteractiveApplication.jpg" width="488"/></p>
+<p>The application derives from the <em>CATInteractiveApplication</em> class while 
+the window derives from the <em>CATDlgDocument</em> class. The application aggregates 
+a pointer to the window and instantiates it in the <code>BeginApplication</code> 
+method. Symmetrically, the window aggregates a pointer to the application.</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: Note that the window 
+		constructor does not include any statement. It only instantiates, that is 
+		allocates memory areas for the window and its base classes. The <code>Build</code> 
+		method is dedicated to create the objects with the proper values. This is 
+		because the external resources to allocate use virtual methods, and as long 
+		as the constructor is not exited, the virtual method table update may not 
+		be completed and thus its contents may be inaccurate. This <code>Build</code> 
+		method does not exist in any Dialog framework base class and thus can not 
+		be redefined. You must create it when deriving a Dialog framework class.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>An Interactive Application Example</h2>
+<p>The following sample is a standard application skeleton with a main window. It 
+includes the main objects shown in the figure and their related methods. You retrieve 
+the two classes, <em>CAADlgInterApplication</em> and <em>CAADlgInterWindow</em> 
+in the CAADialog.edu framework in the CAADlgInterApplication.m module.</p>
+<p>First look at the <em>CAADlgInterApplication</em> header file:</p>
+<pre class="code">#include &quot;CATInteractiveApplication.h&quot;
+class CAADlgInterApplication : public CATInteractiveApplication
+{
+  public:
+    CAADlgInterApplication (const CATString &amp; iAppliName);
+    virtual void BeginApplication();
+    virtual int  EndApplication();
+    virtual ~MyApplication();
+};</pre>
+<p>and at the CAADlgInterWindow header file:</p>
+<pre class="code">#include &quot;CATDlgDocument.h&quot;
+class CATInteractiveApplication;
+class CAADlgInterWindow: public CATDlgDocument
+{
+  public:
+    CAADlgInterWindow(CATInteractiveApplication * pp);
+    virtual ~CAADlgInterWindow();
+    void Build();    
+  private:                                          
+    void CloseAppli(CATCommand           * iSendingCommand,    
+                    CATNotification      * iSentNotification,
+                    CATCommandClientData   UsefulData);
+    ...
+  private:            
+    CATInteractiveApplication * _pApplication;
+};</pre>
+<p>These class declarations follow the diagram. A pointer to the application is 
+stored as a document data member. The document includes a <code>Build</code> method 
+to valuate its objects rather than doing this in the constructor. The method
+<code>CloseAppli</code> is used to close both the application and the document when 
+the user requests it.</p>
+<p>The <em>CAADlgInterApplication</em> source file:</p>
+<pre class="code">CAADlgInterApplication ::CAADlgInterApplication (const CATString &amp; IAppliName)
+             :<strong>CATInteractiveApplication</strong>(NULL, IAppliName)
+{ }
+
+void CAADlgInterApplication ::<strong>BeginApplication</strong>() 
+{
+  MyDoc = new CAADlgInterWindow(this);
+  MyDoc-&gt;Build();
+  SetVisibility(CATDlgShow);          // make window visible
+}
+
+int  CAADlgInterApplication ::<strong>EndApplication</strong>()    // called by Destroy
+{ return <strong>0</strong>; }
+
+CAADlgInterApplication ::~MyApplication() { }
+
+CAADlgInterApplication <strong>ApplicationInstance</strong> (&quot;MyNiceApplication&quot;); // instantiate the application</pre>
+<p>The <em>CAADlgWindowApplication</em> source file is the following:</p>
+<pre class="code">...
+CAADlgInterWindow ::CAADlgInterWindow (CATInteractiveApplication * iParentCommand)
+   :<strong>CATDlgDocument</strong>(iParentCommand, &quot;CAADlgInterWindowId&quot;),
+   _pApplication(iParentCommand)  
+{
+  // Empty constructor to allocate, but not to valuate
+}
+
+void CAADlgInterWindow ::Build() {
+  ... // Put here the code required to build the window
+  // set a callback to close the application when closing the window
+  AddAnalyseNotificationCB(this,
+                           GetWindCloseNotification(),
+                           (CATCommandMethod)&amp;MyDocument::CloseAppli,
+                           NULL);
+}
+CAADlgInterWindow ::~CAADlgInterWindow () { }
+
+void CAADlgInterWindow ::CloseAppli            // close the application
+               (CATCommand * _ICommand,
+                CATNotification * _INotification,
+                CATCommandClientData UsefulData)
+{ _pApplication-&gt;<strong>Destroy</strong>(); 
+  _pApplication = NULL ; 
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The interactive application is simply instantiated without the need of creating 
+any main program. The main dialog window derives from the appropriate dialog window 
+class, and includes a Build method to create the containers and controls that make 
+up the window, rather than using the window constructor to do this. The application 
+and the window aggregates the other by reference.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADlgQrCATInteractiveApplication.htm">CATInteractiveApplication</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADlgQrCATDlgDocument.htm">CATDlgDocument</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAADlgQrCATDlgDialog.htm">CATDlgDialog</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

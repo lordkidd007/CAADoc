@@ -1,0 +1,1212 @@
+<html>
+
+ <head>
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+ <meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+ <meta name="ProgId" content="FrontPage.Editor.Document">
+ <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+ <title>Administration</title>
+ </head>
+
+ <body>
+
+ <table width="100%">
+   <tr>
+     <td valign="top">
+     <h1>RADE</h1>
+     </td>
+     <td valign="top">
+     <h2>Source Code Manager</h2>
+     </td>
+     <td rowspan="2" align="right" valign="top">
+     <h3><a name="Top"></a>Administration</h3>
+     <p><em>Managing SCM servers and databases</em></td>
+   </tr>
+   <tr>
+     <td class="use" colspan="2">Use Case</td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <table class="abstract">
+   <tr>
+     <td>
+     <h3>Abstract</h3>
+     <p>This article is written for the SCM administrator. The first part 
+     presents a global view of the SCM system and the second part describes the 
+     commands related to administrative tasks.. </p>
+     <ul>
+       <li><a href="#global architecture"><b>Global Architecture</b></a>
+       <ul>
+         <li><a href="#Databases">Databases</a></li>
+         <li><a href="#Trees">Trees</a></li>
+       </ul>
+       </li>
+       <li><a href="#Accessing Administratives Commands"><strong>Accessing 
+       Administrative Commands</strong></a></li>
+       <li><a href="#Creating Databases"><strong>Creating Databases</strong></a>
+       <ul>
+         <li><a href="#Oracle Database">SCM Databases</a></li>
+         <li><a href="#SCM Databases Connection">SCM Databases connection</a></li>
+         <li><a href="#File Server Database">File Server Data</a></li>
+         <li><a href="#How many databases are needed?">How Many Databases Are 
+         Needed?</a></li>
+       </ul>
+       </li>
+       <li><a href="#The SCM daemons"><b>The SCM Daemons</b></a>
+       <ul>
+         <li><a href="#The monitor">The Monitor</a>
+         <ul>
+           <li><a href="#Purpose1">Purpose</a></li>
+           <li><a href="#How To Start It1">How To Start It</a></li>
+           <li><a href="#How To Stop It1">How To Stop It</a></li>
+           <li><a href="#Using Windows Services1">Using Windows Services</a>
+           <ul>
+             <li><a href="#Starting The Monitor Service">Starting the Monitor 
+             Service</a></li>
+             <li><a href="#Stopping The Monitor Service">Stopping the Monitor 
+             Service</a></li>
+           </ul>
+           </li>
+         </ul>
+         </li>
+         <li><a href="#The file server">The File Server</a>
+         <ul>
+           <li><a href="#Purpose2">Purpose</a></li>
+           <li><a href="#How To Start It2">How to Start It</a></li>
+           <li><a href="#How To Stop It2">How to Stop It</a></li>
+           <li><a href="#Using Windows Services2">Using Windows Services</a>
+           <ul>
+             <li><a href="#Starting The FCS Service">Starting the FCS Service</a></li>
+             <li><a href="#Stopping The FCS Service">Stopping the FCS Service</a></li>
+           </ul>
+           </li>
+         </ul>
+         </li>
+         <li><a href="#Intersite transfers">The Intersite Transfers</a> </li>
+         <li><a href="#The Multi-site Transfer Manager">The Multi-site Transfer 
+         Manager</a><ul>
+           <li><a href="#Purpose3">Purpose</a></li>
+           <li><a href="#How to Start It3">How to Start It</a></li>
+           <li><a href="#How to Stop It3">How to Stop It</a></li>
+           <li><a href="#Using Windows Services3">Using Windows Services</a><ul>
+             <li><a href="#Starting the SCM Transfer Service">Starting the SCM 
+             Transfer Service</a></li>
+             <li><a href="#Stopping the SCM Transfer Service">Stopping the SCM 
+             Transfer Service</a></li>
+           </ul>
+           </li>
+         </ul>
+         </li>
+       </ul>
+       </li>
+       <li><a href="#Monitoring commands"><strong>Monitoring Commands</strong></a></li>
+       <li><strong><a href="#References">References</a></strong></li>
+       <li><a href="#InShort"><b>In Short</b></a></li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="global architecture"></a>Global Architecture</h3>
+ <p>The SCM product supports a client/server architecture. Two types of hosts 
+ are involved in the execution of a SCM command: </p>
+ <ul>
+   <li>The client machine: any command is executed locally on the user's host 
+   and connects to the SCM server host(s) to retrieve information</li>
+   <li>The server machine: at least one machine is dedicated for managing SCM 
+   repositories and where SCM daemons are running.</li>
+ </ul>
+ <p>When a command is running, it is connected with several daemons running on 
+ one or several distant hosts (SCM servers).</p>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 1: Single Server Architecture</caption>
+       <tr>
+         <td><img src="images/Architecture.gif" width="180" height="270"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">The figure 1 shows the location of processes involved in 
+     the execution of one SCM command running on a client host:
+     <ul>
+       <li>Connections are established with different daemons depending on the 
+       information to be registered or retrieved</li>
+       <li>The &quot;File Contents Server&quot; process manages its own repository.</li>
+       <li>The &quot;Monitor&quot; process manages data in SCM database.</li>
+       <li>Data for configuration management are stored in database.<br>
+       The same database can be shared with the &quot;Monitor&quot; process.</li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <p>The global architecture can be more complex depending on the size of 
+ software projects and the number of people involved in. It is possible to have 
+ several machines on which several File Servers and SCM databases processes have 
+ been installed. Whatever the number of databases or File Servers is, the way 
+ commands work is the same, the complexity is often just seen by the SCM 
+ administrator (the end user is not aware of it).</p>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 2: Multiple Servers Architecture</caption>
+       <tr>
+         <td><img src="images/Architecture2.gif" width="330" height="270"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">The figure 2 shows that several File Servers and databases 
+     can be accessed by a single command. This can occur when the command is 
+     executed from a multi-tree workspace whose trees are managed in different 
+     databases and whose associated source files are registered in different 
+     File Servers.
+     <p>There is only one &quot;Monitor&quot; process running on one server because its 
+     purpose is to control operations on all databases.</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="Databases"></a>Databases</h4>
+ <p>There are two kinds of databases managed by SCM: </p>
+ <ul>
+   <li>SCM databases</li>
+   <li>File Server databases.</li>
+ </ul>
+ <p>A SCM database is used for storing any data that are not source files. It is
+ <a href="#Oracle Database">created</a> by the Oracle or DB2 administrator and 
+ is known by SCM commands using its SID (SID = System Identifier = a unique name 
+ for an Oracle database instance). One or more databases can be used depending 
+ on the amount of data and the number of users to manage.</p>
+ <p><a name="Central database"></a>Multiple databases can be used for storing 
+ either: </p>
+ <ul>
+   <li>Monitor process' data<br>
+   There is only one database of this type, known as the<strong> monitor 
+   database</strong></li>
+   <li>Site information (1 database )<br>
+   There is only one database of this type, known as the <strong>central 
+   database</strong></li>
+   <li>Configuration management specific data<br>
+   There can be several databases of this type, known as <strong>departmental 
+   databases</strong></li>
+ </ul>
+ <p>The File Server database is a repository managed by a FileServer and whose 
+ purpose is to store any user file. This kind of database is
+ <a href="#File Server Database">initialized</a> by the SCM administrator using 
+ the File Server program.</p>
+ <p>Depending on the number of servers available and their characteristics, it 
+ is possible to install on a same host one SCM database and one File Server but 
+ having several File Servers or several SCM databases on a same host is not 
+ interesting.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="Trees"></a>Trees</h4>
+ <p>(Workspace) Trees are the first &quot;objects&quot; to be created when starting with 
+ SCM. A tree is created by specifying: </p>
+ <ul>
+   <li>A name</li>
+   <li>A database name<br>
+   It will contain Configuration Management data related to objects managed in 
+   workspaces belonging to this workspace tree</li>
+   <li>A host name and a port number identifying a File Server<br>
+   It will manage all source files for workspaces belonging to this workspace 
+   tree</li>
+ </ul>
+ <p>Any combination of File Servers and databases is possible. The following 
+ figures show how several trees can be managed. One important thing to know is 
+ that multiple databases or File Servers should be installed on different hosts, 
+ providing better performance.</p>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 3: Single File Server / Single Database</caption>
+       <tr>
+         <td><img src="images/Architecture3.gif" width="180" height="210"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">The figure 3 shows three trees managed in a single database 
+     and whose associated sources are gathered in a single File Server 
+     repository.
+     <p>This is an usual way of working with SCM for either </p>
+     <ul>
+       <li>creating trees for different small projects (files and users)</li>
+       <li>creating trees for managing different versions of the same projects</li>
+     </ul>
+     </td>
+   </tr>
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 4: Multiple File Servers / Single Database</caption>
+       <tr>
+         <td><img src="images/Architecture4.gif" width="180" height="210"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">This architecture is interesting when managing large 
+     projects and for which a strong SCM database has been set up on a specific 
+     hardware (disk space, CPU, RAM, etc). As the amount of source files can be 
+     very big, it could be interesting to use different File Servers for 
+     managing source files associated with different workspace trees. Of course, 
+     those File Servers should run on different hosts (for performance reasons).
+     <p>It is also possible to install a new File Server (on a new host) for 
+     managing source files for new trees if the host(s) where the other File 
+     Server(s) run is (are) heavily loaded or if there is not enough disk space 
+     left.</td>
+   </tr>
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 5: Single File Server / Multiple Databases</caption>
+       <tr>
+         <td><img src="images/Architecture5.gif" width="180" height="210"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">This architecture is allowed but does not provide any 
+     particular feature.</td>
+   </tr>
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 6: Multiple File Servers / Multiple Databases</caption>
+       <tr>
+         <td><img src="images/Architecture6.gif" width="180" height="210"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%">The figure 6 shows two databases containing some trees and 
+     for which multiple File Servers have been set up. This architecture allows 
+     to manage big projects by dispatching different projects in different 
+     databases on different servers. For instance, each division may have its 
+     own SCM server with one SCM database and one File Server. This architecture 
+     does not forbid the use of multi-tree workspaces for working in all 
+     databases at the same time (for instance for gathering developments at 
+     entreprise level).</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="Accessing Administratives Commands"></a>Accessing Administrative 
+ Commands</h3>
+ <p>Commands are available in search path after executing the tck_profile 
+ command with an appropriate TCK. Two TCKs are generated when installing a 
+ CD-ROM [<a href="#References">1</a>]: one for all users and one for the SCM 
+ administrators only. This second TCK gives access to administrative commands 
+ like: </p>
+ <ul>
+   <li>adl_lock_base, adl_unlock_base</li>
+   <li>adl_ls_contents_server, adl_mk_contents_server</li>
+   <li>adl_mk_tree, adl_ren_tree, adl_rm_tree, adl_set_tree</li>
+   <li>adl_mk_root_ws</li>
+   <li>adl_monitor, adl_mo_admin</li>
+   <li>adl_file_server, adl_fs_admin</li>
+   <li>adl_upgrade_db</li>
+ </ul>
+ <p>For instance, after having downloaded a CAA V5 Tools CD-ROM under the path &quot;<em>C:\Program 
+ Files\Dassault Systemes\T04D28</em>&quot;, execute the tck_profile command and list 
+ the available TCKs:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>C:\&gt; &quot;C:\Program Files\Dassault Systemes\T04D28\intel_a\code\command\tck_init.bat&quot;
+C:\&gt;tck_list
+SCM_adm_V5R5_T04D28 SCM_adm_V5R5_T04D28
+V5R5_T04D28 Mkmk_SCM_V5R5_T04D28 SCM_V5R5_T04D28
+C:\&gt;</pre>
+     </td>
+   </tr>
+ </table>
+ <p><a name="TCK for administration"></a>The &quot;V5R5_T04D28&quot; TCK corresponds to 
+ the tools brought with the CD-ROM and the &quot;SCM_adm_V5R5_T04D28&quot; TCK gives 
+ access to SCM administrative commands. Here is an example of the traces 
+ produced when calling the tck_profile command.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>C:\&gt;tck_profile SCM_adm_V5R5_T04D28
+------------------------------------------------------------------------
+SCM Variables:
+----------------------------
+ADL_LEVEL=5
+ADL_DIFF_LOCAL=N
+ADL_DIFF_LOCAL_PATH=C:\DownloadADLV5
+ADL_PATH=C:\Program Files\Dassault Systemes\T04D28\intel_a
+------------------------------------------------------------------------
+User log cleaner started
+User log cleaner ended
+C:\&gt;</pre>
+     </td>
+   </tr>
+ </table>
+ <p>SCM commands are now available in path.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="Creating Databases"></a>Creating Databases</h3>
+ <p>Before creating databases, people must have checked </p>
+ <ul>
+   <li>how many organizations are going to use the Workspace Manager</li>
+   <li>how many people will be involved in development projects</li>
+   <li>what is the target hardware for installing SCM and File Server databases</li>
+ </ul>
+ <p>Thinking about these topics should lead to choose a global architecture from 
+ the ones described in <a href="#Trees">Trees</a> section.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="How many databases are needed?"></a>How Many Databases Are Needed?</h4>
+ <p>We advise to start with a single SCM database and a single File Server 
+ database. It is not needed to set up several databases at the beginning except 
+ if SCM is intended to be used by hundreds of developers. Depending on the 
+ number of SCM users the SCM database is created with different characteristics 
+ (initial size of tablespaces, size of extents, etc). Three types of database 
+ can be set up: small, medium and large: </p>
+ <ul>
+   <li>small database: for managing a small organization (up to 20 developers) 
+   and 2 or 3 workspaces per user. The number of files should be under 5000 
+   files.</li>
+   <li>medium database: for managing between 50 and 100 developers and up to 
+   20000 files.</li>
+   <li>large database : for bigger organizations or for managing lot of files.</li>
+ </ul>
+ <p><em>Is it possible to add new databases for supporting new teams?</em></p>
+ <p>Yes it is possible. The method would be to let the first created database as 
+ the <a href="#Central database">monitor database</a> and let the new databases 
+ be the departemental databases, that is to say by creating new trees in the new 
+ databases.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="Oracle Database"></a>SCM Databases</h4>
+ <p>The SCM initialization is performed once an empty database (or instance) has 
+ been created. Please refer to the Oracle or DB2 documentation for this task.</p>
+ <p>To complete the initialization, you must connect to the new database as 
+ administrator (DBA) and perform the following tasks: </p>
+ <ol>
+   <li>Create the SCM account and possibly the associated profile<br>
+   This account will be used both in step 2 and when installing a new SCM 
+   version that needs to upgrade existing databases</li>
+   <li>Create the SCM tables.<br>
+   There are three kind of tables to be created depending on the futur use of 
+   the database being initialized:
+   <ol>
+     <li>Tables for the &quot;Monitor&quot; process</li>
+     <li>Tables for site information</li>
+     <li>Tables for configuration management data (trees, workspaces, 
+     components, etc)</li>
+   </ol>
+   </li>
+ </ol>
+ <p>The three kinds of tables can be created in a single database as well as in 
+ different databases but </p>
+ <ul>
+   <li>Tables for the &quot;Monitor&quot; process should be created in only one database</li>
+   <li>Tables for site information should be created in only one database (often 
+   the same as the one used by the Monitor).<br>
+   This database is known as the <strong>c</strong>entral <strong>d</strong>ata<strong>b</strong>ase 
+   (cdb).</li>
+   <li>Tables for configuration management data are created in each database 
+   whose purpose is to store workspace <a href="#Trees">trees</a>.<br>
+   Such databases are known as <strong>dep</strong>ar<strong>t</strong>mental 
+   databases (dept)</li>
+ </ul>
+ <p>The creation tasks are performed by SQL programs that are generated by the 
+ adl_admin_site command. Here is the command lines to execute:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; adl_admin_site -init_db -db_user xxx -db_type monitor -db_size medium -target_dir c:\temp
+E:\&gt; adl_admin_site -init_db -db_user xxx -db_type cdb -db_size medium -target_dir c:\temp
+E:\&gt; adl_admin_site -init_db -db_user xxx -db_type dept -db_size medium -target_dir c:\temp</pre>
+     </td>
+   </tr>
+ </table>
+ <p>As shown above the adl_admin_site command must be executed three times to 
+ get the SQL programs for the three kinds of tables. Those programs are 
+ generated under the directory specified by the -target_dir option.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; dir C:\TEMP\*.sql
+ Directory of c:\temp
+
+06/10/00  16:07                 25 978 CreateTablesCdb.sql
+06/10/00  16:07                 66 736 <b>CreateTablesDept.sql</b>
+06/10/00  16:03                  3 874 <b>CreateTablesMonitor.sql</b>
+06/10/00  16:07                    262 DropTablesCdb.sql
+06/10/00  16:07                  1 446 <b>DropTablesDept.sql</b>
+06/10/00  16:03                    151 <b>DropTablesMonitor.sql</b>
+06/10/00  16:07                    695 EstimateStatisticsCdb.sql
+06/10/00  16:07                  3 390 <b>EstimateStatisticsDept.sql</b>
+06/10/00  16:03                    387 <b>EstimateStatisticsMonitor.sql</b>
+06/10/00  16:07                  3 209 InitInstanceCdb.sql
+06/10/00  16:07                  3 209 <b>InitInstanceDept.sql</b>
+06/10/00  16:03                  3 209 <b>InitInstanceMonitor.sql</b>
+              12 File(s)        112 546 bytes</pre>
+     </td>
+   </tr>
+ </table>
+ <p><b>Step 1</b>: the InitInstanceXXX.sql program is the first one to be 
+ executed and must be executed only one time on a given database, i.e. if only 
+ one database is used for managing monitor, site and configuration management 
+ tables, only one of <em>InitInstanceCdb.sql</em>, <em>InitInstanceDept.sql</em> 
+ and <em>InitInstanceMonitor.sql</em> programs will be used.</p>
+ <p><b>Step 2</b>: each of the CreateTablesXXX.sql programs must be executed on 
+ the database that will manage XXX information. If a single database is used, 
+ the three programs must be executed on it.<br>
+ Notice: several tables are duplicated between databases and then the SQL 
+ programs can generate errors when a single database is used.</p>
+ <p><b>Step 3</b>: the EstimateStatisticsXXX.sql programs must be executed 
+ regularly (weekly for instance) to keep performances to be the best.</p>
+ <p>Note: the DropTablesXXX.sql programs are provided just for cleaning up a 
+ database before restarting its creation. They must not be used in a normal 
+ database initialization process.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="SCM Databases Connection"></a>SCM Databases Connection</h4>
+ <p>By default, the connection to SCM databases is done with &quot;adl&quot; user and &quot;adl&quot; 
+ password. To use another user and/or password, execute the adl_admin_site 
+ command:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; adl_admin_site -init_db_connect -db_user user -db_password password</pre>
+     </td>
+   </tr>
+ </table>
+ <p>This command stores the user and the encoded password in the site profile. 
+ So, this command must be executed after the installation on each machine.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="File Server Database"></a>File Server Data</h4>
+ <p>
+ <img src="../CAAIcons/images/information.gif" width="31" height="30"> 
+ Prerequisites: &quot;Monitor&quot; and site information tables must have been created and 
+ the <a href="#How To Start It1">Monitor started</a>.</p>
+ <p>File Server data are composed of two root directories into which the File 
+ Server will format its own repository files. Here are the steps to follow to 
+ create a new file Server database.</p>
+ <p>Step 1: declare the new File Server in the central database by the <strong>
+ adl_mk_contents_server</strong> command </p>
+ <ul>
+   <li>Specify the name of the host where the File Server will be launched</li>
+   <li>Specify the port number on which it will be listening</li>
+   <li>Give a brief description of its purpose (for information only)</li>
+ </ul>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; adl_mk_contents_server -host tartampion -port 23451 -desc &quot;file server for CAA dev project&quot;
+Creating the contents server with the host name &quot;tartampion&quot; and the port number 23451 Command successful.</pre>
+     </td>
+   </tr>
+ </table>
+ <p>Step 2: log on the host where the File Server will be launched </p>
+ <ul>
+   <li>Use the SCM administrator identity</li>
+   <li>Create two directories on one (or two) disks local to this host 
+   (reliability is not ensured when using network file systems)</li>
+ </ul>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; mkdir E:\FileServer\FSFiles
+E:\&gt; mkdir E:\FileServer\FSData</pre>
+     </td>
+   </tr>
+ </table>
+ <ul>
+   <li>Format these directories by starting the File Server using the -<em>format</em> 
+   option
+   <ol>
+     <li>Take care that the -<em>format</em> option must be used only when 
+     initializing a new File Server since any data under the two directories 
+     will be lost</li>
+     <li>Specify the first directory by using the -<em>files</em> option</li>
+     <li>Specify the second directory by using the -<em>data</em> option</li>
+     <li>Specify the port number by using the -<em>port</em> option (as 
+     registered at step 1)</li>
+   </ol>
+   </li>
+ </ul>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt; adl_file_server -files E:\FileServer\FSFiles -data E:\FileServer\FSData <strong>-format</strong> -port 23451
+Formatting storage area. The format procedure is successfully terminated. E:\&gt; </pre>
+     </td>
+   </tr>
+ </table>
+ <p>Step 3: when started with the -<em>format</em> option, the File Server stops 
+ after few seconds. The corresponding repository is then ready to store source 
+ files. Read the &quot;<a href="#How To Start It2">How to start it</a>&quot; section to 
+ know how to start the File Server.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="The SCM daemons"></a>The SCM Daemons</h3>
+ <p>There are two types of daemons running on SCM servers: the Monitor and one 
+ or several File Servers.</p>
+ <h4><a name="The monitor"></a>The Monitor</h4>
+ <h5><a name="Purpose1"></a>Purpose</h5>
+ <p>The Monitor is the first program to be run since it controls all operations 
+ performed in all databases (SCM, File Server).</p>
+ <p>Its purpose is </p>
+ <ul>
+   <li>to log every commands run on the site</li>
+   <li>to manage concurrent access on objects like trees, workspaces, images</li>
+   <li>to trigger recovery mechanism after a command crash</li>
+ </ul>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="How To Start It1"></a>How to Start It</h5>
+ <p>Log on the host where the Monitor will be launched and change to the SCM 
+ administrator identity.</p>
+ <p>Set up the current environment using the <a href="#TCK for administration">
+ TCK for administration</a> and execute the <strong>adl_monitor</strong> 
+ command.</p>
+ <p>Note that the '&amp;' character can be used on Unix platform for running the 
+ process as a background process. It is not possible to run it the same way on 
+ Windows platform. SCM provides the adl_admin_site command for
+ <a href="#Using Windows Services1">registering a service</a> for that purpose.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="How To Stop It1"></a>How to Stop It</h5>
+ <p>From any host and being the SCM administrator, set up the current 
+ environment using the TCK for administration and execute the <strong>
+ adl_mo_admin</strong> command with the -<em>stop</em> option. This option 
+ causes the Monitor to wait for the current active commands to finish and then 
+ stop.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_mo_admin  -stop
+# ADLMo - 0100: Monitor will stop at the end of the currently processed commands</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The -<em>abort</em> option can be used for stopping the Monitor by aborting 
+ any running command.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_mo_admin  -abort
+The monitor is aborting</pre>
+     </td>
+   </tr>
+ </table>
+ <p>Please, consult the &quot;<a href="#Monitoring commands">Monitoring Commands</a>&quot; 
+ section for learning more about the adl_mo_admin command.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="Using Windows Services1"></a>Using Windows Services</h5>
+ <p>On Windows platform, the <strong>adl_admin_site</strong> command provides 
+ the -create_service for registering a new service to launch a SCM daemon 
+ (Monitor, File Server or Multi-site Transfer Manager) on the host where the 
+ service is declared.</p>
+ <p>To declare a service for the monitor, log on the SCM server having system 
+ privileges, use the <a href="#TCK for administration">TCK for administration</a> 
+ to have access to the adl_admin_site command and execute the following command 
+ line:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_admin_site -create_service -service_type monitor -start_at_boot</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The -start_at_boot option is used for specifying to the service system 
+ manager that the given service must be started at boot time.</p>
+ <h6><a name="Starting The Monitor Service"></a>Starting The Monitor Service</h6>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 7: Control Panel/Services</caption>
+       <tr>
+         <td><img src="images/CAAWsm1.jpg" width="315" height="181"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">The adl_admin_site command just declares a new 
+     service but does not start it. To start the monitor, use the Windows 
+     service tool. This tool is found by opening the &quot;Start/Settings&quot; menu and 
+     selecting the &quot;Control Panel&quot; item.
+     <p>Then run the &quot;Services&quot; programs and find the service named<br>
+     &quot;SCM Monitor V5R5_T04D28&quot;<br>
+     where V5R5_T04D28 is the TCK corresponding to the monitor installation.</td>
+   </tr>
+ </table>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 8: Starting the Monitor Service</caption>
+       <tr>
+         <td><img src="images/CAAWsm2.jpg" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">To start the Monitor service, select the 
+     corresponding line and click on the &quot;Start&quot; button:
+     <ul>
+       <li>a popup window appears while the service is starting</li>
+       <li>the service status changes to &quot;Started&quot; when the service has been 
+       started</li>
+     </ul>
+     <p>The way the service is started (manual or automatic) can be changed 
+     whatever the service was registered using the adl_admin_site command. The 
+     startup type can be also changed to &quot;Disabled&quot; if you want to prevent the 
+     system (or anyone) to start the Monitor for a while.</td>
+   </tr>
+ </table>
+ <p>
+ <img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30"> 
+ Only one service can be created on a given host for a given daemon and a given 
+ installation.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h6><a name="Stopping The Monitor Service"></a>Stopping the Monitor Service</h6>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 9: Stopping the Monitor Service</caption>
+       <tr>
+         <td><img src="images/wpe4.jpg" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">Open the &quot;Services&quot; program like when starting 
+     the Monitor service, select the line corresponding to the monitor and click 
+     on the &quot;Stop&quot; button:
+     <ul>
+       <li>a popup window appears while the service is stopping</li>
+       <li>the &quot;Started&quot; status disappears</li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <p>
+ <img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30"> 
+ If a File Server service has been registered on the same host and has been 
+ started, the &quot;Services&quot; program will display a message indicating the File 
+ Server will be stopped too.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h4><a name="The file server"></a>The File Server</h4>
+ <h5><a name="Purpose2"></a>Purpose</h5>
+ <p>The File Server is a process that receives requests from SCM commands for 
+ storing or extracting files.There is no direct user commands for requesting it, 
+ all requests are performed by workspace commands.</p>
+ <p>One File Server can store files for one or several workspace trees wherever 
+ these trees are managed (in one or several SCM databases, on a single or 
+ different servers).</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="How To Start It2"></a>How to Start It</h5>
+ <p>Log on the host where the File Server will be launched and change to the SCM 
+ administrator identity.</p>
+ <p>Set up the current environment using the <a href="#TCK for administration">
+ TCK for administration</a> and execute the <strong>adl_file_server</strong> 
+ command: </p>
+ <ol>
+   <li>Specify the File Server directories by using the -<em>files</em> and -<em>data</em> 
+   options</li>
+   <li>Specify the port number by using the -<em>port</em> option</li>
+ </ol>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_file_server -port 23451 -files E:\FileServer\FSFiles -data E:\FileServer\FSData
+Recovery start.
+Processing REDO log.
+REDO log processed.
+Recovery stop.
+Server start.</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The process is then ready to server requests.</p>
+ <p>Note that the '&amp;' character can be used on Unix platform for running the 
+ process as a background process. It is not possible to run it the same way on 
+ Windows platform. SCM provides the adl_admin_site command for
+ <a href="#Using Windows Services2">registering a service</a> for that purpose.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="How To Stop It2"></a>How to Stop It</h5>
+ <p>The <strong>adl_fs_admin</strong> command is used for monitoring File 
+ Servers. It provides the -<em>stop</em> and -<em>abort</em> options for 
+ stopping a File Server.</p>
+ <p>From any host and being the SCM administrator, set up the current 
+ environment using the <a href="#TCK for administration">TCK for administration</a> 
+ and execute the adl_fs_admin command with the -<em>stop</em> option. This 
+ option causes the File Server to wait for the current active commands to finish 
+ and then stop.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_fs_admin  -host algue -port 23451 -stop</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The -<em>abort</em> option can be used for stopping the File Server by 
+ aborting any active transaction.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_fs_admin  -host algue -port 23451 -abort</pre>
+     </td>
+   </tr>
+ </table>
+ <p>Note: even if the adl_fs_admin command finishes, the File Server may take 
+ few seconds to stop because some sub-processes must stop first before the main 
+ process can stop itself. The adl_fs_admin command can be used for testing 
+ whether a File Server is running or not:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_fs_admin -host algue -port 2340 <strong>-ping</strong>
+While opening a connection with &quot;algue:2340&quot; (host:port_offset).
+# ADLSOCK - CONNECT: The connection was rejected.
+Check network and server machine with &quot;ping&quot; or &quot;ftp&quot; command.</pre>
+     </td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h5><a name="Using Windows Services2"></a>Using Windows Services</h5>
+ <p>On Windows platform, the <strong>adl_admin_site</strong> command provides 
+ the -create_service for registering a new service to launch a SCM daemon 
+ (Monitor, File Server or Multi-site Transfer Manager) on the host where the 
+ service is declared.</p>
+ <p>To declare a service for the File Server, log on the corresponding SCM 
+ server having system privileges, use the <a href="#TCK for administration">TCK 
+ for administration</a> to have access to the adl_admin_site command and execute 
+ the following command line:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_admin_site -create_service -service_type <strong>fcs</strong> -port 23451 -fs_files E:\FileServer\FSFiles -fs_data E:\FileServer\FSData -start_at_boot</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The -start_at_boot option is used for specifying to the service system 
+ manager that the given service must be started at boot time.</p>
+ <p>
+ <img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30"> 
+ The parameters of the -port, -fs_files and -fs_data options must be those 
+ specified when initializing the File Server repository (see
+ <a href="#File Server Database">File Server Database</a>).</p>
+ <p>
+ <img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30"> 
+ If the File Server service is registered after having registered the Monitor 
+ Service, a dependency is set up between the two services that will cause the 
+ Monitor to be automatically started (if it is not already started) when the 
+ File Server is being started.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h6><a name="Starting The FCS Service"></a>Starting the FCS Service</h6>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 10: Control Panel/Services</caption>
+       <tr>
+         <td><img src="images/CAAWsm1.jpg" width="315" height="181"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">The adl_admin_site command just declares a new 
+     service but does not start it. To start the File Server, use the Windows 
+     service tool. This tool is found by opening the &quot;Start/Settings&quot; menu and 
+     selecting the &quot;Control Panel&quot; item.
+     <p>Then run the &quot;Services&quot; programs and find the service named<br>
+     &quot;SCM File Contents Server V5R5_T04D28&quot;<br>
+     where V5R5_T04D28 is the TCK corresponding to the File Server installation.</td>
+   </tr>
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 11: Starting the FCS Service</caption>
+       <tr>
+         <td><img src="images/wpe5.jpg" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">To start the FCS service, select the 
+     corresponding line and click on the &quot;Start&quot; button:
+     <ul>
+       <li>a popup window appears while the service is starting</li>
+       <li>the service status changes to &quot;Started&quot; when the service has been 
+       started</li>
+     </ul>
+     <p>The way the service is started (manual or automatic) can be changed 
+     whatever the service was registered using the adl_admin_site command. The 
+     startup type can be also changed to &quot;Disabled&quot; if you want to prevent the 
+     system (or anyone) to start the File Server for a while.</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h6><a name="Stopping The FCS Service"></a>Stopping the FCS Service</h6>
+ <table border="0" width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 12: Stopping the FCS Service</caption>
+       <tr>
+         <td>
+         <img src="images/wpe6.jpg" alt="wpe6.jpg (25336 bytes)" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">Open the &quot;Services&quot; program like when starting 
+     the FCS service, select the line corresponding to the File Server and click 
+     on the &quot;Stop&quot; button:
+     <ul>
+       <li>a popup window appears while the service is stopping</li>
+       <li>the &quot;Started&quot; status disappears</li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <h4><a name="Intersite transfers"></a>The Intersite Transfers</h4>
+ <p>It is possible to work on the same project, even if the different developers 
+ are located on different sites. For this purpose, see the documentation related 
+ to the [<a href="#References">2</a>] intersite transfers.</p>
+ <p>&nbsp;</p>
+ <h4><a name="The Multi-site Transfer Manager"></a>The Multi-site Transfer 
+ Manager</h4>
+ <h5><a name="Purpose3"></a>Purpose</h5>
+ <p>The Multi-site Transfer Manager controls data replication between multiple 
+ SCM installations. Having two installations on a W.A.N., launching the Transfer 
+ Manager on one site allows to send or receive data from the other site.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <h5><a name="How to Start It3"></a>How to Start It</h5>
+ <p>Log on the host where the Multi-site Transfer Manager will be launched and 
+ change to the identity needed for starting it. Note that it is possible to use 
+ s specific identity for starting the manager regarding the remark here after.</p>
+ <p>
+ <img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30">The 
+ Transfer Manager will execute commands in the workspaces dedicated to 
+ replicating data and this will be done under the same login as the one used for 
+ starting it. </p>
+ <p>Set up the current environment using the <a href="#TCK for administration">
+ TCK for administration</a> and execute the <strong>adl_transfer_mngr</strong> 
+ command. The port number that is specified is the one that will be used for 
+ starting data transfers afterwards.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_transfer_mngr -port 23452 -cmdfile %ADL_ADMIN_PATH%\AuthorizedCommands.txt (*)</pre>
+     </td>
+   </tr>
+ </table>
+ <p>(*) Syntax for Windows</p>
+ <p>The process is then ready to serve requests.</p>
+ <p>Note that the '&amp;' character can be used on Unix platform for running the 
+ process as a background process. It is not possible to run it the same way on 
+ Windows platform. SCM provides the adl_admin_site command for
+ <a href="#Using Windows Services3">registering a service</a> for that purpose.</p>
+ <p>
+ <img border="0" src="../CAAIcons/images/information.gif" width="31" height="30"> 
+ On UNIX platform it is possible that the transfers fail due to system resource 
+ limits. It is advised to use the adl_start_transfer_mngr.sh command instead of 
+ adl_transfer_mngr directly in order to let it increase those limits.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>$ adl_start_transfer_mngr.sh -port 23452 -cmdfile $ADL_ADMIN_PATH\AuthorizedCommands.txt (**)</pre>
+     </td>
+   </tr>
+ </table>
+ <p>(*) Syntax for Unix</p>
+ <p>
+ <img border="0" src="../CAAIcons/images/hand.gif" width="31" height="15"> 
+ The file &quot;AuthorizedCommands.txt&quot; that appears in the previous examples 
+ contains the list of commands that are not SCM commands but that are required 
+ for sharing components between sites. It must be specified on Unix platform but 
+ is automatically referenced on Windows platform.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <h5><a name="How to Stop It3"></a>How to Stop It</h5>
+ <p>From any host and being the SCM administrator, set up the current 
+ environment using the <a href="#TCK for administration">TCK for administration</a> 
+ and execute the adl_transfer_client command with the -<em>stop_server</em> 
+ option. This option causes the Multi-site Transfer Manager to stop. Note that 
+ the server is stopped even there are some multi-site transfers under way.</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_transfer_client -server &lt;hostname&gt; -port 23452 -stop_server</pre>
+     </td>
+   </tr>
+ </table>
+ <ul>
+   <li>The &lt;hostname&gt; is the name of the machine where the Transfer Manager is 
+   running.</li>
+   <li>The port number is the one used for starting the daemon</li>
+   <li>The -stop_server option specifies the daemon must stop.</li>
+ </ul>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <h5><a name="Using Windows Services3"></a>Using Windows Services</h5>
+ <p>On Windows platform, the <strong>adl_admin_site</strong> command provides 
+ the -create_service for registering a new service to launch a SCM daemon 
+ (Monitor, File Server or Multi-site Transfer Manager) on the host where the 
+ service is declared.</p>
+ <p>To declare a service for the Multi-site Transfer Manager, log on the 
+ corresponding SCM server having system privileges, use the
+ <a href="#TCK for administration">TCK for administration</a> to have access to 
+ the adl_admin_site command and execute the following command line:</p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>E:\&gt;adl_admin_site -create_service -service_type <strong>transfer</strong> -port 23452 -start_at_boot</pre>
+     </td>
+   </tr>
+ </table>
+ <p>The -start_at_boot option is used for specifying to the service system 
+ manager that the given service must be started at boot time.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <h6><a name="Starting the SCM Transfer Service"></a>Starting the SCM Transfer 
+ Service</h6>
+ <table width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 13: Control Panel/Services</caption>
+       <tr>
+         <td>
+         <img src="images/CAAWsm1.jpg" alt="CAAWsm1.jpg (11515 bytes)" width="315" height="181"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">The adl_admin_site command just declares a new 
+     service but does not start it. To start the File Server, use the Windows 
+     service tool. This tool is found by opening the &quot;Start/Settings&quot; menu and 
+     selecting the &quot;Control Panel&quot; item.
+     <p>Then run the &quot;Services&quot; programs and find the service named<br>
+     &quot;SCM Transfer Manager V5R8_T08&quot;<br>
+     where V5R8_T08 is the TCK corresponding to the Transfer Manager 
+     installation.</td>
+   </tr>
+   <tr>
+     <td width="50%" align="center">Fig 14: Starting the Transfer Manager 
+     Service<table>
+       <tr>
+         <td>
+         <img src="images/CAAWsm6.jpg" alt="CAAWsm6.jpg (24368 bytes)" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">To start the Transfer Manager service, select 
+     the corresponding line and click on the &quot;Start&quot; button:
+     <ul>
+       <li>a popup window appears while the service is starting</li>
+       <li>the service status changes to &quot;Started&quot; when the service has been 
+       started</li>
+     </ul>
+     <p>The way the service is started (manual or automatic) can be changed 
+     whatever the service was registered using the adl_admin_site command. The 
+     startup type can be also changed to &quot;Disabled&quot; if you want to prevent the 
+     system (or anyone) to start the Transfer Manager for a while.</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h6><a name="Stopping the SCM Transfer Service"></a>Stopping the SCM Transfer 
+ Service</h6>
+ <table border="0" width="100%">
+   <tr>
+     <td width="50%" align="center">
+     <table>
+       <caption>Fig 15: Stopping the Transfer Manager Service</caption>
+       <tr>
+         <td>
+         <img src="images/CAAWsm7.jpg" alt="CAAWsm7.jpg (25625 bytes)" width="506" height="280"></td>
+       </tr>
+     </table>
+     </td>
+     <td width="50%" valign="top">Open the &quot;Services&quot; program like when starting 
+     the Transfer Manager service, select the line corresponding to the Transfer 
+     Manager service and click on the &quot;Stop&quot; button:
+     <ul>
+       <li>a popup window appears while the service is stopping</li>
+       <li>the &quot;Started&quot; status disappears</li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="Monitoring commands"></a>Monitoring Commands</h3>
+ <p>All commands run under Monitor control. Therefore it is possible to list or 
+ control the running commands at any time by retrieving information from the 
+ Monitor.</p>
+ <p>The <strong>adl_mo_admin</strong> command gives access to information 
+ managed by the Monitor process.</p>
+ <p>This command is available after setting the environment with the TCK for 
+ administration. Here are options available for querying the Monitor.</p>
+ <table width="100%">
+   <tr>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Options for connecting to the 
+     Monitor</strong></td>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Purpose</strong></td>
+   </tr>
+   <tr>
+     <td width="50%">-host <em>host_name </em>(*)</td>
+     <td width="50%">To specify the name of the host where the Monitor is 
+     running</td>
+   </tr>
+   <tr>
+     <td width="50%">-port <em>port_number </em>(*)</td>
+     <td width="50%">To specify the port to be used for sending requests to the 
+     Monitor</td>
+   </tr>
+   <tr>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Options for managing commands</strong></td>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Purpose</strong></td>
+   </tr>
+   <tr>
+     <td width="50%">-rmcmd <em>command_identifier</em></td>
+     <td width="50%">To abort and remove a given (user) command from the Monitor</td>
+   </tr>
+   <tr>
+     <td width="50%"><em>-</em>rmlock <em>lock_identifier</em></td>
+     <td width="50%">To remove a lock for a terminated command. It is needed to 
+     first abort and remove a command before removing associated locks (if some 
+     are still there).</td>
+   </tr>
+   <tr>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Options for listing information</strong></td>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Purpose</strong></td>
+   </tr>
+   <tr>
+     <td width="50%">-lscmd</td>
+     <td width="50%">To list all commands currently managed by the Monitor.<br>
+     Information displayed for a command are: user name, host name, pid, 
+     platform, command name and command identifier.</td>
+   </tr>
+   <tr>
+     <td width="50%">-lslock</td>
+     <td width="50%">To list all locks currently managed by the Monitor.<br>
+     Information displayed for a lock are: user name, host name, pid, platform 
+     and lock identifier.</td>
+   </tr>
+   <tr>
+     <td width="50%">-filter <em>{criteria<sup>}</sup></em></td>
+     <td width="50%">To filter the list of command or lock displayed.</td>
+   </tr>
+   <tr>
+     <td width="50%">-dscmd <em>command_identifier</em></td>
+     <td width="50%">To display all information about a specific command.<br>
+     Command identifiers are listed using the -lscmd option.</td>
+   </tr>
+   <tr>
+     <td width="50%">-dslock <em>lock_identifier</em></td>
+     <td width="50%">To display all information about a specific lock.<br>
+     Lock identifiers are listed using the -lslock option.</td>
+   </tr>
+   <tr>
+     <td width="50%">-dsrecobj <em>recoverable_object_identifier</em></td>
+     <td width="50%">To display all information about a specific &quot;recoverable 
+     object&quot;.<br>
+     Such objects are for internal use. They correspond to information that are 
+     used when running a recovery after a command crash.</td>
+   </tr>
+   <tr>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Options for managing the Monitor</strong></td>
+     <td width="50%" bgcolor="#C0C0C0"><strong>Purpose</strong></td>
+   </tr>
+   <tr>
+     <td width="50%">-ping</td>
+     <td width="50%">To check if the Monitor is running. The command returns the 
+     0 error code when it is running.</td>
+   </tr>
+   <tr>
+     <td width="50%">-stop</td>
+     <td width="50%">To let all active commands to finish (forbidding new 
+     connection), then stop.</td>
+   </tr>
+   <tr>
+     <td width="50%">-abort</td>
+     <td width="50%">To abort all active commands (forbidding new connection), 
+     then stop.</td>
+   </tr>
+   <tr>
+     <td width="50%">-suspend</td>
+     <td width="50%">To forbid any new connection</td>
+   </tr>
+   <tr>
+     <td width="50%">-resume</td>
+     <td width="50%">To accept new connections</td>
+   </tr>
+   <tr>
+     <td width="50%">-verb <em>verbose_level</em></td>
+     <td width="50%">To change the level of messages logged by the Monitor.<br>
+     Only levels between 0 and 3 are meaningful.</td>
+   </tr>
+ </table>
+ <p>(*) In specific cases only. The command can get these information from the 
+ current environment.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="InShort"></a>In Short</h3>
+ <p>Commands store information in two kinds of repositories: File Server 
+ repositories and SCM databases.</p>
+ <p>Several File Server repositories can be set up, each of them being managed 
+ by a dedicated File Server process.</p>
+ <p>All commands run under the control of a Monitor process. This process can be 
+ queried using the <em>adl_mo_admin </em>command.</p>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="References"></a>References</h3>
+ <table width="100%">
+   <tr>
+     <td valign="top">[1]</td>
+     <td>
+     <a href="../CAATckTechArticles/CAATckSetEnvironment.htm">
+     Using TCK Commands for Setting up the Environment</a></td>
+   </tr>
+   <tr>
+     <td valign="top">[2]</td>
+     <td><a href="CAAWsmMultiSite.htm">Intersite transfers documentation</a></td>
+   </tr>
+   <tr>
+     <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a name="History"></a>History</h3>
+ <table width="100%">
+   <tr>
+     <td valign="top">Version: <strong>3</strong> [Oct 2002]</td>
+     <td valign="top">Document update: add intersite transfers reference</td>
+   </tr>
+   <tr>
+     <td valign="top">Version: <strong>2</strong> [Nov 2001]</td>
+     <td valign="top">Document update</td>
+   </tr>
+   <tr>
+     <td valign="top">Version: <strong>1</strong> [Jun 2000]</td>
+     <td valign="top">Document created</td>
+   </tr>
+   <tr>
+     <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+ <p>&nbsp;</p>
+
+ </body>
+
+</html>

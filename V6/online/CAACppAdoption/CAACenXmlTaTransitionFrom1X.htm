@@ -1,0 +1,220 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Migrating Code from SAX1 to SAX2</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Migrating Code from SAX1 to SAX2</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains how to migrate V5 code based on the SAX1 V5 APIs 
+		to the V6 SAX2 APIs.</p>
+		<ul>
+			<li><a href="#100000">Motivation for Migration</a></li>
+			<li><a href="#200000">List of V5 Removed APIs</a></li>
+			<li><a href="#300000">Call by Call Equivalence Between SAX1 and SAX2</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Motivation for Migration</h2>
+<p>The removal of SAX1 APIs (see <a href="#Ref1">[1]</a>) and their replacement 
+with SAX2 APIs in this release is motivated by the following reasons.</p>
+<p>The SAX 2.0 API provides several valuable improvements over SAX 1.0:</p>
+<ul>
+	<li>Support for XML namespaces</li>
+	<li>Finer grain events to be able to detect XML constructs such as comments 
+	or CDATA sections</li>
+	<li>A standard way to configure parsing options (such as validation, namespace 
+	activation, etc.)</li>
+</ul>
+<p>The SAX 1.0 API is not supported by several parsers, notably all the parsers 
+based on Microsoft MSMXL. To preserve the SAX1.0 APIs, one would have had to emulate 
+the SAX1 APIs on top of a SAX 2.0 parser, causing increased memory consumption and 
+degraded performance.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>List of V5 Removed APIs</h2>
+<p>The following table lists the SAX1 header files which have been removed and their 
+replacement in SAX2.</p>
+<table class="border">
+	<thead>
+		<tr>
+			<th>Removed Headers</th>
+			<th>Purposes</th>
+			<th>Replacements</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATIXMLSAXFactory.h</td>
+		<td>Class to instantiate SAX objects</td>
+		<td>XMLParser/PublicInterfaces/CATIXMLSAX2Factory.h</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATISAXParser.h</td>
+		<td>The main parser class</td>
+		<td>XMLParserItf/PublicInterfaces/CATIXMLReader.h</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATISAXDocumentHandler.h</td>
+		<td>The main event handler interface</td>
+		<td>XMLParserItf/PublicInterfaces/CATISAXContentHandler.h</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATISAXAttributeList.h</td>
+		<td>Interface to describe XML attributes.</td>
+		<td>XMLParser/PublicInterfaces/CATISAXAttributes.h</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATSAXHandlerBase.h</td>
+		<td>Base class to implement event handlers</td>
+		<td>XMLParser/PublicInterfaces/CATSAXDefaultHandler.h</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATSAXParserAdapter.h</td>
+		<td>Class to emulate a SAX2 parser with a SAX1 parser</td>
+		<td>Not replaced</td>
+	</tr>
+	<tr>
+		<td>XMLParser/PublicInterfaces/CATSAXXMLReaderAdapter.h</td>
+		<td>Class to emulate a SAX1 parser with a SAX2 parser</td>
+		<td>Not replaced</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Call by Call Equivalence Between SAX1 and SAX2</h2>
+<p>The following tables lists gives the SAX2 equivalents of the SAX1 calls.</p>
+<table class="border">
+	<thead>
+		<tr>
+			<th>SAX1 Classes or Methods</th>
+			<th>SAX2 Class or Methods</th>
+			<th>Comments</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>::CreateCATIXMLSAXFactory</td>
+		<td>::CreateCATIXMLSAX2Factory</td>
+		<td>Entry point into the SAX API</td>
+	</tr>
+	<tr>
+		<td>CATISAXParser</td>
+		<td>CATISAXXMLReader</td>
+		<td>SAX2 parser class</td>
+	</tr>
+	<tr>
+		<td>CATIXMLSAXFactory::CreateParser</td>
+		<td>CATIXMLSAX2Factory::CreateXMLReader + CATISAXXMLReader::SetFeature / 
+		CATIXMLReaser::SetProperty</td>
+		<td>SAX2 parsers are created using the CATIXMLSAX2Factory::CreateXMLReader 
+		method. SAX2 parsers are configured using the CATISAXXMLReader::SetFeature 
+		and CATIXMLReaser::SetProperty (instead of SAX1 CATListOfCATUnicodeStrings). 
+		The names of the supported features and properties are specified in CATSAXXMLReaderOptions.h</td>
+	</tr>
+	<tr>
+		<td>CATDoValidation option</td>
+		<td>CATSAXXMLReaderOptions:: ValidationFeature</td>
+		<td>To activate validation</td>
+	</tr>
+	<tr>
+		<td>CATEnableNameSpaces option</td>
+		<td>CATSAXXMLReaderOptions:: NamespacesFeature</td>
+		<td>To turn on namespace support</td>
+	</tr>
+	<tr>
+		<td>CATISAXDocumentHandler</td>
+		<td>CATISAXContentHandler</td>
+		<td>CATISAXContentHandler emits the exact same events as CATISAXDocumentHandler, 
+		plus additional events to signal the start and end of namespaces.</td>
+	</tr>
+	<tr>
+		<td>CATISAXDocumentHandler:StartElement</td>
+		<td>CATISAXContentHandler::StartElement</td>
+		<td>The signature of the event is different. In SAX1, only the qualified 
+		name of the element is available. In SAX2, the local name, qualified name 
+		and namespace URI of the element are available. Using the qualified name 
+		thus enables keeping the SAX1 code unchanged.</td>
+	</tr>
+	<tr>
+		<td>CATISAXDocumentHandler:EndElement</td>
+		<td>CATISAXContentHandler::EndElement</td>
+		<td>The signature of the event is different. In SAX1, only the qualified 
+		name of the element is available. In SAX2, the local name, qualified name 
+		and namespace URI of the element are available. Using the qualified name 
+		thus enables keeping the SAX1 code unchanged.</td>
+	</tr>
+	<tr>
+		<td>CATISAXAttributeList</td>
+		<td>CATISAXAttributes</td>
+		<td>All the methods of CATISAXAttributeList exist in CATISAXAttributes. 
+		CATISAXAttributes has extra methods to access the local name, qualified 
+		name and namespace URI of the attributes.</td>
+	</tr>
+	<tr>
+		<td>CATISAXAttributeList::GetName</td>
+		<td>CATISAXAttributes::GetQName</td>
+		<td>Using the qualified name to retain the same behavior as is SAX1.</td>
+	</tr>
+	<tr>
+		<td>CATSAXHandlerBase</td>
+		<td>CATSAXDefaultHandler</td>
+		<td>The SAX2 adaptor class for event handlers provides an empty implementation 
+		of the CATISAXErrorHandler, CATISAXContentHander and CATISAXDTDHandler interfaces. 
+		It must be used as a replacement of the SAX1 adaptor class.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The SAX1 APIs are not available any more in this release and existing code must 
+be migrated to the newer SAX2 APIs.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td valign="top"><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkUrl('http://www.saxproject.org/');return false;">
+		XML SAX (Simple API for XML)</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <strong>1</strong> [Feb 2008]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

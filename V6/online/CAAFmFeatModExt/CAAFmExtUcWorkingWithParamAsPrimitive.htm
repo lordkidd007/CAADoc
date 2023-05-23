@@ -1,0 +1,344 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Working with a Knowledge Parameter Defined as Primitive Attribute</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Working with a Knowledge Parameter Defined as Primitive Attribute</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the <code>CAAFmExtWorkingWithParamAsPrimitive
+		</code>use case (UC). A feature attribute of primitive type, with a specific 
+		declaration in its <strong>OSM</strong> file can be used as a <strong>Knowledge 
+		Parameter</strong> for an end users to apply it in formulas and relations. 
+		Thus this feature attribute is distinct from a simple primitive type. The 
+		Technical Article &quot;<strong>Attribute as a Knowledge Parameter</strong>&quot; 
+		[<a href="#References">1</a>] delves into the depth of this subject.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmExtWorkingWithParamAsPrimitive Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmExtWorkingWithParamAsPrimitive 
+				Do</a></li>
+				<li><a href="#How">How to Launch CAAFmExtWorkingWithParamAsPrimitive</a></li>
+				<li><a href="#Where">Where to Find the CAAFmExtWorkingWithParamAsPrimitive 
+				Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The user learns the steps involved in defining a knowledge parameter as a feature 
+attribute using a primitive type. The key learning are</p>
+<ul>
+	<li>To define a feature attribute as a knowledge parameter using a primitive 
+	type - the referenced use case shows another methodology [<a href="#References">5</a>].</li>
+	<li>To retrieve this attribute value in two ways:<ul>
+		<li>The standard <code>GetValue</code>() call of the <em>CATFmFeatureFacade</em> 
+		class.</li>
+		<li>The <code>GetKnowledgeParameter</code>() call of the <em>CATFmFeatureFacade</em> 
+		class to retrieve the underlying Knowledge Parameter (which is not a feature). 
+		Further retrieve the value from this Knowledge Parameter.</li>
+	</ul>
+	</li>
+	<li>The standard <code>SetValue</code>() call of the <em>CATFmFeatureFacade</em> 
+	class fails to set a primitive attribute which is primarily a Knowledge Parameter. 
+	The value is set with calls to:
+	<ul>
+		<li>The <code>GetKnowledgeParameter</code>() call of the <em>CATFmFeatureFacade</em> 
+		class to retrieve its Knowledge Parameter.</li>
+		<li>The value is then set with the calls on this Knowledge Parameter.</li>
+	</ul>
+	</li>
+	<li>The difference between MKS (knowledge domain) and storage unit (Feature 
+	domain).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAFmExtWorkingWithParamAsPrimitive Use Case</h2>
+<p>The <code>CAAFmExtWorkingWithParamAsPrimitive </code>is a use case of the
+<code>CAAFeatureModelerExt.edu</code> framework that illustrates <code>FeatureModelerExt</code> 
+framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmExtWorkingWithParamAsPrimitive Do</h3>
+<p>The UC illustrates working with a feature attribute of type primitive which is 
+basically a Knowledge Parameter. The UC refers to the feature defined in the &quot;<strong>CAAFmExtParameter</strong>&quot; 
+catalog. The feature definition is as depicted below:</p>
+<pre>feature <strong>`CAAFmExtParamAsPrimitiveSquare`</strong> #startup {
+			<strong>boolean `CAAFmExtFill` #sharp_type(`Boolean`)</strong>
+			CAAFmExtFill = 1
+			<strong>double `CAAFmExtSideSize` #sharp_type(`Length`)</strong>
+			CAAFmExtSideSize = 19.00
+		       }
+</pre>
+<p>The &quot;<strong>CAAFmExtParamAsPrimitiveSquare</strong>&quot; feature StartUp is characterized 
+by two attributes:</p>
+<ul>
+	<li><code>CAAFmExtFill</code>, of type Boolean. The <code>#sharp_type</code> 
+	tag that follows integrates a knowledge parameter of type boolean with this 
+	attribute. This value is set by default to <strong>1</strong>.</li>
+	<li><code>CAAFmExtSideSize</code>, of type <strong>double</strong>. The
+	<code>#sharp_type </code>tag that follows integrates a knowledge parameter of 
+	type <strong>length</strong> with this attribute. This value is set by default 
+	to <strong>19 </strong>(storage unit, so in mm).</li>
+</ul>
+<p>The UC execution proceeds as follows:</p>
+<ul>
+	<li>It instantiates the &quot;<strong>CAAFmExtParamAsPrimitiveSquare</strong>&quot; feature.</li>
+	<li>It then retrieves the <strong>CAAFmExtFill</strong> attribute value using 
+	the <strong>Specs </strong>and<strong> Knowledge APIs </strong>in the order 
+	listed below:<ul>
+		<li>The call to <code>GetKnowledgeParameter</code>() of the <em>CATFmFeatureFacade</em> 
+		class retrieves the underlying Knowledge Parameter.</li>
+		<li>It then retrieves the value from this Knowledge Parameter (1=true).</li>
+	</ul>
+	</li>
+	<li>It further retrieves the <strong>CAAFmExtSideSize</strong> attribute value 
+	using the <strong>Specs APIs</strong>. A simple call to <code>GetValue</code>() 
+	of the <em>CATFmFeatureFacade</em> class realizes this.
+	<ul>
+		<li>The value is 19. (19 mm).</li>
+	</ul>
+	</li>
+	<li>The UC next modifies the attribute value. It calls the <code>SetValue</code>() 
+	API of the <em>CATFmFeatureFacade</em> class to set a new value to the
+	<strong>CAAFmExtSideSize</strong> attribute. The call fails, since this Specs 
+	API is not meant to set a Knowledge attribute.</li>
+	<li>The value for the <strong>CAAFmExtSideSize</strong> attribute is then set 
+	by invoking the <strong>Specs </strong>and<strong> Knowledge APIs</strong> as 
+	listed below:<ul>
+		<li>The call to <code>GetKnowledgeParameter</code>() of the <em>CATFmFeatureFacade</em> 
+		class returns the underlying Knowledge Parameter.</li>
+		<li>The new value is set to this Knowledge Parameter (15.00) ( 15m, the 
+		meter being the MKS unit for Length).</li>
+	</ul>
+	</li>
+	<li>Finally the UC confirms if the new value is set to the <strong>CAAFmExtSideSize</strong> 
+	attribute, both ways namely. with the call to the <strong>Specs API</strong> 
+	as well as the <strong>Specs </strong>and<strong> Knowledge APIs</strong>.<ul>
+		<li>with <code>GetValue</code>() of the <em>CATFmFeatureFacade,</em> we 
+		get 15000 ( 15 meters = 15000 mm).</li>
+		<li>With <code>GetKnowledgeParameter</code>() + knowledge API, we get 15.</li>
+	</ul>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="How"></a>How to Launch CAAFmExtWorkingWithParamAsPrimitive<br>
+</h3>
+<p>To launch <code>CAAFmExtWorkingWithParamAsPrimitive</code>, you will need to 
+set up the build time environment, then compile <code>CAAFmExtWorkingWithParamAsPrimitive
+</code>along with its prerequisites, set up the run time environment, and then execute 
+the sample. This is fully described in the referenced article [<a href="#References">2</a>].
+</p>
+<p>mkrun -c &quot;<em><code>CAAFmExtWorkingWithParamAsPrimitive </code>Repository Server 
+UserId Password SecurityCtx Environment</em>&quot;</p>
+<p>Where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(Since use case modifies PLM Data)</td>
+	</tr>
+	<tr>
+		<th>Environment</th>
+		<td>A PLM environment containing PLMProductDS (a PRODUCT&#39;s custo)</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p>Don&#39;t forget to update the runtime view to have the <code>CAAFmExtParameter.CATfct
+</code>file.</p>
+<h3><a name="Where"></a>Where to Find the CAAFmExtWorkingWithParamAsPrimitive Code</h3>
+<p><code>CAAFmExtWorkingWithParamAsPrimitive </code>code is located in the <code>
+CAAFmExtWorkingWithParamAsPrimitive.m</code> use case module of the <code>CAAFeatureModelerExt.edu</code> 
+framework. The path follows:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtWorkingWithParamAsPrimitive.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed. It is made of source files namely.</p>
+<ul>
+	<li><code>CAAFmExtWorkingWithParamAsPrimitive.cpp</code>, which has the UC main 
+	in it.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p>The <code>CAAFmExtParameter.CATfct </code>file are located in the resource graphic 
+folder:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CNext\resources\graphic</code></p>
+<p>The osm file generated from this StartUp catalog are provided in another folder:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\InputData</code></p>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The logical steps of <code>CAAFmExtWorkingWithParamAsPrimitive </code>are:</p>
+<ol>
+	<li><a href="#Setting the value">Setting a Value to the Knowledge Parameter</a></li>
+	<li><a href="#Retrieving the Knowledge Parameter from the Feat Attr">Retrieving 
+	the Knowledge Parameter from the Feature Attribute</a></li>
+	<li><a href="#Accessing the Knowledge Parameter Value">Accessing the Knowledge 
+	Parameter Value</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Setting the value"></a>Setting a Value to the Knowledge Parameter</h3>
+<p>We set the value to the primitive attribute, which integrates a Knowledge Parameter, 
+with a call to <code>SetValue</code>() of the <em>CATFmFeatureFacade</em> class. 
+The call is expected to <strong>FAIL</strong>, as depicted by the code below.</p>
+<pre class="code">rc = FeatFacadeOnParamAsPrimitiveSquare.<strong>SetValue</strong>(AttrNameSideSize,TheAttributeValue);
+if ( SUCCEEDED(rc)) return 1;
+</pre>
+<p>It is important to note that the <code>SetValue</code>() call will return OK, 
+if it is simply a primitive attribute. While, in the current case, since we have 
+integrated a Knowledge Parameter with the primitive attribute, the call returns 
+failure.</p>
+<p>The code below illustrates the steps to valuate such an attribute. </p>
+<pre class="code"><strong>CATICkeParm</strong>* piCkeParmOnAttrValue = NULL;
+rc = FeatFacadeOnParamAsPrimitiveSquare.<strong>GetKnowledgeParameter</strong>(AttrNameSideSize,IID_CATICkeParm,(void**)&amp; piCkeParmOnAttrValue);
+</pre>
+<p>The call to <code>GetKnowledgeParameter</code>() of the <em>CATFmFeatureFacade</em> 
+class returns the feature attribute as a Knowledge Parameter. The inputs to the 
+call are:</p>
+<ul>
+	<li><code>AttrNameSideSize</code>, a <em>CATFmAttributeName</em> type, representing 
+	the &quot;<strong>CAAFmExtSideSize</strong>&quot; attribute.</li>
+	<li><code>IID_CATICkeParm</code>, an <code>IID</code> type representing the 
+	Interface identifier of the pointer to be retrieved.</li>
+	<li><code>piCkeParmOnAttrValue</code>, a <em>CATICkeParm</em>* type on the Knowledge 
+	Parameter retrieved.</li>
+</ul>
+<p>The final step is simply to valuate this Knowledge Parameter, as depicted in 
+the code that follows.</p>
+<pre class="code"><strong>piCkeParmOnAttrValue-&gt;Valuate(15.00)</strong>;	</pre>
+<p>The <code>Valuate</code>() call of the <em>CATICkeParm</em> Interface does the 
+valuation in MKS unit (meter for a length).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Retrieving the Knowledge Parameter from the Feat Attr"></a>Retrieving 
+the Knowledge Parameter from the Feature Attribute</h3>
+<p>The code extract below depicts the steps involved to retrieve the Knowledge Parameter 
+and the value associated with it from a feature attribute.</p>
+<pre class="code">
+<strong>CATICkeParm</strong>* piCkeParmOnAttrValue = NULL;
+rc = FeatFacadeOnParamAsPrimitiveSquare.<strong>GetKnowledgeParameter</strong>(AttrNameFill,IID_CATICkeParm,(void**)&amp; piCkeParmOnAttrValue);
+</pre>
+<p>The call to <code>GetKnowledgeParameter</code>() of the <em>CATFmFeatureFacade</em> 
+class returns the feature attribute as a Knowledge Parameter (<code>piCkeParmOnAttrValue</code>, 
+a <em>CATICkeParm</em>* type).</p>
+<h3><a name="Accessing the Knowledge Parameter Value"></a>Accessing the Knowledge 
+Parameter Value</h3>
+<p>Now that we have retrieved the Knowledge Parameter, the next step is to retrieve 
+its value.</p>
+<pre class="code">
+<strong>CATICkeInst</strong>_var spCkeInstOnValue =  piCkeParmOnAttrValue-&gt;Value();</pre>
+<p>The call to <code>Value</code>() of the <em>CATICkeParm</em> Interface returns 
+the Knowledge Parameter value as a <code>CATICkeInst_var</code> type (<code>spCkeInstOnValue</code>).
+</p>
+<pre class="code">
+<strong>CATCke::Boolean oBoolVal = spCkeInstOnValue-&gt;AsBoolean()</strong>;</pre>
+<p>Finally, the call to <code>AsBoolean</code>() of the <em>CATICkeInst</em> Interface 
+on <code>spCkeInstOnValue</code>, returns our attribute value, as a <em>CATCke</em>::<code>Boolean</code> 
+type (<code>oBoolVal</code>).</p>
+<p>Please note <code>GetValue()</code> of the <em>CATFmFeatureFacade</em> class 
+can be used to retrieve the value of our Knowledge Parameter. Be aware that the 
+returned value will be in storage unit (mm for a length).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>The UC illustrates the steps involved to integrate a Knowledge Parameter inside 
+a feature attribute. The user is introduced to the steps involved while working 
+with such an attribute and the process to set and retrieve its value. Most importantly, 
+the user is introduced to the <code>GetKnowledgeParameter</code>() call of the
+<em>CATFmFeatureFacade</em> class and to the <em>CATICkeParm</em> Interface, primarily 
+responsible for working with values associated with a Knowledge Parameter.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<colgroup>
+		<col valign="top" span="1">
+	</colgroup>
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaUnderstandingKnowledge.htm">Attribute as a Knowledge 
+		Parameter</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a CAA Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Creating a Basic PLM Batch</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaFeatureAttribute.htm">Understanding Feature Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAFmExtUcWorkingWithParamAsFeat.htm">Working with a Knowledge 
+		Parameter Defined as a Feature Attribute</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: 1 [Aug 2010]</td>
+		<td valign="top">Creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

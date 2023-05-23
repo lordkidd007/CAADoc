@@ -1,0 +1,551 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Exchanging Data Using PLM Channel</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Exchanging Data Using PLM Channel</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>In the large companies, there is a need to exchange data to synchronize 
+		them or simply share information inter site or outside the company (suppliers). 
+		DS offers a protocol to formalize data exchange between databases : PLM 
+		Channel. A PLM channel is a Exchange medium created between two specific 
+		repositories, to allow optimized back and forth data exchange and ownership 
+		transfers of PLM Entities.</p>
+		<ul>
+			<li><a href="#PLM Channel">An Introduction to PLM Channel</a></li>
+			<li><a href="#Concepts">PLM Channel - Concepts</a>
+			<ul>
+				<li><a href="#Create">Creating PLM Channel</a></li>
+				<li><a href="#DataExchange">Exchanging Data and Ownership</a></li>
+				<li><a href="#Delete">Deleting PLM Channel</a></li>
+			</ul>
+			</li>
+			<li><a href="#Implementation">PLM Channel - Implementation</a>
+			<ul>
+				<li><a href="#StepCreate">Creating PLM Channel</a>
+				<ul>
+					<li><a href="#Generate">Generating Business Card </a></li>
+					<li><a href="#Initialize">Initializing PLM Channel </a></li>
+					<li><a href="#Finalize">Finalizing PLM Channel</a></li>
+					<li><a href="#Acknowledge">Acknowledging PLM Channel Creation</a></li>
+				</ul>
+				</li>
+				<li><a href="#DataExchangeImpl">Exchanging Data and Ownership</a>
+				<ul>
+					<li><a href="#Publish">Publish</a></li>
+					<li><a href="#Synchronize">Synchronize</a></li>
+					<li><a href="#AcknowledgeExchange">Acknowledge Exchange</a></li>
+				</ul>
+				</li>
+				<li><a href="#DeleteImpl">Deleting PLM Channel </a></li>
+			</ul>
+			</li>
+			<li><a href="#Limitations">Limitations</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="PLM Channel"></a>An Introduction to PLM Channel</h2>
+<p>A PLM channel is an Exchange medium created between two specific repositories, 
+to allow optimized back and forth data exchange and ownership transfers of PLM Entities. 
+Exchange will be realized on a Dassault Systems proprietary file format, referred 
+to as a PLM Briefcase. A Repository is the VPLM database containing persistent storage 
+of PLM data.</p>
+<p>Imagine a car manufacturer (Site1) working with a supplier (Site 2). By creating 
+a dedicated channel between Site1 and Site2, the manufacturer can collaborate with 
+its supplier. He can send parts of the car design to allow the supplier to create 
+their own parts of the car. The manufacturer can also transfer the ownership of 
+some parts to the supplier, to allow the supplier to modify them.</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Exchanging Data using PLM Channel</caption>
+	<tr>
+		<td>
+		<img alt="Exchanging Data using PLM Channel" src="images/CAASrmTaSupplyChainIntro.jpg">
+		</td>
+	</tr>
+</table>
+<p>[<a href="#Fig.1">Fig.1</a>] depicts this data/ownership transfer happening across 
+two sites Site1 and Site2. Now, the data exchange can be intra or inter enterprise.</p>
+<p><strong>Intra enterprise Data exchange</strong> is done between two sites of 
+the same company. Both sites have the same P&amp;O, the same business rules in term 
+of life cycle or process and customization. Both sites have their own PLM repository.</p>
+<p><strong>Inter enterprise Data exchange</strong> is done between two sites of 
+different companies. The sites have their own PLM environment, with different P&amp;O, 
+different business rules in term of life cycle or process and different customization</p>
+<p>Exchanging data between the two sites involves initializing the PLM Channel correctly 
+on both the repositories, activating this PLM Channel and finally exchanging data 
+between the two repositories, using this PLM Channel.</p>
+<p>The next section will deeply deal in understanding the working of PLM Channel 
+(<a href="#Concepts">Concepts</a>).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Concepts"></a>PLM Channel - Concepts</h2>
+<p>Exchanging data between two repositories begin with creating an active PLM Channel 
+and then the actual data exchange takes place . The whole PLM Channel process primarily 
+consists of three steps - Creating PLM Channel , Exchanging Data/Ownership using 
+it and Deleting PLM Channel. The conceptual details of these steps are illustrated 
+in this section.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Create"></a>Creating PLM Channel</h3>
+<table>
+	<caption><a name="Fig.2">Fig.2</a> Creating PLM Channel</caption>
+	<tr>
+		<td>
+		<img alt="PLM Channel" src="images/CAASrmTaSupplyChainPLMChannel.jpg">
+		</td>
+	</tr>
+</table>
+<p>[<a href="#Fig.2">Fig.2</a>] depicts two sites Site1 and Site2, which are involved 
+in a data/ownership transfer. The process to create a PLM Channel could be initiated 
+from either of these sites.</p>
+<ol>
+	<li>
+	<p><strong>Generating Business card:</strong> The 2 repositories between which 
+	the PLM Channel is to be created, have to be clearly identified. The channel 
+	creation process uses the notion of business card, a file describing the unique 
+	identification of its repository. Here, Site 2 generates a business card to 
+	identify itself and sends it to Site1 .The implementation details are illustrated 
+	in (<a href="#Generate">Generate</a>).</p>
+	</li>
+	<li>
+	<p><strong>Initializing PLM Channel:</strong> Site 1 administrator receives 
+	the business card of Site 2 and decides to initiate a PLM Channel with Site 
+	2. The initialization requires the business card of Site 2 repository and generates 
+	an exchange request file that will be sent to Site 2, to inform it that a Channel 
+	has been initialized. The implementation details are illustrated in (<a href="#Initialize">Initialize</a>).</p>
+	</li>
+	<li>
+	<p><strong>Finalizing PLM Channel :</strong> Site 2 administrator receives the 
+	exchange request file. He can choose to accept and confirm the PLM Channel creation 
+	or refuse it. The finalization requires the exchange request file and generates 
+	a creation confirmation file that will be sent to Site 1. The creation confirmation 
+	file contains the acceptance or refusal information from Site 2. The implementation 
+	details are illustrated in (<a href="#Finalize">Finalize</a>).</p>
+	</li>
+	<li>
+	<p><strong>Acknowledging PLM Channel Creation :</strong> Site 1 administrator 
+	processes the received confirmation file and activates or deactivates the channel 
+	accordingly. The implementation details are illustrated in (<a href="#Acknowledge">Acknowledge</a>).
+	</p>
+	</li>
+</ol>
+<p>When all the above steps are performed successfully , we have an activated PLM 
+Channel which is ready to exchange data between the two repositories which is described 
+in the next section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="DataExchange"></a>Exchanging Data and Ownership</h3>
+<table>
+	<caption><a name="Fig.3">Fig.3</a> Data/Ownership Exchange</caption>
+	<tr align="left">
+		<td>
+		<img alt="Data/Ownership Exchange" src="images/CAASrmTaSupplyChainDataExchange.jpg"></td>
+	</tr>
+</table>
+<p>Once the PLM Channel is active, the next step is to actually exchange data/ transfer 
+ownership between sites. [<a href="#Fig.3">Fig.3</a>] depicts the process of Data 
+Exchange. The exchange consists of primarily the steps listed below:</p>
+<ol>
+	<li><strong>Publish</strong>: Publish extracts PLM data to be exchanged, at 
+	Sender site and published it through the PLM Channel. It generates a PLMBriefcase 
+	file containing the exchange data. Briefcases are physical files including a 
+	full data description. They are relative to a channel.
+	<p>While publishing the data , repository site can also transfer the PLM Entity 
+	ownership to the other site using the concept of &quot;<strong>Site Ownership transfer</strong>&quot;. 
+	The Site ownership transfer is a mechanism that allows transferring the exclusive 
+	capability to edit a PLM entity to another repository. Site ownership is based 
+	on the notion of edition tokens. Each PLM entity has a unique edition token 
+	that is required for modification. The PLM entity can be replicated inside an 
+	arbitrary number of repositories, but only one repository can own the edition 
+	token at a given point in time.</p>
+	<p>Transferring the site ownership will occur in the following 2 cases : </p>
+	<ul>
+		<li><strong>Transferring the site ownership to a repository having a lower 
+		dictionary level </strong>
+		<p>While transferring data to a lower dictionary level, creation of
+		<strong>Weakened </strong>entity may happen. &#8220;<strong>Weakened</strong>&#8221; 
+		characterizes a replicated copy of the PLM entity for which CD information 
+		is degraded compared to the master copy (entity in the repository owning 
+		the site ownership).</p>
+		<p>Transferring the site ownership to a repository that has a lower dictionary 
+		level is dangerous because it may create a weakened copy that may become 
+		the master copy at the end of the synchronization. This makes data loss 
+		irreversible because the weakened copy will replace all the others. Therefore 
+		the site ownership transfer is not allowed to a site with a lower dictionary 
+		level.</p>
+		</li>
+		<li><strong>Transferring the site ownership to a repository having a high 
+		dictionary level</strong>
+		<p>Once the site ownership is transferred to the higher level dictionary 
+		repository, it is not possible to send it back to the lower level dictionary 
+		repository</p>
+		<p><strong>Recommended</strong>: All repositories that are connected through 
+		a PLM Channel share the same dictionary level.</p>
+		</li>
+	</ul>
+	<p><strong>To complete the ownership transfer during Publish :</strong> </p>
+	<ul>
+		<li>The repository must have the ownership of all the PLM Entities.</li>
+		<li>All the PLM entities are unlocked. </li>
+		<li>There is no transfer request on any data to publish.</li>
+	</ul>
+	<p>The Publish operation gives the option of transferring the site ownership 
+	of the entire published data to the other site. The implementation details of 
+	publish operation is illustrated in (<a href="#Publish">Publish</a>).</p>
+	</li>
+	<li><strong>Synchronize :</strong> Synchronize updates PLM data at Receiver 
+	site with the content of the PLMBriefcase file received from Sender. An acknowledgement 
+	file is generated during the synchronization process. This file captures the 
+	operations done during synchronization of the PLM Channel.
+	<p>The synchronize operation will<strong> import as reference</strong> (&#8220;import 
+	as new&#8221; is not available) all PLM data included in the briefcase: </p>
+	<ul>
+		<li>New data is created.</li>
+		<li>Existing data are updated (with new modifications only).</li>
+		<li>Deletion is propagated on entities aggregated under published components. 
+		Instances, ports and connections will be deleted if necessary</li>
+		<li>Replicated data created by synchronization are not editable in receiving 
+		repository, except if site ownership transfer was requested. </li>
+		<li>Extended Enterprise attributes are still editable. These attributes 
+		are not exchanged, but are local to the repository</li>
+	</ul>
+	<p>The implementation details of Synchronize operation is illustrated in (<a href="#Synchronize">Synchronize</a>).</p>
+	<br>
+	</li>
+	<li><strong>AcknowledgeExchange :</strong> This operation updates the synchronization 
+	status at Sender site, based on the acknowledgement file received from Receiver, 
+	completing the data exchange transaction .Its implementation details is illustrated 
+	in (<a href="#AcknowledgeExchange">AcknowledgeExchange</a>).</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Delete"></a>Deleting PLM Channel</h3>
+<table>
+	<caption><a name="Fig.4">Fig.4</a> Delete the PLM Channel</caption>
+	<tr>
+		<td>
+		<img alt="Delete the PLM Channel" src="images/CAASrmTaSupplyChainDelete.jpg">
+		</td>
+	</tr>
+</table>
+<p>At any time sender/receiver can delete PLM Channel on its own side. Implementation 
+is detailed under (<a href="#DeleteImpl">Delete</a>).</p>
+<p>The next section will explain you in detail the various steps of creating PLM 
+Channel (<a href="#StepCreate">CreateImplementation</a>) , Exchanging Data and Ownership 
+using PLM Channel (<a href="#DataExchangeImpl">DataExchangeImplementation</a>) and 
+Deleting the PLM Channel (<a href="#DeleteImpl">DeleteImplementation</a>). </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Implementation"></a>PLM Channel - Implementation</h2>
+<p>The steps involved in the CAA Customization to exchange data and transfer ownership 
+between two sites are listed below:</p>
+<ul>
+	<li><a href="#StepCreate">Creating PLM Channel</a></li>
+	<li><a href="#DataExchangeImpl">Exchanging Data and Ownership</a></li>
+	<li><a href="#DeleteImpl">Deleting PLM Channel</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="StepCreate"></a>Creating PLM Channel</h3>
+<p>This section deals with creating and activating the PLM Channel. Refer the section 
+(<a href="#Create">Create</a>)for the conceptual overview of PLM Channel creation.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Generate"></a>Generating Business Card</h4>
+<p>As depicted in [<a href="#Fig.2">Fig.2</a>] ,the first step of PLM Channel creation 
+involves creation of a Business Card by one of the two sites involved in this transaction. 
+A Business Card is a XML file describing the unique identification of a VPLM Repository.</p>
+<pre class="code">
+  CATPLMExchangeChannelServices* pExchangeChannelServices = 
+    			new <strong>CATPLMExchangeChannelServices</strong>();
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>GenerateBusinessCard</strong>(businessCard);</pre>
+<p>The <code>CATPLMExchangeChannelServices::GenerateBusinessCard</code>() call returns 
+a Business Card of the VPLM Repository , to which the current process is connected 
+to. The Use Case &quot;<strong>Generating a Business Card</strong>&quot; [<a href="#References">1</a>] 
+delves into the depth of this CAA Exposed Class/API. Site sends this business card 
+( through email , file transfer etc ) to the other site who will then process the 
+business card to initialize the PLM Channel . A sample business card contents are 
+as depicted below:</p>
+<p><strong>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;<br>
+&lt;BUSINESSCARD Version=&quot;1.0&quot; RepoID=&quot;C9415CDA000015A84D91857C00000004&quot; RepoName=&quot;TST&quot;/&gt;</strong></p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Initialize"></a>Initializing PLM Channel</h4>
+<p>When a site receives the business card(<a href="#Generate">Generate</a>) of the 
+other site, it decides to initiate the PLM channel creation taking business card 
+as the input ( depicted in [<a href="#Fig.2">Fig.2</a>]). While initialization, 
+a unique identification of PLM Channel is computed by the server and returned as
+<strong>ochannelId</strong> , an output parameter of the <code>InitializeChannelCreation</code> 
+method ( see the code below ). Please note that the PLM Channel Identificator is 
+computed only once during the whole PLM Channel process. This <strong>oChannelID</strong> 
+is kept by the current site , to be used for publishing the data.</p>
+<pre class="code">
+  CATPLMExchangeChannelServices* pExchangeChannelServices = 
+  			  new <strong>CATPLMExchangeChannelServices</strong>();
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>InitializeChannelCreation</strong>
+  			   (businessCardPath, exchangeRequestPath, <strong>ochannelId</strong>);</pre>
+<p>The <code>CATPLMExchangeChannelServices::InitializeChannelCreation</code>() call 
+generates an Exchange Request file ( containing Channel identificator Information 
+which is sent ( through email, file transfer etc ) to the other site , to inform), 
+that the PLM Channel has been initialized. The Use Case &quot;<strong>Initializing PLM 
+Channel</strong>&quot;[<a href="#References">2</a>] delves into the depth of this CAA 
+Exposed Class/API. The Exchange request file is used by the other site for finalizing 
+the PLM Channel.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Finalize"></a>Finalizing PLM Channel</h4>
+<p>When the Exchange Request file ( generated during initializing the PLM channel 
+at the other site ( <a href="#Initialize">Initialize</a>) ) is received at a site, 
+it will then finalize the PLM Channel ( depicted in [<a href="#Fig.2">Fig.2</a>]). 
+The site can choose to accept and confirm the PLM Channel creation or refuse it.</p>
+<pre class="code">  CATPLMExchangeChannelServices* exchangeChannelServices =
+  			  new <strong>CATPLMExchangeChannelServices</strong>();
+  HRESULT Rc=exchangeChannelServices-&gt;<strong>FinalizeChannelCreation</strong>
+  	  (iexchangeRequestFile,iforceRefuse,icreationConfirmationFile,<strong>ochannelId</strong>);</pre>
+<p>The <code>CATPLMExchangeChannelServices::FinalizeChannelCreation</code>() call 
+generates a confirmation file accepting or refusing the PLM Channel connection., 
+which is sent ( through email , file transfer etc ) to the other site , to inform 
+that the PLM Channel has been initialized. The Use Case &quot;<strong>Finalizing PLM 
+Channel</strong>&quot; [<a href="#References">3</a>] delves into the depth of this CAA 
+Exposed Class/API.</p>
+<p>Confirmation file is sent to the other site to inform that the PLM channel is 
+accepted . The other site will then acknowledge the PLM Channel creation using confirmation 
+file as the input.</p>
+<p>Please note that the PLM Channel identificator is not computed during finalizing 
+PLM Channel . It is only getting retrieved here from the Exchange request file and 
+returned as an output information through the call <code>CATPLMExchangeChannelServices::FinalizeChannelCreation</code>. 
+This <strong>oChannelID</strong> is kept by the current site , to be used for publishing 
+the data.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Acknowledge"></a>Acknowledging PLM Channel Creation</h4>
+<p>When the PLM Channel is initialized (<a href="#Initialize">Initialize</a>) and 
+finalized (<a href="#Finalize">Finalize</a>)( depicted in [<a href="#Fig.2">Fig.2</a>]) 
+successfully, the final step of PLM Channel creation is Acknowledge the PLM Channel 
+When a site receives a confirmation file, it activates or deprecates the PLM Channel. 
+accordingly.</p>
+<pre class="code">  CATPLMExchangeChannelServices* pExchangeChannelServices = new <strong>CATPLMExchangeChannelServices</strong>();
+
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>AcknowledgeChannelCreation</strong>
+  				   (icreationConfirmation,ochannelId,oreport);</pre>
+<p>The <code>CATPLMExchangeChannelServices::FinalizeChannelCreation</code>() call 
+generates a report with the creation or refusal information from the other site. 
+The Use Case &quot;<strong>Acknowledging PLM Channel</strong>&quot; [<a href="#References">4</a>] 
+delves into the depth of this CAA Exposed Class/API. Once the PLM channel is activated, 
+it can be used to transfer the data between the two repositories.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="DataExchangeImpl"></a>Exchanging Data and Ownership</h3>
+<p>This section involves how the data exchange takes place between the two sites. 
+Refer the section (<a href="#DataExchange">DataExchange</a>) for the conceptual 
+overview of Data exchange.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Publish"></a>Publish</h4>
+<p>Once the PLM Channel is created and activated successfully , data can now be 
+exchanged between the two sites .Sender begins the process of data exchange by publishing 
+the PLM entities ( as depicted in [<a href="#Fig.3">Fig.3</a>] ). At Sender site, 
+the channel identification is retrieved and the PLM data to be exchanged is extracted. 
+Sender then publishes the data.</p>
+<p>We propose two kinds of publishing with the <em>CATPLMExchangeChannelServices</em> 
+class:</p>
+<ul>
+	<li>Publication of references and representations with an automatic expand of 
+	the structure : <code>PublishExchange </code>(The Use Case &quot;Publish Data Exchange 
+	through PLM Channel&quot; [<a href="#References">5</a>] delves into the depth of 
+	this case [<a href="#References">5</a>]).</li>
+	<li>Publication of references, instances, representations and representation 
+	instances without any expand : <code>PublishExchangeWithoutExpand.</code> If 
+	a completion is done in order to send all necessary data, and expand on the 
+	Reference object is&nbsp; not done.</li>
+</ul>
+<p>The second one enables the company to send less objects per transfer, so time&#39;s 
+transfer are optimized, and the count of transfer site ownership are reduced.</p>
+<p>The two methods have the same arguments: </p>
+<pre class="code">  CATPLMExchangeChannelServices* pExchangeChannelServices=  new <strong>CATPLMExchangeChannelServices</strong>();
+			    
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>Publish</strong>xxx
+  	   (ichannelID,<strong>iInputIdentifier</strong>,idate,itransferOwnership,ibriefcaseFilePath);</pre>
+<p>Using <code>PublishExchange, </code><strong><code>iInputIdentifier </code>
+</strong>can<strong><code> </code></strong>only contain PLM Reference and/or PLM 
+Representation Reference, while for <code>PublishExchangeWithoutExpand </code>it 
+can contain PLM Reference, PLM Representation Reference, PLM Instance and/or PLM 
+Representation Instance. In both cases, the list of input objects to send (a list 
+of CATIAdpPLMIdentificator) can be from any kind modeler.</p>
+<p>The <code>CATPLMExchangeChannelServices::Publish</code>xxx() 
+call generates a PLMBriefcase file which contains the data to exchange with the 
+Receiver. Sender can also transfer the ownership of PLM entity during publish using
+<strong>transferOwnership</strong> ( fourth parameter to the Publishxxx api above) 
+. Its a boolean parameter whose value if set TRUE will allow the site ownership 
+transfer of the published data. Refer the section to get the details (<a href="#DataExchange">DataExchange</a>)of 
+site ownership transfer. Once the published PLM entities are sent by the Sender, 
+these PLM entities are then synchronized at the Receiver.</p>
+<p><strong>Note:</strong> It is not possible to cancel the site ownership transfer 
+when Publish has been performed. </p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Synchronize"></a>Synchronize</h4>
+<p>As depicted in [<a href="#Fig.3">Fig.3</a>], once the data is published (<a href="#Publish">Publish</a>) 
+by the Sender, the next step of data exchange is Synchronizing the PLM data at Receiver. 
+In this step, a confirmation file is generated which is sent to the Sender site.</p>
+<pre class="code">  CATPLMExchangeChannelServices* pExchangeChannelServices = new <strong>CATPLMExchangeChannelServices</strong>();
+			    
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>SynchronizeExchange</strong>
+  	     (ibriefcaseFilePath,iacknowledgementFilePath,isynchroEnv,ochannelId);</pre>
+<p>The <code>CATPLMExchangeChannelServices::SynchronizeExchange</code>() call generates 
+a Confirmation file (A PLMBriefCase file containing operations done during the synchronization). 
+The Use Case &quot;<strong>Synchronize the Data Exchange through PLM Channel</strong>&quot; 
+[<a href="#References">6</a>] delves into the depth of this CAA Exposed Class/API. 
+The confirmation file is sent to the Sender who will acknowledge the Data Exchange 
+and completes the process of data exchange.</p>
+<p><strong>Note</strong>:</p>
+<ul>
+	<li>A PLM entity can be imported only if its top modeler type is known in the 
+	target dictionary and if this modeler type is available in the chosen import 
+	PLM environment.</li>
+	<li>The receiver should handle briefcases in publish order.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="AcknowledgeExchange"></a>Acknowledge Exchange</h4>
+<p>When the data is published (<a href="#Publish">Publish</a>) and synchronized 
+(<a href="#Synchronize">Synchronize</a>) (as depicted in [<a href="#Fig.3">Fig.3</a>]), 
+the Sender then completes the data exchange process by acknowledging the data exchange.</p>
+<pre class="code">
+  CATPLMExchangeChannelServices* pExchangeChannelServices = 
+  			    new <strong>CATPLMExchangeChannelServices</strong>();
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>AcknowledgeExchange</strong>
+  			     (iacknowledgementFile,ochannelId,oreport);</pre>
+<p>The <code>CATPLMExchangeChannelServices::AcknowledgeExchange</code>() call generates 
+a Report<a> file</a>( generated with the synchronization status from Receiver). 
+The Use Case &quot;<strong>Acknowledge Data Exchange through PLM Channel</strong>&quot; [<a href="#References">7</a>] 
+delves into the depth of this CAA Exposed Class/API.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="DeleteImpl"></a>Deleting PLM Channel</h3>
+<p>As depicted in [<a href="#Fig.4">Fig.4</a>], At any time sender/receiver can 
+delete PLM Channel on its own side . You can also refer the section (<a href="#Delete">Delete</a>) 
+for the conceptual details.</p>
+<pre class="code">
+  CATPLMExchangeChannelServices* pExchangeChannelServices = 
+  			    new <strong>CATPLMExchangeChannelServices</strong>();
+  HRESULT Rc = pExchangeChannelServices-&gt;<strong>RemoveExchangeChannel</strong>
+  			            (channelId, DeletionFilePath);</pre>
+<p>This method should be called on each site to remove the PLM Channel. </p>
+<p><strong>Note:</strong></p>
+<ul>
+	<li>Once the Channel is deleted between the two repository sites , then the 
+	channel can be recreated using the same Business Card . It means that the PLM 
+	Channel creation process will now begin with <strong>Initializing </strong>the 
+	PLM Channel at any of the two sites (<a href="#Initialize">Initialize</a>).</li>
+	<li>PLM Channel at a site can be destroyed as soon as it is created. Yet, site 
+	destruction will be temporarily forbidden if there is any site ownership transfer 
+	transactions on-going, to avoid situations were such a transaction cannot be 
+	completed. This method will fail if a transfer ownership has not been confirmed. 
+	In this case, it would not be possible to know which side is in charge of the 
+	PLM entity.</li>
+</ul>
+<p>Nevertheless, in case a briefcase is received after a side has been destroyed, 
+the site with the destroyed side does not have to synchronize with the new revision. 
+It just has to send the deletion file to the emitter site. By synchronizing the 
+emitter side, all on-going transfers are cancelled (if the emitter site has transferred 
+the site ownership of some data, then by receiving the deletion file, it retrieves 
+the site ownership of these data).</p>
+<p><strong>Note</strong>: The files can be sent through any medium like email, file 
+transfer etc. The files generated during Channel formation cannot be interchangeably 
+used for channel creation with other sites. Only the business card can be used to 
+initialize channel creation with any other site.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Limitations"></a>Limitations</h2>
+<ul>
+	<li><strong>The site ownership transfer is forbidden on weakened PLM entities</strong> 
+	- It is highly recommended to use the same dictionary level repositories in 
+	the context of a PLM Channel. In case of different dictionary levels between 
+	repositories, it might not be possible to retrieve the site ownership once transferred 
+	because of the possible data degradation during downward exchanges.</li>
+	<li><strong>The import/synchronize mechanism fails globally in case of any error. 
+	There is no partial mechanism to allow importing only a sub part of a PLM Briefcase</strong>.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article illustrates the Data exchange between the two sites using PLM Channel. 
+A PLM channel is an Exchange context created between two specific repositories, 
+to allow optimized back and forth data exchange and ownership transfers of PLM Entities. 
+Exchanging data between the two sites begins with creating the PLM Channel (<a href="#Create">Create</a>) 
+correctly on both the repositories , activating it and then this activated PLM Channel 
+is used to exchange data (<a href="#DataExchange">DataExchange</a>) between the 
+two repositories.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAASrmUcGenerateBusinessCardForChannel.htm">Generating a Business 
+		Card</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAASrmUcInitializeChannelCreation.htm">Initializing a PLM Channel</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAASrmUcFinalizeChannelCreation.htm">Finalizing a PLM Channel</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAASrmUcAcknowledgeChannelCreation.htm">Acknowledging the PLM 
+		Channel Creation</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAASrmUcPublishExchangeThroughChannel.htm">Publishing a PLM 
+		Entity through a PLM Channel</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAASrmUcSynchronizeExchangeThroughChannel.htm">Synchronizing 
+		a PLM Channel</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAASrmUcAcknowledgeExchangeThroughChannel.htm">Acknowledging 
+		Data Exchange through a PLM Channel</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,481 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Working with External Links</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+ 
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Working with External Links</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the <code>CAAFmExtWorkingWithExternalLinks
+		</code>use case. It primarily illustrates resolving an external link. In 
+		the process it analyses the link resolution status, and retrieves the target 
+		(referenced feature), if possible. A basic understanding of an External 
+		Link is a prerequisite to realize the relevance of the current Use Case 
+		[<a href="#References">1</a>].</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmExtWorkingWithExternalLinks Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmExtWorkingWithExternalLinks Do</a></li>
+				<li><a href="#How">How to Launch CAAFmExtWorkingWithExternalLinks
+				</a></li>
+				<li><a href="#Where">Where to Find the CAAFmExtWorkingWithExternalLinks 
+				Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>Users will learn primarily to</p>
+<ul>
+	<li>Retrieve a target feature, that pointed to by an external link. In other 
+	words resolve an external link</li>
+	<li>Retrieve the Link Resolution status under various conditions listed below:<ul>
+		<li>Component containing the target feature not loaded in session.</li>
+		<li>Target Feature not loaded in session.</li>
+		<li>Target feature loaded in session.</li>
+		<li>Target Feature destroyed.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="UseCase"></a>The CAAFmExtWorkingWithExternalLinks Use Case</h2>
+<p><code>CAAFmExtWorkingWithExternalLinks </code>is a use case of the <code>CAAFeatureModelerExt.edu</code> 
+framework that illustrates <code>FeatureModelerExt</code> framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmExtWorkingWithExternalLinks Do</h3>
+<p>The UC is based on the feature model defined below [<a href="#Fig.1">Fig. 1</a>]. 
+The model consists of two Product Representation Reference, a source and a target. 
+The &quot;<strong>CAAFmExtExternalLinkBookReader</strong>&quot; (Reader) feature in the source, 
+has an external link that points to the &quot;<strong>CAAFmExtExternalLinkBook</strong>&quot; 
+(Book) feature, in the target. The external link is realized by valuating the external 
+attribute &quot;<strong>CAAFmExtBookRead</strong>&quot; of the Book Reader feature.</p>
+<p>Both these features are defined in the catalog &quot;<strong>CAAFmExtExternalLinkCatalog</strong>&quot;.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig.1 Referred Feature Model</caption>
+	<tr>
+		<td>
+		<img alt="Referred Feature Model" src="images/CAAFmExtWorkingWithExternalLink_Fig1.jpg"></td>
+	</tr>
+</table>
+<p></p>
+<p>The UC simply retrieves the target feature (Book), that an external link points 
+to. In other words, it resolves the external link, and retrieves the link resolution 
+status, under various conditions.</p>
+<p>The UC Execution proceeds as listed below:</p>
+<ul>
+	<li>It loads the source Rep Ref in session. It retrieves the Applicative Container 
+	which implies loading the features contained within it, in the current session.</li>
+	<li>It creates a Facade over the retrieved Applicative Container, scans through 
+	it to retrieve the feature &quot;<code>Book Reader</code>&quot;.</li>
+	<li>It next resolves the external link of the Book Reader feature. In other 
+	words, it attempts to retrieve the <code>Book</code> feature that the <code>
+	Book Reader </code>refers to.</li>
+	<li>Since the target Rep Ref is not yet loaded in session, the link resolution 
+	status depicts &quot;<code>Component not in session</code>&quot;.</li>
+	<li>We load the target Rep Ref in session. Though the target is in session, 
+	the <code>Book</code> feature contained within, does not exist in session, as 
+	yet, since it has to be explicitly loaded. As a result when we attempt resolving 
+	the external link, the link resolution status indicates that the target is not 
+	in session.</li>
+	<li>Next, we retrieve the applicative container of the target Rep Ref. This 
+	results in the target feature (<code>Book</code> ) to be loaded in the current 
+	session.</li>
+	<li>As a result, an attempt to resolve the external link of the &quot;<code>Book 
+	Reader</code>&quot; feature, succeeds. In other words, the link resolution status 
+	indicates the <code>target is found</code>.</li>
+	<li>Hence, we proceed to retrieve the target feature (<code>Book</code>).</li>
+	<li>We finally destroy the retrieved target feature (<code>Book</code>).</li>
+	<li>On attempting to resolve the external link this time, the link resolution 
+	status indicates <code>Link broken</code>. In other words, the target exists 
+	neither in session nor in the database that the current session is connected 
+	to.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAFmExtWorkingWithExternalLinks</h3>
+<p>To launch <code>CAAFmExtWorkingWithExternalLinks</code>, you will need to set 
+up the build time environment, then compile <code>CAAFmExtWorkingWithExternalLinks</code> 
+along with its prerequisites, set up the run time environment, and then execute 
+the sample. This is fully described in the referenced article [<a href="#References">2</a>].</p>
+<p>mkrun -c &quot;<code>CAAFmExtWorkingWithExternalLnk </code><em>Repository Server UserId 
+Password SecurityCtx PLMType PLMExternalIDValue1 majorrevision PLM_ExternalIDValue2</em>&quot;</p>
+<p>Where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(Since use case modifies PLM Data)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A PLM Type of the component to be loaded in session</td>
+	</tr>
+	<tr>
+		<th>PLMExternalIDValue_Source</th>
+		<td>The value of the <code>PLM_ExternalID</code> attribute for the source 
+		(where the <code>Book Reader</code> feature is instantiated)*</td>
+	</tr>
+	<tr>
+		<th>majorrevision</th>
+		<td>The value of the <code>majorrevision</code> attribute (common for both source and target)</td>
+	</tr>
+
+	<tr>
+		<th>PLMExternalIDValue_Target</th>
+		<td>The value of the <code>PLM_ExternalID</code> attribute for the target 
+		(where the <code>Book </code>feature is instantiated)*</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<p><strong>*</strong> The input model is retrieved by importing the <a><code>CAAFmExtWorkingWithExternalLinks.3dxml</code></a> 
+file from the <a><code>CAAFeatureModelerExt.edu</code></a> fwk.</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\InputData\CAAFmExtWorkingWithExternalLinks.3dxml</code></p>
+<p>where <code>InstallRootFolder </code>[<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML file contains two PLM Technological Representation whose attributes 
+are listed below:</p>
+<ul>
+	<li><a><code>PLM_ExternalID</code></a>: <code><strong>CAAFmExtCreatingExternalLink_3DShape1</strong></code>
+	</li>
+	<li><a><code>majorrevision</code></a>: A</li>
+	<li><a><code>PLM_ExternalID</code></a>: <code><strong>CAAFmExtCreatingExternalLink_3DShape2</strong></code></li>
+	<li><code>majorrevision: A</code></li>
+</ul>
+<p><strong>Attention</strong>: Please refer to the document [<a href="#References">3</a>] 
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAFmExtWorkingWithExternalLinks Code</h3>
+<p><code>CAAFmExtWorkingWithExternalLinks </code>code is located in the <code>CAAFmExtWorkingWithExternalLnk</code><code>.m</code> 
+use case module of the <code>CAAFeatureModelerExt.edu</code> framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtWorkingWithExternalLnk.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the root 
+folder of your API installation. It is made of a unique source file named <code>
+CCAAFmExtWorkingWithExternalLnk.cpp</code>.
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+</p>
+<p>In addition, the UC also refers to the Catalogs <code>CACAAFmExtExternalLinkCatalog.CATfct</code>. 
+The Catalogs are provided at the location</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CNext\resources\graphic</code></p>
+<p>and by running the mkrtv tool, user copies it to the WS RTV.</p>
+<p>In addition we have also provided the OSM files corresponding to these catalogs 
+at the location below, just in case you would like to generate the <code>CATfct</code> 
+with the <code>CATfctEditorAssistant</code> tool [<a href="#References">4</a>]</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\InputData</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The logical steps in <code>CAAFmExtWorkingWithExternalLinks</code> are listed 
+below:</p>
+<ul>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#1">Retrieving the External Object</a></li>
+	<li><a href="#2">Resolve External Link to retrieve external feature under various 
+	conditions</a><ul>
+		<li><a href="#3">External Component (containing the Book feature) Not Loaded 
+		in Session</a></li>
+		<li><a href="#4">Target (Book feature) Not Loaded in Session</a></li>
+		<li><a href="#5">Target (Book feature) Loaded in Session</a></li>
+		<li><a href="#6">Target (Book feature) Destroyed</a></li>
+	</ul>
+	</li>
+	<li><a href="#Prolog">Epilog</a></li>
+</ul>
+<p>We proceed to detail the steps involved.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The fundamental steps to create a batch session with a connection to an input 
+repository [<a href="#References">3</a>]. Next we create the Credentials object 
+which authorize working with the features defined in the &quot;<strong>CAAFmExtExternalLinkCatalog</strong>&quot;. 
+In addition we append this Credentials object with a Credential which authorizes 
+working with Applicative Containers defined by the Feature Modeler. [<a href="#References">5</a>]</p>
+<p>Next we load in session the source PLM Technological Representation, which has 
+the Reader feature contained within [<a href="#References">6</a>]. Since the feature 
+has to be explicitly loaded in session, we retrieve the Applicative Container within 
+which the feature is instantiated. It results in loading the Reader feature in session. 
+[<a href="#References">7</a>]. The Reader feature is thus available as <code>FeatFacadeOnBookReader</code>, 
+a <em>CATFmFeatureFacade</em> type.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="1"></a>Retrieving the External Object</h3>
+<p>As depicted in the [<a href="#Fig.1">Fig.1</a>] in the &quot;<strong>What does the 
+UC do</strong>&quot; section our model consists of a &quot;Book Reader&quot; feature which has 
+an external link, referencing the Book feature. In the current step, we attempt 
+to resolve this external link. We begin by retrieving the value of the external 
+attribute &quot;<strong>CAAFmExtBookRead</strong>&quot; of the Reader feature.</p>
+<pre class="code">CATFmAttributeValue AttrValueStoringBookFeat;
+<strong>CATFmAttributeName AttrName(&quot;CAAFmExtBookRead&quot;)</strong>;
+rc = <strong>FeatFacadeOnBookReader.GetValue</strong>(AttrName,<strong>AttrValueStoringBookFeat</strong>);
+if (FAILED(rc)) return 1;</pre>
+<p>The <code>GetValue</code>() call of the <em>CATFmFeatureFacade</em> class retrieves 
+an attribute value. We invoke it on <code>FeatFacadeOnBookReader</code>, a <em>CATFmFeatureFacade</em> 
+type retrieved from the source Rep Ref loaded in session, earlier.</p>
+<p>The external attribute &quot;<strong>CAAFmExtBookRead</strong>&quot; is identified by AttrName, 
+a <em>CATFmAttributeName</em> type, is the first argument to the call. The call 
+outputs an Attribute Value equivalent of the target feature, <code>AttrValueStoringBookFeat</code>, 
+a <em>CATFmAttributeValue</em> type. We proceed to extract the target feature from 
+its Attribute Value equivalent.</p>
+<pre class="code"><strong>CATOmbObjectInContext* poObjInContext</strong> = NULL; 
+rc = <strong>AttrValueStoringBookFeat.GetExternalObject(poObjInContext)</strong>;
+if (SUCCEEDED(rc) || (NULL != poObjInContext)) return 1;</pre>
+<p>The call to <code>GetExternalObject</code>() of the <em>CATFmAttributeValue</em> 
+class, outputs the pointed external feature. A feature typically exists in a context, 
+which could either be simply an aggregated Rep Ref or an aggregating root Product, 
+in which case the context is defined by a path of instances and a Rep Instance. 
+In the current case, the context is represented by <code>poObjInContext</code>, 
+a <em>CATOmbObjectInContext</em> type.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2"></a>Resolving External Link to retrieve External Feature under various 
+conditions</h3>
+<p>The <code>HRESULT</code> return of the <code>GetExternalObject</code>() call 
+in the earlier section has a special significance, since it enables us retrieve 
+the external link resolution status, as depicted by the code that follows</p>
+<pre class="code"><strong>CATOmbLinkStatusServices::LinkResolutionStatus linkStat</strong>;
+rc = <strong>CATOmbLinkStatusServices::GetLinkStatusFromRc(rc,linkStat)</strong>;</pre>
+<p>The link resolution status is represented by <code>linkStat</code>, an enum type 
+(<code>LinkResolutionStatus</code>), defined in the scope of the <em>CATOmbLinkStatusServices</em> 
+class.</p>
+<p>Various possible conditions exist, as listed below, each resulting in its own 
+distinct link resolution status as detailed in the steps that follow</p>
+<ul>
+	<li><a href="#3">External Component (containing Book) loaded in session</a></li>
+	<li><a href="#4">Component loaded in session while Target feature not in session</a></li>
+	<li><a href="#5">Target feature (Book) loaded in session</a></li>
+	<li><a href="#6">Target feature (Book) destroyed</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="3"></a>External Component (containing the Book feature) Not In Session</h4>
+<p>Until this stage, we have loaded only the source Rep Ref, containing the
+<code>Book Reader </code>feature, in session. The target Rep Ref with the <code>
+Book</code> in it, does not exist, as yet in our session. </p>
+<pre class="code">if (FAILED(rc) || (<strong>CATOmbLinkStatusServices::Component_NotInSession != linkStat</strong>)) <strong>return 1</strong>;</pre>
+<p>As a result, the link resolution status at this stage is represented by
+<strong>Component_NotInSession</strong>, an enum value defined in the scope of the
+<em>CATOmbLinkStatusServices</em> class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="4"></a>Target (Book Feature) Not In Session</h4>
+<p>In the previous step though we loaded the Component in session, the <code>Book
+</code>feature contained within does not exist in session, since it has to be explicitly 
+loaded if required. We now attempt to resolve the external link and analyze the 
+resolution status, under these circumstances.</p>
+<pre class="code">rc = FeatFacadeOnBookReader.GetValue(AttrName,AttrValueStoringBookFeat);
+if (FAILED(rc)) return 1;</pre>
+<p>Yet again, we retrieve the value of the external attribute &quot;<strong>CAAFmExtBookRead</strong>&quot; 
+of the <code>Book Reader </code>feature. The return is stored in <code>AttrValueStoringBookFeat</code>, 
+a <em>CATFmAttributeValue</em> type, defined earlier and being reused. </p>
+<p>We proceed to extract the external feature from its Attribute Value equivalent, 
+with a call to <code>GetExternalObject</code>() of the <em>CATFmAttributeValue</em> 
+class.</p>
+<pre class="code">rc = <strong>AttrValueStoringBookFeat.GetExternalObject(poObjInContext)</strong>;
+if (SUCCEEDED(rc) || (<strong>NULL != poObjInContext)</strong>) <strong>return 1</strong>;</pre>
+<p>Since the target feature (<code>Book </code>) is not loaded in session, we obviously 
+do not expect a return in <code>poObjInContext</code>, a <em>CATOmbObjectInContext</em>* 
+type, confirmed by the check above. The <code>HRESULT</code> type returned (rc) 
+enables us to further analyse the link resolution status.</p>
+<pre class="code">rc = CATOmbLinkStatusServices::GetLinkStatusFromRc(rc,linkStat);
+if (FAILED(rc) || (<strong>CATOmbLinkStatusServices::Target_NotInSession != linkStat</strong>)) <strong>return 1</strong>;</pre>
+<p>The link resolution status in this case is represented by <strong>Target_NotInSession</strong>, 
+an enum value defined in the scope of the <em>CATOmbLinkStatusServices</em> class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="5"></a>Target (Book Feature) Loaded In Session </h4>
+<p>At this stage we have the target Rep Ref loaded in session. A significant point 
+to note here is that though a Rep Ref is loaded in session, one has to explicitly 
+load (retrieve) its applicative container to load its contained features in session. 
+This is accomplished with a call to <code>RetrieveApplicativeContainer</code>() 
+of the <em>CATIPLMNavRepReference</em> class, an Interface implemented by the Rep 
+Ref [#].</p>
+<p>Having done that, we repeat the steps depicted above to retrieve the external 
+attribute value of the Reader feature. We then proceed to extract the feature from 
+its <em>CATFmAttributeValue</em> equivalent, with a call to <code>GetExternalObject</code>() 
+API.</p>
+<pre class="code">rc = <strong>AttrValueStoringBookFeat.GetExternalObject(poObjInContext)</strong>;
+if (FAILED(rc) || (<strong>NULL == poObjInContext</strong>)) <strong>return 1</strong>;</pre>
+<p>This time, we retrieve a valid Object In Context, <code>poObjInContext</code>, 
+a <em>CATOmbObjectInContext</em> type. The <code>HRESULT</code> returned by this 
+call, is further analysed for the link resolution status.</p>
+<pre class="code">rc = <strong>CATOmbLinkStatusServices::GetLinkStatusFromRc</strong>(rc,linkStat);
+if (FAILED(rc) || (<strong>CATOmbLinkStatusServices::Target_Found != linkStat</strong>)) <strong>return 1</strong>;</pre>
+<p>The link resolution status in this case is represented by <strong>Target_Found</strong>, 
+an enum value defined in the scope of the <em>CATOmbLinkStatusServices</em> class. 
+Since the status depicts success in the link resolution, we proceed to retrieve 
+the target feature (<code>Book </code>) from its Object In Context equivalent (<code>poObjInContext</code>, 
+a <em>CATOmbObjectInContext</em>* type)</p>
+<pre class="code">CATBaseUnknown* piCBUOnBookFeat = NULL;
+rc = <strong>poObjInContext-&gt;GetObjectOutOfContext(piCBUOnBookFeat)</strong>;</pre>
+<p>The call to <code>GetObjectOutOfContext</code>() of the <em>CATOmbObjectInContext</em> 
+class, invoked on <code>poObjInContext</code>, returns the target feature (<code>Book</code>) 
+as a <em>CATBaseUnknown</em>* type (<code>piCBUOnBookFeat</code>).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="6"></a>Target (Book Feature) Destroyed</h4>
+<p>We finally have a case, where we destroy our target feature (<code>Book</code>). 
+In the earlier step, we retrieved the <code>Book </code>feature as a <em>CATBaseUnknown</em>* 
+type (<code>piCBUOnBookFeat</code>). But since the feature modeler secured access 
+mechanism, mandates that features be necessarily handled using their facades, we 
+proceed to create a feature facade bound to our <code>Book </code>feature.</p>
+<pre class="code"><strong>CATFmFeatureFacade</strong> <strong>FeatFacadeOnBook(MyCredential,piCBUOnBookFeat)</strong>;</pre>
+<p>Our <code>Book </code>feature facade is associated with the credentials,
+<code>MyCredential</code>, a <em>CATFmCredentials</em> type. This credentials authorizes 
+our facade to work with the <code>Book </code>feature. It is bound to an underlying
+<code>Book </code>feature, <code>piCBUOnBookFeat</code>, a <em>CATBaseUnknown</em>* 
+type we retrieved in the earlier step.</p>
+<p>We proceed to destroy the Book feature. </p>
+<pre class="code">rc = <strong>FeatFacadeOnBook.DeleteSelf()</strong>;</pre>
+<p>The call to <code>DeleteSelf</code>() of the <em>CATFmFeatureFacade</em> class 
+invoked on <code>FeatFacadeOnBook</code>, destroys the book feature. We follow the 
+same steps as detailed earlier to resolve the external link. Finally, we analyse 
+the external link resolution status, in the code that follows.</p>
+<pre class="code">rc = <strong>CATOmbLinkStatusServices::GetLinkStatusFromRc(rc,linkStat)</strong>;
+if (FAILED(rc) || (<strong>CATOmbLinkStatusServices::Link_Broken != linkStat</strong>)) <strong>return 1</strong>;</pre>
+<p>The link resolution status in this case is represented by <strong>Link_Broken</strong>, 
+an enum value defined in the scope of the <em>CATOmbLinkStatusServices</em> class.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>See the referenced article [<a href="#References">4</a>] for a detailed description 
+of the steps involved to save the session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The <code>CAAFmExtWorkingWithExternalLinks</code> Use Case illustrates resolving 
+an external link, a referencing link which points to an external feature. The link 
+resolution status is defined by an enum variable <code>LinkResolutionStatus</code> 
+defined in the scope of the <em>CATOmbLinkStatusServices</em> class.</p>
+<p>The Use Case refers to a feature model which consists of a Reader feature inside 
+a Techno Rep pointing to an external Book feature, inside another Techno Rep . The 
+method to resolve this external link to retrieve the target feature is a two step 
+process</p>
+<ul>
+	<li>Retrieve the value of an external attribute with a call to <code>GetValue</code>() 
+	of the <em>CATFmFeatureFacade</em> class. The return is a <em>CATFmAttributeValue</em> 
+	type, through which we retrieve the external feature</li>
+	<li>The call to <code>GetExternalFeature</code>() of the <em>CATFmAttributeValue</em> 
+	class, is primarily the API which resolves the external link. The <code>HRESULT</code> 
+	return of this call is further analysed to retrieve the Link Resolution Status</li>
+</ul>
+<p>The possible link resolution status are listed below, based on various possible 
+conditions</p>
+<ul>
+	<li><strong>Component_NotInSession</strong>, when the target Component is not 
+	loaded in session,</li>
+	<li><strong>Target_NotInSession</strong>, when the target feature does not exist 
+	in session</li>
+	<li><strong>Target_Found</strong>, when the target feature exists in session</li>
+	<li><strong>Link_Broken</strong>, if the target feature is destroyed</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaLinkingFeatures.htm">Understanding Link Attribute 
+		- 1</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtUcWorkingWithCredentials.htm">Working with Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAOsmUcCatalogSU.htm">Creating StartUps in Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstUcCreateAndInstantiateTechnoRep.htm')">
+		Creating PLM Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAFmExtUcAppliCont.htm">Working with Applicative Container</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Apr 2010]</td>
+		<td>Creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,572 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Displaying Publication's Target Information</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Displaying Publication's Target Information</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the CAAPstDisplayTargetInfo use case. This use 
+		case is meant for displaying the information associated with the Target 
+		pointed by the Publication in the Product Model. The Publication could point 
+		to an occurrence, a target (geometry or knowledge parameter) within a rep 
+		inst or another Publication.</p>
+		<p>We recommend that one understands the fundamentals of "Publication's 
+		Target" prior to studying this use case. A dedicated article on this topic 
+		exists with the title &quot;Creating Publication's Target&quot; [<a href="#References">3</a>].</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstDisplayTargetInfo Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAPstDisplayTargetInfo Do</a></li>
+					<li><a href="#How">How to Launch CAAPstDisplayTargetInfo</a></li>
+					<li><a href="#Where">Where to Find the CAAPstDisplayTargetInfo 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The primary objective of this use case is to familiarize the user with the API's 
+meant for displaying the information of Publication's Target within a Product Model.</p>
+<p>The use case ofcourse navigates the Product model to identify the Publication's &amp; 
+their associated Target's &amp; thus has calls to the Browsing api's. But as far 
+as this use case is concerned its primary objective is to focus in depth, on the 
+following topics.</p>
+<ul>
+	<li>Significance of loading the Rep ref associated with a Product model in an 
+		edit mode before we retrieve information of Target's(Geometry /Knowledge 
+		Parameter) pointed by the Publication inside a rep inst.</li>
+	<li>The ProductStructureInterfaces framework API's to retrieve the Target's 
+		pointed by the Publications, which includes the real Target as well as the 
+		final Target for a Publication on Publication.</li>
+	<li>The ObjectModelerBase framework API's to retrieve the Target's information 
+		(such as root reference, path of instances, transformation matrix, update 
+		contract, target object etc).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstDisplayTargetInfo Use Case</h2>
+<p>CAAPstDisplayTargetInfo is a use case of the CAAProductStructure.edu framework 
+that illustrates the ProductStructureInterfaces and ObjectModelerBase framework 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstDisplayTargetInfo Do</h3>
+<p>The use case, loads the Product Model, as the one shown in the fig below [<a href="#Fig1">Fig. 
+1</a>] in &quot;<strong>Authoring</strong>&quot; mode. In this mode, the entire Product model 
+which includes the base model ( comprising of the Root Reference &amp; the Product 
+Instances aggregated under it) is loaded with the associated Rep Instances &amp; 
+Publications.</p>
+<p>Also when the Product Reference is opened in &quot;<strong>Authoring</strong>&quot; mode, 
+the Rep Refs associated with this Product model are loaded in <strong>Visu</strong> mode. 
+The use case loads these Rep Refs in <strong>Edit</strong> mode, a prerequisite for proceeding 
+further, explained in detail in the section <a href="#Step21">Retrieving Rep Instances and Loading the Associated Rep 
+		Refs in Edit Mode</a>.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1 Input Product Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Product Model" src="images/CAAPstDisplayPLOInfo_InputModel.jpg"/></td>
+	</tr>
+</table>
+<p>The input model [<a href="#Fig1">Fig. 1</a>] has the Root Reference viz. CAAPstDisplayPLOInfoRoot, 
+with the following entities aggregated under it.</p>
+<ul>
+	<li>A Product Instance viz. CAAPstDisplayPLOInfoSub1.1. This is an instance 
+		of Ref viz. CAAPstDisplayPLOInfoSub1.</li>
+	<li>Three Publications viz. <strong>Port_On_Port_ToEmptyPort</strong>, an <strong>EmptyPort</strong> 
+		and a <strong>Port_On_Instance</strong>.</li>
+</ul>
+<p>The Reference CAAPstDisplayPLOInfoSub1 is associated with:</p>
+<ul>
+	<li>A Rep Inst viz. CAAPstDisplayPLOInfoRepSub1.</li>
+	<li>A Product Instance viz. CAAPstDisplayPLOInfoSub2.1. This is an instance 
+		of Ref viz. CAAPstDisplayPLOInfoSub2.</li>
+	<li>2 Publications viz. <strong>Port_On_Geom_WithoutFI</strong> and <strong>Port_To_EmptyPort</strong>.</li>
+</ul>
+<p>The Reference CAAPstDisplayPLOInfoSub2 is associated with:</p>
+<ul>
+	<li>A Rep Inst viz. CAAPstDisplayPLOInfoRepSub2.</li>
+	<li>A Publication viz. <strong>EmptyPort</strong>.</li>
+</ul>
+<p>The use case primarily retrieves the Publication's Target in a Product model 
+using the api of interface <em>CATIPrdPublication</em>, while the information associated 
+with the various Target's are retrieved through calls to api's of CATOmbObjectInContext 
+class.This use case thus outputs the information of all Target's associated with 
+various Publications in the input model.</p>
+<p>The <code>CATIPrdPublication::GetPointed</code> by default outputs the direct 
+Target pointed by the publication. This method also offers an unfolded view of a 
+Publication on Publication, thus imagining the existence of a single Publication 
+here , thus enabling the end user to retrieve the final target associated with Publication 
+on Publication. The target is retrieved in form of <code>CATOmbObjectInContext</code> 
+object.</p>
+<p>The information associated with the Publication's Target is output by making 
+the calls to the various api's of the class <code>CATOmbObjectInContext.</code></p>
+<p>Its recommended that user read the article &quot;Creating Publication's Target&quot; 
+[<a href="#References">3</a>] which deals extensively on this subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstDisplayTargetInfo</h3>
+<p>To launch CAAPstDisplayTargetInfo, you will need to set up the build time environment, 
+then compile CAAPstDisplayTargetInfo along with its prerequisites, set up the run 
+time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p>mkrun -c &quot; CAAPstDisplayTargetInfo Repository Server User Password SecurityCtx 
+PLM_ExternalID V_version PLMType&quot;</p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as ServerName:ServerPort/rootURI</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose Role as Reviewer (as the use case does not modify the PLM Data).</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID</th>
+		<td>The PLM_ExternalID of a PLM Reference or PLM Representation Reference 
+		be browsed</td>
+	</tr>
+	<tr>
+		<th>V_version</th>
+		<td>The V_version of a PLM Reference or PLM Representation Reference</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String Representing PLM Type</td>
+	</tr>
+</table>
+<p>* The input model is retrieved by importing the CAAPstDisplayPLOInfo.3dxml 
+file from the CAAProductStructure.edu framework.</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure.edu\InputData\CAAPstDisplayPLOInfo.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML file contains the root Product Reference with the following attributes:</p>
+<ul>
+	<li>PLM_ExternalID: <code>CAAPstDisplayPLOInfoRoot(with prefix, optional)</code></li>
+	<li>Version: ---</li>
+</ul>
+<p><strong>Attention</strong>: Please refer to the document [<a href="#References">1</a>] 
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<p>The PLM_ExternalID attribute value of the imported model is typically 
+of the format &quot;YourPrefix + CAAPstDisplayPLOInfoRoot&quot;, where 
+YourPrefix is the string provided as prefix, while importing the 3D XML file 
+to CATIA. The prefix is ofcourse optional &amp; the user has the liberty to import 
+the model even without a prefix.</p>
+<p>[<a href="#Fig1">Fig. 1</a>] displays the Product Model after an import where 
+the Root Reference, the Product Instances under it &amp; the associated Rep Instances 
+and Publications, have a prefix associated with them, since the user opted to import 
+the model with the prefix.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstDisplayTargetInfo Code</h3>
+<p>The CAAPstDisplayTargetInfo use case is located in the CAAPstDisplayTargetInfo.m 
+module of the CAAProductStructure.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure</code>.<code>edu\CAAPstDisplayTargetInfo.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in CAAPstDisplayTargetInfo:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Opening the PLM Product (Root)</a></li>
+	<li><a href="#Step2">Browsing Product Reference</a></li>
+	<li><a href="#Step3">BrowsePointedObjInfo Function</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAPstDisplayTargetInfo use case begins by creating a session and 
+connecting to the Input Repository. This, being the most fundamental prerequisite 
+for all batch use cases, it is the first step in their execution.</p>
+<p>In this case, we create a session &amp; connect to Repository with the Reviewer 
+Role (since we ain't modifying PLM data). There are other parameters as well, details 
+of which can be found in the &quot;Connecting to V6 Server&quot; use case 
+article [<a href="#References">2</a>]. This article primarily deals with Opening 
+and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Opening the PLM Product (Root)</h3>
+<p>We begin by opening the Root product in the Edit mode &amp; seek the <em>CATIPLMNavReference</em> 
+Interface pointer in the process, which enables us to navigate the product model 
+further down for the Publications and retrieve the Target from it.</p>
+<pre class="code">  ...
+	CATIPLMNavReference* piNavRefOnRoot = NULL;
+         <strong>CATOmbLifeCycleRootsBag</strong> Bag;
+	<strong>CATAdpOpener</strong> opener(Bag);
+	hr= opener.<strong>CompleteAndOpen</strong>(opiIDComp,IID_CATIPLMNavReference, (void**) &amp;piNavRefOnRoot);
+  ...</pre>
+<p>The use case calls to <code>CompleteAndOpen()</code> method of the <code>CATAdpOpener</code> 
+class opens the Product Ref . The article &quot;Querying, Expanding &amp; Opening 
+PLM Object&quot; [<a href="#References">4</a>] has a section which provides an explanation 
+on the <code>CompleteAndOpen()</code> method of the <code>CATAdpOpener</code> class.</p>
+<p>Since the Product Reference is being retrieved from the database, in addition 
+to the <strong>PLM_ExternalID</strong> it also has a <strong>version</strong> info, associated with 
+it. Hence its mandatory to specify both those attributes to uniquely identify the 
+Product Reference, being opened.</p>
+<p>The UC loads the entire Product Model, which includes the Base model with the 
+accompanying Rep Instances &amp; Publications.</p>
+<p>The Base Product Model is restricted to only the Root Reference with the Product 
+Instances beneath it.</p>
+<p>Since we intend to retrieve the information of the Target's associated with the 
+Publications in a product model, its mandatory that the Publications be loaded in 
+the session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Browsing Product Reference</h3>
+<p>A call to BrowseReference with the root pointer retrieved above initiates the 
+navigation of the Product model, with the objective of retrieving the Publications 
+and extracting the Target's associated with them.</p>
+<pre class="code">int main(int iArgc, char *iArgv[])
+{...
+	hr = ::BrowseReference(piNavRefOnRoot);
+ ...		
+}</pre>
+<p>The BrowseReference global function includes four steps:</p>
+<!--
+<ul>
+  <li>Seek the First-Level Instances under the current Reference.
+    <ul>
+      <li>Seek the Reference of each of those First Level Instances</li>
+      <li>Make a recursive call to BrowseReference</li>
+    </ul>
+  </li>
+  <li>Retrieve Rep Insts and load the associated Rep Refs in Edit mode
+  </li>
+  <li>Retrieve Publications. Seek the Target's associated with each of them.</li>
+  <li>Retrieve Target Info with call to BrowsePointedObjInfo</li>
+</ul>
+-->
+<ul>
+	<li><a href="#Step21">Retrieving Rep Instances and Loading the Associated Rep 
+		Refs in Edit Mode</a></li>
+	<li><a href="#Step22">Retrieving Publications Aggregated under the Product Reference</a></li>
+	<li><a href="#Step23">Retrieving Publication's Target and the Target Info</a></li>
+	<li><a href="#Step24">Retrieving Publication's Target and the Target Unfold 
+		Info</a></li>
+</ul>
+<p>The navigation of the Product model is an objective primarily of the &quot;Browsing 
+a Product Model&quot; use case [<a href="#References">5</a>]. Having retrieved the 
+Publications, the process of actually seeking the associated Target's and the information 
+corresponding to them is the focus of the current use case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step21"></a>Retrieving Rep Instances and Loading the Associated Rep 
+Refs in Edit Mode</h4>
+<p>In this step we seek the Rep Instances and their respective Rep References aggregated 
+under the input Product Reference. These Rep Refs are then switched to Edit mode.</p>
+<pre class="code">HRESULT BrowseReference(CATIPLMNavReference* ipiNavRef)
+{	
+...
+	coreType = PLMCoreRepInstance;
+	hr = ipiNavRef-&gt;ListChildren(childrenList,1,&amp;coreType);
+	...
+         int j=1;
+      	while ((j&lt;=childrenList.Size()) &amp;&amp; SUCCEEDED(hr))
+      	{
+		CATIPLMNavEntity* piNavEntOnRepInstance = childrenList[j];
+		CATIPLMNavRepInstance* piNavRepInst = NULL;
+		HRESULT hr = piNavEntOnRepInstance-&gt;QueryInterface
+      			(IID_CATIPLMNavRepInstance,(void **)&amp;piNavRepInst);
+						
+		CATIPLMNavRepReference *piNavRepRef2 = NULL;
+		hr = piNavRepInst-&gt;GetRepReferenceInstanceOf(piNavRepRef2);
+							
+                  ...
+		CATIPsiRepresentationLoadMode* pRepLoadMode = NULL;
+		hr = piNavRepRef2-&gt;QueryInterface
+      		     (IID_CATIPsiRepresentationLoadMode,(void**)&amp;pRepLoadMode);
+	         CATIPsiRepresentationLoadMode::LoadingMode loadMode =
+      				     CATIPsiRepresentationLoadMode::EditMode;
+                  hr = pRepLoadMode-&gt;ChangeLoadingMode(loadMode);
+      		j++;
+	 }
+        ...
+}</pre>
+<p>The steps in the above code which retrieve the Rep insts aggregated under the 
+input reference and then seek the Rep refs corresponding to it, have been well explained 
+in the &quot;Browsing a Product Model&quot; use case [<a href="#References">5</a>].</p>
+<p>The portion relevant to the current use case pertains to loading the rep ref 
+in <strong>Edit</strong> mode by a call to <code>CATIPsiRepresentationLoadMode::ChangeLoadingMode</code>. 
+The significance of loading the rep ref in the <strong>Edit</strong> mode is because only 
+then the main SD (also called Authoring Stream descriptor) is loaded in session. 
+This is the SD which can be accessed and its contents can be linked to by other 
+PLM objects (for eg. Publications) .</p>
+<p>The technical article viz. PLM Representation Reference [<a href="#References">6</a>], 
+dwells further in depth on the subject of Loading modes of Rep refs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step22"></a>Retrieving Publications Aggregated under the Product Reference</h4>
+<p>This step involves a call to BrowsePublications which initially retrieves all 
+the Publications &amp; then the Target pointed by each of them.</p>
+<pre class="code">HRESULT BrowsePublications(CATIPLMNavReference* ipNavRef)
+{
+         ...
+         CATIPrdPublications* ipPublicationsOnReference = NULL;
+	hr = ipNavRef-&gt;QueryInterface(IID_CATIPrdPublications,
+				  (void **)&amp;ipPublicationsOnReference);
+	...
+	CATUnicodeString oPublicationName;
+	hr = pPublication-&gt;GetName(oPublicationName);
+         ...</pre>
+<p>The initial steps of the BrowsePublications routine primarily retrieve the Publications 
+associated with the input Product Reference, thanks to the <em>CATIPrdPublications</em> 
+Interface implemented by all Product References. The &quot;Browsing a Product 
+Model&quot; use case [<a href="#References">5</a>] covers these initial steps 
+until the stage we retrieve the publication as a <em>CATIPrdPublication</em> type 
+viz. pPublication.</p>
+<p>The article viz. &quot;Creating Publication's Target&quot; [<a href="#References">3</a>] 
+also provides useful insights on this subject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step23"></a>Retrieving Publication's Target and the Target Info</h4>
+<p>Having retrieved the Publication, we seek the associated Target . Then we retrieve 
+the additional relevant information about the Target, primarily through call to 
+global routine <code>BrowsePointedObjInfo</code>.</p>
+<pre class="code">HRESULT BrowsePublications(CATIPLMNavReference* ipNavRef)
+{	
+	...
+	CATOmbObjectInContext*  oObjInCxt_OnPointedObj=NULL;
+	hr = pPublication-&gt;GetPointed(oObjInCxt_OnPointedObj);
+	...
+	hr = BrowsePointedObjInfo(oObjInCxt_OnPointedObj);
+ 	...
+}</pre>
+<p>The <code>CATIPrdPublication::GetPointed</code> method enables us to retrieve the pointed
+<strong>Target</strong>, as a CATOmbObjectInContext object. This method takes two arguments:</p>
+<ul>
+	<li>oObjInCxt_OnPointedObj , a CATOmbObjectInContext type , an output parameter 
+		which will contain the Target associated with the Publication</li>
+	<li>a CATBoolean type , an optional parameter . This argument enables the end 
+		user to get either the direct Target or the Final target, i.e. the unfolded 
+		view associated with Publication on Publication.
+		<ul>
+			<li>FALSE - The default value . In this case, the method will output 
+				the direct target associated with the Publication.</li>
+			<li>TRUE - In this case, the method will output the final Target , i.e. 
+				provides the unfolded view of the Publication On Publication.</li>
+		</ul>
+	</li>
+</ul>
+<p>In the above case, we retrieve the direct target associated with the Publication.
+The retreived direct Target is then passed to the global routine <code>BrowsePointedObjInfo</code>
+to retrieve the Target's information.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step24"></a>Retrieving Publication's Target and the Target Unfold Info</h4>
+<pre class="code">HRESULT BrowsePublications(CATIPLMNavReference* ipNavRef)
+{	
+	...
+	CATOmbObjectInContext*  oObjInCxt_OnPointedObj=NULL;
+	hr = pPublication-&gt;GetPointed(oObjInCxt_OnPointedObj, <strong>TRUE</strong>);
+	...
+	hr = BrowsePointedObjInfo(oObjInCxt_OnPointedObj);
+...
+}</pre>
+<p>Here , we retrieve the final target i.e. unfolded view of Publication On Publication. 
+This is done by passing TRUE, as the second argument to the <code>CATIPrdPublication::GetPointed</code> 
+api. We then pass this final target to the global routine <code>BrowsePointedObjInfo</code> 
+retrieving the relevant info associated with the Target.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>BrowsePointedObjInfo Function</h3>
+<p>The BrowsePointedObjInfo global function incorporates the call to CATOmbObjectInContext 
+class APIs, to seek the relevant information associated with target, provided to 
+it as an input argument.</p>
+<pre class="code">HRESULT BrowsePointedObjInfo(CATOmbObjectInContext* &amp;pPointedObj)
+{	
+	...
+}</pre>
+<p>The input target to this global routine, is in the form of a <em>CATOmbObjectInContext</em> 
+object.</p>
+<ul>
+	<li><a href="#Step31">Retrieving the Context Root Reference Associated with 
+		the Target</a></li>
+	<li><a href="#Step32">Seeking the Path of Instances Associated with the Target</a></li>
+	<li><a href="#Step33">Retrieving the Transformation Matrix Associated with the 
+		Target</a></li>
+	<li><a href="#Step34">Retrieving the Rep Inst Associated with the Target</a></li>
+	<li><a href="#Step35">Retrieving the Target Object</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step31"></a>Retrieving the Context Root Reference Associated with the 
+Target</h4>
+<p>This step retrieves the Context Root Reference associated with a target.</p>
+<pre class="code">...
+ 	CATIPLMComponent* opiCompOnRootProd=NULL;
+	hr = pPointedObj-&gt;GetContextRootReference(opiCompOnRootProd);   
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step32"></a>Seeking the Path of Instances Associated with the Target</h4>
+<p>The objective of this step is to seek the list of instances associated with a 
+Publication, which enables it to point to a specific target.</p>
+<pre class="code">...
+        CATLISTP(CATIPLMComponent) oPathOfInstances;
+        hr = pPointedObj-&gt;<strong>GetPathOfInstances</strong>(oPathOfInstances);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step33"></a>Retrieving the Transformation Matrix Associated with the Target</h4>
+<p>In this step, we retrieve the transformation matrix associated 
+with the all the instances associated with the target. In case of several instances, 
+this matrix is the resultant of the individual matrices associated with each instance. 
+This step is not done if the path of instance, returned by <code>GetPathOfInstances</code> 
+is empty. When the path is empty, <code>RetrievePosition</code> returns E_FAIL.</p>
+<pre class="code"> ...
+	CATIPLM3DPositionMng *pPLM3DPositionMng = NULL;
+	hr = ::CATInstantiateComponent(<strong>CATIPLM3DPositionMng_Component</strong>,
+				IID_CATIPLM3DPositionMng,
+				(void**)&amp;pPLM3DPositionMng);
+    ...
+    	CATMathTransformation  roTransfo;
+	hr= pPLM3DPositionMng-&gt;RetrievePosition(pPointedObj, roTransfo);</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step34"></a>Retrieving the Rep Inst Associated 
+with the Target</h4>
+<p>For a Publication, which points to a target (a geometry or a knowledge parameter) 
+within a rep inst, the rep inst associated can be easily retrieved as the code below 
+indicates.</p>
+<pre class="code">...
+     CATIPLMComponent *opRepresentationInstance=NULL;
+     hr = pPointedObj-&gt;GetInstanceOfRepresentation(opRepresentationInstance);
+...</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step35"></a>Retrieving the Target Object</h4>
+<p>The target of a Publication could either be an occurrence, another 
+Publication, a rep inst or a geometry / Knowledge parameter within a rep inst.</p>
+<pre class="code">...
+      CATBaseUnknown *opObject=NULL;
+      hr = pPointedObj-&gt;GetObjectOutOfContext(opObject);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAPstDisplayTargetInfo use case ends by simply closing the PLM session. 
+Since all PS use cases necessarily conclude by closing the PLM session, we have 
+a dedicated article on this topic viz. &quot;Connecting to V^ Server&quot; 
+[<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has primarily navigated a Product model beginning with Root, seeking 
+all the Publications associated with it. Having sought the Publications, it then 
+retrieves the associated Target's.</p>
+<p>An important point to note here is that the Product Reference is opened in an
+<strong>Authoring mode</strong> which resulted in the associated Rep Refs to be loaded in 
+the <strong>Visu mode</strong>. To ensure that we successfully seek the information of Target's 
+pointing to either of Geometry / Knowledge Parameter within a Rep Inst, we have 
+to necessarily load the Rep Refs in <strong>Edit mode</strong>, prior to proceeding further.</p>
+<p>The <code>CATIPrdPublication::GetPointed</code> by default outputs 
+the direct Target pointed by the publication. This method also offers an unfolded 
+view of a Publication on Publication, thus imagining the existence of a single Publication 
+here, thus enabling the end user to retrieve the final target associated with Publication 
+on Publication. The target is retrieved in form of <code>CATOmbObjectInContext</code> 
+object.</p>
+<p>The information associated with the Publication's Target is output by making 
+the calls to the various api's of the class <code>CATOmbObjectInContext.</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPstUcCreatePublication_CreateTarget.htm">Creating Publication's 
+		Target</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding &amp; Opening PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAPstUcBrowsingProductModel.htm">Browsing a Product Model</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm">
+		PLM Representation Reference</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

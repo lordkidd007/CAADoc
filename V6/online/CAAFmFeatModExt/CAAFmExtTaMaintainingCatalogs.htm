@@ -1,0 +1,319 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Managing StartUp Catalogs</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing StartUp Catalogs</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Applications create feature objects by instantiating feature startups 
+		stored in catalogs. This article explains the process of how these catalogs 
+		are created and updated.</p>
+		<ul>
+			<li><a href="#Part1">Foreword</a>
+			<ul>
+				<li><a href="#Licensing">Licensing</a></li>
+			</ul>
+			</li>
+			<li><a href="#CEA">The CATfctEditorAssistant Command</a><ul>
+				<li><a href="#Command Options">Command Options</a></li>
+				<li><a href="#Creating and Updating catalog Process">Creating a 
+				New Catalog Process</a></li>
+				<li><a href="#Updating catalog Process">Upgrading an Existing Catalog 
+				Process</a></li>
+			</ul>
+			</li>
+			<li><a href="#Details of Elementary Operations">Details of Elementary 
+			Operations</a>
+			<ul>
+				<li><a href="#Creating a New Empty Catalog">Creating a New Empty 
+				Catalog</a></li>
+				<li><a href="#upgradecatalog">Upgrading a Catalog</a></li>
+				<li><a href="#generateosm">Retrieving the OSM of a Catalog</a></li>
+			</ul>
+			</li>
+			<li><a href="#locallizing">Localizing a Catalog</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Foreword</h2>
+<p>It is assumed that you are already familiar with the concepts of the Feature 
+Modeler [<a href="#References">1</a>], the OSM language [<a href="#References">2</a>] 
+and the StartUp catalogs [<a href="#References">3</a>]. The focus of this article 
+is on how the StartUp catalogs are created and updated using a command-line tool 
+called <strong>CATfctEditorAssistant</strong>. </p>
+<p>Each catalog managing step corresponds to one of CATfctEditorAssistant:</p>
+<ul>
+	<li><code>-create-new-catalog</code> to create a new and empty catalog</li>
+	<li><code>-update-catalog</code> to update an existing catalog with an OSM file</li>
+	<li><code>-describe-as-osm</code> to generate the OSM file of an existing catalog</li>
+	<li><code>-simulate-catalog-update</code> to simulate a catalog update</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Licensing"></a>Licensing</h3>
+<p>As all DS tools, CATfctEditorAssistant requires a license. You select a license 
+using the application <strong>CATOptionsMgt -nologin </strong>(the one you want, 
+the kind of licence does not matter), then by selecting the Licensing tab in the 
+dialog box. Administrator users have the possibility to run a session in administrator 
+mode for the purpose of locking license settings so that other users running a session 
+with the same environment inherit those license settings and cannot change them. 
+To do so, the administrator uses the application CATOptionsMgt -nologin <strong>
+-admin</strong>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CEA"></a>The CATfctEditorAssistant Command</h2>
+<h3><a name="Command Options"></a>Command Options</h3>
+<p>The syntax of the CATfctEditorAssistant command is:</p>
+<pre class="code"><strong>CATfctEditorAssistant</strong> <em>options</em> arguments</pre>
+<table class="fill">
+	<tr>
+		<th>CATfctEditorAssistant </th>
+		<th colspan="2">Description</th>
+	</tr>
+	<tr>
+		<td rowspan="11">options</td>
+		<td><code>-with-client-id </code></td>
+		<td>the client ID</td>
+	</tr>
+	<tr>
+		<td><code>-create-new-catalog</code></td>
+		<td>to create a new catalog</td>
+	</tr>
+	<tr>
+		<td><code>-update-catalog</code></td>
+		<td>to upgrade an existing catalog</td>
+	</tr>
+	<tr>
+		<td><code>-describe-as-osm</code></td>
+		<td>to generate the OSM from an existing catalog</td>
+	</tr>
+	<tr>
+		<td><code>-with-osm</code></td>
+		<td>to specify the OSM file path used for update</td>
+	</tr>
+	<tr>
+		<td><code>-as</code></td>
+		<td>to indicate the OSM file to generate</td>
+	</tr>
+	<tr>
+		<td><code>-catalog-name</code></td>
+		<td>to specify the name of the catalog to create/update</td>
+	</tr>
+	<tr>
+		<td><code>-in-version</code></td>
+		<td>to indicate in which version (V5 or V6) the update must be done</td>
+	</tr>
+	<tr>
+		<td><code>-author</code></td>
+		<td>to specify the author&#39;s name in history</td>
+	</tr>
+	<tr>
+		<td><code>-comment</code></td>
+		<td>to add a comment to history</td>
+	</tr>
+	<tr>
+		<td>-<em><code>into-directory</code></em></td>
+		<td>the path to the catalog or .CATfct file and the OSM file</td>
+	</tr>
+</table>
+<p>We will now describe the functionality of each option.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Creating and Updating catalog Process"></a>Creating a New Catalog Process</h3>
+<p>The <strong>process to create </strong>a new feature catalog is as follows:
+</p>
+<ul>
+	<li><a href="#Creating a New Empty Catalog">Create a new empty catalog / osm 
+	file</a></li>
+	<li>Move the empty catalog in the runtime-view</li>
+	<li>Fill in the osm file as recommended by [<a href="#References">2</a>]</li>
+	<li><a href="#upgradecatalog">Update the new catalog with the updated osm as 
+	input</a></li>
+	<li>save the newly updated catalog in your workspace [<a href="#References">3</a>] 
+	and to move it in the run-time view so that it can be used or updated.</li>
+	<li>It is not recommended to save the osm file</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Updating catalog Process"></a>Updating an Existing Catalog Process</h3>
+<p>The <strong>process to update </strong>an existing feature catalog is as follows:
+</p>
+<ul>
+	<li><a href="#generateosm">Generate the OSM file from the to be updated catalog</a></li>
+	<li>Modify the osm file as recommended by [<a href="#References">X</a>]</li>
+	<li><a href="#upgradecatalog">Update the new catalog with the input osm</a></li>
+	<li>Save the newly updated catalog in your workspace [<a href="#References">3</a>] 
+	and to move it in the run-time view so that it can be used or updated.</li>
+	<li>It is not recommended to save the osm file</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Details of Elementary Operations"></a>Details of Elementary Operations</h2>
+<p>This chapter describes in details the operations that you have to do for creating 
+or upgrading a feature catalog.</p>
+<h3><a name="Creating a New Empty Catalog"></a>Creating a New Empty Catalog</h3>
+<p>Every catalog becomes created this way: as an <strong>empty</strong> catalog with the
+<code>-create-new-catalog</code> option. This option does not convert 
+an OSM to a catalog, it creates an empty catalog and the corresponding OSM file.</p>
+<pre class="code"><strong>CATfctEditorAssistant -create-new-catalog</strong> <em><strong>-</strong></em><strong>catalog-name</strong> &lt;catalog_name&gt; <strong>-with-client-id</strong><em> </em>&lt;id&gt; <em><strong>-</strong></em><strong>into_directory</strong> &lt;output_path_for_catfct_and_osm&gt;</pre>
+<p>
+<img alt="" src="images/CAAOsmCEANewCatalogimage.png" width="580" height="352"></p>
+<p>The <code>-with-client-id </code>option is required because the newly created 
+empty catalog will be assigned a client id.</p>
+<p>The OSM file only contains statements describing the catalog with its empty root 
+container:</p>
+<pre class="code">//**
+
+* Copyright Dassault Systemes 2006
+* .osm file skeleton
+*/
+document `CAAFmExtForTest.CATfct` {
+	<span class="sample">history(&quot;egd&quot;,&quot;&quot;,&quot;2010-08-24 15:36&quot;,0., 0u7e6ff351-0000-0a88-4c73e6f80000000e)
+	check_revision(0u7e6ff351-0000-0a88-4c73e6f80000000e)</span>
+	
+	container `RootCont` #root <span class="keyword">#uuid(0u7e6ff351-0000-0a88-4c73e6f100000003)</span> {
+		
+/<strong>/ insert here your startups</strong>
+
+	}
+}</pre>
+<p><strong>ATTENTION</strong>: Do not remove the red statements, and do not change 
+the uuid value, the catalog generation would fail. </p>
+<p>Do not forget to <strong>move</strong> the newly created catalog in the run-time view so 
+that it can be updated subsequently.</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Note</span>: 
+		The call will fail if a catalog with the same name already exists in the 
+		run-time view.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="upgradecatalog"></a>Updating a Catalog</h3>
+<p>The <code>-update-catalog</code> option takes an existing catalog 
+and an input OSM to output a <strong>new updated</strong> catalog. The input catalog is referred 
+to from the run time view: <code><em>OS_directory</em>/resources/graphic</code>. The 
+updated catalog is output in the current folder. </p>
+<p>The <em><code>osm_path</code></em> argument is the path to the input OSM. This 
+OSM must provide from the existing catalog (obtained with the <code>-describe-as-osm</code> 
+option) and additional modifications. Not all types of modification are allowed 
+because of the compatibility of previously created features. As these features were 
+instantiated from the catalog, their StartUp or attributes must not be deleted for 
+example.</p>
+<pre class="code"><strong>CATfctEditorAssistant</strong><em> </em><strong>-update-catalog </strong><em><strong>-</strong></em><strong>catalog-name</strong> &lt;catalog_name&gt; <strong>-with-client-id</strong><em> </em>&lt;id&gt;<strong> -with-osm </strong>&lt;osm_path&gt;<strong> -into-directory </strong>&lt;output_path&gt;<strong>  </strong></pre>
+<p>Again the <code>-with-client-id</code> option is necessary to upgrade the catalog.</p>
+<p>
+<img alt="" src="images/CAAOsmCEAUpgradeCatalogimage.png" width="685" height="419"></p>
+<p>Notes:</p>
+<ul>
+	<li>Do not forget to <strong>save</strong> the newly updated catalog in your workspace 
+	[<a href="#References">3</a>] and to move it in the run-time view so that it 
+	can be used or updated.</li>
+	<li>it is recommended to always modify the OSM that corresponds to the catalog 
+	thanks to the <code>-describe-as-osm</code> option, instead of maintaining a 
+	separate OSM file. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="generateosm"></a>Retrieving the OSM of a Catalog</h3>
+<p>The <code>-describe-as-osm</code> option takes an existing catalog and outputs 
+its description in OSM. This option can be used to verify the contents of a catalog 
+or prior to modify it.</p>
+<p>The <em><code>catfct_name </code></em>argument specifies an existing catalog in 
+the run-time view: <code><em>OS_directory</em>/resources/graphic</code>. </p>
+<p>The <em><code>osm_name </code></em>argument specifies the name of the output OSM 
+file. The osm will be output in the directory specified by output_path.</p>
+<p>The in-version argument specifies in which version (V5 or V6) the update must 
+be done</p>
+<pre class="code"><strong>CATfctEditorAssistant </strong><code>-describe-as-osm</code> <em><strong>-</strong></em><strong>catalog-name</strong> &lt;catfct_name&gt;<strong> -with-client-id</strong><em> </em>id <strong>-in-version</strong> &lt;level&gt; <strong>-as</strong> osm_name <strong>-into-directory</strong> &lt;output_path&gt;</pre>
+<p>Note: every identifier will have suffixes of the form <code>#<em>number</em></code> 
+. These are internal identification tags that help speeding up feature lookup and 
+should be left as is.</p>
+<p>
+<img alt="" src="images/CAAOsmCEAGenerateOSMimage.png" width="662" height="229"></p>
+<p>Again the <code>-with-client-id</code> option is necessary to generation the 
+OSM equivalent of a catalog.</p>
+<p><strong>Note</strong> : the generated OSM file contains number (#) and uuid [<a href="#References">2</a>], 
+don&#39;t change them, the next update would fail.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="locallizing"></a>Localizing a Catalog</h2>
+<p>When a feature is displayed on screen, its identifier is used unless this identifier 
+is given a localized name thanks to an associated CATNls file. This file must have 
+the same name as the catalog&#39;s appended with <strong>NLS</strong>. For example the CATNls 
+file associated to the <code>MyCatalog.CATfct</code> catalog would be <code>MyCatalog<strong>NLS</strong>.CATNls</code>. 
+This file should be created in the <code>CNext/resources/msgcatalog</code> directory 
+of the workspace.</p>
+<p>Such a CATNls file contains associations of the form <code><em>feature_identifier</em>=&quot;<em>localized 
+name</em>&quot;;</code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article, we have detailed the process of how StartUp catalogs are maintained 
+and the CATfctEditorAssistant tool that is used. The most important thing is the 
+catalog update pattern:</p>
+<ol>
+	<li>Create an empty catalog.</li>
+	<li>Modify the OSM.</li>
+	<li>Upgrade the catalog.</li>
+	<li>Generate the OSM and back to step 2.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAOsmTaOverview.htm">Feature Modeler Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAOsmTaModelingStartUps.htm">Modeling Feature StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAFmExtTaUnderstandingCatalogs.htm">Understanding Feature 
+		StatUp Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAFmExtTaCatalogCompatibility.htm">Feature Catalog Compatibility</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

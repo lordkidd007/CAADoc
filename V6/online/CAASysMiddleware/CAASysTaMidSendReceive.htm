@@ -1,0 +1,480 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>The Send/Receive Communication Protocol</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>The Send/Receive Communication Protocol</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>To convey end user intents to the object that can do the requested job, 
+		CAA uses specific objects called commands that build a tree structure. Events 
+		issued by the end user are converted into CAA notifications that are sent 
+		from command to command upwards in the command tree structure until a command 
+		executes the job. A given command can send notifications, and when receiving 
+		one, it can either be transparent to, enrich, or process the received notification, 
+		depending on the notification type and the command purpose.</p>
+		<ul>
+			<li><a href="#100000">How It Works?</a></li>
+			<li><a href="#200000">What Should I Do?</a>
+				<ul>
+					<li><a href="#210000">My Command Is Transparent for Notifications</a></li>
+					<li><a href="#220000">My Command Is a Sending Command</a></li>
+					<li><a href="#230000">My Command Processes Some Notifications</a></li>
+					<li><a href="#240000">My Command Enriches Some Notifications</a></li>
+				</ul>
+			</li>
+			<li><a href="#300000">A Send/Receive Example</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>How It Works</h2>
+<p>The send/receive communication protocol uses the <code>SendNotification</code>,
+<code>AnalyseNotification</code>, and <code>ReceiveNotification</code> methods of 
+the <em>CATCommand</em> class, and sends notifications along the command tree structure 
+to perform the event propagation from the command that detected the event to the 
+command that can process it.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Send/Receive Notification Flow" height="187" src="images/CAASysMidSendReceive1.png" width="190"/></td>
+		<td>What happens?
+		<ol>
+			<li>Command 1 receives a system event and turns it into a notification.</li>
+			<li>Command 1 sends the created notification to its parent command by 
+				calling <code>CATCommand::SendNotification(Command2, Notification)</code>.</li>
+			<li>Command 2 is an intermediate command in the command tree, transparent 
+				for notifications. It simply receives&nbsp;the notification, and 
+				asks command 1 to send it to its own parent command thanks to the
+				<code>ReceiveNotification</code> and <code>AnalyseNotification</code> 
+				methods.</li>
+			<li>Command 1 sends the notification to command 3.&nbsp;&nbsp; </li>
+			<li>Command 3 is able to process the event. It overrides the <code>ReceiveNotification</code> 
+				and <code>AnalyseNotification</code> methods.</li>
+			<li>Command 3 then takes appropriate actions to decode the notification 
+				along with its data, if any, and processes the event.</li>
+		</ol>
+		<p><strong>Legend</strong>:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="Parent-Child Command Link" height="9" src="images/CAASysMidSRLegend1.png" width="48"/>&nbsp;</td>
+				<td>Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="Event Propagation" height="13" src="images/CAASysMidSRLegend2.png" width="45"/>&nbsp;</td>
+				<td>Event propagation along the Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="System Event" height="33" src="images/CAASysMidSRLegend3.png" width="33"/>&nbsp;</td>
+				<td>System event received by a command</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+<p>The command 1 receives the system event as a CAA notification, instance of the 
+CATNotification class. It sends the notification to its parent command, the command 
+2, using the CATCommand's <code>SendNotification</code> method:</p>
+<pre class="code">SendNotification(Command2, Notification);</pre>
+<p>Each command knows its parent command by means of a pointer stored as a private 
+data member and passed as an input parameter of the command constructor.</p>
+<p>This command 2 is called using the <code>ReceiveNotification</code> method. The 
+command 2 is not designed to process events, that is it does not override the
+<code>AnalyseNotification</code> method called by the <code>ReceiveNotification</code> 
+method. Thus the <em>CATCommand</em>'s <code>AnalyseNotification</code> method is 
+used and returns <code>CATNotifTransmitToFather</code> to the command 1.</p>
+<pre class="code">CATCommand::ReceiveNotification() {
+  ...
+  pCommand-&gt;AnalyseNotification();
+  ...
+}
+...
+CATCommand::AnalyseNotification() {
+  ...
+  return CATNotifTransmitToFather;
+}</pre>
+<p>The command 1 then resends the notification to the command 3, parent of the command 
+2 in the command tree structure. This command 3 is designed to process such events 
+and overrides the <code>AnalyseNotification</code> method to catch that expected 
+notification by returning <code>CATNotifDontTransmitToFather</code> to the sending 
+command 1 which stops the event propagation. Otherwise, it returns <code>CATNotifTransmitToFather</code>, 
+thus leaving this notification goes on propagating.</p>
+<pre class="code">Command3::AnalyseNotification() {
+  ...
+  return CATNotifDontTransmitToFather;
+}</pre>
+<p>Depending on what the command 3 developer intends to do, two possibilities exist:</p>
+<ol>
+	<li>Process the notification from the end user standpoint, that is perform the 
+		user intent. To do this, the <code>SendCommandSpecificObject</code> method 
+		can be overridden, and used possibly several times, to query about the object(s) 
+		involved.</li>
+	<li>Enrich the notification, that is create a new notification that can be processed 
+		by another command above in the tree structure and send it to its parent 
+		or directly to this specific command if it is known. The <code>SendNotification</code> 
+		first parameter allows for this. In this case, pay attention to a possible 
+		loop between the sending command and the target command.</li>
+</ol>
+<p>If no command is found, the root command is reached. This root command, a <em>
+CATCommandSelector</em> instance, plays a specific role. When it receives a notification, 
+meaning that no command below in the command tree structure path, from the command 
+which first receives the event to the <em>CATCommandSelector</em> instance, has 
+been able to process the event, it sends back the notification to the active dialog 
+command. This active dialog command can then decide what to do. The figure below 
+shows the command tree structure and the event propagation along it.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Send/Receive Notification Flow" height="247" src="images/CAASysMidSendReceive2.png" width="326"/></td>
+		<td>What happens?
+		<ol>
+			<li>Command 1 receives a system event and turns it into a notification.</li>
+			<li>Command 1 sends the created notification to its parent command.</li>
+			<li>Command 2 is an intermediate command in the command tree, transparent 
+				for notifications. It simply receives&nbsp;the notification, and 
+				asks command 1 to send it to its own parent command.</li>
+			<li>Command 1 sends the notification to the parent command.</li>
+			<li>No command is able to process the event, and each of them requests 
+				to send the notification to its parent.</li>
+			<li>When the root command n+1 is reached, no other parent command exists 
+				in the tree. Command n+1 is the Command Selector. It sends the notification 
+				to the active dialog command n+2, that can take appropriate actions 
+				if it knows what to do, or otherwise forget about the event.</li>
+		</ol>
+		<p><strong>Legend</strong>:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="Parent-Child Command Link" height="9" src="images/CAASysMidSRLegend1.png" width="48"/>&nbsp;</td>
+				<td>Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="Event Propagation" height="13" src="images/CAASysMidSRLegend2.png" width="45"/>&nbsp;</td>
+				<td>Event propagation along the Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="System Event" height="33" src="images/CAASysMidSRLegend3.png" width="33"/>&nbsp;</td>
+				<td>System event received by a command</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+<p>Once the appropriate receiving command is reached, a dialog can begin between 
+this receiving command and the sending command, to get more information about the 
+event, that is generally which object is concerned with the event. In its <code>
+AnalyseNotification</code> method, the receiving command requests the sending command 
+for that object, beginning with the expected type(s). The sending command returns 
+that object if the type is matched, or <code>NULL</code> otherwise. The receiving 
+command can then loop on all the types it expects until whether an object is returned, 
+or the type list end is reached.</p>
+<p>The <em>CATCommand</em>'s <code>SendObject</code> method is used by the receiving 
+command against the sending command to ask for an object type, and this <code>SendObject</code> 
+method calls the sending command's <code>SendCommandSpecificObject</code> method, 
+if this one exists, to return the expected object, or returns <code>NULL</code> 
+otherwise.</p>
+<p>Below is an OMT-like figure that shows the main objects and methods used.</p>
+<p>
+<img alt="Send/Receive Notification Dynamic Diagram" height="360" src="images/CAASysMidSendReceive3.png" width="576"/></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>What Should I Do?</h2>
+<p>As soon as you intend to create a command, you should know if your command is 
+transparent for notifications, that is leave notifications pass through it, is a 
+sending command, process some of the possible notifications that can reach it, and/or 
+enrich some of them.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>My Command Is Transparent for Notifications</h3>
+<p>This is the case, for example, of some intermediate dialog objects that contains 
+others, such as a frame in a window that contains a graphic viewer. The frame is 
+an instance of a class which derives from CATCommand, as well as the viewer it contains, 
+and as well as the window that contains both. The frame is there to accommodate 
+the viewer, but has no real possibilities regarding the user intents, and is thus 
+transparent for notifications.</p>
+<p>In this case, you have nothing to do. The CATCommand class instance created when 
+your command is instantiated provides your command with this transparent behavior, 
+takes care of receiving the notifications, and replies always <code>CATNotifTransmitToFather</code> 
+to the sending command.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>My Command Is a Sending Command</h3>
+<p>Your command detects a user intent, and plays the role of converting the system 
+event into a CAA notification. This notification is sent thanks to the CATCommand's 
+method <code>SendNotification</code> you can use as is.</p>
+<p>In this case, you have nothing to do. The CATCommand class instance created when 
+your command is instantiated provides your command with this transparent behavior, 
+takes care of receiving the notifications, and replies always <code>CATNotifTransmitToFather</code> 
+to the sending command.</p>
+<pre class="code">SendNotification(MyParent, Notification);</pre>
+<p>But this is generally not enough. If the user intent is valid in the current 
+context, that is can be turned into a task that an available command can perform, 
+and if this command is reached by the notification, sure this command will request 
+more information from your sending command using the <code>SendObject</code> method. 
+To reply, your sending command must override the <code>SendCommandSpecificObject</code> 
+method called by the <code>SendObject</code> method. This method should return a 
+pointer to the object belonging to the requested class and managed by your command, 
+and <code>NULL</code> otherwise.</p>
+<pre class="code">void * SendCommandSpecificObject(
+           const char      * ClassOfExpectedObject,
+           CATNotification * Notification)
+{
+  if (TheObjectIManage-&gt;IsAKindOf(ClassOfExpectedObject)
+    return ((void *) TheObjectIManage);
+  else
+    return NULL;
+}</pre>
+<p>Of course, you can loop on the different objects you command manages, if any.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="230000"></a>My Command Processes Some Notifications</h3>
+<p>Your command is there to process some user intents, and you need to code what 
+to do when the end user asks to do what your command expects. Two ways are offered:</p>
+<ol>
+	<li>Override the <code>AnalyseNotification</code> method to code or call the 
+		appropriate methods that perform the job</li>
+	<li>Set a callback on notification reception, for the notification you expect, 
+		by means of the <code>AddAnalyseNotificationCB</code> method.</li>
+</ol>
+<p>Both can be used in the same command, but not for the same notification, since 
+the callback is searched for first.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Overriding the AnalyseNotification Method</h4>
+<p>You simply need to catch the notifications you expect, and resend the others. 
+A skeleton for such a overridden <code>AnalyseNotification</code> method could be:</p>
+<pre class="code">CATNotifPropagationMode MyCommand::AnalyseNotification
+         (CATCommand* SendingCommand,
+          CATNotification* ReceivedNotification)
+{
+  if (ReceivedNotification-&gt;IsAKindOf(      // Catch expected notifications
+                 ExpectedNotification::ClassName())
+  {
+
+  // provide here the code to process the notification
+  
+    return (CATNotifDontTransmitToFather);
+  }
+  else                                         // Resend the others
+    return (CATNotifTransmitToFather);
+}</pre>
+<p>In this skeleton, <code>SendingCommand</code> is the command that sends the notification 
+named <code>ReceivedNotification</code>. If this <code>ReceivedNotification</code> 
+is an instance of the ExpectedNotification class, or of one of its derived classes, 
+then you can process <code>ReceivedNotification</code>, and stops the notification 
+propagation by returning <code>CATNotifDontTransmitToFather</code>. Otherwise, leave 
+the notification propagation goes on by returning <code>CATNotifTransmitToFather</code>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Setting Callbacks on Notification Reception</h4>
+<p>You can set a callback for each expected notification, for example in the command 
+constructor, as follows:</p>
+<pre class="code">...
+AddAnalyseNotificationCB(                      // Set the callback for the
+          ExpectedSendingCommand,              // expected notifications
+          ExpectedNotification,
+          (CATCommandMethod)&amp;MyCommand::MethodToCallBack,
+          PointerToUsefulData);
+...
+
+MyCommand::MethodToCallBack(                   // Code the callback
+          CATCommand* ExpectedSendingCommand,
+          CATNotification * ExpectedNotification,
+          CATCommandClientData PointerToUsefulData) {
+
+// provide here the code to process the notification
+
+}
+...</pre>
+<p>Setting a callback, and providing the method for the callback, stops the notification 
+propagation along the command tree structure.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Requesting an Object To Be Sent</h4>
+<p>If your command requests input from the end user, such as the object selected 
+under the mouse, use the <code>SendObject</code> method to request the sending command, 
+which should know this object, to send it to your command, as follows:</p>
+<pre class="code">...
+SendObject(ClassOfExpectedObject, Notification);
+...</pre>
+<p>where <code>ClassOfExpectedObject</code> is the class from which the object you 
+expect is an instance, and <code>Notification</code> the notification which reaches 
+your command.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="240000"></a>My Command Enriches Some Notifications</h3>
+<p>You may want to add information to a received notification without processing 
+it by your command. In this case, you can either override the <code>AnalyseNotification</code> 
+method, or set a callback, as described above, but instead of processing the notification, 
+you instantiate a new notification and you send it to the appropriate command, generally 
+the parent of your command.</p>
+<p>The following code should then be inserted in the code skeleton above in place 
+of the comment for processing the notification.</p>
+<pre class="code">...
+MyEnrichedNotification = new CATEnrichedNotification();
+SendNotification(Parent, MyEnrichedNotification);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>A Send/Receive Example</h2>
+<p>This example relies on the following command tree:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Send/receive Notification Flow" height="160" src="images/CAASysMidSendReceive4.png" width="210"/></td>
+		<td>What happens?
+		<ol>
+			<li>Command 1 receives a system event and turns it into a notification.</li>
+			<li>Command 1 sends the created notification to its parent command.</li>
+			<li>Command 2 is an intermediate command in the command tree, transparent 
+				for notifications. It simply receives&nbsp;the notification, and 
+				asks command 1 to send it to its own parent command.</li>
+			<li>Command 1 sends the notification to the parent command. This parent 
+				command is the command selector.</li>
+			<li>The command selector sends the notification to the active dialog 
+				command, that can take appropriate actions if it knows what to do, 
+				or otherwise forget about the event.</li>
+		</ol>
+		<p><strong>Legend</strong>:</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="Parent-Child Command Link" height="9" src="images/CAASysMidSRLegend1.png" width="48"/>&nbsp;</td>
+				<td>Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="Event Propagation" height="13" src="images/CAASysMidSRLegend2.png" width="45"/>&nbsp;</td>
+				<td>Event propagation along the Parent-Child command link</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="System Event" height="33" src="images/CAASysMidSRLegend3.png" width="33"/>&nbsp;</td>
+				<td>System event received by a command</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+<p>The command 1 detects an end user intent and converts it as a notification sent 
+along the command tree structure. The command 2 is transparent for notifications, 
+and the notification reaches the command selector which resends it to the active 
+dialog command. This command expects such notification, and request from the sending 
+command 1 an expected object to be sent.</p>
+<p>The first step is for the command 1 to send the notification. This is coded as 
+follows in the appropriate method, that is the one which turns the system event 
+into a CAA notification:</p>
+<pre class="code">...
+  CATNotification* NotifToSend = new MyNotification();
+  SendNotification (GetFather(), NotifToSend);
+...</pre>
+<p>The appropriate notification is instantiated, and sent to the command's parent. 
+Note that this parent can be retrieved using the <code>GetFather</code> method.</p>
+<p>Then the notification goes along the command tree structure. It meets the command 
+2 which has not overridden the <code>AnalyseNotification</code> method and which 
+uses the CATCommand's <code>AnalyseNotification</code> method to return <code>CATTransmitToFather</code> 
+to the command 1. Since this parent is the command selector, the notification propagation 
+stops and is sent by this command selector to the command 3, the active dialog command. 
+This command has overridden the <code>AnalyseNotification</code> method as follows:</p>
+<pre class="code">CATNotifPropagationMode Command3::AnalyseNotification
+       (CATCommand* SendingCommand,
+        CATNotification* ReceivedNotification)
+{
+  if (ReceivedNotification-&gt;IsAKindOf(
+                 ExpectedNotification::ClassName())
+  {
+    ExpectedObject* TheExpectedObject = (ExpectedObject*)
+    SendingCommand-&gt;SendObject(
+      ExpectedObject::ClassName(), ReceivedNotification);
+    if (TheExpectedObject)
+      return (CATNotifDontTransmitToFather);
+    else
+      return (CATNotifTransmitToFather);
+  }
+  else
+    return (CATNotifTransmitToFather);
+}</pre>
+<p>The active command knows the notification it expects, and the method compares 
+its class to the one of the received notification. If the two classes match, it 
+creates an expected object instance and request from the sending command to such 
+object using the <code>SendObject</code> method. If the expected object is returned, 
+the method returns successfully with <code>CATNotifDontTransmitToFather</code>, 
+and with <code>CATNotifTransmitToFather</code> otherwise.</p>
+<p>The sending command should have overridden the <code>SendCommandSpecificObject</code> 
+as follows:</p>
+<pre class="code">void *Command1::SendCommandSpecificObject(
+                  const char * ExpectedObject,
+                  CATNotification* ReceivedNotification)
+{
+  if ( _TheHandledObject-&gt;IsAKindOf(ExpectedObject) &amp;&amp;
+       (ReceivedNotification == _NotifSent) )
+    return ((void *) _TheHandledObject);
+  else
+    return (NULL);
+}</pre>
+<p>The <code>SendCommandSpecificObject</code> method has the same arguments than 
+the <code>SendObject</code> method. The sending command has keep track of the notification 
+sent, for example in the <code>_NotifSent</code> data member, and handles <code>
+_TheHandledObject</code> instance. If the class of which <code>_TheHandledObject</code> 
+is an instance is a kind of the ExpectedObject class, that is the two classes are 
+the same or <code>_TheHandledObject</code>'s class derives from the ExpectedObject 
+class, <code>_TheHandledObject</code> is returned, and is also returned by the calling
+<code>SendObject</code> command as <code>TheExpectedObject</code> pointer to the 
+active dialog command, which can now uses it appropriately. Otherwise, <code>NULL</code> 
+is returned.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The CAA commands build a tree structure whose root command is the <em>CATCommandSelector</em> 
+instance. The Send/Receive communication protocol enables a notification sent by 
+one of these commands to propagate up to the appropriate command, that is the command 
+able to execute the job requested by the notification.</p>
+<p>Each command on top of the sending command can in turn either participate to 
+the notification propagation or process the notification. If the root command is 
+reached, it sends the notification to the active command which can decide to process 
+the notification, or to stop its propagation.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

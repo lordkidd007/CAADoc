@@ -1,0 +1,411 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Using XML Schemas</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using XML Schemas</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This document explains how to use schema validation with the XML infrastructure. 
+		It provides advice on how to structure XML documents and schemas to maximize 
+		portability and everlastingness of schema-based solutions.</p>
+		<ul>
+			<li><a href="#100000">Relationships Between XML Documents and XML Schemas</a></li>
+			<li><a href="#200000">Using XML Schema Instance (xsi) Attributes</a></li>
+			<li><a href="#300000">Preloading Schemas with the CATIXMLSchemaLoader 
+				Interface</a>
+				<ul>
+					<li><a href="#310000">Preloading Schemas in a SAX Parser</a></li>
+					<li><a href="#320000">Preloading Schemas in a DOM Parser</a></li>
+				</ul>
+			</li>
+			<li><a href="#400000">Non Portable Approach: Entity Resolver</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Relationships Between XML Documents and XML Schemas</h2>
+<p>Even though the W3C has published two specifications on XML (see
+<a href="#Ref1">[1]</a>) and XML schemas (see <a href="#Ref2">[2]</a>), the connection 
+between XML document and their schemas is not very well defined. A sample XML document 
+and its schema are presented below.</p>
+<table>
+	<tr>
+		<td>
+		<pre class="code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;foo:node name="a" xmlns:foo="urn:foo:bar"&gt;
+ &lt;foo:node name="b"&gt;
+ &lt;foo:node name="c"&gt;
+   &lt;foo:node name="d"/&gt;
+   &lt;foo:node name="e"/&gt;
+ &lt;/foo:node&gt;
+&lt;/foo:node&gt;</pre>
+		</td>
+		<td>
+		<pre class="code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xs:schema targetNamespace="urn:foo:bar" 
+ xmlns:tns="urn:foo:bar" 
+ xmlns:xs='http://www.w3.org/2001/XMLSchema'&gt;
+ &lt;xs:element name="node"&gt;
+  &lt;xs:complexType&gt;
+   &lt;xs:sequence&gt;
+    &lt;xs:element ref="tns:node" minOccurs='0' 
+     maxOccurs='unbounded'/&gt;
+   &lt;/xs:sequence&gt;
+   &lt;xs:attribute name="name" type="xs:string" 
+    use='required'/&gt;
+  &lt;/xs:complexType&gt;
+ &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+</pre>
+		</td>
+	</tr>
+</table>
+<p>One wonders what mechanism XML parsers use to locate and fetch the XML schema 
+when they need to do a validating parse of the XML document. Two main approaches 
+are possible.</p>
+<ul>
+	<li>The first approach consists in using a set of W3C-standardized attributes. 
+		These attributes can be put in the XML document to create an explicit reference 
+		to the physical location of the XML schema.</li>
+	<li>The second approach consists in preloading the schema in the XML parser 
+		before parsing the XML file.</li>
+</ul>
+<p>A third approach exists, which consists in using entity resolvers to resolve 
+during the parse the location of the referred XML schema, but this approach is strongly 
+discouraged as it will not work with all parsers.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Using XML Schema Instance (xsi) Attributes</h2>
+<p>This approach works with both the IBM and the Microsoft parsers. It involves 
+using W3C standardized attributes from the "http://www.w3.org/2001/XMLSchema-instance" 
+namespace in the XML document to have it point to its associated grammar.</p>
+<ul>
+	<li>The <code>xsi:schemaLocation</code> attribute must be used when the XML 
+		file uses namespaces and/or uses elements from several schemas. The value 
+		of the attribute is made of pairs of whitespace-separated strings. The first 
+		element of each pair is the target namespace of the referenced schema. The 
+		second element of the pair is an URL pointing to the physical location where 
+		the XSD schema can be accessed. The URL can be absolute or relative to the 
+		path of the XML document.</li>
+	<li>The <code>xsi:noNamespaceSchemaLocation</code> attribute must be used when 
+		the XML file does have an associated namespace. The value of the attribute 
+		is an URL pointing to the physical location where the XSD schema can be 
+		accessed. The URL can be absolute or relative to the path of the XML document.</li>
+</ul>
+<table>
+	<tr>
+		<td>
+		<pre class="code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;foo:node name="a" xmlns:foo="urn:foo:bar" 
+ <strong>xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="urn:foo:bar xsd/simple1.xsd"</strong>&gt;
+ &lt;foo:node name="b"&gt;
+ &lt;foo:node name="c"&gt;
+   &lt;foo:node name="d"/&gt;
+   &lt;foo:node name="e"/&gt;
+ &lt;/foo:node&gt;
+&lt;/foo:node&gt;</pre>
+		</td>
+		<td>
+		<pre class="code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xs:schema targetNamespace="urn:foo:bar" 
+ xmlns:tns="urn:foo:bar" 
+ xmlns:xs='http://www.w3.org/2001/XMLSchema'&gt;
+ &lt;xs:element name="node"&gt;
+  &lt;xs:complexType&gt;
+   &lt;xs:sequence&gt;
+    &lt;xs:element ref="tns:node" minOccurs='0' 
+     maxOccurs='unbounded'/&gt;
+   &lt;/xs:sequence&gt;
+   &lt;xs:attribute name="name" type="xs:string" 
+    use='required'/&gt;
+  &lt;/xs:complexType&gt;
+ &lt;/xs:element&gt;
+&lt;/xs:schema&gt;</pre>
+		</td>
+	</tr>
+</table>
+<p>The main advantages of this approach are:</p>
+<ul>
+	<li>It is an official W3C standard.</li>
+	<li>It works for many different parser technologies (SAX, DOM, pull parsers, 
+		etc.)</li>
+	<li>It is 100% explicit, you get instant access to the XML schema from the XML 
+		document without needing any other parameter.</li>
+	<li>It works even if the XML document has no associated namespace.</li>
+	<li>It works with external tools (XMLSpy, Visual studio, etc.)</li>
+</ul>
+<p>This approach raises several problems though:</p>
+<ul>
+	<li>It "pollutes" XML data with physical file locations which have nothing to 
+		do with the logical data being described.</li>
+	<li>It can induce big migrations of all the XML files referencing a schema if 
+		its name or physical location changes.</li>
+	<li>I can introduce Windows / UNIX portability problem related to slash/backslash, 
+		UNC path, drive mapping and other discrepancies between the Windows and 
+		the Unix file systems.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Preloading Schemas with the CATIXMLSchemaLoader Interface</h2>
+<p>XML parsers provided in V6 offer a proprietary APIs to preload XML schemas and 
+to validate XML schemas from a cached version. Initially intended as performance 
+tuning improvements, these mechanisms have been encapsulated under the <em>CATIXMLSchemaLoader</em> 
+interface and now provide a portable and flexible mechanism to bind an XML document 
+to a schema.</p>
+<p>
+<img alt="xmlparsers.png (2262 bytes)" height="127" src="images/schemaloader.png" width="414"/></p>
+<p>To validate a XML document using <em>CATIXMLSchemaLoader</em>, follow these steps:</p>
+<ul>
+	<li>Create an XML parser (it can be a SAX2 CATISAXXMLReader or a CATIXMLDOMDocumentBuilder).</li>
+	<li>Get the CATIXMLSchemaLoader handle of the parser</li>
+	<li>Preload your schema (you need to indicate the target namespace of the schema, 
+		so having the <code>targetNamespace</code> attribute set in your XML schema 
+		is mandatory to use preloading).</li>
+	<li>Parse your XML file with the parser, with validation and namespaces turned 
+		on. The XML parser detects the namespace of each XML element and uses the 
+		schema with a matching targetNamespace for validation.</li>
+</ul>
+<p>Note that the <em>CATIXMLSchemaLoader</em> has precedence over the <code>xsi:schemaLocation</code> 
+and <code>xsi:noNamespaceSchemaLocation</code> attributes: if you preload a schema, 
+the attributes are ignored by the parser if they exist.</p>
+<p>The main advantages of this approach are:</p>
+<ul>
+	<li>It is flexible since your XML schema can be stored anywhere (in any input 
+		source).</li>
+	<li>You can later decide to change the location of your XML schema without having 
+		to alter the XML files based on this schema.</li>
+	<li>It offers good performance since the schema is just parsed once, then the 
+		compiled version of the schema is reused to validate any number of documents.</li>
+</ul>
+<p>This approach raises several problems though:</p>
+<ul>
+	<li>It requires more coding.</li>
+	<li>The physical location of the XML schema is not straightforward for a new 
+		programmer needing to work on your code.</li>
+	<li>It does not work with external tools: for instance, XMLSpy will not be able 
+		to guess the link which exists between the XML file and the XML schema.</li>
+	<li>It requires the use of namespaces since the binding between the preloaded 
+		schema and the XML documents is based on the target namespace URI of the 
+		XML schema (called <code>urn:foo:bar</code> in our example)</li>
+</ul>
+<p><span class="run-in">Important:</span> You must be careful with schema preloading 
+to provide a valid schema to the CATIXMLSchemaLoader and to check that the loading 
+has successfully completed. Indeed, if provided with a bad schema, the parser will 
+skip validation and perform just well-formedness checking.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>Preloading Schemas in a SAX Parser</h3>
+<p>The following code extract shows how to validate an XML document against an XML 
+schema using a SAX2 parser.</p>
+<pre class="code">#include "CATIXMLSAX2Factory.h"
+#include "CATIXMLSchemaLoader.h"
+#include "CATSAXXMLReaderOptions.h"
+#include "CATISAXInputSource.h"
+#include "CATISAXErrorHandler.h"
+#include "CATSAXDefaultHandler.h"
+
+// Create the factory object for SAX2
+CATIXMLSAX2Factory_var factory;
+HRESULT hr = CreateCATIXMLSAX2Factory(factory, CLSID_XML4C5_SAX);
+if (SUCCEEDED(hr) &amp;&amp; (factory != NULL_var)) {
+
+    // Create a SAX2 XMLReader
+    CATISAXXMLReader_var reader;
+    hr = factory-&gt;CreateXMLReader(reader);
+    if (SUCCEEDED(hr) &amp;&amp; (reader != NULL_var)) {
+
+        // Configure the reader for validation and namespace support
+        hr = reader-&gt;SetFeature(CATSAXXMLReaderOptions::ValidationFeature, TRUE);
+        if (SUCCEEDED(hr)) {
+            hr = reader-&gt;SetFeature(CATSAXXMLReaderOptions::NamespacesFeature, TRUE);
+            if (SUCCEEDED(hr)) {
+                hr = reader-&gt;SetFeature(CATSAXXMLReaderOptions::NamespacePrefixFeature, TRUE);
+                if (SUCCEEDED(hr)) {
+                   
+                    // Create a file based input source for the schema
+                    CATISAXInputSource_var schemaInputSource;
+                    hr = factory-&gt;CreateInputSourceFromFile("E:\\simple1.xsd", 
+                     "myPublicId", schemaInputSource);
+                    if (SUCCEEDED(hr) &amp;&amp; (schemaInputSource != NULL_var)) {
+                       
+                        // Get the CATIXMLSchemaLoader handle of the parser
+                        CATIXMLSchemaLoader_var schemaLoader = reader;
+                        if (SUCCEEDED(hr) &amp;&amp; (schemaLoader != NULL_var)) {
+                           
+                            // Preload the schema
+                            hr = schemaLoader-&gt;PreloadSchema("urn:foo:bar", schemaInputSource);
+                            if (SUCCEEDED(hr)) {
+
+                                // Create a file based input source for the xml file
+                                CATISAXInputSource_var xmlInputSource;
+                                hr = factory-&gt;CreateInputSourceFromFile("E:\\simple1.xml", 
+                                 "myPublicId", xmlInputSource);
+                                if (SUCCEEDED(hr) &amp;&amp; (schemaInputSource != NULL_var)) {
+
+                                    // Register a simple error handler
+                                    CATISAXErrorHandler_var errorHandler;
+                                    CATSAXDefaultHandler* handler = new CATSAXDefaultHandler();
+                                    errorHandler = handler;
+                                    handler-&gt;Release();
+                                    handler = NULL;
+                                    if (errorHandler != NULL_var) {
+                                        hr = reader-&gt;SetErrorHandler(errorHandler);
+                                        if (SUCCEEDED(hr)) {
+                                            hr = reader-&gt;Parse(xmlInputSource);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Preloading Schemas in a DOM Parser</h3>
+<p>The following code extract shows how to validate an XML document against an XML 
+schema using a DOM parser.</p>
+<pre class="code">#include "CATIXMLSAX2Factory.h"
+#include "CATIXMLSchemaLoader.h"
+#include "CATIXMLDOMDocumentBuilder.h"
+#include "CATISAXInputSource.h"
+
+// Create the factory object for SAX2
+CATIXMLSAX2Factory_var factory;
+HRESULT hr = CreateCATIXMLSAX2Factory(factory, CLSID_XML4C5_SAX);
+if (SUCCEEDED(hr) &amp;&amp; (factory != NULL_var)) {
+
+    // Create a DOM CATIXMLDOMDocumentBuilder
+    CATIXMLDOMDocumentBuilder_var builder;
+    hr = CreateCATIXMLDOMDocumentBuilder(builder, CLSID_XML4C5_DOM);
+    if (SUCCEEDED(hr) &amp;&amp; (builder != NULL_var)) {
+                   
+        // Create a file based input source for the schema
+        CATISAXInputSource_var schemaInputSource;
+        hr = factory-&gt;CreateInputSourceFromFile("E:\\simple1.xsd", 
+         "myPublicId", schemaInputSource);
+        if (SUCCEEDED(hr) &amp;&amp; (schemaInputSource != NULL_var)) {
+           
+            // Get the CATIXMLSchemaLoader handle of the parser
+            CATIXMLSchemaLoader_var schemaLoader = builder;
+            if (SUCCEEDED(hr) &amp;&amp; (schemaLoader != NULL_var)) {
+               
+                // Preload the schema
+                hr = schemaLoader-&gt;PreloadSchema("urn:foo:bar", schemaInputSource);
+                if (SUCCEEDED(hr)) {
+                   
+                    // Create a file based input source for the xml file
+                    CATISAXInputSource_var xmlInputSource;
+                    hr = factory-&gt;CreateInputSourceFromFile("E:\\simple1.xml", 
+                     "myPublicId", xmlInputSource);
+                    if (SUCCEEDED(hr) &amp;&amp; (schemaInputSource != NULL_var)) {
+                       
+                        CATListOfCATUnicodeString readOptions;
+                        CATListOfCATUnicodeString readOptionValues;
+                        readOptions.Append("CATDoValidation");
+                        readOptions.Append("CATEnableNameSpaces");
+                        readOptionValues.Append("true");
+                        readOptionValues.Append("true");
+                        CATIDOMDocument_var document;
+                        hr = builder-&gt;Parse(xmlInputSource, 
+                         document, readOptions, readOptionValues);
+                    }
+                }
+            }
+        }
+    }
+}
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Non Portable Approach: Entity Resolver</h2>
+<p>In this approach, you need to annotate your XML files just as in first approach 
+with the <code>xsi:schemaLocation</code> or <code>xsi:noNamespaceSchemaLocation</code> 
+attributes. However, contrary to the first approach, you will not use values which 
+correspond to an actual physical URL (be it absolute or relative). Instead, you 
+put as a value a logical name. Then, before doing the actual parse, you register 
+a <code>CATISAXEntityResolver</code> with your parser. In this <code>CATISAXEntityResolver</code>, 
+you write the code to bind the logical schema name to an actual physical input source. 
+This approach will not work with MSXML because MSXML does not consider the values 
+of <code>xsi:schemaLocation</code> or <code>xsi:noNamespaceSchemaLocation</code> 
+as entities which need to be resolved, so it will never invoke your <code>CATISAXEntityResolver</code>.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>There are two main ways to specify the relationship between an XML document and 
+its schema.</p>
+<ul>
+	<li>If you need to edit your XML document with a validating editor, use the
+		<code>xsi:schemaLocation</code> or the <code>xsi:noNamespaceSchemaLocation</code> 
+		attributes.</li>
+	<li>If you need to deploy XML files at variable locations, use the <em>CATIXMLSchemaLoader</em> 
+		approach.</li>
+</ul>
+<p>Both approaches are compatible: you can use <code>xsi:schemaLocation</code> or
+<code>xsi:noNamespaceSchemaLocation</code> during development, when you need to 
+edit the XML files and schemas and know precisely where they are stored. You can 
+use the <em>CATIXMLSchemaLoader</em> on deployed code when you just need protection 
+from invalid XMLs.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkUrl('http://www.w3.org/TR/REC-xml/');return false;">
+		Extensible Markup Language (XML) 1.0 (Third Edition) - W3C Recommendation 
+		04 February 2004</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkUrl('http://www.w3.org/XML/Schema');return false;">
+		XML Schema - W3C schema home page February 2004</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Apr 2005]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

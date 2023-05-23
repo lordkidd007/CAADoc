@@ -1,0 +1,423 @@
+<html>
+	<head>
+		<title>Retrieving Mechanical Import Information using ClientID</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<meta content="Microsoft FrontPage 12.0" name="GENERATOR">
+		<meta content="FrontPage.Editor.Document" name="ProgId">
+		<link href="../CAADocStyleSheets/caav5.css" type="text/css" rel="Stylesheet">
+		<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+        
+        </head>
+		
+	<body >
+
+<body>
+
+	<table class="DocHeader">
+  <tr>
+    <td class="DocHeader1">
+      <h1><a name="Top"></a>Creating a Custom Link</h1>
+  </tr>
+  <tr>
+    <td class="use"><i>Use Case</i></td>
+      </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>The Use Case is an Interactive State Command which 
+		allows CAA customers to create their own relationships between various 
+		PLM object, across different Modelers exposed from within the scope of 
+		the&nbsp; <b>RFLP</b> (Requirement, Functional, Logical, Physical) 
+		editor. This relationship is commonly referred to as a RFLP Agnostic 
+		Relationship or a RFLP Custom Link.</p>
+		<p>The Use Case has illustrated this by deploying a <b>
+		State Command</b> [1] located in the &quot;<b>Create Customer Link</b>&quot; toolbar, 
+		a part of the <b>General Workshop AddIn</b> existing within <b>CATIA</b>. The State Command aided by the <b>Dialog Boxes</b> [2] drives this Use 
+		Case through various states associated with its lifecycle.</p>
+		<ul>
+        <li><a href="#Learn"><strong>What You Will Learn With This Use Case</strong></a></li>
+        <li><a href="#UseCase"><strong>The CAACustoLinkCreate<b> </b>Use 
+		Case</strong></a>
+          <ul>
+            <li><a href="#What">What Does <b>CAACustoLinkCreate</b> Do</a></li>
+            <li><a href="#How">How to Launch <b>CAACustoLinkCreate</b>&nbsp;</a></li>
+            <li><a href="#Where">Where to Find the <b>CAACustoLinkCreate</b>&nbsp;Code</a></li>
+          </ul>
+        <li><a href="#Step"><strong>Step-by-Step</strong></a></li>
+        <li><a href="#InShort"><strong>In Short</strong></a></li>
+        <li><a href="#References"><strong>References</strong></a></li>
+      </ul>
+      </table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case illustrates the capabilities of the <code><b><i>
+PLMCustomLinkInterfaces</i></b></code> CAA APIs for creating a Customer Link. These 
+are</p>
+<ul>
+	<li><code><b>PLMICustomRelationshipManager</b></code>, a Relationship 
+	Manager, primarily responsible for creating a Customer Link</li>
+	<li><code><b>PLMICustomRelationship</b></code>, an Interface implemented by 
+	a Customer Link, primarily responsible for retrieving and setting various 
+	Customer Link attributes</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="UseCase"></a>The <span style="font-weight: 400">CAACustoLinkCreate</span>&nbsp;Use Case</h2>
+<p><code><b>CAACustoLinkCreate</b></code> is a use case of the <code><b>
+CAACustomLinkItf</b></code>.<code><b>edu</b></code> framework that mainly 
+illustrates <code><b>PLMCustomLinkInterfaces</b></code> frameworks capabilities.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="What"></a>What Does<b>  <span style="font-weight: 400">CAACustoLinkCreate</span>&nbsp;</b>Do</h2>
+<p>The Use Case is primarily an Interactive State Command which creates a 
+customer link, for the input model, as seen below. This creation is particularly 
+significant in the context of input models which are loaded in the current 
+session, by the RFLP editor of CATIA.</p>
+<table border="0" width="100%" id="table19">
+	<caption>
+	<p align="left"><span><a name="Fig. 1"></a>Fig.1</span> <b>Input Model (RFLP Editor)</b></p>
+	</caption>
+	<tr>
+		<td>
+        <img border="0" src="images/CAACustoLinkCreate_InputModel.jpg"></td>
+	</tr>
+</table>
+<p>The RFLP editor provides several commands which enables us to work across 
+domains (RFLP Domains). The figure above, is the spec tree representation of 2 
+models viz. a Functional Root Ref viz. <code><b>FuncRootRef</b></code> and a 
+Physical Root Ref viz. <code><b>PhyRootRef</b></code>. <code><b>FuncRootRef</b></code> has a child PLM Inst viz. <code><b>
+FuncChildRef1.1</b></code> and a child Rep Inst viz. <code><b>FuncRep.1</b></code> 
+directly beneath it.<code><b> PhyRootRef</b></code> has a child PLM Inst viz. <code><b>
+PhyChildRef.1</b></code> and a child Rep Inst viz. <code><b>PhyChildRep</b></code> 
+directly beneath it. A set of Custom Links are created within as well as across these two models, 
+thanks to an interactive command which exists within the &quot;<b>Create Customer 
+Link</b>&quot; 
+toolbar, a part of the <b>General Workshop Addin</b>, within <b>CATIA</b>.</p>
+<table border="0" width="100%" id="table13">
+      <caption>
+        <p align="left"><span><a name="Fig. 2"></a>Fig.2</span> 
+		<b>&quot;Create 
+		Customer Link&quot;<i>
+        </i>Toolbar</b></caption>
+      <tr>
+        <td width="100%">
+		<img border="0" src="images/CAACustoLinkCreate_Toolbar.jpg"></td>
+      </tr>
+    </table>
+<p>The State Command, as the one depicted below, drives the Use Case through its 
+various states. </p>
+<table border="0" width="100%">
+  <caption>
+	<p align="left"><span><a name="Fig. 3"></a>Fig. 3</span> 
+	<b>The State Command</b></p>
+  </caption>
+  <tr>
+    <td width="100%">&nbsp;&nbsp;&nbsp;
+	<img border="0" src="images/CAACustoLinkCreate_StateCommand.gif" width="241" height="397"></td>
+  </tr>
+</table>
+<p align="left">A Customer Link is defined by, most importantly, a source and a 
+target. Other relevant inputs include the Relation name, Relation type and a 
+relevant description.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On clicking the command, the first state viz. &quot;<b>Select Source</b>&quot;&nbsp; 
+prompts an end-user to select the source of the Customer Link. At the same time, a 
+&quot;<b>Create Customer Relation</b>&quot; dialog box appears [<a href="#Fig. 4">Fig. 4</a>] 
+which has an update of all inputs sought from an end-user for creating a Customer 
+Link.</p>
+<table border="0" width="100%">
+  <caption>
+    <p align="left"><span><a name="Fig. 4"></a>Fig.4</span> 
+	<b>Identifying the Source of the Customer Link</b></p>
+  </caption>
+  <tr>
+    <td width="100%">
+	<img border="0" src="images/CAACustoLinkCreate_Fig4.jpg"></td>
+  </tr>
+</table>
+<p align="left">It is important to note that the PLM objects which can act as a 
+source/ target for a Customer Link are namely. <b>PLM Reference</b>,<b> PLM Instance</b> 
+and a <b>PLM Rep Instance</b>. A <b>PLM Rep Ref</b>,<b> Ports</b>, <b>Connections</b>, <b>VO
+</b>(<b>Visualized Occurrences</b>) are <b>NOT VALID</b>&nbsp; as source/target 
+for a Customer Link. Also, if a PLM Instance is identified as a source/target for a Customer Link, 
+the &quot;<b>Underlying FI or PLM Reference</b>&quot; dialog box depicted below [<a href="#Fig. 4a">Fig. 
+4a</a>] prompts an end-user&nbsp; to precisely identify if the intention is to 
+select 
+the <b>First Instance </b>(<b>FI</b>) or the underlying <b>PLM Reference</b>, 
+differentiated thanks to the radio buttons provided.</p>
+<table border="0" width="100%" id="table20">
+	<caption>
+	<p align="left"><a name="Fig. 4a"></a>Fig. 4a <b>Identifying an Underlying 
+	FI or PLM Reference</b></p>
+	</caption>
+	<tr>
+		<td><img border="0" src="images/CAACustoLinkCreate_Fig4a.jpg"></td>
+	</tr>
+</table>
+<p align="left">Another point to observe is an incoming transition associated 
+with the &quot;<b>Select Source</b>&quot; state [<a href="#Fig. 3">Fig. 3</a>], which 
+implies that this state continues to remain active even after the user selects a 
+source. This enables an end-user to select a source repeatedly, until the time 
+he confirms the selection.&nbsp; This confirmation is communicated to the state 
+command, by the &quot;<b>Close Button</b>&quot; click event associated with the &quot;<b>Underlying 
+FI or PLM Reference</b>&quot; dialog box. [<a href="#Fig. 4a">Fig. 4a</a>].&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For eg, on confirmation, you'll find&nbsp; the <b>FI</b> viz.
+<code><b>PhyChildInst1.1</b></code>, has been updated in the &quot;<b>Source</b>&quot; field 
+within the dialog box.[<a href="#Fig. 4">Fig. 4</a>]. The State Command now 
+proceeds to the next state &quot;<b>Select Target</b>&quot;, and on similar lines as the 
+source was identified, the end-user now identifies the target viz. <code><b>
+PhyRepInstUnderRoot</b></code>,  
+displayed in the &quot;<b>Create Custo Relation</b>&quot; dialog box, as 
+depicted below. [<a href="#Fig. 5">Fig. 
+5</a>]</p>
+<table border="0" width="100%" id="table12">
+	<caption>
+	<p align="left"><a name="Fig. 5"></a>Fig. 5 <b>Identifying the Target of the 
+	Customer Link</b></p>
+	</caption>
+	<tr>
+		<td>
+        <img border="0" src="images/CAACustoLinkCreate_Fig5.jpg"></td>
+	</tr>
+</table>
+<p align="left">On confirming the target for the custo relation, a transition 
+from the &quot;<b>Select Target</b>&quot; state to an &quot;<b>On Hold</b>&quot; state is triggered. 
+The &quot;<b>On Hold</b>&quot; state represents a state when an end-user has identified 
+the source and target for the Customer Link. The rest of the inputs, relevant for 
+creating a Customer Link, are directly input to the fields in the &quot;<b>Create Custo 
+Relation</b>&quot; dialog box. [<a href="#Fig. 5">Fig. 5</a>]. At this stage all relevant inputs for creating a Customer Link are 
+available. At this stage an &quot;<b>OK</b>&quot; button click event triggers an action 
+which actually creates the Customer Link, having sought all inputs from the dialog 
+class [<a href="#Fig. 5">Fig. 5</a>]. The Use Case thus concludes.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a href="#Where" name="How"></a>How to Launch CAACustoLinkCreate</h2>
+<p>To launch <code><b>CAACustoLinkCreate</b></code>, you will need to set 
+up the build time environment, then compile <code><b>CAACustoLinkCreate</b></code> 
+along with its prerequisites, set up the run time environment, and then execute 
+the use case [<a href="#References">4</a>].</p>
+<p>Launch <b>CATIA</b>, when the application is ready:</p>
+<ul>
+	<li><b>Connect</b> to the database</li>
+	<li>Select your <b>environment</b> </li>
+	<li>On the <b>Tools</b> menu click <b>Customize</b> and check that the <b>
+	Create Custo Relation</b> toolbar is existing. User can set the visibility of this 
+	toolbar with the <b>View</b>-&gt;<b>Toolbars
+      </b>option</li>
+</ul>
+<p>You may run this use case on an input model retrieved by importing the
+<a><code><b>CAACustoLinkCreate.3dxml</b></code></a>
+file (<b>to be provided</b>) from the <a><code><b>CAACustomLinkItf.edu</b></code></a> 
+ fwk, at the location stated below</p>
+<table id="table18" width="974">
+    <tr>
+      <td width="972"><code>InstallRootDirectory\CAACustomLinkItf.edu\InputData</code></td>
+    </tr>
+</table>
+<p align="left">This 3D XML<code> </code>file<code> </code>contains a <b>
+Physical Root Reference </b>with the following attributes:</p>
+<ul>
+  <li><a><code><b>PLM_ExternalID</b></code></a>:
+    <code>CAAPhyRootRef</code></li>
+  <li><a><code><b>Version</b></code></a>:
+    ---</li>
+</ul>
+<p align="left">This 3D XML<code> </code>file<code> also </code>contains a <b>
+Functional Root Reference </b>with the
+following attributes:</p>
+<ul>
+  <li><a><code><b>PLM_ExternalID</b></code></a>:
+    <code>CAAFuncRootRef</code></li>
+  <li><a><code><b>Version</b></code></a>:
+    ---</li>
+</ul>
+<p>The <b>3DXML</b> import to <b>CATIA</b> has been further explained in the 
+article [<a href="#References">4</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<b><h2><a name="Addin"></a>Addin Access</h2>
+</b><p>The&nbsp; <b>General Workshop</b>&nbsp; <b>Add-In</b>  
+within <b>CATIA</b>, is available thanks to a data extension of the <code><b>
+CAACustomLinkGeneralWksAddin </b></code>class. This further calls for 
+uncommenting the following 
+entries in the <code><b>CAACustomLinkItf.edu.dico</b></code> 
+file.</p>
+<table class="code" id="table9">
+  <tr>
+    <td>
+      <pre>...
+# CustomLinkGeneralWksAddin CATIWorkbenchAddin libCAACustoLinkGeneralWksAddin
+# CustomLinkGeneralWksAddin CATIAfrGeneralWksAddin libCAACustoLinkGeneralWksAddin
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>The <code><b>dico</b></code> file entries imply that the Add-in implements <i>
+<code><b>CATIAfrGeneralWksAddin</b></code></i>. and&nbsp; <code> <i><b>
+CATIWorkbenchAddin</b></i></code>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Where"></a>Where to Find the CAACustoLinkCreate Code</h2>
+<p>The <code><b>CAACustoLinkCreate</b></code> use case is made of a Class 
+defined in the <code><b>CAACustoLinkCommands</b></code>.<code><b>m</b></code><code><b> </b></code> 
+module of the
+<code><b>CAACustomLinkItf.edu</b></code> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAACustomLinkItf.edu\CAACustoLinkCommands.m\</code></td>
+  </tr>
+</table>
+<ul>
+	<li><code><b>CAACustoLinkCreateCustoRelStateCmd.cpp</b></code> 
+	has the State Command implementation to create a customer link</li>
+	<li><code><b>CAACreateCustomRelationshipCmdDlg.cpp</b></code> has the 
+	implementation for the dialog box which seeks inputs for creating a customer 
+	link</li>
+	<li><code><b>CAACustoLinkIsPLMRefSoughtDlg.cpp</b></code> implements the 
+	dialog box which lets an end-user identify if the selection is a PLM 
+	Instance or its underlying Reference</li>
+</ul>
+<p>The use case pre-reqs an Add-in module too:</p>
+<table id="table10">
+  <tr>
+    <td><code>InstallRootDirectory\CAAMechanicalModeler.edu\</code><p><code>CAACustoLinkGeneralWksAddin.m</code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">4</a>] is the 
+directory where the CAA CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The steps in the <code><b>CAACustoLinkCre</b></code> use case are</p>
+<ol>
+	<li><a href="#Prolog">Building the StateCommand, associated Dialog Boxes and 
+	Integrating them within CATIA</a></li>
+	<li><a href="#Creating a Custo Link">Creating a Customer Link</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Prolog"></a>Building the StateCommand, associated Dialog Boxes and 
+Integrating them within CATIA</h2>
+<p align="left">A State Command in associated with dialog box drives the Use 
+Case through its various states as explained in the &quot;<b>What does the Use Case 
+do</b>&quot; section [<a href="#What">#</a>].&nbsp; The article &quot;<b>Getting Started 
+with State Dialog Commands</b>&quot; [<a href="#References">1</a>] provides further 
+insights into the implementation details of a State Command and the methodology 
+to link it to the events associated with a dialog box.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A dialog box is built which contains an update of all inputs 
+relevant for creating a Customer Link. The implementation details of a dialog box 
+could be referred from &quot;<b>Getting started with Dialog Boxes</b>&quot; [<a href="#References">2</a>]The state command is integrated within a toolbar belonging to 
+the General Workshop in <b>CATIA</b>, the implementation details of which could 
+be found by studying the reference &quot;<b>Creating an Add In</b>&quot;&nbsp; [<a href="#References">3</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Creating a Custo Link"></a>Creating a Customer Link</h2>
+<p>Creating a Customer Link primarily involves simply two steps</p>
+<ul>
+	<li>Creating a Relationship Manager</li>
+	<li>The Manager creates the link</li>
+</ul>
+<table class="code">
+  <tr>
+    <td>
+      <pre>	<b>PLMICustomRelationshipManager</b>* piCustoRelManager = NULL;
+	hr = ::<b>CATInstantiateComponent</b>(&quot;PLMCustomRelationshipMgr&quot;,
+				    IID_PLMICustomRelationshipManager,
+				   (void**)&amp;piCustoRelManager);
+
+		
+	<b>PLMICustomRelationship_var</b> spOnCustomRelationship;
+	hr = piCustoRelManager-&gt;<b>CreateCustomRelationship</b>(ipEnv,_piPLMCompOnSrc,
+						         _piPLMCompOnTgt,
+						         relname,reltype,
+							spOnCustomRelationship);
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>A call to <code><b>CATInstantiateComponent</b></code> 
+returns a <i><code><b>PLMICustomRelationshipManager</b></code></i> 
+pointer. (<code><b>piCustoRelManager</b></code>).&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Further a call to <i><code><b>
+PLMICustomRelationshipManager</b></code></i>::<code><b>CreateCustomRelationship</b></code> 
+creates a Customer Link.&nbsp; The inputs provided for the creation are</p>
+<ul>
+	<li><code><b>ipEnv</b></code>, a <i><code><b>
+	CATIAdpEnvironment </b></code></i>* , the 
+	environment retrieved from the current <b>CATIA</b> session. The authoring 
+	custo for a PLM Connection is determined by the environment for a specific 
+	Modeler (<code><b>RFLPLMAgnosticFreeConnection</b></code>, in this case)</li>
+	<li><code><b>_piPLMCompOnSrc</b></code>, a <i>
+	<code><b>CATIPLMComponent</b></code></i>* on 
+	the source of a Customer Link. Its retrieved, thanks to the State Command, 
+	which prompts an end-user to identify the source, as a node in the spec tree 
+	within <b>CATIA</b></li>
+	<li><code><b>_piPLMCompOnTgt</b></code>, a <i>
+	<code><b>CATIPLMComponent</b></code></i>* on 
+	the target of a Customer Link. Its retrieved, thanks to the State Command which 
+	prompts an end-user to identify the target, as a node in the spec tree 
+	within <b>CATIA</b></li>
+	<li><code><b>relname</b></code>, a <code><b>
+	CATUnicodeString</b></code> representing the 
+	name of the relationship created. Its input in the dialog box which is 
+	updated with all inputs relevant for the Customer Link creation</li>
+	<li><code><b>reltype</b></code>, a <code><b>
+	CATUnicodeString</b></code> representing the 
+	type of the relationship created. Its input in the same dialog box as above</li>
+	<li><code><b>spOnCustomRelationship</b></code>, 
+	a <i><code><b>PLMICustomRelationship</b></code></i> 
+	handler, output Customer Link</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The <b>RFLP</b> editor provides native commands to create and manipulate standard 
+relationships. But&nbsp; CAA customers would like to have their own 
+relationships built which spans across different Modeler, for eg. links which 
+relate Functional and Physical PLM objects. In other words, a CAA customer adds 
+his own business logic for which a level of openness is called for. Hence it is 
+essential to expose a set of CAA APIs, letting the customer create and operate 
+on such relationships. </p>
+<p>This Use Case is primarily an Interactive Use Case, which thanks to a State 
+Command integrated as a part of the <b>General Workshop Add In</b>, within <b>CATIA</b>, 
+enables an end-user to identify the source and target of his relationships in 
+the spec tree within <b>CATIA</b>. The other relevant inputs are input through a dialog 
+box, which in conjunction with the state command drive this Use Case through 
+various states, until the end, to output a Customer Link.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+	<h2><a name="References"></a>References</h2>
+		<table id="table55">
+			<colgroup>
+				<col valign="top" span="1">
+			</colgroup>
+			<tr>
+				<td>[1]</td>
+				<td>
+                <a href="../CAADegDialogEngine/CAADegTaGettingStarted.htm">Getting started wtih State Dialog Commands</a></td>
+			</tr>
+			<tr>
+				<td>[2]</td>
+				<td>
+                <a href="../CAADlgDialog/CAADlgUcSampleGettingStarted.htm">Getting started with Dialog Boxes</a></td>
+			</tr>
+			<tr>
+				<td>[3]</td>
+				<td>
+				<a href="../CAAAfrApplicationFrame/CAAAfrUcSampleAddin.htm">Creating an Add-In</a></td>
+			</tr>
+			<tr>
+				<td>[4]</td>
+				<td>
+				<a href="../CAADocUseCases/CAADocRunSample.htm">Building and Launching a CAA Use Case</a></td>
+			</tr>
+			</table>
+
+		<!---------------------------------comment------------------------------------->
+		<h2><a name="History0"></a>History</h2>
+		<table id="table56">
+			<tr>
+				<td>Version: <strong>1</strong> [Feb 2008]</td>
+				<td>Document created</td>
+			</tr>
+			</table>
+<script type="text/javascript">insertLinkToTop()</script>
+</body>
+
+</html>
+

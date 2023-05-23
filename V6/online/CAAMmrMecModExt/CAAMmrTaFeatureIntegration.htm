@@ -1,0 +1,622 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Integrating a New Mechanical Feature</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Integrating a New Mechanical Feature</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Abstract"></a>Abstract</h2>
+		<p>This article describes the interfaces that need to be implemented in 
+		order to integrate a new mechanical feature in the basic behaviors. Note 
+		that a generic article describing the integration of new features defined 
+		from &quot;scratch&quot; [<a href="#References">1</a>] already exists.
+		</p>
+		<ul>
+			<li><a href="#100000">Derivable Mechanical Features</a> </li>
+			<li><a href="#200000">Overview of Basic Behaviors</a>
+				<ul>
+					<li><a href="#210000">Update</a></li>
+					<li><a href="#220000">Replace</a></li>
+					<li><a href="#230000">Cut/Copy/Paste/Delete</a></li>
+					<li><a href="#240000">Integration into an Ordered Set</a></li>
+					<li><a href="#250000">Geometrical Feature Behaviors</a></li>
+					<li><a href="#260000">Persistence of a Feature's Name</a></li>
+					<li><a href="#270000">Editing</a></li>
+					<li><a href="#280000">Specification Tree Visualization and Navigation</a></li>
+					<li><a href="#290000">Geometrical Visualization</a></li>
+					<li><a href="#2A0000">Publication of Knowledge Parameters</a></li>
+					<li><a href="#2B0000">Search Integration</a></li>
+					<li><a href="#2C0000">Constraint Integration</a></li>
+					<li><a href="#2D0000">Power Copy and User Feature</a></li>
+					<li><a href="#2E0000">Interactive Commands</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a> </li>
+			<li><a href="#References">References</a> </li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Derivable Mechanical Features</h2>
+<p>The &quot;Creating a New StartUp from a Mechanical StartUp&quot; article [<a href="#References">2</a>] 
+has explained how to create a new mechanical feature derived from one of the available 
+features of the Mechanical Modeler feature arborescence.</p>
+<p>As a reminder, here is the list of derivable features:</p>
+<ul>
+	<li><strong>MechanicalFeature</strong>: The most generic mechanical feature.</li>
+	<li><strong>GeometricalElement3D</strong>: To design a new surfacic or wireframe 
+		feature.</li>
+	<li><strong>GSMGeom</strong>:To design a new surfacic or wireframe feature.</li>
+	<li><strong>MechanicalFormFeature</strong>: To design a new solid feature.</li>
+	<li><strong>MechanicalContextualFeature</strong>: To design a new solid feature.</li>
+	<li><strong>MechanicalElement</strong>: To design a new non geometrical feature.</li>
+</ul>
+<p>You can also create a new mechanical feature designed to aggregate features. 
+In this case, you should derived from <strong>GSMTool </strong>or <strong>MechanicalSet</strong> 
+StartUps, depending on what kind of features you want to aggregate.</p>
+<p>The aim of this article is to describe the interfaces that you will need to implement, 
+depending on the type of your new feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Overview of Basic Behaviors</h2>
+<p>This article lists a certain number of basic behaviors that need to be considered 
+whenever you create a new mechanical feature.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Update</h3>
+<p>The <code><strong>Build</strong></code> method of the <em><strong>CATIFmFeatureBehaviorCustomization</strong></em>
+interface allows the re-calculation 
+of a feature's results. It is mandatory to implement this interface in order to 
+integrate the feature in the update process. Aggregating Features, e.g. GSMTool 
+and MechanicalSet, do not require to implement this method.</p>
+<p>If the new feature derives from MechanicalFormFeature, it should also implement 
+the <em><strong>CATIBuildShape</strong></em> interface.</p>
+<p>The <em><strong>CATIMechanicalProperties</strong></em> interface manages the activate 
+or de-activate state of the feature in the update mechanism. This interface is implemented 
+on the MechanicalFormFeature, the MechanicalContextualFeature and the GSMGeom StartUps, 
+so if your StartUp derives from one of those StartUps, you have nothing to implement. 
+For feature deriving from the GeometricalElement3D StartUp, there is no default 
+implementation. Nevertheless if your feature is a datum (the <code>IsADatum</code> 
+method of the <em>CATIMf3DBehavior</em> interface returns <code>S_OK</code>) 
+it is useless to implement it.</p>
+<p>For a solid feature (deriving from MechanicalFormFeature or MechanicalContextualFeature), 
+the Mechanical Modeler engine does not invoke the build if the CAA feature is de-activated. 
+For a surfacic feature, it does. So if your feature derives from GSMGeom, you have 
+necessary to take the state into account in the implementation of your <code>Build</code> 
+method, but for a feature deriving from GeometricalElement3D, you should do it only 
+if you have implemented the <em>CATIMechanicalProperties</em> interface.</p>
+<p>The &quot;Integrating a New Geometrical Feature in the Update Mechanism&quot; 
+article [<a href="#References">3</a>] explains the implementation of the <code>Build</code> 
+method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>Replace</h3>
+<p>The <em><strong>CATIReplace</strong></em> interface allows to replace the value 
+of one attribute by another. You should implement it for features deriving from 
+GeometricalElement3D, MechanicalFormFeature and MechanicalContextualFeature. A default 
+implementation exists for the features deriving from GSMGeom.</p>
+<p>The implementation of <em>CATIReplace</em> should be done by using the adaptor 
+class provided by the Mechanical Modeler, <em><strong>CATMmrReplaceAdapter</strong></em>.
+You will need to implement an extra method, <code>GetRequestedBehavior</code> 
+to provide a list of interfaces implemented by the suitable applicant for a replace 
+operation.</p>
+<p>Implementing the <em><strong>CATIReplaceUI</strong></em> interface enables the 
+selection to be filtered in the Replace interactive command.</p>
+<p>At last, if you implement the <em><strong>CATIReplacable</strong></em> 
+interface, you can forbid the replacement of a given attribute.</p>
+<p>Refer to the Mechanical use case entitled &quot;Modifying Combine's Curve Specifications&quot; 
+[<a href="#References">4</a>] for a detailed example on the replacement process 
+integration.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="230000"></a>Cut/Copy/Paste/Delete</h3>
+<p>The CCP and delete operations are managed through the <em><strong>DataCommonProtocolServices</strong></em>
+and <em><strong>DataCommonProtocolCCPServices</strong></em> classes provided by FeatureModeler.</p>
+<p>In the case of features deriving from Mechanical Modeler startups, <strong>it 
+is not</strong> <strong>possible</strong> to override the Cut/Copy/Paste/Delete 
+behavior defined for mechanical features by using the standard Feature Modeler customization, 
+described in Feature Modeler extension articles in the chapter &quot;Cut, Copy and 
+Paste Protocols&quot; [<a href="#References">12</a>]. This is to insure the Mechanical 
+Modeler data model consistency.</p>
+<p>Nevertheless, you can implement <em><strong>CATICCPable</strong></em> interface 
+to disable Delete/Paste of your feature. This interface is called by the Cut, Copy, 
+Paste and Delete interactive commands.</p>
+<p>For a solid feature, i.e. feature deriving either from MechanicalFormFeature 
+or MechanicalContextualFeature, there is also the <em><strong>CATIShapeFeatureProperties</strong></em> 
+interface. This interface enables you, among other things, to retrieve the sketches 
+to be deleted or copied with the solid feature deletion of copy. We advise you to 
+implement it, and to use its adapter class, the <em><strong>CATMmrShapeFeaturePropertiesAdapter</strong></em> 
+class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="240000"></a>Integration into an Ordered Set</h3>
+<p>The integration of a geometrical feature inside an ordered set [<a href="#References">10</a>] 
+is based on the <em><strong>CATIInputDescription</strong></em> interface. This interface 
+only concerns surfacic features [<a href="#References">5</a>], in other words StartUps 
+deriving from GeometricalElement3D or GSMGeom. Its implementation can be sometimes 
+useless, but to avoid implicit code, it is strongly recommended to implement it 
+for your StartUps derives from one of these two StartUps. It is the reason why
+<em>CATIInputDescription</em> appears as mandatory in the <a href="#InShort">In Short</a> 
+section. The 'Creation versus Modification (Absorbent) Feature' section of the article 
+on Surfacic Features [<a href="#References">5</a>] gives you all the keys to understand 
+its implementation.</p>
+<p>For Solid Features, you do not have to implement this interface.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="250000"></a>Geometrical Feature Behaviors</h3>
+<p>The main interface to consider is <em><strong>CATIMf3DBehavior</strong></em>. This 
+interface declares the type of the mechanical feature: is it a volumic, solid, surfacic 
+or datum feature? There are exclusive behaviors.</p>
+<ul>
+	<li>A Solid Feature
+		<p>Your StartUp derives either from the MechanicalFormFeature or the MechanicalContextualFeature 
+		Startup. In this case, you have nothing to do, your feature is natively 
+		a solid feature. The default implementation of the <em>CATIMf3DBehavior</em> 
+		interface specifies that the feature is a solid feature.</p>
+	</li>
+	<li>A 0D to 2D surfacic Feature (point, wire, and surface)
+		<p>Your StartUp derives either from the GSMGeom or the GeometricalElement3D 
+		StartUp. If your StartUp derives from GSMGeom, you may implement the
+		<em>CATIMf3DBehavior</em> interface on your StartUp; it is not mandatory, because 
+		the default implementation is valid. However, if your feature derives from 
+		GeometricalElement3D, you must implement it.</p>
+		<p>In the two cases, the <code>IsAShape</code> method should return S_OK,
+		<code>and IsASolid</code> and <code>IsADatum</code> should return E_FAIL. 
+		You can you refer to the Combined Curve sample [<a href="#References">11</a>].</p>
+	</li>
+	<li>A 3D Surfacic Feature, in other words a volume
+		<p>A volume is a feature whose StartUp derives either from the GSMGeom or 
+		the GeometricalElement3D StartUp. The <code>IsAVolume </code>method of the
+		<em>CATIMf3DBehavior</em> interface must in this case return S_OK.</p>
+		<p>Check that the <code>IsAShape</code> method of <em>CATIMf3DBehavior</em> 
+		returns S_OK.</p>
+	</li>
+	<li>A datum Feature [<a href="#References">5</a>]
+		<p>Your StartUp derives from the GeometricalElement3D StartUp. You must 
+		implement the <em>CATIMf3DBehavior</em> interface. <code>IsADatum</code> method 
+		returns S_OK, <code>IsASolid</code> and <code>IsAShape</code> return E_FAIL.</p>
+	</li>
+</ul>
+<p>Your <em>CATIMf3DBehavior</em> implementation must derive from <em><strong>CATMf3DBehaviorAdapter</strong></em> 
+the adapter class. By default, all the methods return E_FAIL.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="260000"></a>Persistence of a Feature's Name</h3>
+<p>The <em><strong>CATIAlias</strong></em> interface manages the persistence of a 
+feature's name. This interface is already implemented by the mechanical features 
+and its re-implementation is not necessary.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="270000"></a>Editing</h3>
+<p>Editing a feature occurs through a dialog box that is displayed upon either double-clicking 
+on the feature, right clicking on the feature to display its contextual menu and 
+selecting the &quot;Definition&quot; command in the sub-menu section. The dialog 
+box contains the attribute values for the selected feature that can be modified. 
+This editing ability is managed by the <em><strong>CATIEdit</strong></em> interface.</p>
+<p>When the <em>CATIEdit</em> interface is implemented on a feature, it is also possible 
+to expand the contextual sub-menu with new commands: simply implement the
+<em><strong>CATIContextualSubMenu</strong></em> interface. Except for the GSMGeom feature, 
+there is no default implementation for this latter interface. Refer to the use case 
+entitled &quot;Adding a Contextual Sub-Menu&quot; [8] for an example of implementation.</p>
+<p>Read the Mechanical use case entitled &quot;Editing Combine Curves&quot; [<a href="#References">6</a>] 
+for a detailed example of the edition process.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="280000"></a>Specification Tree Visualization and Navigation</h3>
+<p>Visualizing a feature in the specification tree and enabling further navigation 
+of the feature itself, is managed by the <em><strong>CATINavigateObject</strong></em> 
+interface. This interface is implemented on all natively-defined features, i.e., 
+features defined in applications provided by Dassault Syst&#232;mes. This interface's 
+methods return the name of the feature and a list of its children. When a feature 
+is added to the specification tree under an existing node, this parent node must 
+be able to list it as its child. The feature itself must also be capable of listing 
+any of the features it may be pointing to.</p>
+<p>For a GSMGeom, the default implementation displays the aggregating
+<em><strong>CATICkeParm</strong></em> objects and the Material features in the file tree. 
+If your surfacic feature has a type of parameter no displayed (integer for example) 
+you can implement this interface to drive its visible parameters in the file tree.</p>
+<p>The <em><strong>CATIIcon</strong></em> interface allows a specific icon to be specified 
+for a given feature. It is not necessary to implement it, you have just to provide 
+an icon, named I_NameofTheFeature, NameofTheFeature being the name of your new feature. 
+However, you can implement this interface for specific cases.</p>
+<p>You can use the methods of <em><strong>CATIRedrawEvent</strong></em> to force a 
+refresh of the specification tree whenever a modification has been made.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="290000"></a>Geometrical Visualization</h3>
+<p>The GeometricalElement3D feature implements the <em><strong>CATI3DGeoVisu</strong></em> 
+interface. A feature's graphical properties are managed by the <em><strong>CATIVisProperties</strong></em> 
+interface. The <em><strong>CATIModelEvents</strong></em> interface manages sending 
+event notifications when the visualization of the feature has been modified and 
+needs to be refreshed.</p>
+<p>These three interfaces (Visualization framework) should not be re-implemented.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2A0000"></a>Publication of Knowledge Parameters</h3>
+<p>The <em><strong>CATIParmPublisher</strong></em> interface allows the publication 
+of a feature's parameters. A published parameter is displayed in the F(x) command
+<img alt="" height="37" src="images/CAAMmrFx.jpg" width="31"/>, in the Parameter 
+tab page for Power Copy/User Feature [<a href="#References">7</a>].</p>
+<p>The default implementation publishes the aggregating features and the objects 
+implementing the dedicated interface. It is possible to implement this interface 
+to modify the default behavior.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2B0000"></a>Search Integration</h3>
+<p>The aim is to find out instances according to a criterion [<a href="#References">10</a>]. 
+There are two kinds of criteria:</p>
+<ul>
+	<li>General criterion : name, color, visibility, layer, line properties</li>
+	<li>Advanced criterion : it is a knowledge criterion (dimension, boolean, etc.)</li>
+</ul>
+<p>This table shows what are the search limits for a CAA feature:</p>
+<table class="fill">
+	<tr>
+		<td>&nbsp;</td>
+		<th>Interactive</th>
+		<th>Code</th>
+	</tr>
+	<tr>
+		<th>General</th>
+		<td>Yes</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<th>Advanced</th>
+		<td>No</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<p>The first column means that <strong>your</strong> feature cannot be found according to 
+advanced criteria in the Search command. The second column means that you can make 
+research by code whatever the criteria.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2C0000"></a>Constraint Integration</h3>
+<p>There is nothing to do.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2D0000"></a>Power Copy and User Feature</h3>
+<p>A new feature can be an input of a power copy or a user feature [<a href="#References">7</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="2E0000"></a>Interactive Commands</h3>
+<p>In this section the behavior of the new feature for some interactive commands 
+is given: what is its default behavior, how to have the DS Application behavior 
+if any?</p>
+<ul>
+	<li><strong>Datum mode</strong>
+		<p>In an interactive session, with the CreateDatum setting<img alt="" height="22" src="images/I_IsolatedExtCAA.jpg" width="22"/>, 
+		you can create a Dassault Syst&#232;mes feature in datum mode [<a href="#References">5</a>]. 
+		It means that the new instance does not have any geometrical specifications, 
+		but only has a topological result. However for the moment, it is impossible 
+		to take this parameter into account in a command.</p>
+	</li>
+	<li><strong>Change Body</strong>
+		<p>This command is available only for a new feature deriving from GSMGeom.</p>
+	</li>
+	<li><strong>Isolate</strong>
+		<p>This command is never available for a new feature.</p>
+	</li>
+	<li><strong>Parent/Children</strong>
+		<p>This command is always available for a new feature.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>StartUps deriving from Mechanical Modeler StartUps <strong>cannot</strong> overload 
+the Feature Modeler DataCommonProtocols.</p>
+<p>Here is summarized the interfaces which are described just above. For each derivable 
+StartUp, there are sorted with this classification:</p>
+<ul>
+	<li><strong>Mandatory</strong>: The interface must be implemented to have the behavior.</li>
+	<li><strong>DS Behavior</strong>: The interface implementation is not mandatory. You implement 
+		it (or reimplement it) to have the behavior or to modify the default behavior.</li>
+	<li><strong>Specific case</strong>: In general, the default implementation is sufficient, 
+		but you can reimplement it for a specific case.</li>
+</ul>
+<p>The StartUps are the following:</p>
+<ul>
+	<li><strong>GeometricalElement3D</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIReplace</li>
+					<li>CATIMf3DBehavior</li>
+					<li>CATIInputDescription</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATIEdit</li>
+					<li>CATIContextualSubMenu</li>
+					<li>CATICCPable</li>
+					<li>CATIMechanicalProperties</li>
+				</ul>
+			</li>
+			<li>Specific case
+				<ul>
+					<li>CATIIcon</li>
+					<li>CATIParmPublisher</li>
+					<li>CATIReplaceUI</li>
+					<li>CATIReplacable</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li><strong>GSMGeom</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIInputDescription</li>
+					<li>CATIMf3DBehavior (only for a volumic feature)</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATIEdit</li>
+					<li>CATICCPable</li>
+				</ul>
+			</li>
+			<li>Specific case
+				<ul>
+					<li>CATIContextualSubMenu</li>
+					<li>CATIIcon</li>
+					<li>CATIParmPublisher</li>
+					<li>CATIReplaceUI</li>
+					<li>CATIReplacable</li>
+					<li>CATINavigateObject</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li><strong>MechanicaFormFeature</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIBuildShape</li>
+					<li>CATIReplace</li>
+					<li>CATIShapeFeatureProperties</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATIEdit</li>
+					<li>CATIContextualSubMenu</li>
+					<li>CATICCPable</li>
+				</ul>
+			</li>
+			<li>Specific Case
+				<ul>
+					<li>CATIIcon</li>
+					<li>CATIParmPublisher</li>
+					<li>CATIReplaceUI</li>
+					<li>CATIReplacable</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li><strong>MechanicalContextualFeature</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIReplace</li>
+					<li>CATIShapeFeatureProperties</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATIEdit</li>
+					<li>CATIContextualSubMenu</li>
+					<li>CATICCPable</li>
+				</ul>
+			</li>
+			<li>Specific Case
+				<ul>
+					<li>CATIIcon</li>
+					<li>CATIParmPublisher</li>
+					<li>CATIReplaceUI</li>
+					<li>CATIReplacable</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li><strong>MechanicalSet</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIReplace</li>
+					<li>CATIEdit</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATINavigateObject</li>
+					<li>CATIContextualSubMenu</li>
+					<li>CATIParmPublisher</li>
+					<li>CATIVisu</li>
+				</ul>
+			</li>
+			<li>Specific Case
+				<ul>
+					<li>CATIVisProperties</li>
+					<li>CATIVisu</li>
+					<li>CATISelectShow</li>
+					<li>CATIReplacable</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li><strong>MechanicalElement</strong>
+		<ul>
+			<li>Mandatory
+				<ul>
+					<li>CATIFmFeatureBehaviorCustomization</li>
+					<li>CATIReplace</li>
+					<li>CATIEdit</li>
+				</ul>
+			</li>
+			<li>DS Behavior
+				<ul>
+					<li>CATINavigateObject</li>
+					<li>CATIContextualSubMenu</li>
+					<li>CATIParmPublisher</li>
+				</ul>
+			</li>
+			<li>Specific Case
+				<ul>
+					<li>CATIVisProperties</li>
+					<li>CATIVisu</li>
+					<li>CATISelectShow</li>
+					<li>CATIReplacable</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaFeatureIntegration.htm">
+		Features and Basic Protocols</a> </td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaCreatingNewFeat.htm">Creating a New StartUp Deriving from a Mechanical StartUp</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrTaBuildIntegrating.htm">Integrating a New Geometrical 
+		Feature in the Update Mechanism</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMcaUcReplace.htm">Modifying Combined Curve Specifications</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaContentsSpecCont2.htm">
+		The Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAMmrUcCombinedCurveCATIEdit.htm">Editing Combined Curves</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaTaPowerCopyAndUserFeatures.htm')">
+		An Overview of Power Copies and User Features</a> </td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAMmrUcCombinedCurveConSubMenu.htm">Adding a Contextual Sub-Menu</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAACafTaSearch.htm">
+		Search Overview</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTaOrderLinearBody.htm">
+		Order and Absorption Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAAMmrUcCombinedCurveMf3DBehavior.htm">Defining the Combined 
+		Curve's Type</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTcBehaviorCCPToc.htm">
+		Cut, Copy, and Paste Protocols</a></td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td><a href="CAAMmrTaMechanicalSet.htm">Non Geometrical Feature Sets </a></td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td><a href="CAAMmrTaMechanicalElement.htm">Non Geometrical Features
+		</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2002]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Dec 2002]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [May 2003]</td>
+		<td>Document updated </td>
+	</tr>
+	<tr>
+		<td>Version: <strong>4</strong> [May 2003]</td>
+		<td>Document updated for OGS Integration </td>
+	</tr>
+	<tr>
+		<td>Version: <strong>5</strong> [Apr 2004]</td>
+		<td>Document updated for solid and surfacic features set Integration
+		</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>6</strong> [May 2007]</td>
+		<td>Document updated for MechanicalSet &amp; MechanicalElement Integration</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>7</strong> [Feb 2011]</td>
+		<td>Document updated for V6 modifications</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

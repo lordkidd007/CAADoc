@@ -1,0 +1,484 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Expand/Collapse Tree Nodes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Expand/Collapse Tree Nodes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to expand or collapse nodes of a tree.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAOmbSpecTree Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAOmbSpecTree Do</a></li>
+					<li><a href="#How">How to Launch CAAOmbSpecTree</a></li>
+					<li><a href="#Where">Where to Find the CAAOmbSpecTree Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how to expand or collapse nodes of a tree. It is a graph of nodes managed by the following MVC paradigm:</p>
+<ul>
+	<li>M (The model) : The model's elements implement the <em>CATINavigateObject</em> 
+		interface [<a href="#References">1</a>].</li>
+	<li>C (The controller): It is a <em>CATNavigController</em> class instance.</li>
+	<li>V (The visualization): The graph is displayed in a specific viewer (not 
+		exposed class) useless for the specification tree navigation.</li>
+</ul>
+<p>This use case is based on the graph contained in the <em>CATFrmNavigWindow</em> 
+class. It is the base class of the <em>CATFrmGraphAnd3DWindow</em> class, the Product 
+Representationor the Product window class. You will learn how:</p>
+<ul>
+	<li>To retrieve the controller from the <em>CATFrmNavigWindow</em> class.</li>
+	<li>To use the graph controller in order to retrieve the graphic nodes associated 
+		with an object (a specification).</li>
+	<li>To expand or collapse nodes.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAOmbSpecTree Use Case</h2>
+<p>CAAOmbSpecTree is a use case of the CAAObjectModelerBaseFrame.edu framework that 
+illustrates CATIAApplicationFrame and ObjectModelerBase framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAOmbSpecTree Do</h3>
+<p>CAAOmbSpecTree is a command available in a Product Representation. This command, 
+the <strong>Expand/Collapse</strong> command, is accessible through the <strong>CAA MechMod UC</strong> section of the action bar.</p>
+<table>
+	<caption style="width: 433px"><a name="Fig1">Fig.1</a>: The Expand/Collapse Command</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAOmbSampleSpecTreeAddin.jpg" width="391" height="230"/></td>
+	</tr>
+</table>
+<p>The Expand/Collapse command is a state dialog command [<a href="#References">2</a>] 
+which enables the end user to expand or collapse nodes of the Product Representation 
+tree. There are two modes for this command:</p>
+<ul>
+	<li>Expand/collapse
+		<p>The end user selects in the tree or in 3D an object. The contents 
+		of the object is displayed in the tree. If its contents is already 
+		displayed, the contents is collapsed.</p>
+		<table>
+			<caption><a name="Fig2">Fig.2</a>: Before and After the Point.2 Selection</caption>
+			<tr>
+				<td>
+				<img alt="" src="images/CAAOmbSampleSpecTreeSelBefore.jpg" width="366" height="303"/></td>
+				<td>
+				<img alt="" src="images/CAAOmbSampleSpecTreeSelAfter.jpg" width="368" height="300"/></td>
+			</tr>
+		</table>
+		<p>If Point.2 is selected again, it will be collapsed.</p>
+	</li>
+	<li>Expand All
+		<p>From the selected object, the tree is fully expanded. Here 
+		is an example:</p>
+		<table>
+			<caption style="width: 428px"><a name="Fig3">Fig.3</a>: After the Representation Selection</caption>
+			<tr>
+				<td>
+				<img alt="" src="images/CAAOmbSampleSpecTreeSelAll.jpg" width="429" height="429"/></td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<p>The default behavior of the command is the first one (Expand/Collapse). The second 
+is accessible by exporting the <code>CAACafSpecTreeExpandMode</code> variable. See 
+the How to Launch CAAOmbSpecTree section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAOmbSpecTree</h3>
+<p>To launch CAAOmbSpecTree, you will need to set up the build time environment, 
+then compile CAAOmbSpecTree along with its prerequisites, set up the run time environment, 
+and then execute the use case [<a href="#References">3</a>].</p>
+<p>But just before launching the execution, edit the CAAMechanicalModeler.edu.dico 
+interface dictionary file located in the dictionary directory of the CAAMechanicalModeler.edu 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\CNext\code\dictionary\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">2</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>In this file, remove the "<strong>#</strong>" character before the two following 
+lines, and then run mkCreateRuntimeView.</p>
+<pre class="code">...
+#CAAMmrPartWksAddin          CATIWorkbenchAddin              libCAAMmrPartWksAddin
+#CAAMmrPartWksAddin          CATIPrtWksAddin                 libCAAMmrPartWksAddin
+...</pre>
+<p>The two lines deal with the Part workshop add-in located in the CAAMmrPartWksAddin.m 
+module of the CAAMechanicalModeler.edu framework. This add-in adds the Expand/Collapse 
+command in the Product Representation user interface.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module name 
+on the command line, but type 3DEXPERIENCE instead. When the application is ready, 
+do the following:</p>
+<ol>
+	<li>Launch <kbd>Part Design</kbd> app, a 3D Shape is created.</li>
+	<li>Activate <kbd>Model</kbd> section of action bar and create points, lines, pads, etc.</li>
+	<li>Activate <kbd>CAA MechMod UC</kbd> section of action bar and click <kbd>Expand/Collpase</kbd> command.</li>
+	<li>Select objects in the tree.</li>
+	<li>Select objects in 3D.</li>
+</ol>
+<p>In the window where you run the mkrun command, export the <code>CAACafSpecTreeExpandMode</code> 
+environment variable such as:</p>
+<p><code>set CAACafSpecTreeExpandMode=CAACafSpecTreeExpandAllNodes</code>
+</p>
+<p>Then, in the window where you run the mkrun command, do not type the module name 
+on the command line, but type 3DEXPERIENCE instead. When the application is ready, 
+do the following:</p>
+<ol>
+    <li>Launch <kbd>Part Design</kbd> app, a 3D Shape is created.</li>
+	<li>Activate <kbd>Model</kbd> section of action bar and create points, lines, pads, etc.</li>
+	<li>Activate <kbd>CAA MechMod UC</kbd> section of action bar and click <kbd>Expand/Collpase</kbd> command.</li>
+	<li>Select objects in the tree.</li>
+	<li>Select objects in 3D.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAOmbSpecTree Code</h3>
+<p>The CAAOmbSpecTree use case is made of two classes:</p>
+<ul>
+	<li><em>CAAOmbCollapseExpandCmd</em> class located in the CAAOmbSpecTree.m module 
+		of the CAAObjectModelerBaseFrame.edu framework:
+		<p>This <em>CATStateCommand</em> class enables the end user to expand or 
+		collapse nodes of the Product Representation specification tree. The header 
+		file (.h) and the source file (.cpp) are located in the LocalInterfaces 
+		and src directories respectively. The source file is amply commented in 
+		this article.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAObjectModelerBaseFrame.edu\CAAOmbSpecTree.m</code></p>
+		<p>where <code>InstallRootFolder</code> [<a href="#References">2</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+	</li>
+	<li><em>CAAMmrPartWksAdn</em> class located in the CAAMmrPartWksAddin.m module 
+		of the CAAMechanicalModeler.edu framework
+		<p>This class, not detailed there, defines an Part workshop add-in containing 
+		the Expand/Collapse command.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\</code><code>CAAMmrPartWksAddin</code><code>.m\</code></p>
+		<p>where <code>InstallRootFolder</code> [<a href="#References">2</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are five logical steps in CAAOmbSpecTree:</p>
+<ol>
+	<li><a href="#Step1">Retrieving the CATNavigController Class Instance</a></li>
+	<li><a href="#Step2">Implementing the BuildGraph Method</a></li>
+	<li><a href="#Step3">Expanding the Spec Tree Until the Selected Object</a></li>
+	<li><a href="#Step4">Expanding/Collapsing the Selected Object Node</a></li>
+	<li><a href="#Step5">Expanding All Nodes from the Selected Object</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Retrieving the CATNavigController Class Instance</h3>
+<p>The specification tree controller is retrieval from the current window. This 
+piece of code is done in the <em>CAAOmbCollapseExpandCmd</em> class constructor.</p>
+<pre class="code">  CATFrmLayout * pLayout = <strong>CATFrmLayout::GetCurrentLayout</strong>();
+  if ( NULL != pLayout )
+  {
+     CATFrmWindow * pCurrentWindow = pLayout-&gt;<strong>GetCurrentWindow</strong>();
+
+     if ( NULL != pCurrentWindow )
+     {
+         if ( 1 == pCurrentWindow-&gt;<strong>IsAKindOf</strong>("<strong>CATFrmNavigGraphicWindow</strong>") )
+         {
+             CATFrmNavigGraphicWindow * pFrmNavigGraphicWindow = 
+                 (CATFrmNavigGraphicWindow*) pCurrentWindow ;
+
+             CATNavigBox * pNavigBox = NULL ;
+             pNavigBox = pFrmNavigGraphicWindow-&gt;<strong>GetNavigBox</strong>();
+
+             if ( NULL != pNavigBox )
+             {
+                _pNavigController = pNavigBox-&gt;<strong>GetController</strong>();
+             }
+         }
+     }
+  }</pre>
+<p>The unique <em>CATFrmLayout</em> class instance [<a href="#References">4</a>] 
+manages the list of windows during the session. The <code>GetCurrentWindow</code> 
+method retrieves the current one. If you want expand the graph inside all windows 
+of the active model, refer to the frame article [<a href="#References">4</a>] which 
+explains how to retrieve all the windows for a model.</p>
+<p>If the current window is a <em>CATFrmNavigGraphicWindow</em> class instance, 
+you can access to an object (the <em>CATNavigBox</em> class instance) which keeps 
+the graph controller. <code>_pNavigController</code> is a <em>CATNavigController</em> 
+class instance declared as data member of the command.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Implementing the BuildGraph Method</h3>
+<p>As usual the <code>BuildGraph</code> method is divided in three parts:</p>
+<ol>
+	<li>Creating the agents.</li>
+	<li>Creating the states.</li>
+	<li>Creating the transitions between states according to the agents.</li>
+</ol>
+<pre class="code">...
+   _daObjectToExpandNode = new <strong>CATPathElementAgent</strong>("SelObjectToExpandNodeId");
+   _daObjectToExpandNode-&gt;AddElementType(IID_<strong>CATINavigateObject</strong>);
+   _daObjectToExpandNode-&gt;SetBehavior(CATDlgEngRepeat | CATDlgEngWithPSOHSO );
+                            
+ 
+   CATDialogState *stGetObjState = <strong>GetInitialState</strong>("stGetObjStateId");
+   stGetObjState-&gt;<strong>AddDialogAgent</strong>(_daObjectToExpandNode);
+
+   CATDialogTransition *pTransition =    AddTransition
+   (
+      stGetObjState,
+      stGetObjState,
+      IsLastModifiedAgentCondition(_daObjectToExpandNode)  , 
+      Action((ActionMethod) &amp; CAAOmbCollapseExpandCmd::<strong>ExpandObject</strong>)
+   );  
+...</pre>
+<p><code>_daObjectToExpandNode</code> is an acquisition agent to select an object 
+in the specification tree or in 3D. This object should implement the <em>CATINavigateObject</em> 
+interface (specify by the <code>AddElementType</code> method) [<a href="#References">5</a>]. 
+After the selection, the object is highlighted (specify by the <code>CATDlgEngWithPSOHSO</code> 
+behavior). The <code>CATDlgEngRepeat</code> behavior enables you to re-use the agent 
+without reinitialize it.</p>
+<p>This state command has only state, a state, <code>stGetObjState</code> , whose 
+the name is <code>stGetObjStateId</code>.</p>
+<p>When the end user selects a valid element, the unique transition is triggered 
+and the <code>ExpandObject</code> method is called.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Expanding the Spec Tree Until the Selected Object</h3>
+<p>The first part of the <code>ExpandObject</code> method consists in to retrieve 
+the selected object. The <code>GetValue</code> method, applied to <code>_daObjectToExpandNode</code>, 
+the <em>CATPathElement</em> class instance pointer, retrieves the complete path 
+of the selected object.</p>
+<pre class="code">...
+CATBoolean CAAOmbCollapseExpandCmd::<strong>ExpandObject</strong>(void *iDummy)
+{
+     CATPathElement * pObjPath = _daObjectToExpandNode-&gt;<strong>GetValue</strong>();
+     CATBaseUnknown * pObjectToExpand = NULL;
+     
+     if ( NULL != pObjPath) 
+     {
+         if ( pObjPath-&gt;GetSize() &gt; 0 )
+         { 
+            // The leaf of the selection
+            <strong>pObjectToExpand</strong> = (*pObjPath)[pObjPath-&gt;GetSize()-1];
+         }
+...</pre>
+<p><code>pObjectToExpand</code> is the leaf of the path. It is the object to display 
+in the specification tree if it is not already visible. Effectively to display the 
+contents of an object, it should be visible. The piece of code below explains how 
+to carry out that.</p>
+<pre class="code">...
+         for ( int j = 0 ; j &lt;= pObjPath-&gt;<strong>GetSize</strong>()-2 ; j++)
+         {
+            CATBaseUnknown * <strong>pFatherObjectToExpand</strong> = (*pObjPath)[j];
+
+            CATListValCATBaseUnknown_var * pNodeList = NULL ;
+            pNodeList = _pNavigController-&gt;<strong>GetAssociatedElements</strong>(pFatherObjectToExpand);
+        
+            if ( NULL != pNodeList )
+            {
+               int nbNodes = pNodeList-&gt;Size();
+               for ( int k= 1 ; k &lt;= nbNodes ; k++ )
+               {
+                  <strong>CATIGraphNode_var</strong> graphNode = (*pNodeList)[k];
+                  if ( NULL_var != graphNode )
+                  {
+                     if ( 0 == graphNode-&gt;<strong>IsExpanded</strong>() )
+                     {
+                        <strong>CATINavigElement_var</strong> spNavigElement = graphNode ;
+                        if ( NULL_var != spNavigElement )
+                        {
+                           spNavigElement-&gt;<strong>ProcessAfterExpand</strong>();
+...</pre>
+<p>The path of selection follows the specification tree strcuture. So from the top 
+of the path until the element just above the leaf, it is necessary to check that 
+the element's contents is visible. <code>pFatherObjectToExpand</code> is the current 
+element to chek. The <code>GetAssociatedElements</code> method of the <em>CATNavigController</em> 
+class retrieves the nodes associated with the element set as argument. (In a product, 
+a Product Representation can be instantiated several times). A node can be handled 
+by either the <em>CATIGraphNode</em> interface or the <em>CATINavigElement</em> 
+interface. The first one enables you to know its expand status thanks to the
+<code>IsExpanded</code> method. If the node is not expanded the <code>ProcessAfterExpand</code> 
+method of the second interface enables you to expand it.</p>
+<p>Once the selected object is displayed in the specification tree, in taken into 
+account of the environment variable, <code>_pExpandMode</code>, an expand of all 
+its contents is done, see <a href="#Step5">Expanding All Nodes from the Selected 
+Object</a> section, or the element is only expanded or collapsed, see the
+<a href="#Step4">Expanding the Selected Object Node</a> section.</p>
+<pre class="code">...
+         if ( (NULL != _pExpandMode) &amp;&amp; 
+          (0==strcmp("CAAOmbSpecTreeExpandAllNodes",_pExpandMode)) )
+         {
+            ExpandAllNode(pObjectToExpand);
+         }else
+         {
+             ExpandCollapseNode(pObjectToExpand);
+         }
+...</pre>
+<p><code>_pExpandMode</code> has been initialized in the <em>CAAOmbCollapseExpandCmd</em> 
+class constructor by using the <code>CATGetEnvValue</code> global function. Refer 
+to the code for implementation details.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Expanding the Selected Object Node</h3>
+<p>It is almost the same process as the other elements in the path just above the 
+leaf. <code>iObject</code> is the leaf of the selection path. See the previous section. 
+Since the expand status is not check just before calling the <code>ProcessAfterExpand</code> 
+method, this method carries out an expand if the element is collapsed otherwise 
+collapses it.</p>
+<pre class="code">...
+void CAAOmbCollapseExpandCmd::<strong>ExpandCollapseNode</strong>(CATBaseUnknown_var iObject)
+{
+   ...     
+        CATListValCATBaseUnknown_var * pNodeList = NULL ;
+        pNodeList = _pNavigController-&gt;<strong>GetAssociatedElements</strong>(iObject);
+
+        if ( NULL != pNodeList )
+        {
+           int nbNodes = pNodeList-&gt;Size();
+           for ( int i= 1 ; i &lt;= nbNodes ; i++ )
+           {
+               CATBaseUnknown_var spNode = (*pNodeList)[i];
+               if ( NULL_var != spNode )
+               {
+                   CATINavigElement_var spNavigElement = spNode ;
+                   if ( NULL_var != spNavigElement )
+                   {
+                      spNavigElement-&gt;<strong>ProcessAfterExpand</strong>();          
+ ...
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Expanding All Nodes from the Selected Object</h3>
+<p>It is the same process as the other elements in the path just above the leaf.
+<code>iObject</code> is the leaf of the selection path. The <code>ProcessAfterExpand</code> 
+method is called only if the leaf is not expanded.</p>
+<pre class="code">...
+void CAAOmbCollapseExpandCmd::<strong>ExpandAllNode</strong>(CATBaseUnknown_var iObject)
+{     
+    if ( NULL_var != iObject )
+    {
+        CATListValCATBaseUnknown_var * pNodeList = NULL ;
+        pNodeList = _pNavigController-&gt;<strong>GetAssociatedElements</strong>(iObject);
+
+        if ( NULL != pNodeList )
+        {
+           int nbNodes = pNodeList-&gt;Size();
+           for ( int i= 1 ; i &lt;= nbNodes ; i++ )
+           {
+              <strong>CATIGraphNode_var</strong> graphNode = (*pNodeList)[i];
+              if ( NULL_var != graphNode )
+              {
+                  if ( 0 == graphNode-&gt;<strong>IsExpanded</strong>() )
+                  {
+                      <strong>CATINavigElement_var</strong> spNavigElement = graphNode ;
+                      if ( NULL_var != spNavigElement )
+                      {
+                         spNavigElement-&gt;<strong>ProcessAfterExpand</strong>();
+...</pre>
+<p>Once, you are sure that the spec tree is expanded until the contents of the selected 
+object, you have to do the same things with its children. The <em>CATINavigateObject</em> 
+interface enables you to retrieve the element's children [<a href="#References">1</a>].</p>
+<pre class="code">...
+        <strong>CATINavigateObject_var</strong> spNavigateObject = iObject ;
+        if ( NULL_var != spNavigateObject )
+        {
+           CATListValCATBaseUnknown_var* pListChild = NULL ;
+           pListChild = spNavigateObject-&gt;<strong>GetChildren</strong>();
+
+           if ( NULL != pListChild )
+           {
+              for ( int t = 1 ; t &lt;= pListChild-&gt;Size() ; t++)
+              {
+                 CATBaseUnknown_var spOnChild = (*pListChild)[t];
+                 <strong>ExpandAllNode</strong>(spOnChild);
+}
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case explains how to visualize an element in a tree and 
+how to expand (or collapse) its contents.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegTaGettingStarted.htm">
+		Getting started with State Dialog Commands</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrTaLayoutV5.htm">
+		Understanding Application Frame Layout</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegUcSampleSelection.htm">
+		Managing Selection</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2003]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2006]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Jun 2014]</td>
+		<td>3DEXPERIENCE migration</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

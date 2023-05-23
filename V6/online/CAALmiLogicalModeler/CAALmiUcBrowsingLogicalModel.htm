@@ -1,0 +1,536 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+ 
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Browsing a Logical Model</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+
+<style type="text/css">
+.style1 {
+	list-style-type: circle;
+}
+.style2 {
+	font-family: "Courier New", Courier;
+	font-size: 9pt;
+	color: #976970;
+}
+.style3 {
+	color: #F27A02;
+}
+.style4 {
+	background-color: #F8FBFF;
+}
+</style>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Browsing a Logical Model</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article discusses the <code>CAALmiBrowsingLogicalModel<b> </b></code>
+      use case. The Use Case details the steps involved in the CAA Customization 
+		to browse through a Logical Model, using the <code>
+		CATLogicalModelerUseItf</code> framework (restricted to the Logical 
+		Modeler) CAA Exposition. <p><a href="#Learn">What You Will Learn With This Use Case</a></p>
+      <ul>
+        <li><a href="#UseCase">The CAALmiBrowsingLogicalModelUse Case</a>
+          <ul>
+            <li><a href="#What">What does the CAALmiBrowsingLogicalModeldo</a></li>
+            <li><a href="#How">How to launch CAALmiBrowsingLogicalModel</a></li>
+            <li><a href="#Where">Where to find the </a><a href="#Where">
+			CAALmiBrowsingLogicalModel</a><a href="#Where">code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+
+<p>The learnings from this Use Case are:</p>
+<ul>
+	<li>The <code>CATLogicalModelerUseItf</code> framework CAA Exposition to browse a Logical Model
+		<ul>
+			<li class="style1"><code>CATILogInstances::List()</code> 
+			implementation on a Logical Reference to list the child Instances 
+			beneath it</li>
+			<li class="style1"><code>
+			CATILogInstance::GetReferenceInstanceOf()</code> implementation on a 
+			Logical Instance to retrieve its associated Reference</li>
+			<li class="style1"><code>CATILogRepresentationInstances::List()</code> implementation on 
+			Logical Reference outputs a list of direct Child Rep Instance beneath the 
+			calling Reference</li>
+			<li class="style1"><code>CATILogPorts::List()</code> implementation on a 
+			Logical Reference to retrieve its associated Ports</li>
+			<li class="style1"><code>CATILogPort::GetType()</code> implementation on a 
+			Logical Port to retrieve its associated Type Reference</li>
+			<li class="style1"><code>CATILogTypeReference::ListSubTypes()</code> implementation on a 
+			Logical Type Reference to retrieve its Type Instances</li>
+			<li class="style1"><code>CATILogTypeExpositionInstances::List()</code> implementation on a 
+			Logical Reference to retrieve its associated Type Exposition Instances (aka Interfaces)</li>
+			<li class="style1"><code>CATILogTypeExpositionInstance::GetTypeReference()</code> implementation on a 
+			Logical Type Exposition Instance to retrieve its associated Type Reference</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="UseCase"></a>The CAALmiBrowsingLogicalModelUse Case</h2>
+<p> <code>CAALmiBrowsingLogicalModel </code>is a use case of the <code>
+CAALogicalModelerUseItf.edu</code>
+framework that illustrates the <code>CATLogicalModelerUseItf</code>&nbsp; 
+frameworks&nbsp; capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAALmiBrowsingLogicalModelDo</h3>
+<p>The input for this Use Case is a <span class="style2">Logical</span> <code>
+Model</code>&nbsp;as depicted in [<a href="#Fig.1">Fig.1</a>] below. </p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 Input Logical Model</caption>
+	<tr>
+		<td>
+		<img src="images/CAALmiUcBrowsingLogicalModel_Fig1.jpg"></td>
+	</tr>
+</table>
+<p>It consists of a root Logical Reference <code>CAALmiBrowsingLogicalModel_RootRef</code>.</p>
+<p>The Root aggregates <code>CAALmiBrowsingLogicalModel_ChildRef.1</code>, an 
+instance of a Logical Reference <code>CAALmiBrowsingLogicalModel_ChildRef</code> 
+beneath it.</p>
+<p>This Reference in turn aggregates a Logical Port <code>PortUnderChild</code>, 
+associated with the Logical Type <code>Type 1</code>.</p>
+<p>The Root aggregates an instance of a Logical Representation Reference(Rep 
+Ref) <code>CAALmiBrowsingLogicalModel_RepRef</code> beneath it.</p>
+<p>The Root in turn aggregates a Logical Interface <code>Interface.1</code>, 
+associated with the Logical Type <code>Type 1</code>.</p>
+<p>The process to retrieve a PLM Component from the database, essentially requires 
+two inputs:</p>
+<ul>
+	<li>A list of IDSet attribute-values, provided as an input for UC execution.</li>
+	<li>PLMType determine the Knowledge type of the Logical reference to be browsed.</li>
+</ul>
+<p>The Use Case thus retrieves an Identificator of the Logical Root, in the underlying 
+database. It next loads it in session, in <strong>Authoring</strong> mode, which 
+essentially loads in session all the Logical References and Instances, Logical 
+Rep Refs, Rep Instances, Interfaces and Ports.</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig.2 Logical Model Browse Output</caption>
+	<tr>
+		<td>
+		<img src="images/CAALmiUcBrowsingLogicalModel_Fig2.jpg"></td>
+	</tr>
+</table>
+<p>The Use Case browses our input model and outputs its hierarchy as depicted in 
+[<a href="#Fig.2">Fig.2</a>] above. The model appears exactly similar to the way 
+it is represented in the spec tree. For Reference and Rep Reference V_Name 
+attribute is displayed, otherwise PLM_ExternalID attribute is displayed. This is 
+due to the default environment (OneClick and New Typing V2 activated). Though only 
+these attributes (PLM_ExternalID and V_Name) values of each PLM Entity in the 
+hierarchy is output, the Use Case can also output all the public attribute values.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="How"></a>How to Launch CAALmiBrowseLogicalModel</h3>
+<p>To launch <code>CAALmiBrowsingLogicalModel</code>, you will need to set up the build time
+environment, then compile <code>CAALmiBrowsingLogicalModel<b> </b></code>along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p> <a><code>mkrun -c &quot; CAALmiBrowsingLogicalModel Repository Server User 
+Password SecurityCtx PLMType iAllAttributes&nbsp;IDAttribute1&nbsp;AttrValue1 [IDAttribute2 Value2 ...] <b>&quot;</b></code></a> </p>
+<p>where:</p>
+
+
+<table class="border1"  id="table13" style="border-style: solid" >
+  <tr>		
+  	<th> <b>Repository</b> </th>
+			<td><script type="text/javascript">insertRepository();</script> </td>
+		</tr>
+		<tr>
+			<th> <b> Server</b> </th>
+			<td>The name and port of the server as <i>name</i>:<i>port_number\RootURI</i></td>
+		</tr>
+		<tr>
+			<th> <b> User</b> </th>
+			<td>The user name</td>
+		</tr>
+		<tr>
+			<th> <b> Password</b> </th>
+			<td>The user password to authenticate the user</td>
+		</tr>
+		<tr>
+			<th> <b>SecurityCtx</b> </th>
+			<td>a string
+              representing the security context ( Role. Organization. Project&nbsp;
+              )<o:p>
+              . Choose Role as Reviewer ( as the use case does not modify the PLM Data)</o:p>
+              </td>
+		</tr>
+		<tr>
+			<th> <b>PLMType</b></th>
+			<td>A String Representing PLM Type</td>
+		</tr>
+		<tr>
+    <th height="35"><b>iAllAttributes</b></td>
+    <td height="16">TRUE&nbsp; = All Public Attribute values of PLM Entities in 
+	the hierarchy to be output<br>
+	FALSE = Only the PLM_ExternalID or V_Name attributes values of PLM Entities in the 
+	hierarchy to be output</td>
+  </tr>
+  <tr>
+    <th height="35">IDAttribute1*<td height="16">IDSet attribute Name</td>
+  </tr>
+		
+		 <tr>
+    <th height="35">AttrValue1*<td height="16">Attribute Value</td>
+  </tr>
+		</table>
+
+
+
+
+<p align="left">* We could have several such Attribute-Value set. The count is 
+determined by the IDSet attributes defined by the PLM type of the PLM 
+Component browsed</p>
+<p align="left">CAALmiBrowsingLglRef.3dxml this 3D XML file contains the root Product&nbsp; Reference with the
+following attributes:</p>
+<ul>
+  <li><a><code>PLM_ExternalID</code></a>: slog00001025</li>
+  <li><a><code>Version</code></a>: A.1</li>
+  <li><a><code>(V_Name</code></a>: CAALmiBrowsingLogicalModel_RootRef)</li>
+</ul>
+<p align="left"><b>Attention</b>: This 3dxml have been created with OneClick and Unified Typing activated (default environment).</p>
+<p align="left"><b>Attention</b>:  Please refer to the document [<a href="#References">1</a>]
+for how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where"></a>Where to Find the CAALmiBrowsingLogicalModel
+Code</h3>
+<p>The <a><code>CAALmiBrowsingLogicalModel</code></a> use case is located in the
+<a><code>CAALmiBrowsingLogicalModel.m</code></a> module of the <a><code>CAALogicalModelerUseItf.edu</code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAADoc\CAALogicalModelerUseItf.edu\CAALmiBrowsingLogicalModel.m</code></td>
+  </tr>
+</table>
+<p>where <code><a>InstallRootDirectory</code></a> [<a href="#References">1</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code><a>CAALmiBrowsingLogicalModel</a></code>:</p>
+<ol>
+  <li><a href="#Prolog">Prolog</a></li>
+  <li class="style3"><a href="#Retrieve the Logical Ref">Retrieve Logical Reference 
+	to browse from underlying database</a><ol>
+	<li class="style3"><a href="#Build an IDSet">Build an Identification Attribute-Value set</a> </li>
+	<li class="style3"><a href="#Run Query">Run Query and retrieve Logical Reference from the 
+	underlying database</a></li>
+	</ol>
+	</li>
+	<li class="style3"><a href="#Browse the Logical Structure">Browse the Logical Reference</a></li>
+  <li>
+    <p style="line-height: 100%; margin-top: 0"><a href="#Epilog">Epilog</a>
+  </li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prolog"></a>Prolog&nbsp;</h3>
+<p>The <code>CAALmiBrowsingLogicalModel<b> </b></code>use case, to begin with, 
+creates a PLM Session. Its defined by the repository to be connected to, server, 
+user, password and a Security Context. The Security context primarily defines a 
+role with which the user is logged into the current session. In the current Use 
+Case, since it simply browses through a Logical Model hierarchy, it does not 
+involve any modification of the PLM data. So a Reviewer role serves our purpose 
+in this case. The article &quot;<strong>Creating a Basic PLM Batch</strong>&quot; [<a href="#References">2</a>] 
+delves further deeper into this subject.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Retrieve the Logical Ref"></a>Retrieve the Logical Reference to browse, from an underlying database</h3>
+<p>To begin with, we retrieve from the underlying database, the Logical 
+Reference for browse. The query to an underlying database for a PLM Component is 
+built with primarily two inputs</p>
+<ul>
+	<li>An attribute-value list </li>
+	<li>The PLMType of the PLM Component being queried</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Build an IDSet"></a>Build an Identification Attribute-Value set</h4>
+<p>A PLM Type essentially defines a set of attributes, to uniquely identify it 
+in the underlying database. These are referred to attributes. A list of 
+such attribute-value set, combined with the PLM Type uniquely identifies a PLM 
+Component in the underlying database. This list is one of the inputs for the 
+database query. The list is built, as depicted by the code extract below</p>
+<pre class="code">
+CATListOfCATString iListAttributeName ;
+CATListOfCATUnicodeString iListAttributeValue ;
+
+for (int AttrIndex=8; AttrIndex &lt;= (8+((NbAttributes-1)*2)); AttrIndex++)
+{
+   const CATString Attribute =  CATCkePLMNavPublicServices::RetrieveBasicAttributeNameFromPreviousOne(NULL_var,iArgv[AttrIndex]).CastToCharPtr();
+   iListAttributeName.Append(Attribute);
+   
+   const CATUnicodeString Value(iArgv[AttrIndex+1]);
+   iListAttributeValue.Append(Value);
+
+   AttrIndex++;
+}
+</pre>
+<p>An attribute-value set are built with user inputs. The count 
+of the attribute-value set is defined by the usable custo of the Logical 
+Reference to browse. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<p>As mentioned earlier, the PLM Type is another critical input for building our 
+database query. The PLM Type is referred to as a type , particularly when it is 
+used in the context of building a database query. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Run Query"></a>Run Query and Retrieve Logical Reference from the Underlying Database</h4>
+<p>At this stage, we have with us the inputs (type and the 
+attribute-value sets) which together define our database query. The query 
+enables us retrieve an Identificator of a PLM Component, conforming to the 
+search criteria, defined by the query. We then load this Component in session.</p>
+<pre class="code">...
+  
+   hr = ::CAARetrieveIDofUniquePLMObject(iListAttributeName,iListAttributeValue,														
+				    istrPLMType,opiIDComp);
+   ...
+   
+   <strong>CATOmbLifeCycleRootsBag</strong> Bag;
+   <strong>CATAdpOpener</strong> opener(Bag);
+   <strong>CATILogReference</strong> *piLogRefOnComp = NULL;
+   hr= opener.<strong>CompleteAndOpen</strong>(opiIDComp,IID_CATILogReference, (void**) &amp;<strong>piLogRefOnComp</strong>);
+...</pre>
+<p>Here, we load the Logical Reference in the current session. Use Case loads the entire PLM Model in session [<a href="#References">5</a>] , which includes the Logical Ref/Inst/Rep 
+Ref/Rep Inst, Ports and Connections. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><b><u><a name="Browse the Logical Structure"></a></u>Browse the Logical 
+Reference</b></h3>
+<p>The process to browse a Logical Reference involves retrieving the Child Instances, 
+Rep Instances, Interfaces, Ports immediately under a Root Reference. We then retrieve the Reference 
+associated with each direct Instance. With the child reference, we further browse 
+down the Logical hierarchy. So the browsing is effectively a recursive process.</p>
+<pre class="code">HRESULT <strong>BrowseReference</strong>(<strong>CATILogReference</strong>* ipiLogRefOnLogRef,
+		      CATBoolean iAllAtributes, int iDepth)
+{
+   ...	
+   CATIPLMNavEntity_var spiNavEntOnLogRef =ipiLogRefOnLogRef;
+   ...
+   <strong>CATILogInstances</strong>_var spiLogInstsOnLogRef=ipiLogRefOnLogRef;
+   CATListValCATILogInstance_var ListOfInstsUnderLogRef;
+   ...	
+   <strong>hr = </strong>spiLogInstsOnLogRef<strong>-&gt;List(ListOfInstsUnderLogRef);</strong>   
+   ...	
+   int j=1;
+   while (SUCCEEDED(hr) &amp;&amp; (j&lt;=ListOfInstsUnderLogRef.Size()))
+   {
+      ...         
+      <strong>CATILogInstance</strong>* piLogInstOnLogInst = childrenList[j];
+      <strong>CATILogReference</strong>* piLogRefOfInst = NULL;
+      ...
+      <strong>hr = piLogInstOnLogInst-&gt;GetReferenceInstanceOf(piLogRefOfInst);</strong>      
+      ...         
+      <strong> hr = BrowseReference(piLogRefOfInst,iAllAtributes, iDepth+2);</strong>
+      ...
+   }
+   ...
+   
+   <strong>CATILogRepresentationInstances</strong>_var spiLogRepInstsUnderLogRef=ipiLogRefOnLogRef;
+   CATListValCATILogRepresentationInstance_var ListOfRepInstsUnderLogRef;
+   ...
+   <strong>hr = </strong>spiLogRepInstsUnderLogRef<strong>-&gt;List(ListOfRepInstsUnderLogRef);</strong>
+   while (SUCCEEDED(hr) &amp;&amp; (k&lt;=ListOfRepInstsUnderLogRef.Size()))
+   {
+ 	CATIPLMNavEntity_var spiNavEntOnLogRepInst = ListOfRepInstsUnderLogRef[k];
+    ...
+ 	<strong>CATILogRepresentationInstance</strong>_var spiLogRepInst =spiNavEntOnLogRepInst;
+	<strong>CATILogRepresentationReference</strong>* piLogRepRefOfRepInst = NULL;
+	...
+	hr = spiLogRepInst-&gt;<strong>GetRepReferenceInstanceOf</strong>(piLogRepRefOfRepInst);
+	...
+   }	
+   
+   ...
+   <strong>CATILogPorts</strong>_var spiLogPortsOnLogRef=ipiLogRefOnLogRef;
+   CATListValCATILogPort_var ListOfPortsUnderLogRef;
+   ...
+   <strong>hr = </strong>spiLogPortsOnLogRef<strong>-&gt;List(ListOfPortsUnderLogRef);</strong>
+   while (SUCCEEDED(hr) &amp;&amp; (j&lt;=ListOfPortsUnderLogRef.Size()))
+   {
+     ...
+     <strong>CATILogPort</strong>_var spiLogPort = ListOfPortsUnderLogRef[j];
+	 <strong>CATILogTypeReference</strong> *piAssociatedTypeRef=NULL;
+	 <strong>hr= </strong>spiLogPort<strong>-&gt;GetType(piAssociatedTypeRef);</strong>
+	 ...
+	 hr= <strong>BrowseTypeRef</strong>(piAssociatedTypeRef,iAllAtributes,iDepth+2);
+     ...
+   }
+   ...
+   <strong>CATILogTypeExpositionInstances</strong>_var spiLogTypeExpositionInstancesOnLogRef=ipiLogRefOnLogRef;
+   CATListValCATILogTypeExpositionInstance_var ListOfTypeExpositionInstUnderLogRef;
+   ...
+   <strong>hr = </strong>spiLogTypeExpositionInstancesOnLogRef<strong>-&gt;List(ListOfTypeExpositionInstUnderLogRef);</strong>
+   while (SUCCEEDED(hr) &amp;&amp; (j&lt;=ListOfTypeExpositionInstUnderLogRef.Size()))
+   {
+	...
+	<strong>CATILogTypeExpositionInstance</strong>_var spiLogTypeExpoInst = ListOfTypeExpositionInstUnderLogRef[j];
+	<strong>CATILogTypeReference</strong> *piAssociatedTypeRef=NULL;
+	<strong>hr= </strong>spiLogTypeExpoInst<strong>-&gt;GetTypeReference(piAssociatedTypeRef);</strong>
+	...
+	hr= <strong>BrowseTypeRef</strong>(piAssociatedTypeRef,iAllAtributes,iDepth+2);
+	...
+   }
+}</pre>
+<p>The <code>CATILogInstances::List()</code> implementation on a Logical Reference, 
+returns a list of direct Logical Instances under the Reference.</p>
+<p>The <code>CATILogInstance::GetReferenceInstanceOf()</code> implementation on 
+a Logical Instance, returns its associated Reference.</p>
+<p>What follows is a recursive call to the same subroutine namely. <code>BrowseReference()</code>, 
+with the Logical Reference, retrieved in the earlier step.</p>
+<p>The <code>CATILogRepresentationInstances::List()</code> implementation on a Logical 
+Reference, returns a list of direct Logical Rep Instances under the Reference.</p>
+<p>The <code>CATILogRepresentationInstance::GetRepReferenceInstanceOf()</code> implementation 
+on a Logical Rep Instance, returns its associated Representation Reference.</p>
+<p>The <code>CATILogPorts::List()</code> implementation on a Logical Reference, 
+returns a list of direct Logical Ports under the Reference.</p>
+<p>The <code>CATILogPort::GetType()</code> implementation on a Logical Port, 
+returns its associated Logical Type Reference.</p>
+<p>The <code>CATILogTypeExpositionInstances::List()</code> implementation on a Logical Reference, 
+returns a list of direct Logical Interfaces (Type Exposition Instances) under the Reference.</p>
+<p>The <code>CATILogTypeExpositionInstance::GetTypeReference()</code> implementation on a Logical 
+Interface, returns its associated Logical Type Reference.</p>
+<p>Let us have a look at the implementation details of routine <code>BrowseTypeRef()</code>:</p>
+<pre class="code">...
+    <strong>HRESULT BrowseTypeRef(CATILogTypeReference *ipiTypeRef, CATBoolean iAllAtributes,int iDepth)</strong>
+    {
+	CATListValCATILogTypeInstance_var ListOfSubTypes;
+	hr= ipiTypeRef-&gt;<strong>ListSubTypes</strong>(ListOfSubTypes);
+	...
+	while (SUCCEEDED(hr) &amp;&amp; (j&lt;=ListOfSubTypes.Size()))
+	{ 
+	  ...
+	  <strong>CATILogTypeInstance</strong>_var spiTypeInst=spiNavEntOnSubType;
+	  <strong>CATILogTypeReference</strong>* piTypeRef= NULL;
+	  ...
+	  hr = spiTypeInst-&gt;<strong>GetReferenceInstanceOf</strong>(piTypeRef);
+	  ...
+	  hr = <strong>BrowseTypeRef</strong>(piTypeRef,iAllAtributes,iDepth+2);
+	  ...
+	}
+		  
+   }
+...</pre>
+<p>The <code>CATILogTypeReference::ListSubTypes()</code> implementation on a Logical 
+Type Reference, returns a list of sub Types under the Type Reference.</p>
+<p>The <code>CATILogTypeInstance::GetReferenceInstanceOf()</code> implementation 
+on a Logical Type Instance, returns its associated Type Reference.</p>
+<p>What follows is a recursive call to the same subroutine namely. <code>BrowseTypeRef()</code>, 
+with the Logical Type Reference, retrieved in the earlier step.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code>CAALmiBrowsingLogicalModel </code>use case ends by simply closing 
+the PLM session. [<a href="#References">2</a>].&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Use Case CAALmiBrowsingLogicalModel details the steps involved in the 
+CAA Customization to browse through a Logical Model, using the CATLogicalModelerUseItf 
+framework (restricted to the Logical Modeler) CAA Exposition.</p>
+<p>The Use Case thus retrieves an Identificator of the Logical Root Reference, 
+in the underlying database. It next loads it in session, in <strong>Authoring</strong> 
+mode, which essentially loads in session all the Logical References and Instances 
+, Logical Rep Refs , Rep Instances, Interfaces and Ports.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="References"></a>References</h2>
+<table >
+	<tr>
+		<td valign="top" height="12">[1]</td>
+		<td height="12"><a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a CAA Use Case</a></td>
+	</tr>
+
+	<tr>
+		<td valign="top" height="12">[2]</td>
+		<td height="12"><a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">Creating
+		a Basic PLM Batch</a></td>
+	</tr>
+
+	<tr>        
+		<td valign="top" height="12">[3]</td>
+		<td height="12"><a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">Querying, Expanding &amp; Opening PLM Components</a></td>
+	</tr>
+	 
+	<tr>
+		<td valign="top" height="12">[4]</td>
+		<td height="12">
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">
+		Understanding PLM Modeler and Customization</a></td>
+	</tr>
+
+	<tr>
+		<td valign="top" height="12">[5]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpenPLMRefWithDiffExpandMode.htm">
+		Query, Expand and Open a PLM Reference in various Expand Modes</a></td>
+	</tr>
+</table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <strong>1</strong> [Aug 2009]</td>
+		<td valign="top">Document created</td>
+	</tr>
+	<tr>
+		<td valign="top">Version: <strong>2</strong> [Jul 2014]</td>
+		<td valign="top">Add Logical Interfaces and Ports</td>
+	</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

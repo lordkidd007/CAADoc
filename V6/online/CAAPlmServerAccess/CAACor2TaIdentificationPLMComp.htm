@@ -1,0 +1,187 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>PLM Object Identification and comparison - CATIAdpIdentificator - CATIPLMIdentifierSet</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Object Identification &amp; Comparison</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>This article deals with the interfaces related to the PLM Object 
+		identification, and the PLM Object comparison. </p>
+      <ul>
+        <li><strong style="font-weight: 400"><a href="#Identifier Set Attributes">Identifier Set Attributes</a></strong></li>
+        <li><strong style="font-weight: 400"><a href="#PLM Component Identificator">
+		PLM Object Identificator</a></strong></li>
+		<li><strong style="font-weight: 400"><a href="#InShort">In Short</a></strong></li>
+		<li><strong style="font-weight: 400"><a href="#References">References</a></strong></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Identifier Set Attributes"></a><strong style="font-weight: 400">Identifier
+Set Attributes</strong></h2>
+<p>All PLM Object have attributes [<a href="#References">1</a>]. Some PLM Objects can have a special set of attributes : attributes of identification. 
+The <i>CATIPLMIdentifierSet</i> interface returns the concatenated string, 
+without separator, of these special attributes. The order of the attributes in 
+the 
+concatenation string is the same as the attribute's order in the metadata.</p>
+<p>Taken a schema to explain the usage, and the issues of the identifier set 
+of attributes. </p>
+<table border="0" id="table2">
+	<caption><a name="Fig.1">Fig.1</a> Custo &amp; Attributes</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAACor2IdentificationPLMComp_Custo.gif" width="433" height="262"></td>
+	</tr>
+</table>
+<p>On the above picture you have two customizations [<a href="#References">2</a>] of the same 
+modeler. </p>
+<ul>
+	<li><code>Custo1</code> has defined identifier set attributes for 
+	<ul>
+		<li>the PLM References, <code>PLMRefCusto1</code>, with (A1,A2), </li>
+		<li>the PLM Representation References, <code>PLMRepRefCusto1</code>, 
+		with the same attributes (A1,A2)</li>
+	</ul>
+	</li>
+	<li><code>Custo2</code> has defined identifier set attributes for 
+	<ul>
+		<li>the PLM References, <code>PLMRefCusto2</code>, with 3 attributes 
+		(A1,A3,A4), </li>
+		<li>the PLM Representation Reference,&nbsp; <code>PLMRepRefCusto2</code>, 
+		with the attributes (A1,A2)</li>
+	</ul>
+	</li>
+</ul>
+<p>The identifier set attributes <b>identifie a component among the components 
+of same PLM type and of the 
+same PLM Customization:</b></p>
+<ul>
+	<li>All PLM Reference of type PLMRefCusto1 will have an unique identifier 
+	set of attributes: in database two PLMRefCusto1 could not have the same 
+	value for these attributes. </li>
+	<li>but, in database can exist 
+	<ul>
+		<li>a PLMRefCusto1 and a PLMRepRefCusto1 with the same value of 
+		attributes A1 and A2. </li>
+		<li>a PLMRepRefCusto1 and a PLMRepRefCusto2 with the same value of 
+		attributes A1 and A2.</li>
+	</ul>
+	</li>
+</ul>
+<p>&nbsp;It is the save operation that checks the database integrity. </p>
+<p>In conclusion, do not rely on the string returned by the <code>GetIdentifierSet</code> method 
+of <i>CATIPLMIdentifierSet</i> interface to compare two components, unless they 
+have same PLM Type and come from same PLM Customization.<br>
+&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="PLM Component Identificator"></a>PLM Object Identificator</h2>
+<p>When a component is searched in database, the result is a session object 
+implementing the <i>CATIAdpPLMIdentificator</i> interface. This object 
+represents the identificator of the component in database. The <i>
+CATIAdpPLMIdentificator</i> interface is the unique handle of the object. </p>
+<p>Whatever the API, whathever the context, CATIA or VPMNav, the identificator 
+of a component will be the same. You can use the <code>IsEqual</code> method of 
+the <i>CATIAdpPLMIdentificator</i> interface to compare any PLM Object. </p>
+<table class="code" id="table3">
+  <tr>
+    <td>
+      <pre>...
+   CATIAdpPLMIdentificator *pAdpPLMIdentOnComp1 = .... ;
+   CATIAdpPLMIdentificator *pAdpPLMIdentOnComp2 = .... ;
+   CATBoolean TestComp ;
+   pAdpPLMIdentOnComp1 -><b>IsEqual</b>(pAdpPLMIdentOnComp2 , TestComp);
+   if ( TestComp == FALSE )
+   {
+       Comp1 and Comp2 are not the same 
+   }else
+   {
+       Comp1 and Comp2 are the same
+   }
+...</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">If your component is already in session, the session object 
+representing the PLM Object implements the <i>CATIPLMComponent</i> interface. 
+This interface can retrieve the identificator of the component in database using 
+the <code>GetAdpID</code> method. </p>
+<table class="code" id="table4">
+  <tr>
+    <td>
+      <pre>...
+   <b>CATIAdpPLMIdentificator</b> *pAdpPLMIdentOnComp1 = NULL ; 
+   <b>CATIPLMComponent</b> *pIPLMComp1 = ... ;
+   pIPLMComp1-><b>GetAdpID</b>(pAdpPLMIdentOnComp1);
+...</pre>
+    </td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>To compare two PLM Objects use the <code>IsEqual</code> method of 
+the <i>CATIAdpPLMIdentificator</i> interface. The identifier set only ensures 
+unicity of a given component type in a given custo. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <tr>
+    <td >[1]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">
+	PLM Attributes</a></td>
+  </tr>
+  <tr>
+    <td >[2]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">
+	PLM Customization</a></td>
+  </tr>
+  
+</table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td>Version: <strong>1</strong> [Nov 2006]</td>
+    <td >Document created</td>
+  </tr>
+  
+</table>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

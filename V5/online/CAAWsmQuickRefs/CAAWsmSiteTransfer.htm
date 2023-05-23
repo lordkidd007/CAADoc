@@ -1,0 +1,676 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_site_transfer</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp; </p>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><h1>RADE</h1>
+    </td>
+    <td VALIGN="TOP"><h2>Source Code Manager</h2>
+    </td>
+    <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2"><h3><a NAME="Top"></a>adl_site_transfer</h3>
+      <p><i>Sharing frameworks between SCM sites</i></td>
+  </tr>
+  <tr>
+    <td COLSPAN="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+      <p>The <b>adl_site_transfer</b>   command is used to transfer changes from
+    one local workspace to a remote workspace belonging to another SCM site. We
+      suppose the reader familiar with multi-site concept, otherwise we advise
+      him/her to read first the article dedicated to <a href="../CAAWsmUseCases/CAAWsmMultiSite.htm">Multi-site
+      Management</a>.<br>
+      Note also that adl_site_transfer is a basic command that is used by higher
+      level commands. Please, consult the article <a href="../CAAWsmUseCases/CAAWsmMultiSite.htm">Multi-site
+      Management</a> for more details about those commands. <ul>
+      <li><b><a href="#Synopsis">Synopsis</a></b></li>
+      <li><b><a href="#Usage">Usage</a></b></li>
+      <li><b><a href="#Necessary context">Necessary Context</a></b></li>
+      <li><b><a href="#Prerequisites">Prerequisites Commands</a></b></li>
+      <li><b><a href="#Data Directory">Data Directory</a></b></li>
+      <li><b><a href="#Understanding a transfer">Understanding a Transfer</a></b></li>
+      <li><a href="#Packaging and Compressing Files Using External Tools"><b>Packaging
+        and Compressing Files Using External Tools</b></a></li>
+      <li><b><a href="#Options">Options</a></b></li>
+      <li><b><a href="#Examples">Examples</a></b></li>
+      <li><b><a href="#References">References</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Synopsis"></a>Synopsis</h3>
+<b>
+
+<p>adl_site_transfer </b>[<b>-h</b>|<b>-help</b>|<b>-?</b>]<br>
+&nbsp;
+-<b>rhost</b> RemoteHost -<b>rport</b> RemotePort<br>
+&nbsp;
+-<b>rsite</b> Site -<b>rw</b> Ws -<b>rtree</b> ws_tree -<b>rtmp</b> TmpDirectory
+[-<b>rimage</b> image | -<b>rno_image</b>]&nbsp;<br>
+&nbsp;
+[-<b>r_sync</b>] [-<b>r_collect</b>] [-<b>r_publish</b>] [-<b>r_promote</b> [WS... ] ]<br>
+&nbsp;
+-<b>lw</b> Ws -<b>ltree</b> ws_tree [-<b>ltmp</b> TmpDir] [-<b>limage</b> image |
+-<b>lno_image</b>]&nbsp;<br>
+&nbsp;
+[-<b>l_collect</b>] [-<b>l_sync</b>]<br>
+&nbsp;
+[-<b>lwd</b>  WorkingDirectory]<br>
+&nbsp;
+[-<b>all_fw</b> | -<b>fw</b> fw... | -<b>fw_file</b> fw_file]<br>
+&nbsp;
+[-<b>simul</b>] [-<b>import_only</b> | -<b>export_only</b>] [-<b>keep_trace</b> n]
+[-<b>no_compress</b>] [-<b>force_start</b>]
+</p>
+
+<p>Options starting by '-r' concern the 'r'emote hosts while options starting by
+'-l' concern the 'l'ocal workspace.<br>
+</p>
+
+<table border="0">
+  <tr>
+    <td valign="top" align="center"><i>Figure 1: remote/parent vs. local/child
+      workspaces</i>
+      <p><img border="0" src="../CAAWsmUseCases/images/multisite3.gif" width="300" height="240"></td>
+    <td valign="top">
+
+<p>Note that, as shown in the figure 1, the remote and local workspaces
+correspond respectively to the parent and child workspaces.&nbsp;
+</p>
+
+    </td>
+  </tr>
+</table>
+
+<p>
+Other options concern the whole transfer operation.
+</p>
+
+<h3><a name="Usage"></a>Usage</h3>
+
+<p>The adl_site_transfer command is a user command and can work between any
+workspaces of two different sites. It is possible to use workspaces without images, especially on the
+remote site where it is advised to have a workspace dedicated to each transfer
+and this may require a lot of disk space if all of them own one image.</p>
+
+<p>To start a transfer</p>
+
+<blockquote>
+  <ul>
+    <li>A distant host must be specified using the -rhost and -rport options:
+      the host is the one where the SCM Multi-site Transfer Manager [2] is
+      running and the port is the port on which it is listening for clients'
+      requests. Note that this remote host may not be reachable from any local
+      host since special privileges may be required for accessing the distant
+      site (ask your system engineers).</li>
+    <li>A string must be given to identify the distant site. That this is not
+      necessarily the string returned the adl_ls_site command but rather a
+      string that is different for each transfer that is started from the same
+      local workspace and targeting different sites. This string is used for
+      computing the <a href="#Data sub-directory">name of a directory</a> where
+      various data will be stored.</li>
+    <li>The remote transfer workspace must be specified using its name. This
+      workspace must exists.&nbsp;<br>
+      It is possible to specify a working image or to let SCM chooses the
+      default one. it is also possible to specify that no image is to be used
+      for either saving disk space of because the SCM Multi-site Transfer
+      Manager's account does not grant privileges for writing in all workspace's
+      images.</li>
+    <li>The remote workspace tree must be specified. It is not mandatory to give
+      this information if the remote workspace exists in only one tree but this
+      avoids the adl_site_transfer command to retrieve these information by
+      itself.</li>
+    <li>A remote temporary directory must be specified using the -rtmp option.
+      It must be a valid directory on the host specified by the -rhost option
+      and it must have enough free space for being able to contain (temporarily)
+      a large amount of data because source files to receive or to send will be
+      copied in it.</li>
+    <li>Remote actions must be specified for managing the remote workspace.
+      Indeed if the remote workspace exists only for sharing components, no one
+      is working in it and it is needed to make changes happen in it:
+      <ul>
+        <li>the -r_collect and -r_sync options specify the actions to be
+          performed before computing the changes to be transferred;</li>
+        <li>the -r_publish and -r_promote options specify the actions to be
+          performed after receiving changes from the local site.</li>
+      </ul>
+    </li>
+    <li>The local workspace must be specified using its name. This workspace
+      must exists.<br>
+      It is possible to specify a working image or to let SCM chooses the
+      default one. it is also possible to specify that no image is to be used
+      because either no one exists or the current user has no right for working
+      in one image. Not however that special transfer data have to be stored and
+      retrieved for each transfer: those information are stored by default under
+      the local workspace's image. If there is no local image, then another <a href="#Data Directory">storage
+      directory</a> must be specified using the -lwd option.</li>
+    <li>A local workspace tree must be specified. It is not mandatory to give
+      this information if the local workspace exists in only one tree but this
+      avoids the adl_site_transfer command to retrieve these information by
+      itself.</li>
+  </ul>
+</blockquote>
+<p>The purpose of the command is to share frameworks between sites and thus
+allowing concurrent developments on the same items. However it is possible than
+only one site is allowed to modify the shared frameworks, in that case it is not
+needed to import changes from it and the -export_only or -import_only options
+can be used to restrict the transfer to one direction and also reducing the time
+spent by the command.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Necessary context"></a>Necessary Context</h3>
+
+<p>The adl_site_transfer command works with two workspaces: a local one and a
+remote one. The local workspace becomes the current working workspace and then
+the current user must have enough rights to work in it. Secondly the remote
+workspace is managed by the SCM Multi-site Transfer Manager process; this
+process is managed by the SCM administrator of the distant site and must be
+started using an account that has rights for managing remote workspaces.&nbsp; </p>
+
+<p> Before
+starting a transfer, it is required to attach in both workspaces the frameworks
+that are to be shared. Note that if you chose a root workspace as a transfer
+workspace, it will be never possible to detach any framework from it. </p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Prerequisites"></a>Prerequisites Commands</h3>
+
+<p>The command calls other SCM commands to perform operations on local and
+remote workspaces: synchronization, promotion, collect, publishing, ...&nbsp;<br>
+These commands are batch commands and does not need user's help for their
+execution. The only command that requires user's help is the adl_solve_merge [<a href="#Ref1">1</a>]
+command. It is run automatically when changes coming from the distant site are
+in conflict with local changes.<br>
+As the transfer manages frameworks that are visible in both workspaces, it is
+needed to attach all the frameworks that are to be shared: use the adl_attach
+command for that purpose. Note that this step may require help from users of the
+distant site if users from the local site have no way to access it and to run
+SCM commands. </p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Data Directory"></a>Data Directory</h3>
+
+<p>This directory is used to store data during transfer execution: intermediate
+files, temporary files, trace files, etc&nbsp;<br>
+It contains also data files that are used for computing delta of changes between
+successive transfers.&nbsp;</p>
+
+<p>When no specific directory is specified when running a transfer, the default
+directory is taken in the local transfer workspace's image:</p>
+
+<blockquote>
+  <p><i>&lt;path to the local transfer workspace's image&gt;</i>/ToolsData/MultiSite</p>
+
+</blockquote>
+<p>A specific directory can be specified by the -lwd ('l'ocal 'w'orking 'd'irectory)
+option. Note that like for the default directory, this directory must be
+writable for the user who runs adl_site_transfer. When such a specific directory
+is specified, additional directories are created regarding the associated
+transfer:</p>
+
+<ul>
+  <li>for a transfer starting from the local workspace &lt;WS&gt; and the
+    associated image &lt;IMAGE&gt;, the path to the data directory is<br>
+    <i>&lt;path specified by the -lwd option&gt;</i>/MultiSite/&lt;<i>WS&gt;</i>/&lt;<i>IMAGE&gt;</i></li>
+  <li>for a transfer starting from the local workspace &lt;WS&gt; and without
+    image, the path to the data directory is<br>
+    <i>&lt;path specified by the -lwd option&gt;</i>/MultiSite/&lt;<i>WS&gt;</i>/_NO_IMAGE_</li>
+</ul>
+<p>It is interesting to use a specific directory for gathering information for
+all transfers of a site because this can facilitate the management of transfers:</p>
+<ul>
+  <li>it is easier to monitor the amount of data taken by transfer files when
+    they are located on the same file system</li>
+  <li>it is easier to manage several transfers if all information are gathered
+    under the same directory rather than scattered over transfer workspaces'
+    images.</li>
+</ul>
+<h4><a name="Data sub-directory"></a>Transfer Specific Sub-directory</h4>
+
+<p>Information are not found directly under the &quot;data directory&quot; but
+under sub-directories whose names are computed regarding the adl_site_transfer
+starting parameters. These sub-directories allow to use the same location for
+storing information for different transfers. Even when the local workspace is
+the origin of several different transfers, it is possible to use its image for
+storing information.</p>
+
+<p>The name of a sub-directory is the
+concatenation of the following strings:</p>
+
+<blockquote>
+  <ul>
+    <li>local workspace tree name (see -ltree option)</li>
+    <li>local workspace name (see -lw option)</li>
+    <li>remote site name (see -rsite option)</li>
+    <li>remote workspace name (see -rw option)</li>
+    <li>remote workspace tree name (see -rtree option)</li>
+  </ul>
+</blockquote>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Understanding a transfer"></a>Understanding a Transfer</h3>
+
+<p>This section describes the different steps composing a transfer between
+workspaces. The adl_site_transfer command prints a message at the beginning of
+each step and all traces are available through a html report that can be found
+under the following path:</p>
+
+<blockquote>
+  <p>&lt;<a href="#Data Directory">path to the data directory</a>&gt;/&lt;<a href="#Data sub-directory">transfer
+  specific directory</a>&gt;/follow_up.htm</p>
+
+</blockquote>
+<p>A transfer falls down in several main steps:</p>
+
+<ol>
+  <li>Initialisation of local and remote environments: adl_site_transfer checks
+    that the remote SCM Multi-site Transfer Manager is reachable and that the
+    local and remote workspaces exist.</li>
+  <li>Local and remote environment analysis: the command checks that the two SCM
+    installations share the same data exchange formats (SCM data and source
+    files) and looks for the availability of <a href="#Packaging and Compressing Files Using External Tools"> tar and compression
+    tools</a>:
+    <ul>
+      <li>The <a href="#ADL_TAR_DIR"> ADL_TAR_DIR</a> environment variable is checked in both local and
+        remote environments to know whether a &quot;tar&quot; tool is available.</li>
+      <li>The &quot;gzip&quot; tool is searched in both local and remote
+        environments to known whether data can be compressed before their
+        sending.<br>
+        Note that those tools are not brought with SCM but can be used as soon
+        as they are available in both environments.</li>
+    </ul>
+  </li>
+  <li>Previous transfer's recovery.<br>
+    The program goes through this step only if the previous transfer failed
+    while importing data from one site to the other one. In that case the
+    previous transfer is finished before starting the new one.</li>
+  <li>Importing changes from remote site.<br>
+    This step consists in computing what changed in remote workspace since the
+    last transfer and getting those changes into the local workspace.</li>
+  <li>Solving conflicting changes.<br>
+    These conflicts happen because the local workspace contains some changes
+    that are conflicting with some of those coming from the distant site. Like
+    the adl_sync command, the adl_site_transfer command calls the
+    adl_solve_merge command [1] in order to solve all conflicting changes.</li>
+  <li>Exporting changes to remote site.<br>
+    This steps is the reverse step of the fourth one but is started only if
+    there is no more merge to be solved in the local workspace.</li>
+</ol>
+<table border="0">
+  <tr>
+    <td valign="top"><img border="0" src="images/follow_up.gif" width="180" height="240">
+      <p><i>Figure 1: follow_up.htm</i></td>
+    <td valign="top">There are more steps and sub-steps than those described
+      above: all of them can be found in the follow_up.htm file.
+      <p>The figure 1 shows the structure of this file:</p>
+      <ul>
+        <li>There is one column per site: the left one gives information about
+          tasks performed on the local site and the right one gives information
+          about remote operations.</li>
+        <li>Each column contains cells that represent a sub-task
+          <ul>
+            <li>the text in the cell explains its purpose</li>
+            <li>this text is a hyper text link when traces are available for
+              this step</li>
+            <li>the colour of a cell gives its status: green for OK, grey if not
+              executed or useless, yellow if it is under way and red if it
+              failed</li>
+          </ul>
+        </li>
+        <li>The global status of the transfer is given at the top of the page
+          and using the same colour as for the cells.</li>
+        <li>The page is updated each time a step starts or finishes, so a
+          running transfer can be followed by using the current browser
+          &quot;refresh&quot; button or using the one given at the top of the
+          page (<img border="0" src="images/update.gif" align="absmiddle" width="40" height="40">).</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Packaging and Compressing Files Using External Tools"></a>Packaging
+and Compressing Files Using External Tools</h3>
+<h4>Compression</h4>
+<p>On Unix platform</p>
+<p>The command looks first for the &quot;gzip&quot; program and, if not found,
+it looks for the &quot;compress&quot; program. If one program is found and is
+available on both sites, it will be used for compressing files. Note however
+that if the SCM Multi-site Transfer Manager is running on Windows-NT platform,
+the &quot;compress&quot; program will never be chosen whatever the local
+platform is.</p>
+<p>On Windows-NT platform</p>
+<p>The command looks for the &quot;gzip&quot; program and if it is available on
+both sites, it will be used for compressing files.</p>
+<h4><a name="ADL_TAR_DIR"></a>Packaging</h4>
+<p>The command looks for the environment variable ADL_TAR_DIR and its value must
+be the path to a directory where a &quot;adl_tar&quot; program must be found.
+This variable must be set also in the working environment of the SCM Multi-site
+Transfer Manager, it can point to a different path than on the local host but
+must also contain a &quot;adl_tar&quot; program.</p>
+<p>If the &quot;adl_tar&quot; program is found on both sites, it will be used
+for packaging user files and transfer specific files before sending them from
+one site to the other. Note that those 'tar' files will be also compressed if a
+compression tool is available on both sites.</p>
+<h4>adl_tar's interface</h4>
+<p>Here are the parameters of each call to the adl_tar program:</p>
+<ul>
+  <li>when creating a tar
+    <ul>
+      <li>-cvf &lt;filename&gt;<br>
+        &lt;filename&gt; is the path to the 'tar' file</li>
+      <li>-T &lt;filename&gt;<br>
+        &lt;filename&gt; is the path to a file containing the list of files to
+        be copied in the 'tar' file</li>
+      <li>&lt;nothing&gt; or -z or -Z<br>
+        -z means that a compression is expected using the &quot;gzip&quot;
+        program<br>
+        -Z means that a compression is expected using the &quot;compress&quot;
+        program&nbsp;</li>
+    </ul>
+  </li>
+  <li>when extracting data from a tar
+    <ul>
+      <li>-xvf &lt;filename&gt;<br>
+        &lt;filename&gt; is the path to the 'tar' file containing the data to
+        extract</li>
+      <li>&lt;nothing&gt; or -z or -Z<br>
+        -z means that the 'tar' file is supposed to have been compressed using
+        the &quot;gzip&quot; program<br>
+        -Z means that the 'tar' file is supposed to have been compressed using
+        the &quot;compress&quot; program</li>
+    </ul>
+  </li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a NAME="Options"></a>Options</h3>
+
+<p>adl_site_transfer accepts the following options: &nbsp; </p>
+
+<table>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><b>Global parameters</b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-h|-help|-?</tt></td>
+    <td>Help of the command</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-keep_trace n</tt></td>
+    <td>Number of trace directories to keep. Traces are located under the <a href="#Data Directory">Data
+      Directory</a>.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-simul</tt></td>
+    <td>Simulate import specific operations.&nbsp;<br>
+      Note that other actions will be done (adl_sync, adl_photo, etc) and also that data will be imported at database level (not workspace level)</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-import_only&nbsp;</td>
+    <td>Only get what changed on remote site</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-export_only&nbsp;</td>
+    <td>Only send what changed on local site</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-no_compress&nbsp;</td>
+    <td>Transfer data without compressing them even some compression tool are
+      detected as available by the command.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-force_start&nbsp;</td>
+    <td>If the previous transfer crashed without being unregistered by the transfer manager
+      the new transfer won't be allowed to start.<br>
+      This option can be used to force the new transfer to start by un-registering the previous
+      one.<br>
+      <img border="0" src="../CAAIcons/images/warning.gif" width="30" height="30" align="absmiddle">
+      To use with care because having two instances of the same transfer running
+      at the same time may cause unpredictable results.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-lwd&nbsp;</td>
+    <td>A directory in which the program will stored persistent data.<br>
+                   If not set, data will be stored in the current working image of the local workspace.
+      See the <a href="#Data Directory">Data Directory</a> section for more
+      information.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><b>Remote site parameters</b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rhost RemoteHost</td>
+    <td>Remote host name or IP address</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rport number</td>
+    <td>Port on which the transfer manager is listening on remote host</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rsite Site&nbsp;</td>
+    <td>A string identifying uniquely the remote SCM installation</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rw Ws</td>
+    <td>Name of remote transfer workspace</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rimage image</td>
+    <td>Remote workspace's image to be used for the transfer</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rno_image&nbsp;</td>
+    <td>To specify that no image is to be used when working in the remote workspace</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rtree ws_tree</td>
+    <td>Remote workspace tree to consider (only one tree can be treated in one transfer)</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-rtmp TmpDir&nbsp;</td>
+    <td>Temporary directory for remote operations</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_collect&nbsp;</td>
+    <td>To collect remote workspace's child workspace(s) BEFORE computing remote changes</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_sync&nbsp;</td>
+    <td>To synchronize the remote workspace BEFORE computing remote changes</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_publish&nbsp;</td>
+    <td>To publish the remote workspace AFTER the transfer</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-r_promote [WS]</td>
+    <td>To promote the remote workspace AFTER the transfer.&nbsp;<br>
+                   One or several target workspaces can be specified for the
+      promotion: they will be used as arguments for the -to option of the
+      adl_promote command.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><b>Local site parameters</b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-lw Ws</td>
+    <td>Workspace name</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-limage image&nbsp;</td>
+    <td>Image of the local workspace to be used for the current transfer</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-lno_image&nbsp;</td>
+    <td>To specify that the local workspace has no image on the current host.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-ltree ws_tree&nbsp;</td>
+    <td>Workspace tree to consider (only one tree can be treated in one transfer)</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-ltmp TmpDir</td>
+    <td>Temporary directory for local operations</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-l_collect</td>
+    <td>To collect local workspace's child workspace(s) BEFORE starting the transfer</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-l_sync&nbsp;</td>
+    <td>To synchronize the local workspace BEFORE starting the transfer</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><b>Filtering frameworks<sup>(*)</sup></b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-all_fw&nbsp;</td>
+    <td>Consider all the attached frameworks. It is the default</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-fw fw...&nbsp;</td>
+    <td>Consider the frameworks whose names or Id (prefixed by \"soid:\") are
+      given</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">-fw_file fw_file&nbsp;</td>
+    <td>Consider the frameworks whose names or Id are read in the file fw_file</td>
+  </tr>
+</table>
+
+<p><b><sup>(*)</sup> </b>Normally these options are not very useful since a
+filter is already active by attaching or detaching frameworks in both local and
+remote workspaces. They can serve punctually to transfer changes concerning a
+subset of frameworks.<br>
+ If framework names are given and if the option -export_only is specified, the frameworks are found in the local workspace.
+Otherwise the frameworks are found in the remote workspace.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Examples"></a>Examples</h3>
+<p>Start a transfer between local workspace &quot;localws&quot; and remote
+workspace &quot;remotews&quot; and let adl_site_transfer uses the default image
+for both workspaces. The SCM Multi-site Transfer Manager is running on host
+&quot;lebadsy&quot; and is listening on port 23452, &quot;/tmp&quot; is chosen
+as the remote temporary directory since &quot;lebadsy&quot; is a UNIX
+workstation. The transfer is performed between the local tree &quot;V5R8&quot;
+and the remote tree &quot;V5R8&quot;. The -l_sync and -l_promote options are
+used to respectively synchronize the remote workspace before computing changes
+and promoting its contents after importing in it what changed on local
+workspace.&nbsp; </p>
+
+<table class="code">
+  <tr>
+    <td><b>adl_site_transfer</b> -rhost lebadsy -rport 23452 -rw remotews -rtree
+      V5R8 -rtmp /tmp -r_sync -r_promote -lw localws -ltree V5R8&nbsp;<br>
+      ...
+    </td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<p>Start the previous transfer but restrict it to importing changes from the
+remote site.</p>
+
+<table class="code">
+  <tr>
+    <td><b>adl_site_transfer</b> -rhost lebadsy -rport 23452 -rw remotews -rtree
+      V5R8 -rtmp /tmp -r_sync -r_promote -lw localws -ltree V5R8 -import_only<br>
+      ...
+    </td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<p>Start a transfer between local workspace &quot;localws&quot; and remote
+workspace &quot;remotews&quot; and do not use any image for both workspaces. The
+SCM Multi-site Transfer Manager is running on host &quot;lebadsy&quot; and is
+listening on port 23452, &quot;/tmp&quot; is chosen as the remote temporary
+directory since &quot;lebadsy&quot; is a UNIX workstation. The transfer is
+performed between the local tree &quot;V5R8&quot; and the remote tree
+&quot;V5R8&quot;. As no image is used, a data directory is specified using the -lwd
+option.</p>
+
+<table class="code">
+  <tr>
+    <td><b>adl_site_transfer</b> -rhost lebadsy -rport 23452 -rw remotews -rtree
+      V5R8 -rno_image -rtmp /tmp -r_sync -r_promote -lw localws -ltree V5R8 -lno_image
+      -lwd /data/MultiSite<br>
+      ...
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="References"></a>References</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><a name="Ref1"></a>[1]</td>
+    <td><a href="CAAWsmSolveMerge.htm">adl_solve_merge: solving merges</a></td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP"><a name="Ref2"></a>[2]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmGettingStarted.htm#launching the Multi-site Transfer Manager">The
+      SCM Multi-site Transfer Manager</a></td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="History"></a>History</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP">Version: <b>1</b>  [Nov 2001]</td>
+    <td VALIGN="TOP">Document created</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i> </p>
+</body>
+</html>

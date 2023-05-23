@@ -1,0 +1,551 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Geometric Modeler Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Geometric Modeler Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article lists the modifications, and their migration path for the 
+		Geometric Modeler.</p>
+		<ul>
+			<li><a href="#The_Need_for_GM_Interfaces">The Need for GM Interfaces</a></li>
+			<li><a href="#Introduction">What Has Changed?</a></li>
+			<li><a href="#The_New_CAA_Frameworks">The New V6 Frameworks</a></li>
+			<li>
+			<a href="#The_New_GM_Interfaces_Description_vs_Version_5_Operators">
+			The New GM Interface Description vs. V5 Operators</a></li>
+			<li><a href="#How_to_Use_GM_Interfaces_vs_Version_5_Operators">How to 
+			Use GM Interfaces vs. V5 Operators</a></li>
+			<li><a href="#Migration_Tools_">Migration Tools</a>
+			<ul>
+				<li><a href="#The_Step-by-Step_Migration__Procedure_">The Step-by-Step 
+				Migration Procedure</a></li>
+				<li><a href="#How_to_Fix_Compilation_Errors">How to Fix Compilation 
+				Errors</a></li>
+			</ul>
+			</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="The_Need_for_GM_Interfaces"></a>The Need for GM Interfaces</h2>
+<p>One of the goals is to minimize the code size at installation 
+and manage to load the code which is strictly necessary for the achievement of some 
+identified scenarios (open a model, perform measures on it, etc.). The new interfaces 
+allow an application to load dynamically the dlls which are strictly needed for 
+the execution of a given scenario.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>What Has Changed?</h2>
+<p>Two interface frameworks are created:</p>
+<ul>
+	<li>GMModelInterfaces to read a model and perform measures.</li>
+	<li>GMOperatorsInterfaces to modify a model by using geometric and topological 
+	operators.</li>
+</ul>
+<p>The Tessellation, NewTopologicalObjects, GeometricOperators, TopologicalOperators, 
+FreeFormOperators and AdvancedTopologicalOpe are no longer exposed. Their APIs are 
+exposed through the GMModelInterfaces and GMOperatorsInterfaces frameworks.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="The_New_CAA_Frameworks"></a>The V6 Frameworks</h2>
+<p>V5</p>
+<ul>
+	<li>Mathematics</li>
+	<li>Tessellation</li>
+	<li>AdvancedMathematics</li>
+	<li>GeometricObjects</li>
+	<li>NewTopologicalObjects</li>
+	<li>GeometricOperators</li>
+	<li>TopologicalOperators</li>
+	<li>FreeFormOperators</li>
+	<li>AdvancedTopologicalOpe</li>
+	<li>BasicTopologicalOpe</li>
+</ul>
+<p>V6</p>
+<ul>
+	<li>CATMathStream</li>
+	<li>Mathematics</li>
+	<li>AdvancedMathematics</li>
+	<li>GeometricObjects</li>
+	<li>GMModelInterfaces </li>
+	<li>GMOperatorsInterfaces </li>
+</ul>
+<p>GMModelInterfaces contains interfaces previously contained in the GeometricOperators, 
+NewTopologicalObjects, Tessellation and BasicTopologicalOpe frameworks. GMOperatorsInterfaces 
+contains interfaces previously contained in NewTopologicalObjects, BasicTopologicalOpe, 
+FreeFormOperators and AdvancedTopologicalOpe frameworks.</p>
+<p>The frameworks below are no longer packaged in the API offer:</p>
+<ul>
+	<li>Tessellation</li>
+	<li>NewTopologicalObjects</li>
+	<li>GeometricOperators</li>
+	<li>TopologicalOperators</li>
+	<li>AdvancedTopologicalOpe</li>
+	<li>BasicTopologicalOpe</li>
+	<li>FreeFormOperators.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="The_New_GM_Interfaces_Description_vs_Version_5_Operators"></a>The V6 
+GM Interface Description vs. V5 Operators</h2>
+<ul>
+	<li>Here is an example of a V5 GM operator:<pre class="code">#ifndef CATTopWire_h
+#define CATTopWire_h
+<span class="comment">/**
+* @CAA2Level L1
+* @CAA2Usage U1
+*/ </span>
+#include &quot;CATGeoToTopOperator.h&quot;
+...
+class ExportedByPrimitives CATTopWire :public CATGeoToTopOperator
+{
+  CATCGMVirtualDeclareClass(CATTopWire);
+  public:
+
+<span class="comment">  /** @nodoc */</span>
+  CATTopWire(CATGeoFactory *iFactory,
+             CATTopData * iData);
+		
+<span class="comment">  /** @nodoc */</span>
+  ...
+  virtual ~CATTopWire();
+}
+<span class="comment">/**
+ * Creates an operator to build a wire body from several curves...
+ ...
+ */</span>
+ExportedByPrimitives 
+  CATTopWire * CATCreateTopWire(CATGeoFactory *iFactory,
+                                CATTopData *iData,...);
+<span class="comment">/** @nodoc */</span>
+ExportedByPrimitives CATBody * CATCreateWire(CATGeoFactory *iFactory, 
+                                             CATTopData *iData, ...);
+#endif</pre>
+	</li>
+	<li>Here is a V6 GM interface:<pre class="code">#ifndef CATICGMTopWire_h_
+#define CATICGMTopWire_h_
+...
+<span class="comment">/**
+ * @CAA2Level L1
+ * @CAA2Usage U3
+ */</span>
+
+#include &quot;CATGMOperatorsInterfaces.h&quot;
+#include &quot;CATICGMGeoToTopOperator.h&quot;
+...
+extern ExportedByCATGMOperatorsInterfaces IID IID_CATICGMTopWire;
+
+class ExportedByCATGMOperatorsInterfaces CATICGMTopWire: public CATICGMGeoToTopOperator
+{
+  public:
+    CATICGMTopWire();
+
+  protected:
+    virtual ~CATICGMTopWire(); // -&gt; delete can&#39;t be called
+}
+<span class="comment">/**
+ * Creates an operator to build a wire body from several curves...
+ ...
+*/</span>
+ExportedByCATGMOperatorsInterfaces 
+  CATICGMTopWire *CATCGMCreateTopWire(CATGeoFactory *iFactory, ...);
+			
+#endif</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="How_to_Use_GM_Interfaces_vs_Version_5_Operators"></a>How to Use GM 
+Interfaces vs. V5 Operators</h2>
+<ul>
+	<li>A code excerpt in V5:
+	<pre class="code"><strong>#include &quot;CATTopWire.h&quot;</strong>
+...
+<strong>CATTopWire</strong> * pWire0 = ::<strong>CATCreateTopWire</strong>(piGeomFactory,
+                                         &amp;topdata,
+                                         nbcurve0,
+                                         ListOfCurves0,
+                                         curLimits0,
+                                         wireOrientations0);
+...
+pWire0-&gt;Run();
+...
+CATBody * pWireBody0 = pWire0-&gt;GetResult();
+...
+<strong>delete</strong> pWire0; pWire0=NULL;</pre>
+	</li>
+	<li><a name="PLM_SOA"></a>Creating, running, and releasing a GM operator with 
+	V6:
+	<pre class="code"><strong>#include &quot;CATICGMTopWire.h&quot;</strong>
+... 
+<strong>CATICGMTopWire</strong> * pWire0 = ::<strong>CATCGMCreateTopWire</strong>(piGeomFactory,
+                                                &amp;topdata,
+                                                nbcurve0,
+                                                ListOfCurves0,
+                                                curLimits0,
+                                                wireOrientations0);
+...
+pWire0-&gt;Run();
+...
+CATBody * pWireBody0 = pWire0-&gt;GetResult();
+...
+pWire0-&gt;<strong>Release</strong>(); pWire0=NULL;</pre>
+	</li>
+</ul>
+<p><strong>List of modifications</strong></p>
+<ol>
+	<li>The operator name: CATxxx -&gt; CATICGMxxx</li>
+	<li>The global function to create the operator:; CATCreatexxx-&gt;CATCGMCreatexxx</li>
+	<li>The way to delete the operator <code>delete pWire0-&gt;pWire0-&gt;Release()</code></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Migration_Tools_"></a>Migration Tools</h2>
+<p>A migration tool is provided in GeometricObjects. You can run it:</p>
+<ul>
+	<li>On a whole framework, the IdentityCard.xml, Imakefile.mk and code files 
+	(.h, .cpp) will be migrated</li>
+	<li>On a module, the Imakefile.mk and code files (.h, .cpp) will be migrated.</li>
+	<li>On a single code file.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="The_Step-by-Step_Migration__Procedure_"></a>The Step-by-Step Migration 
+Procedure</h3>
+<p><strong>Step 1</strong></p>
+<p>Run the <code>tck_list</code> command to display the list of available <code>
+tck</code> profile identifiers then run the mkmk profile:</p>
+<table class="code">
+	<tr>
+		<td><code>tck_profile <em>myProfile</em></code></td>
+	</tr>
+</table>
+<p>Refer to
+<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAATckTCK/CAATckTaUseTCK.htm'); return false;">
+Using TCKs for Accessing Tools</a> for more information. </p>
+<p>You can also open a command window from the Native Apps Development 
+Environment.</p>
+<p><strong>Step 2:</strong></p>
+<p>Set the CGMITF_WS_DIR environment variable:</p>
+<table class="code">
+	<tr>
+		<td><code>set CGMITF_WS_DIR=<em>E:\MyWorkspace</em></code></td>
+	</tr>
+</table>
+<p><strong>Step 3</strong>:</p>
+<p>Run the profile below:</p>
+<table class="code">
+	<tr>
+		<td><code>CAAMathematics.edu\Data.d\Tools\CGMItfProfile.bat</code></td>
+	</tr>
+</table>
+<p><strong>Step 4:</strong></p>
+<p>Run either command below:</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMigrate MyFramework</code></td>
+	</tr>
+</table>
+<p>or</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMigrate MyFramework\MyModule</code></td>
+	</tr>
+</table>
+<p>or</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMigrate MyFramework\MyModule\src\MyCode.cpp</code></td>
+	</tr>
+</table>
+<p>The files generated by this command have the <code>.CGMItf_new</code> extension 
+and a log file is generated in the ToolsData\CGMItfMigration folder. </p>
+<p><strong>Step 5:</strong></p>
+<p>Run either command below:</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMerge [-replace_all] MyFramework</code></td>
+	</tr>
+</table>
+<p>or</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMerge [-replace_all] MyFramework\MyModule</code></td>
+	</tr>
+</table>
+<p>or</p>
+<table class="code">
+	<tr>
+		<td><code>CGMItfMerge [-replace_all] MyFramework\MyModule\src\MyCode.cpp</code></td>
+	</tr>
+</table>
+<p>The migrated files together with the Version 5 files are displayed.</p>
+<p><strong>Note</strong>: The vdiff32 tool is used by default to display the file differences. 
+If need be, you can specify a different tool by using the <code>CGMITF_DIFF</code> 
+environment variable.</p>
+<p>Exit the vdiff32 application. The question below is displayed:<br />
+Do you want to get the migrated source? Y(es)/N(o)/Q(uit)</p>
+<p>Reply:</p>
+<ul>
+	<li>Y, to rename the initial V5 files with the CGMItf_save extension and replace 
+	your initial source by the new one.</li>
+	<li>N not to rename the V5 files, the CGMItf_new are redisplayed, the initial 
+	V5 files are not renamed.</li>
+	<li>Q to exit directly the vdiff32 application and only keep the CGMItf_new 
+	files.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How_to_Fix_Compilation_Errors"></a>How to Fix Compilation Errors</h3>
+<p>Once you have migrated your application, you have to re-build your code. The 
+migration tools described here above can leave some compilation errors behind. If 
+so,&nbsp; here is a way to fix the major part of these compilation errors.</p>
+<p><strong>Step 1:</strong></p>
+<p>When re-compiling your frameworks, redirect the output in a text file. Example:</p>
+<table class="code">
+	<tr>
+		<td><code>mkcpl <em>MyFramework</em> &gt;c:\temp\traces.txt</code></td>
+	</tr>
+</table>
+<p><strong>Step 2:</strong></p>
+<p>In Native Apps Development Environment, install the CGM Interface Migration Macros. To do so, open 
+the directory CAAMathematics.edu\Data.d\CGMItfVisualStudio in your Explorer and 
+double-click on <code>CAACGMItfVisualStudio.vsmacros</code><br />
+The <code>CAACGMItfMacros</code> macros are now installed. They can be viewed in 
+the Native Apps Development Environment Macro Explorer (<code>Alt+F8</code>). </p>
+<p><img alt="Visual Studio Macro Explorer" src="images/CAACenGobImg2.jpg"/></p>
+<p><strong>Step 3:</strong></p>
+<p>The <code>FixCGMItfErrors</code>&nbsp; macro should be launched first. Double-click 
+the <code>FixCGMItfErrors</code> macro in the tree view above. The dialog box below 
+is displayed. </p>
+<p>
+<img alt="Compilation traces file Dialog Box" src="images/CAACenGobImg1.jpg"/></p>
+<p>To fill in field, enter the path of your trace file. Click OK.</p>
+<p><strong>Step 4:</strong></p>
+<p>Fix the other errors by clicking the other macros in the Macro Explorer tree 
+structure. Here are the macro descriptions:</p>
+<dl>
+	<dt>AddReleasePtr</dt>
+	<dd>Adds a Release() operation onto an operator pointer.
+	<table class="code">
+		<tr>
+			<td><code>{ if (MyOperatorPointer) { MyOperatorPointer-&gt;Release(); MyOperatorPointer= 
+			0; }</code></td>
+		</tr>
+	</table>
+	<p>See <a href="#PLM_SOA">Creating, Running and Releasing a GM Operator in V6</a></p>
+	</dd>
+	<dt>FindInInterfaces</dt>
+	<dd>Searches for a pattern in the GM interface frameworks.</dd>
+	<dt>FixCGMItfErrors</dt>
+	<dd>Specifies your trace file and initializes the error fixing.</dd>
+	<dt>ProtectRelease</dt>
+	<dd>Checks the operator pointer validity prior to releasing it.<br />
+	<em><strong>Example:</strong></em>
+	<table class="code">
+		<tr>
+			<td>
+			<pre class="code"><span class="comment">// V5</span>
+MyOperatorPointer-&gt;Release();</pre>
+			</td>
+		</tr>
+	</table>
+	<p>is modified in:</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre class="code"><span class="comment">// V6</span>
+{ if (MyOperatorPointer) { MyOperatorPointer-&gt;Release(); MyOperatorPointer= 0; }</pre>
+			</td>
+		</tr>
+	</table>
+	</dd>
+	<dt>ReplaceAutoVarByCreate</dt>
+	<dd>Replaces an automatic variable (incorrect use in V5) by an appropriate pointer.<br />
+	<strong><em>Example</em></strong>:
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V5</span>
+{
+  CATSolidCylinder cylinder1 (factory, topdata, ..., ...)
+  ...
+}</pre>
+			</td>
+		</tr>
+	</table>
+	<p>which is converted into</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre class="code"><span class="comment">// V6 right after migration</span>
+ { CATIPGMSolidCylinder cylinder1 (factory, topdata, ..., ...)
+ ... }</pre>
+			<p>does not build because the CATIPGMSolidCylinder class is virtual.<br />
+			The ReplaceAutoVarByCreate adds the appropriate creation fonctions, 
+			as well as the Release() statement:</p>
+			<pre class="code"><span class="comment">// V6 after ReplaceAutoVarByCreate is activated</span>
+{
+  CATIPGMSolidCylinder *pcylinder1 = CATPGMCreateSolidCylinder(Factory, TopData,p1, p2, p3);
+  <span class="comment">// ### CGMInterfaces AddRef()/Release() - BEGIN</span>
+  pcylinder1-&gt;Release(); pcylinder1 = NULL;
+  <span class="comment">// ### CGMInterfaces AddRef()/Release() - END</span>
+}</pre>
+			</td>
+		</tr>
+	</table>
+	</dd>
+	<dt>ReplaceDeleteByRelease</dt>
+	<dd>Replaces the previous operator delete by a Release().
+	<p>Example:</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V5</span>
+delete MyOperatorPointer;</pre>
+			</td>
+		</tr>
+	</table>
+	<p>is modified in:</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V6</span>
+MyOperatorPointer-&gt;Release();</pre>
+			</td>
+		</tr>
+	</table>
+	<p>The macro takes into account CATSysDeletePtr, CATShDelete, CATPrt_DELETE, 
+	SAFE_DELETE, Remove, RemoveMapping.</p>
+	</dd>
+	<dt>SetPrereqWsPath</dt>
+	<dd>Sets the directory which contains the CGM interface frameworks. </dd>
+	<dt>SetWSPath</dt>
+	<dd>Not to be used</dd>
+	<dt>ValidateEndOfLife</dt>
+	<dd>Should be launched prior to using VerifyEndOfLifeInFiles. Select a line 
+	containing <code><span class="comment">// ### CGMInterfaces AddRef()/Release() 
+	- END.</span></code><br />
+	and run the macro. The&nbsp; <code><span class="comment">// ### CGMInterfaces</span></code> 
+	string is replaced by <code><span class="comment">// CGMInterfaces</span></code> 
+	so that it can no longer be treated by the VerifyEndOfLifeInFiles macro.
+	</dd>
+	<dt>VerifyEndOfLifeInFiles</dt>
+	<dd>Searches for the <code><span class="comment">// ### CGMInterfaces AddRef()/Release() 
+	- END</span></code> and <code><span class="comment">// ### CGMInterfaces new/delete 
+	- END</span></code><br />
+	These statements may have been inserted after a <code>return</code>! Running 
+	the macro helps you to find these statements and relocate them properly if need 
+	be (i.e before the return).&nbsp; Another point to be checked: The CATCatchs 
+	block in which these statements should be duplicated. </dd>
+	<dt>VerifyItfInCastInFiles</dt>
+	<dd>Searches for the prohibited cast operations.<br />
+	<p>Example:</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V5</span>
+  _GSDOperator = (CATTopBlendInt*)CATCreateTopBlend (_Factory,...);</pre>
+			</td>
+		</tr>
+	</table>
+	<p>which is converted into</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V6 right after migration</span>
+			_GSDOperator = (CATIPGMTopBlendInt*)CATPGMCreateTopBlend (_Factory,...);</pre>
+			</td>
+		</tr>
+	</table>
+	<p>The V5 code is not correct because the CATCreateTopBlend function&nbsp; returns 
+	a CATTopBlend pointer. Casting it as a derived class CATTopBlendInt is not recommended 
+	as nothing guarantees that the returned object type matches. It is a potential 
+	source of crash.<br />
+	This is how it should be coded:</p>
+	<table class="code">
+		<tr>
+			<td>
+			<pre><span class="comment">// V6 right after migration</span>
+CATIPGMTopBlend *pTopBlend = CATPGMCreateTopBlend (_Factory, ...);
+if (pTopBlend != NULL)
+{
+  HRESULT hr = pTopBlend-&gt;QueryInterface(IID_CATIPGMTopBlendInt, (void **)&amp;_GSDOperator);
+  pTopBlend-&gt;Release();
+  pTopBlend = NULL;
+}</pre>
+			</td>
+		</tr>
+	</table>
+	<p><em><strong>Recommendation:</strong></em></p>
+	<p>Run the <strong>VerifyItfInCastInFiles.</strong></p>
+	For each cast, verify the class hierarchy:
+	<ul>
+		<li>If the target class is a parent class, the cast is safe but probably 
+		useless. Try to remove it. The code below (CATIPGMOperator being the parent 
+		class of CATIPGMTopBlend):
+		<table class="code">
+			<tr>
+				<td>
+				<pre><span class="comment">// not clear !!!!!!</span>
+CATIPGMOperator *pOperator = CATPGMCreateTopBlend (_Factory,...);
+...
+CATIPGMTopBlend *pTopBlend = (CATIPGMTopBlend *)pOperator;</pre>
+				</td>
+			</tr>
+		</table>
+		<p>should be replaced by</p>
+		<table class="code">
+			<tr>
+				<td>
+				<pre>CATIPGMTopBlend *pTopBlend = CATPGMCreateTopBlend (_Factory,...);
+CATIPGMOperator *pOperator = pTopBlend;
+...</pre>
+				</td>
+			</tr>
+		</table>
+		</li>
+		<li>If the target class is a derived class, the cast should be replaced 
+		by a <code>QueryInterface</code>.</li>
+	</ul>
+	</dd>
+</dl>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="History"></a>History</h3>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

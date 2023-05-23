@@ -1,0 +1,455 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating Non-Shared (Mono-Instantiable) PLM Product Representation Reference
+</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating Non-Shared (Mono-Instantiable) PLM Product 
+		Representation Reference</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the <code>CAAPstCreatingMonoInstPLMRepRef</code> 
+		use case. It creates a Non-Shared (Mono-Instantiable) PLM Product Representation 
+		Reference (Rep Ref) and instantiates it beneath a Root Product. The
+		<em>CATIPrdAggregatedRepresentations</em> implementation on a Product 
+		Reference has calls to create a Mono-Instantiable Rep Ref-Instance and retrieve 
+		its count below a Root Reference. It also handles it in various other ways 
+		(Navigate, Delete), detailed further in &quot;Managing a Mono-Instantiable 
+		PLM Product Representation Reference&quot; UC [<a href="#References">8</a>]</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstCreatingMonoInstPLMRepRef Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAPstCreatingMonoInstPLMRepRef 
+						Do</a></li>
+					<li><a href="#How">How to launch CAAPstCreatingMonoInstPLMRepRef
+						</a></li>
+					<li><a href="#Where">Where to Find the CAAPstCreatingMonoInstPLMRepRef 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case introduces an end-user to the services exposed by a <em>CATIPrdAggregatedRepresentations</em> 
+implementation on a Product Reference namely:</p>
+<ul>
+	<li><code>CATIPrdAggregatedRepresentations</code>::Add3DShape
+	call to Create and Instantiate a new Mono-Instantiable Rep Ref under 
+		Root. Please note that this API limits the creation to a 3D Shape.</li>
+</ul>
+<ul>
+	<li><code>CATIPrdAggregatedRepresentations::Count</code> 
+		which returns the total count of the Mono Rep Insts under Root.</li>
+</ul>
+<p>In the process it also details the steps involved in creating a new Mono-Instantiable 
+Rep Ref listed below:</p>
+<ul>
+	<li><code>CATPLMTypeServices::GetKweTypeFromAdpType</code> to retrieve 
+		the Knowledge Type for a Rep Ref.</li>
+	<li><code>CATCkeObjectAttrWriteServices::CreateListOfValuesFromListOfStrings</code> 
+		to create a list of Knowledge objects from a list of attribute name and 
+		attribute values.</li>
+	<li>Finally the <code>CATIPLMRepresentation::Add3DShape</code>
+	call which actually creates and instantiate the Mono-Instantiable 
+		Rep Ref.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstCreatingMonoInstPLMRepRef Use Case</h2>
+<p>CAAPstCreatingMonoInstPLMRepRef is a use case of the CAAProductStructure.edu 
+framework that illustrates the ProductStructureInterfaces frameworks 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstCreatingMonoInstPLMRepRef Do</h3>
+<p>The Use Case (UC) execution carries us through the following steps:</p>
+<ul>
+	<li>To begin with it loads the input PLM Component in session, thanks to the 
+		Identification Set attribute-value pairs input for UC execution. The input 
+		component is as depicted in [<a href="#Fig1">Fig. 1</a>] below.</li>
+	<li>It then displays the count of the Instances of Mono-Instantiable Rep Refs, 
+		under the input PLM Component.</li>
+	<li>Next it instantiates a Mono-Instantiable Rep Ref under Root.</li>
+	<li>Finally it displays yet again the count of the Instances of Mono-Instantiable 
+		Rep Refs, under the input PLM Component (expected to be incremented by One, 
+		now).</li>
+</ul>
+<p>The Use Case executes on an input model as the one depicted below [<a href="#Fig1">Fig. 
+1</a>]. The model consists of a Root with four Rep Instances beneath it:</p>
+<ul>
+	<li>MonoRepInst5 and MonoRepInst6 are instances of Mono-Instantiable Rep Refs.</li>
+	<li>RepInst7 and RepInst8 are instances of Multi-Instantiable Rep Refs.</li>
+</ul>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1 Input Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Model" src="images/CAAPstCreatingMonoInstPLMRepRef_Fig1.gif"/></td>
+	</tr>
+</table>
+<p>The UC execution results in an output model as depicted in [<a href="#Fig2">Fig. 
+2</a>] below. It consists of a new Instance of a newly created Mono-Instantiable 
+Rep Ref, namely <strong>NewMonoRepInst</strong> (seen highlighted in the Fig. below)</p>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2 Output Model</caption>
+	<tr>
+		<td>
+		<img alt="Output Model" src="images/CAAPstCreatingMonoInstPLMRepRef_Fig2.gif"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstCreatingMonoInstPLMRepRef</h3>
+<p>To launch CAAPstCreatingMonoInstPLMRepRef, you will need 
+to set up the build time environment, then compile CAAPstCreatingMonoInstPLMRepRef 
+along with its prerequisites, set up the run time environment, and then execute 
+the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot;CAAPstCreatingMonoInstPLMRepRef Repository Server User Password SecurityCtx PLMType PLM_ExternalID 
+PLM_ExternalID_Value V_version V_version_Value1 ...&quot;</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as ServerName:ServerPort/rootURI</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose role as administrator (since we are modifying PLM data)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String Representing PLM Type</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID</th>
+		<td>ID Set Attribute 1 for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>PLM_ID_Value</th>
+		<td>ID Set Attribute 1 Value for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>V_version</th>
+		<td>ID Set Attribute 2 for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>V_version_Value</th>
+		<td>ID Set Attribute 2 Value for the input PLM Component</td>
+	</tr>
+</table>
+<p>The input model for Root Reference is retrieved by importing the CAAPstCreateMonoInstPLMRepRef.3dxml 
+file from the <code>CAAProductStructure.edu</code> fwk.</p>
+<p><code>InstallRootFolder\CAAProductStructure.edu\InputData\CAAPstCreateMonoInstPLMRepRef.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>The CAAPstCreateMonoInstPLMRepRef.3dxml contains a PLM PRODUCT 
+Reference with the following attributes:</p>
+<ul>
+	<li><strong>PLM_ExternalID_value</strong>: <code>CAAPstManageMonoInstPLMRepRef_Root</code></li>
+	<li><strong>V_version_value</strong>: ---</li>
+</ul>
+<p>An end user could use his own data but it should necessarily be <code>PRODUCT</code> 
+data. Moreover, the illustration above (the mkrun execution atrribute arguments) 
+is for an input data whose PLM Type is a <code>PRODUCT</code> custo whose
+<code>IdentifierSet</code> attributes include <code>PLM_ExternalID</code> 
+and <code>V_version</code>. User has the liberty to use an input data of 
+any PLM Type but essentially belonging to a <code>PRODUCT</code> custo.</p>
+<p>The article [<a href="#References">1</a>] details the steps involved to import 
+and reimport a 3DXML into your PLM Repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstCreatingMonoInstPLMRepRef Code</h3>
+<p>The CAAPstCreatingMonoInstPLMRepRef use case is located in the
+CAAPstCreatingMonoInstPLMRepRef.m module 
+of the CAAProductStructure.edu framework:</p>
+<p><code>InstallRootFolder\</code><code>CAAProductStructure</code>.<code>edu</code><code>\CAAPstCreatingMonoInstPLMRepRef.m\</code></p>
+<p>It also refers to global service routine namely. <code>CAAAdpRetrieveIdentificatorFromAttributeSet</code> 
+and <code>CAAAdpRetrieveAdpTypeFromClassType</code> which occur at the following 
+location</p>
+<p><code>InstallRootFolder\CAAPLMClientAdapter</code>.<code>edu\CAAAdpUtilities.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in CAAPstCreatingMonoInstPLMRepRef:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Loading the Input Component in Session and Inserting it in BAG</a></li>
+	<li><a href="#Step2">Displaying the Alias and Initial Count of Mono-Instantiable Rep Ref Instantiated</a></li>
+	<li><a href="#Step3">Creating and Instantiating a Mono-Instantiable PLM Representation Reference under Root</a></li>
+	<li><a href="#Step4">Displaying the Final Count of Mono-Instantiable Rep Ref under Root, after the Rep Ref Instantiation</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAPstCreatingMonoInstPLMRepRef use case begins by creating 
+a session and connecting to the input Repository. This, being the most fundamental 
+prerequisite for all batch use cases, it is the first step in their execution. In 
+this case, we create a session and connect to Repository with the Administrator 
+Role (since we are modifying PLM data in database). There are other parameters as 
+well, details of which can be found in the &quot;Connecting to V6 Server&quot; 
+use case article [<a href="#References">2</a>]. This article primarily deals with 
+opening and closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Loading the Input Component in Session and Inserting it in BAG</h3>
+<p>To begin with, the steps executed are:</p>
+<ul>
+	<li>We build an <code>IdentificationSet</code> object with the input Identification 
+		Attribute-Value sets.</li>
+	<li>Finally a <em>CATIAdpPLMIdentificator</em>* on the Identificator 
+		of the input PLM Component in the database is retrieved (<code>poIdentOnPLMComp</code>) 
+		[<a href="#References">4</a>].</li>
+</ul>
+<p>These steps are executed through a global routine <strong>CAARetrieveIDofUniquePLMObject</strong> 
+referenced in the Use Case [<a href="#References">3</a>]. With the Identificator 
+retrieved, we proceed towards loading the input PLM Component in session as depicted 
+by the code extract below.</p>
+<pre class="code"><strong>CATIPrdAggregatedRepresentations* piPLMRepsOnRoot = NULL</strong>;
+<strong>CATAdpOpener AdpOpener(Bag)</strong>;
+hr = <strong>AdpOpener.CompleteAndOpen</strong>(<strong>opiIDComp</strong>,<strong>IID_CATIPrdAggregatedRepresentations</strong>,(void**)&amp;piPLMRepsOnRoot);</pre>
+<p>A call to <code>CompleteAndOpen()</code> method of the <code>CATAdpOpener</code> 
+class [<a href="#References">3</a>] loads the input PLM Component in session returned 
+as a <code>CATIPrdAggregatedRepresentations</code>* type namely. <code>piPLMRepsOnRoot</code>.
+The component is loaded in an authoring mode since the current Use Case 
+(UC) involves access to and management of the PLM Rep Instances aggregated beneath 
+the Root Reference.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Displaying the Alias and Initial Count of Mono-Instantiable Rep Ref Instantiated</h3>
+<p>The <em>CATIPLMRepresention</em> implemenation on a Root Product provides 
+a service to navigate through all Instances of a Mono-Instantiable Rep Ref beneath 
+Root.</p>
+<pre class="code">...
+	CATIPrdIterator_var spIteratorForMonoInstRepRefs;
+	hr = piPLMRepsOnRoot-&gt;Iterator(spIteratorForMonoInstRepRefs);
+...
+	CATBaseUnknown* pElement = NULL;
+	while (SUCCEEDED(spIteratorForMonoInstRepRefs-&gt;Next(pElement)))
+	{
+		...		
+		CATIAlias* piAliasOfMonoInstRepRef = NULL;
+		hr = pElement-&gt;QueryInterface(IID_CATIAlias,(void**)&amp;piAliasOfMonoInstRepRef);
+		...		
+		CATUnicodeString MonoInstRepRefName = piAliasOfMonoInstRepRef-&gt;GetAlias();
+		...</pre>
+<ul>
+	<li><code>piPLMRepsOnRoot</code>, a <em>CATIPrdAggregatedRepresentations</em> 
+		on the Root Product, already retrieve in the last step.</li>
+	<li>A call to <code>CATIPrdAggregatedRepresentations::Iterator</code>
+		on <code>piPLMRepsOnRoot</code>, returns spIteratorForMonoInstRepRefs, a
+		<em>CATIPrdIterator_var</em> type.</li>
+	<li>A call to <code>CATIPrdIterator::Next</code> on spIteratorForMonoInstRepRefs, 
+		returns <code>pElement</code>, a <em>CATBaseUnknown</em>* type. 
+		It represents a Mono-Instantiable Rep Ref, whose instance exists under Root.</li>
+	<li>A call to QueryInterface on <code>pElement</code>, enables us retrieve a
+		<em>CATIAlias</em>* type (<code>piAliasOfMonoInstRepRef</code>) 
+		on the Rep Ref.</li>
+	<li>Finally a call to <code>CATIAlias::GetAlias</code>, 
+		returns the alias of the Rep Ref, a CATUnicodeString type (<code>MonoInstRepRefName</code>) 
+		for display.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Creating and Instantiating a Mono-Instantiable PLM Representation Reference under Root</h3>
+<p>Create and Instantiate the new Mono-Instantiable Rep Ref under Root</p>
+<p>Finally, we instantiate a Mono-Instantiable Rep Ref under Root. An important 
+point to note is that though this is an Instantiation, it involves initially the 
+creation of a Mono-Instantiable Rep Ref following by its Instantiation under Root.</p>
+<pre class="code">...
+  CATIType_var spRepType;
+  CATCkePLMNavPublicServices::RetrieveKnowledgeType(&quot;3DShape&quot;, spRepType);
+  CATIPsiRepresentationReference* piPsiRepRefOnMonoInstRepRef = NULL;
+  CATListValCATICkeParm_var iUselessList;
+  hr = <strong>piPLMRepsOnRoot-&gt;Add3DShape</strong> (spRepType, iUselessList, <strong>piPsiRepRefOnMonoInstRepRef</strong>, NULL);
+...</pre>
+<ul>
+	<li><code>piPLMRepsOnRoot</code>, a <em>CATIPrdAggregatedRepresentations</em>* 
+		type on Root retrieved in an earlier step.</li>
+</ul>
+<p>We next have a call to <code>CATIPrdAggregatedRepresentations::Add3DShape</code>
+on <code>piPLMRepsOnRoot</code> which takes the following arguments:</p>
+<ul>
+	<li><code>spRepType</code> is a smart pointer to <em>CATIType</em>, retrieved 
+		thanks to the <code>CATCkePLMNavPublicServices::RetrieveKnowledgeType</code> 
+		static method. A representation reference handled using a <em>CATIPsiRepresentationReference</em> 
+		pointer is of the 3DShape PLM type, or from a derived type, if any.</li>
+	<li><code>iUselessList</code>, a <em>CATListValCATICkeParm_var</em> type, this 
+		list of PLM attributes must be empty since the PLM attributes of the newly 
+		created object are valuated by the method.</li>
+	<li><code>piPsiRepRefOnMonoInstRepRef</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type, on the newly created Mono-Instantiable Rep Ref.</li>
+	<li>The last argument passed as a <em>CATIAdpEnvironment</em>* type, It is passed 
+		as NULL so it takes the current environment as input.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Displaying the Final Count of Mono-Instantiable Rep Ref under Root, after the Rep Ref Instantiation</h3>
+<p>Now that a new Instance of a Mono-Instantiable Rep Ref exists under Root, the 
+count of the Mono-Instantiable Rep Insts under Root, is expected to be incremented 
+by One.</p>
+<pre class="code">...
+	int iLastCount = 0;
+	hr = <strong>piPLMRepsOnRoot-&gt;Count</strong>(iLastCount);
+...
+	if (<strong>iLastCount != PrevCount+1</strong>)
+	...
+		return 1;
+...</pre>
+<p>The call to <code>CATIPrdAggregatedRepresentations::Count</code>() 
+takes the arguments:</p>
+<ul>
+	<li><code>iLastCount</code>, an int type, returned which represents the 
+		count of the Mono-Instantiable Rep Insts under Root.</li>
+</ul>
+<p>The condition <code>iLastCount != PrevCount + 1</code>, 
+ensures that if the Instantiation in the previous step returns SUCCESS, the count 
+of the Mono-Instantiable Rep Insts below Root, is incremented by One.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code>CAAPstCreatingMonoInstPLMRepRef</code> use case ends by simply closing 
+the PLM session. Since all CAA Batch Use Cases necessarily conclude by closing the 
+PLM session, we have a dedicated article on this topic namely. &quot;Connecting 
+to V6 Server&quot; [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Use Case creates a Non-Shared (Mono-Instantiable) PLM Product Representation 
+Reference and instantiates it beneath a Root Product. A <em>CATIPrdAggregatedRepresentations</em> 
+implemenation on a Product Reference provides this service to create this Mono-Instantiable 
+Rep Ref and its Instance under Root.</p>
+<p>The UC &quot;Managing a Mono-Instantiable PLM Product Representation Reference&quot; 
+UC [<a href="#References">8</a>] details the steps involved to manage a RepInstance 
+beneath Root. (Delete, Navigate etc.).</p>
+<p>It also demonstrates the usage of the Knowledge APIs in the steps involved to 
+create a new Mono Instantiable Rep Ref. These are:</p>
+<ul>
+	<li><code>CATPLMTypeServices::GetKweTypeFromAdpType</code> to retrieve 
+		the Knowledge Type for a Rep Ref.</li>
+	<li><code>CATCkeObjectAttrWriteServices::CreateListOfValuesFromListOfStrings</code> 
+		to create a list of Knowledge objects from a list of attribute name and 
+		attribute values.</li>
+</ul>
+<p>Subsequent to this a call to <code>CATIPrdAggregatedRepresentations::Add3DShape</code>
+creates and further instantiates a Mono-Instantiable Rep Ref under root. 
+Please note that this API limits the creation to a 3D Shape.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		Understanding PLM Component Identificator</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAOmbUcListPLMComponent.htm">
+		Listing PLM Components in Session</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAPlmPLMCompAttribute/CAAAdpUcPLMComponentAttributesAccess.htm">
+		Accessing PLM Attributes of PLM Component</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAPstUcCreationStructureProductModel.htm">Creating a Product 
+		Structure Model</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAPstUcManageMonoInstPLMRepRef.htm">Managing a Mono-Instantiable 
+		PLM Product Representation Reference</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jul 2008]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2010]</td>
+		<td>Document updated due to new API for creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

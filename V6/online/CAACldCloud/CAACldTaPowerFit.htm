@@ -1,0 +1,221 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>About the PowerFit Algorithm</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>About the PowerFit Algorithm</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to create a constraint surface with points and/or 
+		curves using PowerFit technology.</p>
+		<ul>
+			<li><a href="#Part1">Introduction</a></li>
+			<li><a href="#Part2">Inputs</a></li>
+			<li><a href="#Part3">Parameters</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Introduction</h2>
+<p>The PowerFit's algorithm is used to create:</p>
+<ul>
+	<li>An untrimmed surface supported by one cloud of points and/or curves.</li>
+	<li>A surface supported or not by one cloud of points and trimmed by an external 
+		boundary.</li>
+</ul>
+<table class="border1">
+	<tr>
+		<td>
+		<img alt="PowerFir Cloud Boundary" height="412" src="images/CAACldPowerFitCloudBoundary.jpg" width="349"/></td>
+		<td>Original cloud of points and boundary</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="PowerFit Untrimmed" height="412" src="images/CAACldPowerFitUntrimmed.jpg" width="349"/></td>
+		<td>Untrimmed surface supported by the cloud of points</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="PowerFit Trimmed" height="412" src="images/CAACldPowerFitTrimmed.jpg" width="349"/></td>
+		<td>Surface supported by the cloud of points and trimmed by the boundary</td>
+	</tr>
+</table>
+<p>Algorithm principle: it deforms an initial surface. This surface can be given 
+by the user (use the <code>SetSurfaceInit</code> method) or computed inside the 
+algorithm. This initial surface defines the parameterization of the resulting surface.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Inputs</h2>
+<ul>
+	<li>The points: counterdrafts or opposite points are not managed.</li>
+	<li>The curves: they have to form a closed set of curves. The input order is 
+		not significant. There must be at least two curves. Internal curves or boundaries 
+		are not managed. If there are points, only inner points (points inside the 
+		boundary) are used for the computation.</li>
+	<li>The init surface: It helps the computation by giving the shape of the result 
+		surface. The init surface must be larger than the domain to process.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>Parameters</h2>
+<ul>
+	<li>The tolerance on the points: it is the mean maximum deviation between the 
+		surface created and the points , i.e. the deviation may be higher at some 
+		places.</li>
+	<li>The maximum spans number and the span degree of the NURBS result surface:</li>
+</ul>
+<p>This algorithm creates a NURBS surface, controlled by the tolerance, the number 
+of spans and their degree. Whenever possible, this surface consists of one single 
+span, otherwise, it is made of several spans. This surface may then be trimmed by 
+the curves.</p>
+<table class="border1">
+	<tr>
+		<td>
+		<img alt="PowerFit NURBS" height="156" src="images/CAACldPowerFitNURBS0.gif" width="275"/>
+		</td>
+		<td>
+		<img alt="PowerFit NURBS" height="157" src="images/CAACldPowerFitNURBS1.gif" width="278"/>
+		</td>
+	</tr>
+</table>
+<p>If the number of spans is x, this means that the surface computed will consist 
+of a maximum of x spans, or less. The default number of spans is 64.</p>
+<p>If the degree of spans is y, this means that each span will have a maximum number 
+of (y+1) control points in each direction, or less. The default value for the computation 
+is 5.</p>
+<ul>
+	<li>The tolerance G0 on edges
+		<table class="border1">
+			<tr>
+				<td>
+				<img alt="PowerFit G0 Tolerance" height="101" src="images/CAACldPowerFitG0.gif" width="257"/>
+				</td>
+				<td>This is the distance between the surface and the boundary curves. 
+				Since there is more noise on points than on curves, the tolerance 
+				on points may be higher than the G0 Gap. The default value is 0.1.
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>The tolerance G1 on each edge if the tangency constraint is required
+		<table class="border1">
+			<tr>
+				<td>
+				<img alt="PowerFit G1 Tolerance" height="174" src="images/CAACldPowerFitG1.gif" width="267"/>
+				</td>
+				<td>This is the tangency tolerance between two contiguous surfaces. 
+				The default value is 2.5.</td>
+			</tr>
+		</table>
+	</li>
+	<li>The curves' use for the computation.
+		<pre class="code">...
+rc = pCAAPowerFit -&gt; SetCurveUse(CurveUse, Status) ;
+...</pre>
+		<p>Example with a cloud and curves:</p>
+		<table class="border1">
+			<tr>
+				<td>
+				<img alt="PowerFit Curve Usage" height="330" src="images/CAACldPowerFitCurveUse.jpg" width="300"/></td>
+				<td>The cloud and the curves</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="PowerFit Curve Usage" height="330" src="images/CAACldPowerFitCurveUse0.jpg" width="300"/></td>
+				<td>
+				<p>Curve Use = 0 (default value)</p>
+				<p>The surface is computed on the inner points and the curves. The 
+				curves become the edges of the surface.</p>
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="PowerFit Curve Usage" height="330" src="images/CAACldPowerFitCurveUse1.jpg" width="300"/></td>
+				<td>
+				<p>Curve Use = 1</p>
+				<p>The surface is computed only with the inner points. The curves 
+				are then projected on the surface to trim it.</p>
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<img alt="PowerFit Curve Usage" height="330" src="images/CAACldPowerFitCurveUse2.jpg" width="300"/></td>
+				<td>
+				<p>Curve Use = 2</p>
+				<p>The surface is computed on the inner points. The surface is not 
+				trimmed.</p>
+				</td>
+			</tr>
+		</table>
+	</li>
+	<li>The radius of the pipe
+		<table class="border1">
+			<tr>
+				<td>
+				<img alt="PowerFit Pipe Radius" height="92" src="images/CAACldPowerFitPipeRadius.gif" width="290"/></td>
+				<td>When the points are too noisy, it is difficult to have the surface 
+				going through all the points and the curves (risk of undulations). 
+				The points inside a circular pipe centered on each curve and defined 
+				by its radius are deleted. If the radius value is -1 (default), 
+				the algorithm, using a heuristic, computes the radius automatically.
+				</td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has demonstrated the way to create a surface supported by points 
+and/or curves using PowerFit technology.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAACldUcPowerFit.htm">Creating a Surface Thanks to the PowerFit 
+		Algorithm</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2004]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

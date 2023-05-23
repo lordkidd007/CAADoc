@@ -1,0 +1,511 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>How to Use Settings</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Use Settings</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Setting attributes are used to store application setting values set by the 
+		end user or an administrator in property pages, managed in setting repositories, and stored between working sessions 
+		in one or several setting files. This article explains how to create and 
+		use settings.</p>
+		<ul>
+			<li><a href="#SettCtrl">The Setting Controller</a></li>
+			<li><a href="#SettRep">The Setting Repository Programming Tasks</a></li>
+			<li><a href="#SettAtt">The Setting Attributes Programming Tasks</a>
+			<ul>
+				<li><a href="#710000">Creating or Retrieving a Setting Repository</a>
+				</li>
+				<li><a href="#720000">Creating or Reading a Setting Attribute</a>
+				</li>
+				<li><a href="#730000">Writing a Setting Attribute</a></li>
+				<li><a href="#760000">Listing Setting Attributes</a></li>
+				<li><a href="#770000">Saving/Restoring a Setting Repository to/from 
+				a Memory Area</a></li>
+				<li><a href="#780000">Saving a Setting Repository to a Disk File</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SettCtrl"></a>The Setting Controller</h2>
+<p>The setting controller object CATSysSettingRepository is designed to handle 
+both setting repositories and setting attributes defined in a setting XML file. 
+When such a XML file does not match the needs, a setting controller interface 
+dedicated to the setting repository is created. This interface is named 
+CATIxxxSettingAtt, where xxx is related to the setting repository.</p>
+<p>Setting repositories are the basic objects to store setting attributes. They 
+are accessed using their names. If the setting repository searched for with a given 
+name does not exist, it is created as an empty setting repository with this name. 
+A setting repository must exist prior to the session as an XML file located in 
+the run time view.</p>
+<p>As a rule of thumb, and even if this article shows you how, never modify a
+setting attribute value out of the Options command of the Tools menu.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SettRep"></a>The Setting Repository Programming Tasks</h2>
+<p>The tasks you can perform with a setting repository are:</p>
+<ul>
+	<li>Retrieving a Handle to a Setting Repository</li>
+	<li>Saving a Setting Repository to a Memory Area</li>
+	<li>Restoring a Setting Repository from a Memory Area</li>
+	<li>Resetting the Setting Attributes to Default or Administrator Values</li>
+	<li>Saving a Setting Repository to a Disk File</li>
+	<li>Scanning a Setting Repository.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="710000"></a>Retrieving a Handle to a Setting Repository</h3>
+<p>Setting repositories are accessed using their names. Refer to the setting 
+reference [<a href="#References">2</a>] to get these names. Use the static method <code>GetRepository</code> of
+<em>CATSysSettingRepository.</em></p>
+<pre class="code">CATSysSettingRepository * pSettingRepCtrl = NULL;
+pSettingRepCtrl = CATSysSettingRepository::GetRepository(&quot;CAASampleSettingRep&quot;);</pre>
+<p>A file named CAASampleSettingRep.CATSettings is searched for in the folders the pathnames of which are declared using the environment 
+variables <code>CATReferenceSettingPath</code> and <code>CATUserSettingPath</code> 
+and concatenated in this order. The first file found is used. If no file is found, the 
+setting repository is created in memory. This setting repository will be written on disk with the file 
+name CAASampleSettingRep.CATSettings if the method <code>SaveRepository</code> 
+is executed afterwards.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: Never call the <code>GetRepository</code> method from a static object.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="770000"></a>Saving a Setting Repository to a Memory Area</h3>
+<p>Use the method <code>Commit</code> to save the current state of a setting repository 
+to a memory area. You can then restore this state upon request using the method <code>Rollback</code>.</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;
+RC = pSettingRepCtrl-&gt;Commit();                // Save
+...</pre>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally 
+	never use the <code>Commit</code> method, except in a C++ 
+	application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="770000"></a>Restoring a Setting Repository from a Memory Area</h3>
+<p>Use the method <code>Rollback</code> to restore the previous state of a setting repository 
+saved thanks to the <code>Commit</code> method from a memory area.</p>
+<pre class="code">...
+RC = pSettingRepCtrl-&gt;Rollback();              // Restore
+...</pre>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally 
+	never use the <code>Rollback</code> method, except in the implementation of 
+	the <code>CancelModification</code> method of <em>CATIUserSettings</em> for 
+	your property page in the Options command of the Tools menu, or in a C++ 
+	application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="770000"></a>Resetting the Setting Attributes to Default or Administrator Values</h3>
+<p>Use the method <code>ResetToAdminValues</code> to restore all the setting 
+attribute values of the setting repository to either the default values set in 
+the XML setting file, of if some or all of them were changed by an 
+administrator, to these changed values.</p>
+<pre class="code">...
+RC = pSettingRepCtrl-&gt;ResetToAdminValues(NULL, 0);   // Reset
+...</pre>
+<p>The two arguments must be set to NULL and 0 respectively. They are of no use 
+in a CAA application.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally 
+	never use the <code>ResetToAdminValues</code> method, except in the 
+	implementation of the <code>ResetUserSettingsValue</code> method of
+	<em>CATIUserSettings</em> for your property page in the Options command of the 
+	Tools menu, or in a C++ 
+	application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="780000"></a>Saving a Setting Repository to a Disk File</h3>
+<p>Use the method <code>SaveRepository</code> to write the current state of a 
+setting repository to a disk file. <code>Saverepository</code> calls the <code>Commit</code> 
+method.</p>
+<pre class="code">...
+RC = pSettingRepCtrl-&gt;SaveRepository();
+...</pre>
+<p>The setting repository must exist prior to saving it. The file name is the repository name suffixed 
+by <code>CATSettings</code>, here <code>CAASampleSettingRep.CATSettings</code>.</p>
+<p>Depending on the environment variables and on the administrator declaration, 
+the following can occur:</p>
+<ul>
+	<li>If the file does not exist, this file is created in the first folder 
+	declared using the <code>CATUserSettingPath</code> environment variable, which 
+	value is defaulted to:
+	<ul>
+	<li>The user&#39;s $HOME/CATSettings directory with UNIX</li>
+	<li>C:\Documents and Settings\username\Application Data\DassaultSystemes\CATSettings
+	with Windows</li>
+	</ul>
+	</li>
+	<li>If the file does exist in a folder declared using <code>CATUserSettingPath</code>, 
+	it is overwritten.</li>
+	<li>If the file does exist in a folder declared using <code>CATReferenceSettingPath</code>:<ul>
+		<li>if the file has the access mode <code>rwxr--r--</code>, it is created 
+		in the first folder declared using the <code>CATUserSettingPath</code> 
+		environment variable</li>
+		<li>If the file has the access mode <code>rw-r--r--</code>, it is not created 
+		and an error is issued.</li>
+	</ul>
+	</li>
+</ul>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally 
+	never use the <code>SaveRepository</code> method, except in the 
+	implementation of the <code>CommitModification</code> method of
+	<em>CATIUserSettings</em> for your property page in the Options command of the 
+	Tools menu, or in a C++ 
+	application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="760000"></a>Scanning a Setting Repository</h3>
+<p>The method <code>NextAttribute</code> scans the setting repository to 
+retrieve, for each setting attribute:</p>
+<ul>
+	<li>Its name</li>
+	<li>Its type</li>
+	<li>Its size.</li>
+</ul>
+<p>Use the method <code>NextAttribute</code> as follows:</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;</pre>
+		<pre>char * cSettingAttributeName = &quot;&quot;;
+char * cSettingAttributeType = &quot;&quot;;
+CATLONG32 AttributeSize = 0;
+short startFromBeginning = 1; // Start scanning from the first setting attribute
+
+RC = pSettingRepCtrl-&gt;NextAttribute(cSettingAttributeName,
+                                    cSettingAttributeType,
+                                    &amp;AttributeSize,
+                                    startFromBeginning); 
+while (SUCCEEDED(RC)) {
+  cout &lt;&lt; cSettingAttributeName 
+       &lt;&lt; &quot; is an attribute of type &quot; &lt;&lt;
+       &lt;&lt; SettingAttributeType &lt;&lt;
+       &lt;&lt; &quot; and has the size &quot; &lt;&lt;
+       &lt;&lt; AttributeSize &lt;&lt; endl;
+
+  startFromBeginning = 0; // Scan scanning at the current location
+
+  RC = pSettingRepCtrl-&gt;NextAttribute(cSettingAttributeName,
+                                      cSettingAttributeType,
+                                      &amp;AttributeSize,
+                                      startFromBeginning);
+}
+...</pre>
+<p><code>NextAttribute</code> used in a loop retrieves the setting attributes one 
+after the other from the setting repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="SettAtt"></a>The Setting Attributes Programming Tasks</h2>
+<p>The setting attributes programming tasks are the following:</p>
+<ul>
+	<li>Creating or Reading a Simple Setting Attribute</li>
+	<li>Writing a Simple Setting Attribute</li>
+	<li>Creating or Reading a Complex Setting Attribute</li>
+	<li>Writing a complex Setting Attribute</li>
+	<li>Locking a Setting Attribute</li>
+	<li>Unlocking a Setting Attribute</li>
+	<li>Retrieving Information About a Setting Attribute.</li>
+</ul>
+<p>A setting attribute is handled using its name. This name is set in the XML 
+file thanks to the Name attribute of the st:attribute tag [<a href="#References">1</a>] 
+[<a href="#References">2</a>]. </p>
+<p>Note that a failing read or write operation can return the following values:</p>
+<table>
+  <tr>
+    <th>Code</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td>-1</td>
+    <td>A read failure occurs</td>
+  </tr>
+  <tr>
+    <td>-2</td>
+    <td>The setting attribute exists, but is not of the type expected by the 
+	method</td>
+  </tr>
+  <tr>
+    <td>-3</td>
+    <td>The setting attribute does not exist</td>
+  </tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="720000"></a>Creating or Reading a Simple Setting Attribute</h3>
+<p>Let's take an example of an integer setting attribute. Use the method <code>ReadAttr</code> as follows:</p>
+<pre class="code">const char * pcSettingAttName = &quot;LengthSetting&quot;; 
+int length = 0;
+if (NULL != pSettingRepCtrl) { 
+  CATLONG32 RC = 0;
+  RC = pSettingRepCtrl-&gt;ReadAttr(pcSettingAttName, &amp;length);        // read the setting attribute
+  if (RC &gt; 0) {             // LengthSetting value successfully retrieved
+  ...</pre>
+<p><code>ReadAttr</code> retrieves from CAASampleSettingRep the current 
+value of the setting attribute <code>LengthSetting</code> in the <code>length</code> 
+variable. If this setting attribute does not exist in the current setting repository, it is created and assigned the value 
+0 used to initialize the variable. This value is also stored as its default 
+value.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="730000"></a>Writing a Simple Setting Attribute</h3>
+<p>Use the method <code>WriteAttr</code> as follows:</p>
+<pre class="code">...
+const char * pcSettingAttName = &quot;LengthSetting&quot;; 
+int length = 0;
+if (NULL != pSettingRepCtrl) { 
+  CATLONG32 RC = 0;
+  RC = pSettingRepCtrl-&gt;WriteAttr(pcSettingAttName, &amp;length);      // write a setting attribute
+  if (RC &gt; 0) {             // LengthSetting value successfully saved
+  ...</pre>
+<p><code>WriteAttr</code> saves the current value of the length variable as the 
+current value of the LengthSetting setting attribute. 
+If this setting attribute does not exist, it is created and assigned the value 
+of the length variable. This value is also stored as its default value.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should use the <code>WriteAttr</code> methods in the callbacks of the dialog class 
+that represents your property page in the Options command of the Tools menu only. 
+You must never set a setting attribute value outside of this command.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="720000"></a>Creating or Reading a Complex Setting Attribute</h3>
+<p>Let's take an example of an integer enumeration setting attribute with three 
+values, such as a color. Use the method <code>ReadAttr</code> as follows:</p>
+<pre class="code">...
+const char * pcSettingAttName = &quot;BackgroundColor&quot;;
+int * rgb[] = {255, 255, 255};
+if (NULL != pSettingRepCtrl) { 
+  CATLONG32 RC = 0;
+  RC = pSettingRepCtrl-&gt;ReadAttr(pcSettingAttName, rgb);         // read the setting attribute
+  if (RC &gt; 0) {             // BackgroundColor value successfully retrieved
+  ...</pre>
+<p><code>ReadAttr</code> retrieves from CAASampleSettingRep the current 
+value of the setting attribute <code>BackgroundColor</code> in the <code>rgb</code> 
+variable. If this setting attribute does not exist in the current setting repository, it is created and assigned the value 
+(0, 0, 0) used to initialize the variable. This value is also stored as its default 
+value.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="730000"></a>Writing a Complex Setting Attribute</h3>
+<p>Use the method <code>WriteAttr</code> as follows:</p>
+<pre class="code">...
+const char * pcSettingAttName = &quot;BackgroundColor&quot;;
+int * rgb[] = {0, 0, 255};
+if (NULL != pSettingRepCtrl) { 
+  CATLONG32 RC = 0;
+  RC = pSettingRepCtrl-&gt;WriteAttr(pcSettingAttName, rgb);      // write a setting attribute
+  if (RC &gt; 0) {             // BackgroundColorvalue successfully saved
+  ...</pre>
+<p><code>WriteAttr</code> saves the current value of the length variable as the 
+current value of the LengthSetting setting attribute. 
+If this setting attribute does not exist, it is created and assigned the value 
+of the length variable. This value is also stored as its default value.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should use the <code>WriteAttr</code> methods in the callbacks of the dialog class 
+that represents your property page in the Options command of the Tools menu only. 
+You must never set a setting attribute value outside of this command.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="740000"></a>Locking a Setting Attribute</h3>
+<p>Locking setting attributes is dedicated to administrators only. Use the method <code>Lock</code> as follows:</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;
+const char * pcSettingAttName = &quot;TheNameOfTheSettingAttributeToLock&quot;;
+RC = pSettingRepCtrl-&gt;Lock(pcSettingAttName );
+if (SUCCEEDED(RC)) {
+  ...</pre>
+<p><code>Locks</code> returns S_OK is the setting attribute is successfully 
+locked, and E_FAIL otherwise.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally never use the <code>Lock</code> method, except in a C++ 
+application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="740000"></a>Unlocking a Setting Attribute</h3>
+<p>Unlocking setting attributes is dedicated to administrators only. Use the method <code>Unlock</code> as follows:</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;
+const char * pcSettingAttName = &quot;TheNameOfTheSettingAttributeToUnlock&quot;;
+RC = pSettingRepCtrl-&gt;Unlock(pcSettingAttName );
+if (SUCCEEDED(RC)) {
+  ...</pre>
+<p><code>Unlocks</code> returns S_OK is the setting attribute is successfully 
+unlocked, and E_FAIL otherwise.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally never use the <code>Unlock</code> method, except in a C++ 
+application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="740000"></a>Retrieving Information Abouta Setting Attribute</h3>
+<p>Retrieving setting attribute information is dedicated to administrators only. You can retrieve whether the setting attribute is locked, and if it is locked,
+where it was locked.</p>
+<p>Use the GetInfo method to retrieve the <em>CATSettingInfo</em> class instance 
+attached to the setting attribute, and then use the MapLock method to know 
+whether the setting attribute is locked and where it was locked, and the 
+MapLevel method to know whether the setting is administered, and where it was 
+administered.</p>
+<p>Where it is locked and where it is administered mean the range of the 
+folder path where the lock or the administartion took place among the paths 
+concatenated in the <code>CATReferenceSettingPath</code> environment variable</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;
+const char * pcSettingAttName = &quot;TheNameOfTheSettingAttributeToGetInfoFrom&quot;;
+CATSettingInfo Info;
+RC = pSettingRepCtrl-&gt;<strong>GetInfo</strong>(pcSettingAttName, Info);
+if (SUCCEEDED(RC)) {
+  CATUnicodeString Lock;
+  pSettingRepCtrl-&gt;<strong>MapLock</strong>(Info, Lock);
+  if (Lock == &quot;Unlocked&quot;) {
+    // The setting attribute is not locked 
+  }
+  else if (Lock == &quot;Locked&quot;) {
+    // The setting attribute is locked 
+  }
+  else {
+    // The setting attribute is locked at a given administration level
+    int i = Lock.SearchSubString(&quot;Locked at Admin Level&quot;);
+    if (i == 0) {
+      int length = Lock.GetLengthInChar();
+      CATUnicodeString AdmLevel;
+      AdmLevel= Lock.SubString(22, length-22);
+    }   else {
+      // Should never happen
+    }
+  }
+  ...</pre>
+<p><code>GetInfo</code> retrieves the instance of <em>CATSettingInfo</em> attached 
+to the setting attribute the name of which is passed as the first argument. Then
+<code>MapLock</code> is called to retrieve the lock status. If the lock is done 
+at at a given admin level, this is stated in the lock status. For example, 
+a string like <code>Locked at Admin Level 3</code> could be retrieved. The 
+string is 23-character long. Since the character index begins at 0, the index of 
+the character &quot;3&quot; is 22, so the first argument of SubString is this index. The 
+number of characters to extract is equal to the string length minus the 22 
+characters before character &quot;3&quot;.</p>
+<p>To know whether a setting attribute is administered, that is if an 
+administrator has changed and/or locked the setting attribute value, use the
+<code>MapLevel</code> method.</p>
+<pre class="code">...
+HRESULT RC = E_FAIL;
+const char * pcSettingAttName = &quot;TheNameOfTheSettingAttributeToGetInfoFrom&quot;;
+CATSettingInfo Info;
+RC = pSettingRepCtrl-&gt;<strong>GetInfo</strong>(pcSettingAttName, Info);
+if (SUCCEEDED(RC)) {
+  CATUnicodeString Level;
+  pSettingRepCtrl-&gt;<strong>MapLevel</strong>(Info, Level);
+  if (Level== &quot;Not administered&quot;) {
+    // The setting attribute is not administered
+  }
+  else {
+    // The setting attribute is administered at a given administration level
+    int i = Level.SearchSubString(&quot;Admin Level&quot;);
+    if (i == 0) {
+      int length = Level.GetLengthInChar();
+      CATUnicodeString AdmLevel;
+      AdmLevel= Level.SubString(17, length-17);
+    }   else {
+      // Should never happen
+    }
+  }
+  ...</pre>
+<p><code>MapLevel</code> works like MapLock and retrieves whether the setting 
+attribute is administered, and and which level.</p>
+<table class="Remark">
+  <tr>
+    <td class="Remark"><span class="run-in">Warning</span>: You should normally never use the <code>MapLock</code> and the <code>MapLevel</code> methods, 
+except in a C++ application dedicated to setting administration.</td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A setting attribute can be of a simple type.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocSettingXML.htm">Settings Creation Guidelines</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAScrSettings/CAAScrTocSettings.htm'); return false;">
+		Settings Reference</a></td>
+	</tr>
+	</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>2</strong> [Feb 2007]</td>
+		<td>Document updated for XML settings</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

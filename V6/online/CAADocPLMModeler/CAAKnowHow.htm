@@ -1,0 +1,350 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<link rel="stylesheet" type="text/css" href="../CAAShrResources/caav5.css"/>
+<script type="text/javascript" src="../CAAShrResources/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAAShrResources/submit.js">/* */</script>
+<title>Know How Modeler Modeler Description &amp; Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Know How Modeler Description &amp; Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This article presents the Know How modeler, and explains how to customize 
+		it.</p>
+		<ul>
+			<li><a href="#Description">Description</a>
+			<ul>
+				<li><a href="#Object Model">Conceptual Model</a></li>
+				<li><a href="#PLM Package">Implementation Model</a></li>
+				<li><a href="#Business Logic Description">Business Logic</a></li>
+			</ul>
+			</li>
+			<li><a href="#Customization">Customization</a>
+			<ul>
+				<li><a href="#Modeler PLM Package Customization">PLM Package Customization</a></li>
+				<li><a href="#UI mask customization">UI Mask Customization</a></li>
+				<li><a href="#Business Logic Customization">Business Logic Customization</a></li>
+			</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Description</h2>
+<p>This section first presents the objects representing the Know How modeler. Then 
+it describes how this object model view has been translated towards PLM objects 
+based on PLM Core Modeler objects. You will see the description of each PLM package 
+defining these PLM objects.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Object Model"></a>Conceptual Model</h3>
+<p>The Know How modeler enables the definition of rules and checks. It also allows 
+to model structures of those elements in rule sets.</p>
+<p>This is summarized in the following UML schema:</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: Know How UML Model</caption>
+	<tr>
+		<td><img alt="Know How UML Model" src="CAAKnowHowUML_Conceptual.png"/></td>
+	</tr>
+</table>
+<ul>
+	<li><strong>Rule:</strong> is an elementary object that has its own lifecycle 
+	(it can be created independently, versioned, duplicated, etc.). A rule defines 
+	an action that we want to apply on any object of a given type. The typing hierarchy 
+	that is mentioned here is the &quot;Knowledge Object Model&quot; typing hierarchy. The 
+	action that we want to apply is written in a scripting language: the Enterprise 
+	Knowledge Language (EKL). A rule is a declaration of an intent. It does not 
+	describe where it is used.</li>
+	<li><strong>Check:</strong> is an elementary object that has its own lifecycle 
+	(it can be created independently, versioned, duplicated, etc.). A check defines 
+	a statement that we want to verify on any object of a given type. It is very 
+	close to a rule. The main difference is that a check only describes a statement 
+	(that will be true or false on the final objects that we want to check) whereas 
+	a rule applies a treatment on the objects and potentially modifies the objects 
+	on which it will be applied.</li>
+	<li><strong>Rule set</strong>: is an elementary object that has its own lifecycle 
+	(it can be created independently, versioned, duplicated, etc.). A rule set is 
+	created to regroup several rules and checks together, in order to apply them 
+	all at the same time. It is a recursive concept since a rule set can regroup 
+	different rule sets also. Note that a same rule, check or rule set can be part 
+	of several rule sets.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PLM Package"></a>Implementation Model</h3>
+<p>The Know How model is implemented with PLM Core Object as follows:</p>
+<p>KnowHow is described through five modeler PLM packages:</p>
+<ul>
+	<li>PLMKnowHowRule</li>
+	<li>PLMKnowHowCheck</li>
+	<li>PLMKnowHowRuleSet</li>
+	<li>PLMKnowHowGenericRuleBaseComponent</li>
+	<li>PLMKnowHowRuleBaseComponent</li>
+</ul>
+<p>The reason of the split in several packages is due to implementation constraints. 
+Not for a particular objective.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLMKnowHowRule<a name="P1_descr"></a></h4>
+<table>
+	<tr>
+		<td>Contains the definition of the rule reference (PLMRule) and its corresponding 
+		instance (PLMRuleInstance)</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLMKnowHowCheck</h4>
+<table>
+	<caption></caption>
+	<tr>
+		<td>Contains the definition of the check reference (PLMRule) and its corresponding 
+		instance (PLMRuleInstance)</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLMKnowHowRuleSet</h4>
+<table>
+	<tr>
+		<td>Contains the definition of the rule set reference (PLMRuleSet) and its 
+		corresponding instance (PLMRuleSetInstance)</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLMKnowHowGenericRuleBaseComponent</h4>
+<table>
+	<tr>
+		<td>Contains the base class of rule sets, rules and checks. Both the reference 
+		(PLMGenericRuleBaseComponent) and the instance (PLMGenericRuleBaseComponentInstance)</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>PLMKnowHowRuleBaseComponent</h4>
+<table>
+	<tr>
+		<td>Contains the base class of rules and checks. Both the reference (PLMRuleBaseComponent) 
+		and the instance (PLMRuleBaseComponentInstance)</td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+		<th>API name</th>
+	</tr>
+	<tr>
+		<td>PLMCoreReference</td>
+		<td>ExternalClassName1</td>
+		<td>Classname1</td>
+	</tr>
+	<tr>
+		<td>PLMCoreInstance</td>
+		<td>ExternalClassName2</td>
+		<td>Classname2</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepReference</td>
+		<td>ExternalClassName3</td>
+		<td>Classname3</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepInstance</td>
+		<td>ExternalClassName4</td>
+		<td>Classname4</td>
+	</tr>
+	<tr>
+		<td>PLMPort</td>
+		<td>ExternalClassName5</td>
+		<td>Classname5</td>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>ExternalClassName6</td>
+		<td>Classname6</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Description"></a>Business Logic</h3>
+<p>This section lists and describes the PLM Opening ID implemented by the following 
+PLM classes of the Know How modeler.</p>
+<ul>
+	<li><a href="#ExternalClassName1, implemented Business Logic">ExternalClassName1, 
+	Implemented Business logic</a></li>
+	<li>ExternalClassName2, Implemented Business Logic</li>
+</ul>
+<h4><a name="ExternalClassName1, implemented Business Logic"></a>ExternalClassName1, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>ID1</td>
+		<td>script description per operation</td>
+	</tr>
+	<tr>
+		<td>ID2</td>
+		<td>script description per operation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Customization"></a>Customization</h2>
+<p>Customization first deals with the modeler PLM package customization [<a href="#References">2</a>]. 
+It consists in to create a new package containing new PLM classes for each &quot;Customizable&quot; 
+PLM class of the modeler PLM package. Then, you should take into account the UI 
+masks creation to create either a new security mask file, or to update the default 
+one [<a href="#References">3</a>]. Finally, you can integrate your own business 
+logic on each new PLM classes by implementing provided PLM opening ID [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modeler PLM Package Customization"></a>PLM Package Customization</h3>
+<p>This part consist in to create a new package when the modeler PLM package must 
+be customized.</p>
+<ul>
+	<li>PackageExternalName1, only contains instantiable PLM classes, the customization 
+	is useless.</li>
+	<li>PackageExternalName2, only contains PLM extensions, the customization is 
+	useless.</li>
+	<li><a href="#P3_custo">PackageExternalName3</a> , contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P3_custo"></a>PackageExternalName3</h4>
+<p>PackageExternalName3 must be partially (or fully) customized.</p>
+<table class="border1">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>ExternalNameClass1</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Class2</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Class3</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Class4</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Class5</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Class6</td>
+		<td>Yes / No</td>
+		<td></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UI mask customization"></a>UI Mask Customization</h3>
+<p>When a PLM attribute is defined (inside modeler PLM package) some features like 
+its editability criteria, mandatory/optional option, can be overwritten by UI mask. 
+You can say this PLM attribute is not writable in Query context, this PLM attribute 
+is mandatory in Create context, this user PLM attribute is not never visible and 
+so one. A set of UI masks form a security mask file. We say security mask because 
+it is associated with these files security information. For a people, and a given 
+context can be associated a security mask.</p>
+<p>If you want create a new security mask file, you should provide a UI mask for 
+all the &quot;AsIs&quot; modeler PLM packages and for each customization of the &quot;Customizable&quot; 
+modeler PLM package.</p>
+<h4>Rules to respect for a new UI mask creation</h4>
+<p>No specific rule to customize UI mask file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Customization"></a>Business Logic Customization</h3>
+<p>You can yourself integrate your business logic for each customization of:</p>
+<ul>
+	<li>ExternalClassName1
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>ID1</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>ID2</td>
+			<td></td>
+		</tr>
+	</table>
+	</li>
+	<li>ExternalClassName2</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>PackageExternalName1</td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>Modeler PLM Package Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>UI Mask Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>Business Logic Openness Infrastructure Reference, in the DS Product 
+			Documentation Portal, Client Collaborative Platform, Virtual Product 
+			Modeling, VPM Knowledge Standardization, PLM Openings</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

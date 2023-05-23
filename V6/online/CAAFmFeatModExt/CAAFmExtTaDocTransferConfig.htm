@@ -1,0 +1,338 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Transferring Data Containing Client-Defined Features</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Transferring Data Containing Client-Defined Features</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Abstract"></a>Abstract</h2>
+		<p>This article explains the effects on feature behavior of sending data 
+		without the accompanying application code and catalog.</p>
+		<ul>
+			<li><a href="#Introduction">Introduction</a></li>
+			<li><a href="#Overview">Overview of Basic Behaviors</a> </li>
+			<li><a href="#FromScratch">Working with Features Defined &quot;From Scratch&quot;</a>
+			</li>
+			<li><a href="#DerivedFeatures">Working with Derived Features</a>
+			</li>
+			<li><a href="#Summary">Summary</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>Data are often transferred between clients and sub-contractors. But how are the 
+features managed in other site when the application code and feature catalog do 
+not accompany this transfer? This article intends to answer this question by analyzing 
+a number of common basic behaviors on features created &quot;from scratch&quot; as well as 
+on features derived from other existing features when the application code and catalog 
+are available as compared to when they are not available.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Overview"></a>Overview of Basic Behaviors</h2>
+<p>The basic behaviors analyzed in this article are:</p>
+<ul>
+	<li><b>The display of the feature in the specification tree</b>: This behavior 
+	is managed by the <i>CATINavigateObject</i> interface. This interface is implemented 
+	on all natively-defined DS features, i.e., features defined in applications 
+	provided by Dassault Systemes. Its methods return the name of the feature and 
+	a list of its children. If a new client-defined feature is defined, it must 
+	implement the <i>CATINavigateObject</i> interface in order to correctly appear 
+	in the specification tree. When a feature is added to the specification tree 
+	under an existing node, that parent node must be capable of listing it as its 
+	child. The feature itself must be capable of listing any of the features it 
+	may eventually be pointing to.</li>
+	<li><b>The visualization of the feature&#39;s geometry</b>: This behavior is managed 
+	by any C++ interface deriving from <i>CATIVisu</i>: <i>CATI3DGeoVisu</i>, <i>
+	CATI2DGeoVisu</i>, etc. One of these interfaces is implemented on all natively-defined 
+	DS features, i.e., features defined in applications provided by Dassault 
+	Systemes. It must be implemented on any feature having a geometry that can be 
+	visualized in order to be taken into account during the visualization process.
+	</li>
+	<li><b>The edition of the feature</b>: This behavior is managed by the <i>CATIEdit</i> 
+	interface. This interface must be implemented on any feature for which one wants 
+	to display a specific panel allowing the edition of the feature&#39;s attribute 
+	values.</li>
+	<li><b>The update of the feature </b>: [<a href="#References">1</a>] This behavior is managed by the <em>CATIFmFeatureBehaviorCustomization</em> 
+	(Build method) 
+	interface. This interface must be implemented on any feature that is meant 
+	to be integrated in the update process. This interface allows the 
+	re-calculation of a feature's result based on its specifications.</li>
+	<li><strong>The</strong> <b>delete of the feature:</b>&nbsp; Natively all features can be deleted 
+	[<a href="#References">2</a>], but some mechanisms/interfaces (CATICSOFilter/CATIUseEntity/Catalog 
+	declaration) 
+	can prevent/authorize the operation for code or UI purpose [<a href="#References">3</a>]. Moreover the default behavior may be 
+	customized to fit your need using the <em>CATIFmFeatureBehaviorCustomization</em> interface.</li>
+	<li><b>The Cut/Copy/Paste / Delete enabled on the feature </b>: Natively all 
+	features support these operations [<a href="#References">2</a>], but some 
+	mechanisms/interfaces (CATICSOFilter/CATICCPable/CATIUseEntity/Catalog 
+	declaration) 
+	can prevent/authorize the behavior for code or UI purpose [<a href="#References">3</a>]. Moreover the default behavior may be 
+	customized to fit your need using the <em>CATIFmFeatureBehaviorCustomization</em> interface.</li>
+</ul>
+<p>See also the technical article entitled &quot;Feature and Basic Protocols&quot; [<a href="#References">3</a>] 
+for a view of the different interfaces needed to be implemented in order for new 
+client-defined features to be correctly integrated in V6 session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FromScratch"></a>Working with Features Defined &quot;From Scratch&quot;</h2>
+<p>A feature that is created &quot;from scratch&quot; is completely client-defined: it does 
+not inherit any behaviors or attributes from any other existing feature.</p>
+<p>Here is an explanation of what enables each behavior described in the previous 
+section to be taken into account for a feature created &quot;from scratch&quot;:</p>
+<p><b>The display of the feature in the specification tree</b>: The application 
+code managing the feature must have implemented the <i>CATINavigateObject</i> interface 
+on the feature in order to display the feature&#39;s name and its children in the navigation 
+tree. If the application code is present, the feature will appear in the navigation 
+tree; if not, the feature will not be seen at all. The catalog containing the feature&#39;s 
+StartUp may also be necessary for this behavior to be correctly implemented because 
+the feature&#39;s StartUp may point to other features that would be part of the navigation 
+process, whereas this information may not be present on the feature instance itself.</p>
+<p><b>The visualization of the feature&#39;s geometry</b>. The application code managing 
+the feature must have implemented the <i>CATI3DGeoVisu</i> (or equivalent) interface 
+on the feature in order to take the feature into account during the visualization 
+process. If the application code is present, the feature will, therefore, be correctly 
+visualized; otherwise, it will not be visualized at all. The catalog containing 
+the feature&#39;s StartUp may also be necessary for this behavior to be correctly implemented 
+because the feature&#39;s StartUp may contain attribute values that are not necessarily 
+present on the feature instance itself.</p>
+<p><b>The edition of the feature</b>. The application code managing the feature 
+must have implemented the <i>CATIEdit</i> interface on the feature in order to display 
+a specific panel allowing the feature&#39;s attribute values to be modified. If the 
+application code is present, the feature is selectable and this panel will be displayed; 
+otherwise, the feature will not even be selectable and no panel will be displayed. 
+If the catalog containing the feature&#39;s StartUp is not available, the panel may 
+be incomplete: indeed, some of the feature&#39;s attributes can only be found on the 
+StartUp.</p>
+<p><b>The update of the feature</b>. The application code managing the feature must 
+have implemented the <em>CATIFmFeatureBehaviorCustomization</em> (Build method) interface on the feature in order to allow 
+its re-calculation in the event any dependent results have been modified. If the 
+application code is present, the feature will be correctly re-built, otherwise, 
+it will not be taken into consideration during the update process. The catalog containing 
+the feature&#39;s StartUp may also be necessary for this behavior to be correctly implemented 
+because the feature&#39;s StartUp may contain attribute values that are necessary to 
+the build process but that are not necessarily present on the feature instance itself.</p>
+<p><b>The Cut/Copy/Paste and Delete operations enabled on the feature</b>. If 
+the application code managing the feature is present, then the feature is 
+already selectable both by its geometry and its entry in the specification tree, 
+and the operations will be enable according your implementations. 
+Otherwise, without the application code and the feature catalog, the operations 
+will be not accessible, or at least altered. The missing catalog can also be an 
+issue, if you have declared your feature to the common services protocols [<a href="#References">5</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="DerivedFeatures"></a>Working with Derived Features</h2>
+<p>A &quot;derived feature&quot; has been created by the derivation of another existing feature. 
+It has inherited the behaviors and attributes of the deriving feature. In this article, 
+the &quot;deriving feature&quot; is considered to be a feature provided by one of the native 
+DS applications. The receiving client or sub-contractor installation is assumed 
+to contain the deriving feature&#39;s native DS application and catalog.</p>
+<p>Here is an explanation of what enables each behavior considered in this document 
+to be taken into account for a &quot;derived feature&quot;.</p>
+<p><b>The display of the feature in the specification tree</b>: The application 
+code managing the feature may have implemented the <i>CATINavigateObject</i> interface 
+on the feature in order to display the feature&#39;s name and its children in the navigation 
+tree. If it did not or if the application code is not present, the feature may still 
+appear in the navigation tree, but its particular name may not be correct and its 
+list of children may not be complete. The catalog containing the feature&#39;s StartUp 
+may also be necessary for this behavior to be correctly implemented because the 
+feature&#39;s StartUp may point to other features that would be part of the navigation 
+procedure, whereas this information may not be present on the feature instance itself.</p>
+<p><b>The visualization of the feature&#39;s geometry</b>. The application code managing 
+the feature may have implemented the <i>CATI3DGeoVisu</i> (or equivalent) interface 
+on the feature in order to take the feature into account during the visualization 
+process. If it did not or if the application code is not present, the feature may 
+still be visualized, but the visualization may not be complete. The catalog containing 
+the feature&#39;s StartUp may also be necessary for this behavior to be correctly implemented 
+because the feature StartUp may contain attribute values that are not necessarily 
+present on the feature instance itself.</p>
+<p><b>The edition of the feature</b>. The application code managing the feature 
+may have implemented the <i>CATIEdit</i> interface on the feature in order to display 
+a specific panel allowing the feature&#39;s attribute values can be modified. If it 
+did not or if the application code is not present, this panel will not be displayed. 
+If the application code is present but the catalog containing the feature&#39;s StartUp 
+is not available, the panel may still not be displayed.</p>
+<p><b>The update of the feature</b>. The application code managing the feature may 
+have implemented an interface on the feature in order to allow 
+its re-calculation in the event any dependent results have been modified. If it 
+did not or if the application code is not present, the feature will not re-built. 
+The catalog containing the feature&#39;s StartUp may also be necessary for this behavior 
+to be correctly implemented because the feature&#39;s StartUp may contain attribute 
+values that are necessary to the build process but that are not necessarily present 
+on the feature instance itself.</p>
+<p><b>The Cut/Copy/Paste and Delete operations enabled on the feature</b>. Even 
+if the application code managing the feature is not present, it is possible that 
+the feature can still be selectable. However, it is necessary for the <i>
+CATICSOFilter</i> 
+and <i>CATICCPable</i> interfaces to have been implemented on the feature itself 
+in order to allow CCP and Delete operations. The application must, therefore, be 
+present in order for this behavior to be enabled. The missing catalog can be 
+also an issue, if you have overwritten common services protocols[<a href="#References">5</a>].</p>
+<p>Nevertheless, for some DS applications, like Mechanical modeler, a &quot;Backup&quot; 
+mechanism exists to increase the feature's behavior in case of missing 
+application code and catalog [<a href="#References">6</a>]. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Summary"></a>Summary</h2>
+<p>The tables below summarize the different behaviors available for features created 
+&quot;from scratch&quot; and for those that have been &quot;derived&quot; as accessed by the receiver 
+of the data. Only the two following possibilities are taken into account in the 
+receiver&#39;s configuration:</p>
+<ol>
+	<li>Both application and catalog are available</li>
+	<li>Neither application nor catalog are available</li>
+</ol>
+<p>The two other possibilities:</p>
+<ol>
+	<li>Only the application is available, the catalog is not</li>
+	<li>Only the catalog is available, the application is not</li>
+</ol>
+<p>are not considered because, in the first case, the result of this configuration 
+is too dependent on the specific application itself, and in the second case, the 
+existence of a catalog without the application does not contribute to any different 
+result as compared to the case where there is neither application nor catalog.</p>
+<table border="border1">
+<col align="left" span="1">
+<col align="center" span="2">
+	<caption>Table 1: Summary of Behaviors of Features Created &quot;from scratch&quot;</caption>
+	<tr>
+		<th>Feature Behaviors</th>
+		<th>Feature &quot;From Scratch&quot;<br>
+		Application and Catalog</th>
+		<th>Feature &quot;From Scratch&quot;<br>
+		No Application, No Catalog</th>
+	</tr>
+	<tr>
+		<td>Display in specification tree</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Visualization of geometry</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Feature edition</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Feature update</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Cut/Copy/Paste Delete</td>
+		<td>Yes, if enabled</td>
+		<td>No</td>
+	</tr>
+</table>
+<table>
+<col align="left" span="1">
+<col align="center" span="2">
+	<caption>Table 2: Summary of Behaviors of Derived Features</caption>
+	<tr>
+		<th>Feature Behaviors</th>
+		<th>Derived Feature<br>
+		Application and Catalog</th>
+		<th>Derived Feature<br>
+		No Application, No Catalog</th>
+	</tr>
+	<tr>
+		<td>Display in specification tree</td>
+		<td>Yes</td>
+		<td>Partial</td>
+	</tr>
+	<tr>
+		<td>Visualization of geometry</td>
+		<td>Yes</td>
+		<td>Partial</td>
+	</tr>
+	<tr>
+		<td>Feature edition</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Feature update</td>
+		<td>Yes</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>Cut/Copy/Paste and Delete</td>
+		<td>Yes, if enabled</td>
+		<td>No</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+<tr>
+		<td valign="top">[1]</td>
+		<td><a href="CAAFmExtTaUpdateOverview.htm">Understanding Update Protocol</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[2]</td>
+		<td><a href="CAAFmExtTaFeatureLifeCycle.htm">Understanding Feature Life Cycle</a></td>
+	</tr>
+
+	<tr>
+		<td valign="top">[3]</td>
+		<td><a href="CAAFmExtTaCCPPrinciple.htm">Copy,Paste,Cut,Delete Protocols</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[4]</td>
+		<td><a href="CAAFmExtTaFeatureIntegration.htm">Feature and Basic Protocols</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[5]</td>
+		<td><a href="CAAFmExtTaCommonProtocol.htm">Common Protocols</a></td>
+	</tr>
+<tr>
+		<td valign="top">[6]</td>
+		<td>Geometrical Backup StartUp</td>
+	</tr>
+
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <b>1</b> [Jan 2002]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

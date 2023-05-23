@@ -1,0 +1,285 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Downloading Files from a Document</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Downloading Files from a Document</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article demonstrates to an end user the steps involved to download 
+		a file under a Document using the CAA Exposition. It is an interactive UC, 
+		which integrates an Add-In command inside the VPM Navigator. This command 
+		prompts an end-user enables an end-user to download a specific file attached 
+		to a Document selected by the user, in the Product spec tree inside the 
+		VPM Navigator.</p>
+		<p><strong>Note: Document Modeler is not RACE Compliant.</strong></p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAADocDownloadFilesCmd Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAADocDownloadFilesCmd Do</a></li>
+					<li><a href="#How">How to Launch CAADocDownloadFilesCmd</a></li>
+					<li><a href="#Where">Where to Find the CAADocDownloadFilesCmd 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The user learns the concepts listed below:</p>
+<ul>
+	<li>An aquisition agent, a <em>CATPLMNavPropertiesAcquisition</em> type, to 
+		manage selection of a PLM entity in the immersive window (Search result 
+		and Explorer window). This agent offers PLM compliant filtering of the selected 
+		object and also can be used in a customer command to a acquire properties 
+		of a PLM entity.</li>
+	<li>The CAA Exposition which enables downloading a file attached to a Document.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADocDownloadFilesCmd Use Case</h2>
+<p>CAADocDownloadingFilesCmd is a use case of the CAADocumentUseItf.edu framework 
+that illustrates the PLMDocumentInterfaces framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADocDownloadFilesCmd Do</h3>
+<p>The goal of CAADocDownloadingFilesCmd Use Case is to deploy the Openness provided 
+by CAA, to download a file from a Document selected interactively in the VPM Navigator. 
+We work on an input model as depicted in the Fig. that follows. The input model 
+will have to be explicitly created by the end-user.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Input Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Model" height="386" src="images/CAADocUc_InputModel.jpg" width="542"/></td>
+	</tr>
+</table>
+<p>The input model consists of a root product <strong>CAADocProdRoot---</strong>. 
+The product is attached to</p>
+<ul>
+	<li>Document <strong>Generic_Document-XXX*</strong>, of type &quot;<strong>Generic 
+		Document</strong>&quot; (internal type <strong>Generic Document</strong>) 
+		which contains <strong>Generic_Document.txt</strong>.</li>
+	<li>Document <strong>CDM_Document-XXX*</strong>, of type &quot;<strong>Document</strong>&quot; 
+		(internal type <strong>Document</strong>) which contains <strong>CDM_Document.txt</strong>.</li>
+</ul>
+<p>*XXX represents a number automatically appended to the Document name</p>
+<p>The UC downloads these text files to a local folder in user hard disk. This is 
+accomplished with the command &quot;<strong>Downloading Files on selected Document</strong>&quot; 
+inside the &quot;<strong>Working with Files attach to Document</strong>&quot; toolbar, 
+in <strong>a PLM Navigator AddIn</strong> in <strong>CATIA.</strong> This
+<strong>AddIn</strong> (<strong>Toolbar</strong>) exists in the VPM Navigator workbench 
+as depicted in the Fig. that follows. The &quot; <strong>How to Launch</strong>&quot; 
+section that follows details the steps involved to launch the VPM Navigator workbench 
+and access this toolbar.</p>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2: Working with Files attached to a Document 
+	Toolbar</caption>
+	<tr>
+		<td>
+		<img alt="Working with Files Attached to a Document Toolbar" src="images/CAADocUc_DownloadFilesCommand.jpg"/></td>
+	</tr>
+</table>
+<p>The UC execution proceeds as follows:</p>
+<ul>
+	<li>User activates the &quot;<strong>Downloading Files on selected document</strong>&quot; 
+		command.</li>
+	<li>The command prompts user to select a document, from the Product spec tree 
+		in the Explorer (VPM Navigator) session. User selects the only document 
+		that exists in the spec tree.</li>
+	<li>A document of type &quot;<strong>Generic Document</strong>&quot; and &quot;<strong>Document</strong>&quot; 
+		are the only two types recognized by the exposed API.</li>
+	<li>We begin with user selects the document, in this case of type &quot;<strong>Generic 
+		Document</strong>&quot;. The UC proceeds to launch the dialog box depicted 
+		in the Fig. that follows:
+		<table>
+			<caption><a name="Fig3"></a>Fig. 3: Download Files Dialog Box</caption>
+			<tr>
+				<td>
+				<img alt="Download Files Dialog Box" height="134" src="images/CAADocUc_DownloadFilesDlgBox.jpg" width="282"/></td>
+			</tr>
+		</table>
+		<p>The title of this dialog box is name of the Document selected by end 
+		user.</p>
+		<p>User enters the folder in his local system where the file is to be downloaded. 
+		User also enters the name of the file for download, which must be one of 
+		those that exist under the Document.</p>
+		<p>Next, when the &quot;<strong>Download File</strong>&quot; button is clicked, 
+		it results in the actual download. If the download succeeds, a message box 
+		is displayed.</p>
+		<table>
+			<caption><a name="Fig4"></a>Fig. 4</caption>
+			<tr>
+				<td>
+				<img alt="Fig. 4" height="126" src="images/CAADocUc_SuccessDlgBox.jpg" width="227"/></td>
+			</tr>
+		</table>
+		<p>The Exposed CAA API for download recognizes only documents of internal 
+		type &quot;<strong>Generic Document</strong>&quot; and &quot;<strong>Document</strong>&quot;.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADocDownloadFilesCmd</h3>
+<p>To launch CAADocDownloadFilesCmd:</p>
+<ol>
+	<li>Set the current folder to <code>InstallRootFolder\CAADoc\CAADocumentUseItf.edu</code>.</li>
+	<li>Set up the build time environment and build the CAADocNavPropAcqAgentAddin.m 
+		and CAADocNavCommmands.m module.</li>
+	<li>Edit the <code>CNext\code\dictionary\CAADocumentUseItf.edu.dico</code> dictionary 
+		by uncommenting the #CAA# from the following lines:
+		<pre class="code">#CAA# CAADocNavPropAcqAgentAddin      CATIImmNavAddin 	     libCAADocNavPropAcqAgentAddin
+#CAA# CAADocNavPropAcqAgentAddin      CATIWorkbenchAddin    libCAADocNavPropAcqAgentAddin</pre>
+	</li>
+	<li>Install the dictionary and other resource files by executing <code>mkCreateRuntimeView</code>.</li>
+	<li>Start CATIA by executing <code>mkrun</code>.</li>
+	<li>Create the model as depicted in [<a href="#Fig1">Fig. 1</a>], save 
+		it and load it in the VPM Navigator session.</li>
+	<li>Display the toolbar named &quot;<strong>Working with Files attached to Document
+		</strong>&quot; toolbar, if necessary. It is depicted in 
+		the <a href="#Fig2">Fig 2</a>. above.</li>
+	<li>Hereafter, the execution follows the steps listed in the &quot;<strong>What 
+		does the UC do</strong>&quot; section above.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAADocDownloadFilesCmd Code</h3>
+<p>The CAADocDownloadFilesCmd use case is located in the CAADocNavCommmands.m module 
+of the CAADocumentUseItf.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADocumentUseItf.edu\CAADocNavCommmands.m</code></p>
+<p>For the Add-In, it includes the <em>CAADocNavPropAcqAgentAdn</em> class located 
+in the CAADocNavPropAcqAgentAddin.m module of the CAADocumentUseItf.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADocumentUseItf.edu\CAADocNavPropAcqAgentAddin.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are two parts in <code>CAADocDownloadFilesCmd</code>:</p>
+<ol>
+	<li><a href="#Step1">Selecting a Document in the VPM Navigator Spec Tree</a></li>
+	<li><a href="#Step2">Downloading a File Attached to a Document</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Selecting a Document in the VPM Navigator Spec Tree</h3>
+<p>This step involves selecting a Document from the Product spec tree inside the 
+VPM Navigator. This is accomplished with two acquisition agents (<code>_paNavAcqAgentCDMDoc
+</code>or<code>_aNavAcqAgentGenDoc</code>), <em>CATPLMNavPropertiesAcquisition</em> 
+type, which enables selection of a PLM entity in an immersive window (Search Result 
+window and Explore window). These Acquisition agents allow to select objects of 
+type Generic Document or Document (Document) only.</p>
+<p>The agent also enables us to aquire the properties of the selected entity. As 
+a result, we retrieve the Identificator of the selected PLM entity, as a <em>CATIAdpPLMIdentificator</em> 
+type (<code>_piAdpIdOnSelectedDoc</code>).</p>
+<p>We also retrieve the Knowledge Type of the selected PLM entity, and confirm if 
+the Document type is either <strong>Generic Document</strong> or <strong>Document</strong>, 
+since the CAA Exposition to download the files attached to a document works only 
+for these types.</p>
+<p>This step is further explained in the UC [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Downloading a File Attached to a Document</h3>
+<p>The file attached to a Document is downloaded when the user clicks the &quot;<strong>Download 
+File</strong>&quot; button in the dialog box depicted in [<a href="#Fig3">Fig. 3</a>] 
+above. This event invokes the <code>DownloadFile</code>() API of the <em>CAADocDownloadingFilesDlg</em> 
+class, which represents the dialog box.</p>
+<pre class="code">void <strong>CAADocDownloadingFilesDlg::DownloadFile</strong>(CATCommand* iSendingCommand, 
+				CATNotification* iSentNotification, 
+				CATCommandClientData iUsefulData)
+{
+	CATUnicodeString fileName(&quot;&quot;);
+	fileName=_pFileNameArea-&gt;GetText();
+
+	CATUnicodeString iDownloadPath(&quot;&quot;);
+	iDownloadPath=_pDirectoryPathArea-&gt;GetText();
+	<strong>PLMIDocument</strong> * piDocumentOnSelectedDoc =NULL;
+	HRESULT hr= PLMDocumentServices::<strong>GetDocument</strong>(_piAdpIdOnSelectedDoc, piDocumentOnSelectedDoc );
+          ...
+         hr = piDocumentOnSelectedDoc-&gt;<strong>DownloadFile</strong>(fileName, iDownloadPath);
+	
+...</pre>
+<p>The <code>DownloadFileFromDocument</code> static API of the <em>PLMDocumentServices</em> 
+class downloads a file attached to a Document. Its input argument are:</p>
+<ul>
+	<li><code>_piAdpIdOnSelectedDoc</code>, a <em>CATIAdpPLMIdentificator</em>* 
+		type representing the Identificator of the Document</li>
+	<li><code>fileName</code>, a <em>CATUnicodeString</em> type representing the 
+		name of the file for download (value taken from user input to the dialog 
+		box, using the <code>GetText</code>() call of the <em>CATDlgEditor</em> 
+		class).</li>
+	<li><code>iDownloadPath</code>, a <em>CATUnicodeString</em> type representing 
+		the name of the path where the file would be downloaded (value taken from 
+		user input to the dialog box, using the <code>GetText</code>() call of the
+		<em>CATDlgEditor</em> class).</li>
+</ul>
+<p>The API recognizes documents of type &quot;<strong>Generic Document</strong>&quot; 
+and &quot;<strong>Document</strong>&quot;.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case illustrates to an end user the steps involved to deploy the CAA 
+Exposition which enables downloading a file attached to a Document (<strong>Generic 
+Document</strong> and <strong>Document</strong> type). This is realized with the
+<code>DownloadFileFromDocument</code>() static API exposed by the <em>PLMDocumentServices</em> 
+class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADocUcDisplayingAtrributes.htm">Displaying Document Properties</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History">History</a></h2>
+<table>
+	<tr>
+		<td>Version: 1 [Feb 2011]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

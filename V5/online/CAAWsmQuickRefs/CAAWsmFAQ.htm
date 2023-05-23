@@ -1,0 +1,466 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Frequently Asked Questions</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Frequently Asked Questions</h3>
+      <p><em>Find answers to usual questions regarding workspace management</em></td>
+  </tr>
+  <tr>
+    <td class="quick" colspan="2">Quick Reference</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article gathers answers to usual problems one user may encounter
+      when using SCM commands. Answers are grouped by topics listed below.
+      <ul>
+        <li><a href="#Commands"><b>SCM Commands Location</b></a></li>
+        <li><a href="#Environment"><b>SCM Database Environment</b></a></li>
+        <li><b><a href="#Attach">Attach</a></b></li>
+        <li><a href="#File"><b>File</b></a></li>
+        <li><a href="#Missing files and"><b>Missing Files and Directories</b></a></li>
+        <li><a href="#Module"><b>Modules</b></a></li>
+        <li><a href="#Not an SCM Object"><b>Not a SCM Object</b></a></li>
+        <li><b><a href="#Promotion">Promotion</a></b></li>
+        <li><b><a href="#Synchronization">Synchronization</a></b></li>
+        <li><b><a href="#Workspace">Workspace</a></b></li>
+        <li><b><a href="#Conflict">Locking Conflicts Between Commands</a></b></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Commands"></a>SCM commands Location</h3>
+<h4>Where are SCM commands?</h4>
+<p>The environment path is set when executing the SCM profile. Consult [<a href="#References">1</a>]
+or ask your SCM administrator for the command to run for setting your path.</p>
+<h4>Some commands are available but not all those listed in the documentation</h4>
+<p>SCM commands are grouped in two sets regarding their purpose: user commands
+or administrator commands. Check what profile you did run when setting up the
+environment.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Environment"></a>SCM Database Environment</h3>
+<h4>The dynamic link library OCI.dlll could not be found...</h4>
+<p>This message is displayed on Windows platform and this occurs when the client
+part of the Oracle product has not been installed on the user workstation. Ask
+your SCM administrator for checking
+<ul>
+  <li>whether Oracle has been installed on the workstation</li>
+  <li>and the value of the ADL_LIB_DBMS variable against the Oracle installation
+    [<a href="#Ref3">3</a>]</li>
+</ul>
+<h4># ADLDB - 0001: Database error: Database = ...: ORA-12154: TNS:could not
+resolve service name</h4>
+<p>The database identifier which is known by SCM must also be known by the
+underlying DBMS. This means that some Oracle configuration files have not been
+updated according to the SCM database. Contact your SCM administrator to correct
+this problem.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Attach"></a>Attach</h3>
+<h4>I want to attach a component but SCM tells me that this component cannot be
+found</h4>
+<p>Check first that the component you need is managed in the same tree as your
+workspace. If not, you can create a new workspace in the right tree (adl_mk_ws)
+or declare your workspace in the right tree using the adl_link_ws command. If
+you are working in the right tree, read the next paragraph.</p>
+<p>Like for any modifications, the creation of a component is not automatically
+seen by any workspace. A given workspace can see a component only if its parent
+workspace can see it. If this component exists in your parent workspace, you
+must wait it is published and then synchronize your workspace (adl_sync), you
+will be able to attach the component. If the component does not exist in your
+parent workspace, run the command<code> adl_ls_fw -all -ws ws_name</code> for
+your parent workspace. If the component does not appear in the list, it means
+that your parent workspace is not synchronized with the right level of its own
+parent workspace (and so on).</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="File"></a>File</h3>
+<h4>The adl_mk_elem command is refused for some files</h4>
+<p>Check if the files have suffixes. If not, execute the adl_ls_type command to
+find out the predefined types/suffixes and choose one corresponding to your
+file(s), then run again the adl_mk_elem command using the -type option to
+specify the file type. If files have suffixes, may be those suffixes are not
+recognized by SCM (not listed by the adl_ls_type command), then you can choose a
+type/suffix having the same characteristics as your files or ask your SCM
+administrator to create a new type/suffixe using the adl_mk_type command.</p>
+<p>The adl_mk_elem can be also canceled if someone else has created the same
+file in another workspace (may be this file is now deleted). You can force the
+creation of your file by setting the -force option when running the adl_mk_elem
+command.</p>
+<p>If you want to create a file which has been already created in another
+workspace but this workspace has not yet delivered this file, you can import the
+creation using the adl_import command. It is better to import a creation than
+forcing a second creation because forcing the creation will lead to a merge when
+the two files will appear in the same workspace.</p>
+<h4>There are strange characters in some files</h4>
+<p>When a file is registered in SCM, its content type is determined regarding
+its suffix (text or binary). When a text file is transfered from Windows-NT to
+Unix (for instance using the adl_refresh command), its internal format is
+changed because lines end with a double carriage return on Windows-NT and a
+simple one on Unix. If the file was classified as a binary file, this treatment
+is not performed while transfering from Windows-NT to Unix. To check the type of
+a file, run the command <code>adl_ls_out filename -all</code>. If the file is
+classsified as a binary file, you need to create it again using the right type:
+<ul>
+  <li>remove the file using the adl_rm command</li>
+  <li>create again the file using the adl_mk_elem command and set the -force
+    option as the same file cannot be created twice (by default).</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Missing files and"></a>Missing files and directories</h3>
+<h4>I have promoted by workspace and it has been collected but some files and
+directories are missing in my parent workspace</h4>
+<p>Perhaps you forgot to declare these files and directories in SCM. Run the
+adl_chk command in your workspace to find out all unmanaged files and
+directories. Then create them using the appropriate command (adl_mk_elem,
+adl_mk_fw, adl_mk_mod, adl_mk_data, ...) and promote your workspace again.</p>
+<h4>The traces of my last synchronization show that new files were coming but I
+do not see them on my file system</h4>
+<p>You have synchronized your workspace having a current working image (this one
+was refreshed) but now you are looking at another image and it is not refreshed
+against your workspace. Run the adl_ds_ws command to check the status of each
+image and run the adl_refresh command on all images you need to refresh.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Module"></a>Module</h3>
+<h4>Unknown extension</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\users\cga\Demo\dev1\fw1&gt;adl_mk_mod CNext
+Verifying the module's name &quot;CNext&quot;
+# ADLCMD - 0835: The name &quot;CNext&quot; <strong>has an unknown extension</strong> &quot;&quot;
+Module's name rules:
+- The minimal name length without extension is 1 characters
+- The maximal name length with extension is 128 characters
+- An extension is mandatory
+- Authorized extensions: <strong>m, mext, mj, mjext</strong></pre>
+    </td>
+  </tr>
+</table>
+<p>There are two kind of modules that can be created under a framework:
+&quot;code&quot; modules and &quot;data&quot; modules. The &quot;code&quot;
+modules are creating for storing source files while &quot;data&quot; modules are
+used for storing any files.
+<ul>
+  <li>&quot;code&quot; modules are created by the adl_mk_mod command and must
+    have one predefined extension (m, mext, mj, mjext).<br>
+    They are used for delivering program source files.</li>
+  <li>&quot;data&quot; modules are created by the adl_mk_data command and can
+    have any name. However some names have a predefined meaning for CAA tools
+    (CNext, CNext.specifics_UNIX, CNext.specifics_Windows_NT) because they are
+    used for delivering resources for CAA programs.</li>
+</ul>
+<p>Note that module extensions must be chosen in a predefined list that can be
+changed for a given SCM installation. Ask your SCM administrator to know whether
+a custom checker library [<a href="#Ref2">2</a>] has been setup.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Not an SCM Object"></a>Not a SCM Object</h3>
+<h4>I tried to move some files into another directory but my command was
+refused.</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:&gt; pwd
+E:\Workspace\dev\Administration\CNext.specifics_UNIX\code\command</pre>
+      <pre>E:&gt; adl_mv * ..\..\Administration\CNext.specifics_SunOS\code\command
+Verifying the path &quot;Administration\CNext.specifics_SunOS\code\command&quot;.
+# ADLCMD - 0863: &quot;Administration\CNext.specifics_SunOS&quot; <strong>is not an SCM object</strong>.
+Choose another target object path.
+The target can be an existing SCM object (framework, module, data component or directory) 
+or a non existing SCM object to rename the source SCM object to this new name.</pre>
+    </td>
+  </tr>
+</table>
+<p>When adl_mv is used for moving several files into another directory , this
+directory must be managed by SCM. In the previous example, there are some
+intermediate directories to register in SCM before being able to use the adl_mv
+command. Depending on the location of a directory in the file tree, the
+directory must be declared using either adl_mk_fw, adl_mk_mod or adl_mk_data, or
+adl_mk_dir.</p>
+<p>In the previous example, assuming &quot;Administration&quot; is a managed
+framework, the commands to execute are:
+<ul>
+  <li>adl_mk_data CNext.specifics_SunOS</li>
+  <li>adl_mk_dir code</li>
+  <li>adl_mk_dir command</li>
+  <li>adl_mv * ..\..</li>
+</ul>
+<h4>I tried to check-out one file but my command was refused</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\Workspace\dev1\fw1\mod2.m&gt;adl_co Imakefile.mk
+Verifying the path &quot;fw1\mod2.m\Imakefile.mk&quot;.
+# ADLCMD - 0863: &quot;fw1\mod2.m&quot; <strong>is not a SCM object</strong>.
+Choose an existing file path.
+The file must be a SCM object.</pre>
+    </td>
+  </tr>
+</table>
+<p>If the command is refused by telling that the file must be a SCM object, it
+means that that file has not been declared. In such a case it can be directly
+edited and then declared to SCM using the adl_mk_elem command. Conversely, if it
+is declared first, the -wr option must be used to let the file in checked-out
+mode or execute the adl_co command after the registration.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Promotion"></a>Promotion</h3>
+<h4>My promotion is refused because it contains a file which has been already
+promoted by someone else</h4>
+<p>You have three choices:
+<ul>
+  <li>you wait for the other promotion to be collected in your parent workspace
+    and that this workspace publishes, then you can synchronize your workspace
+    (adl_sync) for getting the other version of the conflicting file. You will
+    have two merge your file with the other one in order to avoid to lose the
+    other modifications. Once the merge performed, you can promote your
+    workspace.</li>
+  <li>you cancel your changes in the conflicting file by using the
+    adl_forget_chg command and promote again your workspace. Note that you can
+    make a copy of your file before forgetting the changes and you should also
+    check that promoting your workspace without this file won't lead to errors
+    when your changes will be integrated into the parent workspace (buildtime or
+    runtime errors).</li>
+  <li>you use the adl_import command on the conflicting file and this will
+    produce a merge to solve in you workspace. After having solved the merge,
+    the result file should contains your modifications and those done in the
+    other workspace, so SCM will allow you to promote the file by setting a
+    higher priority on your file because it integrates the other file.</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Synchronization"></a>Synchronization</h3>
+<h4>My workspace is synchronized but I do not see the same files in my parent
+workspace's images</h4>
+<p>It means that your parent workspace has either modified these files or got
+them by synchronizing itself or collecting other workspaces but didn't
+published. You can check your parent workspace's status by running the command <code>adl_ds_ws
+parent_ws_name</code>. Wait for your parent workspace to publish and then run
+the adl_sync command to synchronize your workspace: you will get these files.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Workspace"></a>Workspace</h3>
+<h4>I want to use the same workspace name in two different trees but it is
+forbidden</h4>
+<p>As multi-tree workspaces can be created, two workspaces having the same name
+in two different trees represent the same workspace. If you want to reuse the
+name of an old workspace, you can either delete or rename this old workspace.</p>
+<h4>I used to access my workspace from a given host but now it is not accessible
+and I want to work on my files</h4>
+<p>The files one user is working on are just copies from the database workspace
+objects. From any host where SCM is available, it is possible to create a new
+image of an existing workspace by using the adl_mk_image command. The same files
+will be extracted, excepted for those modified on the first host and that have
+been checked-in. Images can be created, moved or deleted at any time.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Conflict"></a><b>Locking Conflicts Between Commands</b></h3>
+<h4 align="left">My command is waiting for another to finish</h4>
+<p align="left">SCM commands put locks on data (workspaces, components,
+elements, etc) in order to prevent concurrent accesses. When a command tries to
+modify an object that is currently locked by another command, the following
+message is displayed and the second command waits until either it is interrupted
+or the other command ends.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\&gt; adl_mk_elem main.cpp
+Wait a moment. Conflict access between:
+Your command:  cga@randdsy(Windows_2000):2968 adl_mk_elem (lock id: DPyRz++++++3+++9a+72)
+and the other: cga@randdsy(Windows_2000):2504 adl_sync (lock id: DPyRVU+++++3+++7m+Ay)</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">The information displayed on each line are:</p>
+<ul>
+  <li>
+    <p align="left">the user name (cga)</li>
+  <li>
+    <p align="left">the host where the command is running (randdsy)</li>
+  <li>
+    <p align="left">the type of operating system on this host (Windows_2000)</li>
+  <li>
+    <p align="left">the identifier (pid) of the SCM command (2968)</li>
+  <li>
+    <p align="left">the name of the command (adl_mk_elem)</li>
+  <li>
+    <p align="left">the UUID of the lock owned by the process
+    (DPyRz++++++3+++9a+72).</li>
+</ul>
+<h4 align="left">My command is waiting for another to finish but it does not
+finish</h4>
+<p align="left">When a conflict message appears, you must wait for the other
+command to finish. When the conflict still exists after few minutes, it is
+possible that the other command gets in trouble or has stopped but the SCM
+monitor is not aware of it.</p>
+<p align="left"><u>Case 1: the command is still alive</u></p>
+<p align="left">To know if the command is still running, log on the host (<b><font color="#FF0000">randdsy</font></b>)
+that is displayed in the conflict message and look for the process which
+identifier (<font color="#FF0000"><b>2504</b></font>) is displayed in the error
+message.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>Your command:  cga@randdsy(Windows_2000):2968 adl_mk_elem (lock id: DPyRz++++++3+++9a+72)
+and the other: cga@<b><font color="#FF0000">randdsy</font></b>(Windows_2000):<font color="#FF0000"><b>2504</b></font> adl_sync (lock id: DPyRVU+++++3+++7m+Ay)</pre>
+    </td>
+  </tr>
+</table>
+<p align="left"><img border="0" src="../CAAIcons/images/information.gif" width="31" height="30">
+Almost all SCM commands are composed of two processes: one having the name of
+the user command and another one named either &quot;ADLCMCommand&quot; or having
+a name close to the command name (see example hereafter).</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>      SYSTEM  <font color="#FF0000"><b>3224</b></font>  2716   8   4102   2444 10:33:48  0:00 <font color="#FF0000"><b>adl_monitor</b></font>
+      SYSTEM  3200  <b><font color="#FF0000">3224</font></b>   8   4102   4476 10:33:48  0:00 <font color="#FF0000"><b>ADLMonitor</b></font>
+      DS\CGA  2248  2864   8   4102  17800 17:09:28  0:20 IEXPLORE
+      DS\CGA  2500   392   8   4102   1060 17:48:28  6:28 POWERPNT
+      DS\CGA  2316   392   8   4102   1216 21:11:20  0:00 agentsvr
+      DS\CGA  2044  3208   8   4102   1612 21:18:22  0:00 TPONSCR
+      DS\CGA  3144  2652   8   4102  24764 09:26:14  0:12 nlnotes
+      DS\CGA  2208  3144   8   4102   1476 09:26:38  0:00 naldaemn
+      DS\CGA  2684  3144   8   4102   1616 09:27:00  0:00 nhldaemn
+      DS\CGA  2164  2864   8   4102   1148 09:45:50  0:00 CMD
+      DS\CGA  2924  2864   8   4102  13000 09:48:46  0:06 FRONTPG
+      DS\CGA  2080  2864   8   4102    908 09:51:06  0:00 CMD
+      DS\CGA  <font color="#0000FF"><b>2400</b></font>  2080   8   4102   2480 09:51:20  0:00 <b><font color="#0000FF">adl_sync</font></b>
+      DS\CGA  2504  <font color="#0000FF"><b>2400</b></font>   8   4102  36492 09:51:20  0:09 <b><font color="#0000FF">ADLCMCommand.exe</font></b>
+      DS\CGA  3336  2864   8   4102   1004 09:52:14  0:00 CMD
+      DS\CGA  <font color="#800080"><b>3100</b></font>  3336   8   4102   2480 09:53:16  0:00 <b><font color="#800080">adl_mk_elem</font></b>
+      DS\CGA  2968  <font color="#800080"><b>3100</b></font>   8   4102  19968 09:53:16  0:00 <b><font color="#800080">ADLCMCommand.exe</font></b>
+      DS\CGA  3292  2864   8   4102    908 09:53:36  0:00 CMD
+      DS\CGA  2656  3292   8   4102    692 09:54:20  0:00 ps
+      DS\CGA  3448  2656   8   4102   3736 09:54:20  0:00 ntps
+   &lt;unavail&gt;     0     1   0   4102 330904 09:54:24 23d20 _Total</pre>
+    </td>
+  </tr>
+</table>
+<p align="left"><img border="0" src="../CAAIcons/images/warning.gif" width="30" height="30">
+if you want to kill the command, be sure to kill the two processes.</p>
+<p align="left">Once the command is killed, the SCM monitor should unlock the
+data and the other command should continue automatically.<br>
+If there is still a lock that forbids the other command to continue, proceed as
+described in case 2) hereafter.</p>
+<p align="left"><u>Case 2: the command does not exist no more</u></p>
+<p align="left">Sometimes, the SCM monitor which manages locks does not detect
+the death of processes (for instance if the network connection is suddenly
+broken between the client host and the SCM server). In this case one must tell
+to the monitor that the command is dead and that the associated locks can be
+removed.</p>
+<p align="left">To remove a command from the monitor, use the <a href="CAAWsmMoAdmin.htm">adl_mo_admin</a>
+command with the -rmcmd option.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\&gt; adl_mo_admin -rmcmd &lt;command_UUID&gt;
+...</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">To know the UUID of a given command, use the <a href="CAAWsmMoAdmin.htm">adl_mo_admin</a>
+command with the -lscmd option.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\&gt; adl_mo_admin -lscmd
+
+3 commands are currently processed by the monitor:
+cga@randdsy(Windows_2000):2504 Running adl_sync (DPyRVU+++++3+++7m+Av)
+cga@randdsy(Windows_2000):2968 Running adl_mk_elem (DPyRz++++++3+++9a+7+)
+cga@randdsy(Windows_2000):3148 Running adl_mo_admin (DPyS4k+++++3+++AH+95)
+</pre>
+    </td>
+  </tr>
+</table>
+<p align="left"><img border="0" src="../CAAIcons/images/warning.gif" width="30" height="30">
+Please, take care to remove the command ONLY when you are sure that the command
+no more exists on the client host.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmWsManagement.htm">Workspace
+      Management</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref2"></a>[2]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmCustomerLib.htm">The Custom
+      Checker Library</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref3"></a>[3]</td>
+    <td><a href="../CAAWsmUseCases/CAAWsmGettingStarted.htm#ADL_LIB_DBMS">DBMS
+      Environment Variables</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>2</strong> [Oct 2002]</td>
+    <td valign="top">Add details about lock conflitcs</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Apr 2000]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

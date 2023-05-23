@@ -1,0 +1,371 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en"><html>
+
+ <head>
+ <meta http-equiv="Content-Language" content="fr">
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+ <meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+ <meta name="ProgId" content="FrontPage.Editor.Document">
+ <title>adl_import</title>
+ <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+ </head>
+
+ <body>
+
+ <p>&nbsp; <br>
+&nbsp; </p>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP">
+     <h1>RADE</h1>
+     </td>
+     <td VALIGN="TOP">
+     <h2>Source Code Manager</h2>
+     </td>
+     <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2">
+     <h3><a NAME="Top"></a>adl_import</h3>
+     <p><i>Importing changes into a workspace</i></td>
+   </tr>
+   <tr>
+     <td COLSPAN="2" class="quick">Quick Reference</td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <table class="abstract">
+   <tr>
+     <td>
+     <h3>Abstract</h3>
+     <p>The <b>adl_import</b> command allows the transfer of objects' changes 
+     between two workspaces. </p>
+     <ul>
+       <li><b><a href="#Synopsis">Synopsis</a></b></li>
+       <li><b><a href="#Usage">Usage</a></b></li>
+       <li><b><a href="#Naming">Naming Rules</a></b></li>
+       <li><b><a href="#Options">Options</a></b></li>
+       <li><b><a href="#Examples">Examples</a></b></li>
+       <li><b><a href="#References">References</a></b></li>
+     </ul>
+     </td>
+   </tr>
+ </table>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Synopsis"></a>Synopsis</h3>
+ <b>
+ <p>adl_import</b> object... [<b>-from </b>origin_ws_rev] [<b>-tree </b>
+ local_tree] [<b>-all_chg |</b> {<b>-chg </b>chg...}] [<b>-unco</b>] [<b>-import_proj 
+ | -import_merge</b>] [<b>-simul </b>[<b>-simul_dir </b>temp_dir]] [<b>-h</b>|<b>-help</b>|<b>-?</b>]
+ <a href="#Un">(1)</a> <br>
+ <b>adl_import</b> object... {<b>-origin_path</b> | <b>-op</b>} <b>-from</b> 
+ origin_ws_rev &lt;...&gt; <a href="#Deux">(2)</a> <br>
+ <b>adl_import</b> <b>-file</b> file_name <b>-from</b> origin_ws_rev &lt;...&gt;
+ <a href="#Quatre">(3)</a> <br>
+ <b>adl_import</b> <b>-cs</b> change_set... &lt;...&gt; <a href="#Quatre">(4)</a> </p>
+ <h3><a NAME="Usage"></a>Usage</h3>
+ <p>This command allows the transfer of objects' changes (on components, 
+ directories, files) between two workspaces. Note that importing a change means 
+ doing it again inside the target workspace and not moving it (the changes 
+ remains valid in the origin workspace). <br>
+ To import a whole workspace or several framework, you can run the [<a href="#References">6</a>] 
+ adl_import_ws command.&nbsp; <br>
+ You can launch this command in a graphic mode; see the [<a href="#References">4</a>] 
+ adl_gui command. To known the state of your workspace run the [<a href="#References">5</a>] 
+ adl_ds_ws command. </p>
+ <p>Here are presented three most frequent uses: </p>
+ <ul>
+   <li><b>Import from the absolute path of an object, in the origin workspace 
+   image</b> (automatic search of the image and of the workspace, no need to 
+   mention them)</li>
+ </ul>
+ <u>
+ <p>Example:</u> adl_import &lt;origin_image&gt;/Fw1/Mod1.m/src/file1.cpp <br>
+ <u>Explanation:</u> being in a given workspace, you can import a file seen in 
+ an image of another workspace, as soon as this image can be accessible on the 
+ local network. </p>
+ <ul>
+   <li><b>Import from the path of a current image object and a version of the 
+   origin workspace</b></li>
+ </ul>
+ <u>
+ <p>Example:</u> adl_import &lt;current_working_image&gt;/Fw1/Mod1.m/src/file1.cpp 
+ -from xxx <br>
+ or:&nbsp; cd &lt;current_working_image&gt;/Fw1/Mod1.m/src then adl_import file1.cpp 
+ -from xxx <br>
+ <u>Explanation: </u>you give the name of a file being in the arrival workspace, 
+ and you want to import a version of this file, as it was in the given version 
+ of the origin workspace. </p>
+ <ul>
+   <li><b>Import a change set</b></li>
+ </ul>
+ <u>
+ <p>Example:</u> adl_import -cs ChangeSet1<br>
+ <u>Explanation:</u> no origin workspace is needed. You give the name or 
+ identifier of one or several change set(s). Theses change sets contain somes 
+ changes in several workspace trees. The command try to import all of theses 
+ changes of all workspace trees in the destination workspace. If the related 
+ software objects are not in the destination workspace,&nbsp; the command fails. 
+ You have to import the software objects before.</p>
+ <p>&nbsp;</p>
+ <p><b>Workspace xxx revision</b> <br>
+ In the previous examples, xxx represents a revision of the origin workspace of 
+ the import. <br>
+ In all the SCM commands accepting a workspace revision, the allowed syntaxes 
+ for specifying a revision are:&nbsp; 
+ espace[.arborescence[.{numéro|label|last}]] </p>
+ <p>For the &quot;chg&quot; option, the specified changes can be the followings: </p>
+ <ul>
+   <li>del&nbsp; Creation/deletion</li>
+   <li>move&nbsp; Move</li>
+   <li>content Change of content (file element only)</li>
+   <li>exec&nbsp; Change of executable for Unix (file element only)</li>
+   <li>descr&nbsp; Change of description</li>
+ </ul>
+ <b><u>
+ <p>If you use the -from option</u> </b><br>
+ The changes to import are read in the revision &lt;origin_ws_rev&gt; of the origin 
+ workspace. <br>
+ <a NAME="Un"></a>&nbsp; (1) The SCM object must be one of your current image.
+ <br>
+ <a NAME="Deux"></a>&nbsp; (2) The SCM object must be a relative path 
+ (&quot;Fw1/Mod1.m/src/f1.cpp&quot;) or an identifier (&quot;soid:xxx&quot;) to find in the origin 
+ workspace revision. <br>
+ <a NAME="Trois"></a>&nbsp; (3) The file must contain relative paths or 
+ identifiers to find in the origin workspace revision. </p>
+ <p><b><u>If you don't use the -from option</u></b> </p>
+ <p>Specify the SCM object you want to import as a path in the origin 
+ workspace's image. <br>
+ The changes to import are read in the workspace revision which is projected in 
+ this image. <br>
+ <a NAME="Quatre"></a>&nbsp; (4) The change sets can be names or identifiers 
+ prefixed by &quot;csid:&quot;.</p>
+ <p><b><u>NOTICE:</u></b> </p>
+ <ul>
+   <li>If the object is a component or a directory, no contained object will be 
+   considered by the command.</li>
+   <li>If the SCM object can be imported into several current workspace's trees, 
+   you must specify one with the option -tree.</li>
+   <li>If the SCM object would be (seen as) deleted (for example by importing a 
+   move into a deleted folder)</li>
+   <li>The command fails if any contained element is checked-out in the current 
+   image, if you don't use the option -unco.</li>
+   <li>The command fails if any contained element is checked-out in another 
+   image of the current workspace.</li>
+ </ul>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Naming"></a>Naming Rules</h3>
+ <p>Here are some samples of specifying a workspace revision: </p>
+ <table BORDER="1" WIDTH="100%">
+   <tr>
+     <td WIDTH="33%" BGCOLOR="#808080">Syntax</td>
+     <td WIDTH="33%" BGCOLOR="#808080">Meaning</td>
+     <td WIDTH="34%" BGCOLOR="#808080">Example</td>
+   </tr>
+   <tr>
+     <td WIDTH="33%">workspace</td>
+     <td WIDTH="33%">All the published revisions (last one in each tree)&nbsp;</td>
+     <td WIDTH="34%">Mechrel6</td>
+   </tr>
+   <tr>
+     <td WIDTH="33%">workspace.tree</td>
+     <td WIDTH="33%">The <b>last published</b> revision in this tree&nbsp;</td>
+     <td WIDTH="34%">Mechrel6.DRWCXR6</td>
+   </tr>
+   <tr>
+     <td WIDTH="33%">workspace.tree.number</td>
+     <td WIDTH="33%">The revision <b>number</b> n (150)&nbsp;</td>
+     <td WIDTH="34%">Mechrel6.DRWCXR6.150</td>
+   </tr>
+   <tr>
+     <td WIDTH="33%">workspace.tree.label</td>
+     <td WIDTH="33%"><b>The last revision that was published </b>with the label 
+     &quot;label&quot; (public)&nbsp;</td>
+     <td WIDTH="34%">Mechrel6.DRWCXR6.public</td>
+   </tr>
+   <tr>
+     <td WIDTH="33%">workspace.tree.last</td>
+     <td WIDTH="33%"><b>The last</b> workspace revision (possibly in work)</td>
+     <td WIDTH="34%">Mechrel6.DRWCXR6.last</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Options"></a>Options</h3>
+ <p>adl_import accepts the following options: </p>
+ <table>
+   <tr>
+     <td VALIGN="TOP" WIDTH="20%"><tt>-h|-help|-?</tt></td>
+     <td>Help of the command</td>
+   </tr>
+   <tr>
+     <td><tt>object ...</tt></td>
+     <td>Path(es) of the SCM object(s) whose changes are to import, or 
+     identifier(s) prefixed by &quot;soid:&quot;.</td>
+   </tr>
+   <tr>
+     <td><tt>-from origin_ws_rev</tt></td>
+     <td>Origin workspace revision, with the format 
+     &quot;ws[.tree[.{number|label|last}]&quot;.</td>
+   </tr>
+   <tr>
+     <td><tt>-tree ws_tree_name</tt></td>
+     <td>Name of the workspace tree in which import the changes.</td>
+   </tr>
+   <tr>
+     <td><tt>-all_chg</tt></td>
+     <td>All the changes</td>
+   </tr>
+   <tr>
+     <td><tt>-chg chg</tt></td>
+     <td>Only the specified changes</td>
+   </tr>
+   <tr>
+     <td><tt>-unco</tt></td>
+     <td>Uncheck-out contained elements in the current image</td>
+   </tr>
+   <tr>
+     <td><tt>-import_proj</tt></td>
+     <td>Import only the projectable changes from the origin workspace.</td>
+   </tr>
+   <tr>
+     <td><tt>-import_merge</tt></td>
+     <td>Import all the changes even if merges have to be solved in the origin 
+     workspace.</td>
+   </tr>
+   <tr>
+     <td><tt>-simul</tt></td>
+     <td>To simulate the import.</td>
+   </tr>
+   <tr>
+     <td><tt>-simul_dir temp_dir</tt></td>
+     <td>Temporary directory path in which project the files for simulation.</td>
+   </tr>
+   <tr>
+     <td><tt>-origin_path</tt></td>
+     <td>The object is a relative path to find in the origin workspace revision.</td>
+   </tr>
+   <tr>
+     <td><tt>-op</tt></td>
+     <td>The object is a relative path to find in the origin workspace revision.</td>
+   </tr>
+   <tr>
+     <td><tt>-file file_name</tt></td>
+     <td>&nbsp;File containing relative paths or identifiers to find in the origin 
+     workspace revision.</td>
+   </tr>
+   <tr>
+     <td><font face="Courier New">-cs</font></td>
+     <td>&nbsp;Import all the changes of the change set list.</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="Examples"></a>Examples</h3>
+ <b>
+ <p>Import</b> all the changes of FileName.txt from the revision projected in 
+ the origin image: </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import </b>&lt;origin_ws_image_dir&gt;/MyFw/FileName.txt</pre>
+     </td>
+   </tr>
+ </table>
+ <p>&nbsp;</p>
+ <p><b>Import</b> all the changes of FileName.txt from the PUBLIC revision of 
+ &lt;origin_ws&gt;:&nbsp;&nbsp; </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import </b>&lt;MyWsImageDir&gt;/MyFw/FileName.txt -from &lt;origin_ws</pre>
+     </td>
+   </tr>
+ </table>
+ <p>&nbsp;</p>
+ <p><b>Import</b> a ditto of FileName.txt: </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import </b>MyFw/FileName.txt -origin_path|-op -from &lt;origin_ws&gt;</pre>
+     </td>
+   </tr>
+ </table>
+ <p>&nbsp;</p>
+ <p><b>Import</b> a file &quot;MyFile.c&quot; from a non existing workspace &quot;AnotherWs&quot;:&nbsp;&nbsp;
+ </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import </b>MyFw/MyFile.c -from AnotherWs
+Looking for the workspace &quot;AnotherWs&quot;
+#ERR# ADLCMD - 0421: No workspace &quot;AnotherWs&quot; found
+Give an origin workspace revision with the format &quot;ws[.tree[.{number|label|last}]&quot;.
+
+##### THE COMMAND ENTIRELY OR PARTIALLY FAILED #####</pre>
+     </td>
+   </tr>
+ </table>
+ <p>&nbsp;</p>
+ <p><b>Import</b> a non existing file &quot;MyWrongFile.c&quot;: </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import </b>MyFw/MyWrongFile.c
+Verifying the path &quot;MyWrongFile.c&quot;.
+#ERR# ADLCMD - 7625: The path &quot;MyWrongFile.c&quot; belongs to the current image &quot;image_MyWsDev&quot;.
+If you don't use the option -from, the path must be found in the origin workspace's image.
+
+##### THE COMMAND ENTIRELY OR PARTIALLY FAILED #####</pre>
+     </td>
+   </tr>
+ </table>
+ <p><b>Import</b> change sets &quot;MyChangeSet1&quot; and &quot;MyChangeSet2&quot;: </p>
+ <table class="code">
+   <tr>
+     <td>
+     <pre>adl_ch_ws MyWsDev
+<b>adl_import <span style="font-weight: 400">-cs MyChangeSet1 MyChangeSet2</span></b></pre>
+     </td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <hr>
+ <!---------------------------------comment------------------------------------->
+ <h3><a NAME="References"></a>References</h3>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP">[4] <br>
+     [5] <br>
+     [6]</td>
+     <td><a href="CAAWsmImportGUI.htm">adl_gui: Graphic import tool</a> <br>
+     <a href="CAAWsmDsWs.htm">adl_ds_ws: Displaying workspace state</a> <br>
+     <a href="CAAWsmImportWs.htm">adl_import_ws: import a whole workspace</a></td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <hr>
+ <h3><a NAME="History"></a>History</h3>
+ <table WIDTH="100%">
+   <tr>
+     <td VALIGN="TOP">Version: <b>2</b> Dec 2001]</td>
+     <td VALIGN="TOP">Document updated</td>
+   </tr>
+   <tr>
+     <td VALIGN="TOP">Version: <b>1</b> [Mar 2001]</td>
+     <td VALIGN="TOP">Document created</td>
+   </tr>
+ </table>
+ <p align="right">[<a href="#Top">Top</a>]</p>
+ <!---------------------------------comment------------------------------------->
+ <hr>
+ <p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i> </p>
+
+ </body>
+
+</html>

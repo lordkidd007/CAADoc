@@ -1,0 +1,876 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Attributes</title>
+<style type="text/css">
+.style1 {
+	border-style: solid;
+	border-width: 1px;
+}
+.style2 {
+	border-width: 1px;
+}
+</style>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Attributes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>First this article presents PLM Attributes from the PLM dictionary 
+      point of view. This part is interesting for the PLM application's 
+      developer, as for people in charge to customize PLM Modelers [<a href="#References">1</a>]. 
+      Indeed, it contains explanations strong useful to understand some 
+      behaviors of the PLM customization. The second section shows PLM 
+      Attributes when it is a part of a PLM Object, a PLM entity stored in  
+      database. Finally, we finish with an introduction to the concept of &quot;PLM Mask&quot;. </p>
+      <ul>
+        <li><a href="#PLM Dictionary View">PLM Dictionary View</a><ul>
+        <li><a href="#naming">Naming</a></li>
+        <li><a href="#Type and Default Value">Value Type and Default Value</a></li>
+        <li><a href="#Mandatory or Optional">Mandatory or Optional Quality</a></li>
+        <li><a href="#Identifier Set">Identifier Set</a></li>
+        <li><a href="#Context Key">Context Key</a></li>
+        <li><a href="#Public and Private">Free, User, External, ExternalRO, or 
+        Public View</a></li>
+        <li><a href="#3D XML">3D XML</a></li>
+        <li><a href="#Editability">Editability</a></li>
+        <li><a href="#Retrieving PLM Attribute Information">Retrieving PLM Attribute Information
+        </a></li>
+        <li><a href="#Special Cases">Special Cases</a></li>
+      </ul>
+        </li>
+        <li><a href="#PLM Object View">PLM Object View</a><ul>
+        <li><a href="#PLM Object Creation">Creating PLM Object</a></li>
+        <li><a href="#Retrieving Public PLM Attribute value and Information">Retrieving PLM Attribute 
+        Value 
+        and Information</a></li>
+      </ul>
+        </li>
+        <li><a href="#PLM Mask View">PLM Mask</a><ul>
+        <li><a href="#PLM Mask Principles">Principles (Introduction)</a></li>
+        <li><a href="#Use by UI Application">To be Used by UI Application</a></li>
+        <li><a href="#User PLM Attribute">User PLM Attribute</a></li>
+      </ul>
+        </li>
+        <li><a href="#BasicAttrRename">Some Basic Attributes Renaming</a></li>
+        <li><a href="#InShort">In Short</a></li>
+        <li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="PLM Dictionary View"></a>PLM Dictionary View</h2>
+<p>The purpose of this section is to present you the PLM attributes as defined 
+in metadatas, ie all files that make up the PLM Dictionary. We recommend that our readers 
+should read in advance the article : Understanding PLM Dictionary 
+[<a href="#References">2</a>]. Nevertheless, we can recall here the key information necessary to this article.</p>
+<p>PLM Attributes build, with behaviors and relationships, an entity that we call a PLM Class. Any object 
+of the database (called the PLM Object) are instances of these PLM Classes. 
+PLM Class can be based on another PLM Class (mechanism known as PLM class enrichment)</p>
+<table border="0" id="table7">
+  <caption align="center"><a name="Fig.1">Fig.1</a> PLM Class Enriching</caption>
+  <tr>
+    <td>
+    <img border="0" src="images/CAAPLMAllAttributes_intro.gif"></td>
+
+  </tr>
+</table>
+<p>The enrichment consists in to create a new PLM class which automatically takes 
+benefit of the PLM attributes (at least) of the base class. The new PLM Class can add (or 
+not) its own PLM Attributes. On [<a href="#Fig.1">Fig.1</a>], <code>PLM Attributes 1</code>, 
+<code>PLM Attributes 2</code>, and <code>PLM Attributes 3</code> come from the 
+base class, and <code>PLM attributes 4 </code>is own to the new class.</p>
+<p>A PLM attribute is specified by:</p>
+<ul>
+	<li>Its <a href="#naming">name</a></li>
+	<li>Its value <a href="#Type and Default Value">type</a> (Integer, ...).</li>
+    <li>A set of <a href="#Public and Private">accessibility</a> flag (protection, 3D XML ...)</li>
+    <li>Whether it can be read and modified,&nbsp; that's <a href="#Editability">
+    editability</a></li>
+    <li>Whether it's<a href="#Mandatory or Optional"> <i>mandatory </i>or<i> optional</i></a></li>
+    <li>Whether it belongs to the<a href="#Identifier Set"> <i>identifier set</i></a></li>
+</ul>
+<p>Have a look to these different aspects.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="naming"></a>Naming</h3>
+<p>PLM attributes have an <b>internal name</b>:</p>
+<ul>
+  <li>The scope of the internal name for its uniqueness is the PLM Class (and its 
+  hierarchy)</li>
+  <li>There is a limited size for the internal name (name of the PLM Class + 
+  name of the attribute &lt;= 119)</li>
+  <li>The only one authorized characters are : ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789.-: ()");
+  </li>
+  <li>About the attribute's naming, for an attribute defined for a PLM customization, 
+the rule's naming is to begin with E_. </li>
+</ul>
+<p>PLM Attributes can have <b>NLS</b> name too. The PLM dictionary does not 
+contain NLS names, NLS information are captured in resource files.&nbsp; It 
+is strongly recommended to give a NLS name for each custo PLM attributes (otherwise 
+you will have no NLS name), you can also redefine a NLS name for inhered PLM 
+attributes. It is not really recommended, but possible.</p>
+<p>It means that the NLS name of a PLM attribute is the first one found in its 
+PLM Class hierarchy. Taken [<a href="#Fig.1">Fig.1</a>], imagine for PLM Class Y 
+a NLS name for <code>PLM Attribute4</code> and <code>PLM Attribute3. </code>The 
+NLS name of <code>PLM Attribute4</code> and <code>PLM Attribute3</code> will be 
+those of PLM Class Y, whereas the NLS Name of <code>PLM Attribute2 </code>&nbsp;will 
+be the one defined by the NLS file associated with PLM class X, or a upper level. </p>
+<p>Here is an extract of <i>PLMProductDS.CATNls </i>file, <code>PLMProductDS</code> 
+being a PLM Customization of the <code>PRODUCT</code> Modeler:</p>
+   
+       <pre class="code"> ...
+ PRODUCT.PLMCoreReference.V_BOM="BOM";
+ PRODUCT.PLMCoreReference.PLM_ExternalID="Part Number"; 
+ ...
+</pre>
+      
+   <p><code>V_BOM </code>is a PLM Attribute added by the customization (only 
+   available on the leaf), and
+   <code>PLM_ExternalID</code> is a Core attribute. </p>
+   <p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Type and Default Value"></a>Value Type and Default Value&nbsp; </h3>
+<p>PLM Dictionary proposes <b>several kind of type </b>for PLM Attribute's value. The table 
+just below lists the possibilities. This table gives also the <b>default value</b> 
+of each type when no default value are defined in the metadata:</p>
+<table border="1" id="table9">
+  <caption><a name="Tab.1">Tab.1</a> Type &amp; Default Value</caption>
+  <tr>
+    <th>Type</th>
+    <th>Default Value inside Metadata</th>
+    <th style="text-align: center">Default value <br> if no Default value in metadata</th>
+  </tr>
+  <tr>
+    <td>Integer</td>
+    <td align="left">Yes, an integer value</td>
+    <td align="center">0</td>
+  </tr>
+  <tr>
+    <td>Double</td>
+    <td align="left">Yes, a float value</td>
+    <td align="center">0.0</td>
+  </tr>
+  <tr>
+    <td>String</td>
+    <td align="left">Yes, a string value</td>
+    <td align="center">empty string</td>
+  </tr>
+  <tr>
+    <td>Boolean</td>
+    <td align="left">Yes, a boolean value</td>
+    <td align="center">TRUE</td>
+  </tr>
+  <tr>
+    <td>Date</td>
+    <td align="left">Yes, a date</td>
+    <td align="center">empty string</td>
+  </tr>
+  <tr>
+    <td>Enumerate type</td>
+    <td align="left">Yes, one element among the possible value defined in the 
+    metadata</td>
+    <td align="center">none</td>
+  </tr>
+  <tr>
+    <td>List (of 7 other types)</td>
+    <td align="left">no</td>
+    <td align="center">none</td>
+  </tr>
+  <tr>
+    <td>Set (of 7 other types)</td>
+    <td align="left">no</td>
+    <td align="center">none</td>
+  </tr>
+</table>
+<p>The first six types are 'simple' types, the last three are 'multi-valuated' 
+types.</p>
+<p><b>About Enumerate Type</b></p>
+<ul>
+  <li>The PLM Attribute definition contains the possible values, the list is not customizable by 
+API. </li>
+  <li>For enumerate type, there is no default value defined by the 
+  system. </li>
+  </ul>
+<p><b>About List , Set&nbsp; </b></p>
+<ul>
+  <li>A list is ordered, and can contain several times the same occurrences : [1,4,3,1,4,4]</li>
+  <li>A Set is non ordered, and cannot contain several times the same occurrences : {&quot;Titi&quot;,&quot;Toto&quot;,&quot;Tata&quot;}. The 
+  server does not guarantee the order:The list can be move up in session one 
+  time {&quot;Titi&quot;,&quot;Toto&quot;,&quot;Tata&quot;}, and another time {{&quot;Titi&quot;,&quot;Tata&quot;,&quot;Toto&quot;}</li>
+  <li>List and Set are homogeneous (same kind of element inside)</li>
+  <li>For list and Set there is no default value defined by the 
+  system. </li>
+  <li>List and Set types are the only types where default value cannot be defined in 
+  metadata.</li>
+</ul>
+<p><b>About String</b></p>
+<ul>
+  <li>For each string, there is a predefined maximum length. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Mandatory or Optional"></a>Mandatory or Optional Quality</h3>
+<p>If a PLM Class has a <b>mandatory</b> PLM attribute, then this attribute must 
+always have a value in every PLM Object created from this PLM class. The verification 
+of the mandatory PLM attributes is done at <b>save-time</b>. Newly created PLM Objects are prevented from being saved if one of its mandatory PLM attributes is without a 
+value.</p>
+<p>For some reasons, none detailled here, the PLM attribute type for a mandatory 
+attribute can only be the <b>string</b> type. Save method considers the empty 
+string as a non valuated attribute.</p>
+<p>Likewise, existing PLM components are not allowed to be saved if one of its 
+mandatory attributes has its value set to an empty string.</p>
+<p>Conversely, attributes that are not mandatory are <b>optional</b>: the presence of its value is 
+not required and does not impact PLM Object creation or modification.</p>
+<h4>Icon</h4>
+<p>In DS user interface, a mandatory attribute is indicated by a green light icon
+<img border="0" src="images/CAAPLMAllAttributes_mand.gif" width="22" height="22"> or by a 
+red light icon
+. 
+This depends respectively on whether the attribute has a value (green) or not (red).</p>
+<h4>Change Quality</h4>
+<p>As stated earlier, [<a href="#Fig.1">Fig.1</a>],&nbsp; when a PLM class is 
+enriched, all its PLM attributes are inherited 
+from the parent class and cannot be redefined in the new PLM class. Since the mandatory status is part 
+of the attribute definition, a new PLM class cannot change it: it's not possible 
+to make optional 
+an inherited mandatory attribute (or conversely). As a consequence only the 
+attributes that are specific to the enriched class can be made mandatory.</p>
+<table border="0" id="table1">
+  <caption><a name="Fig.2">Fig.2</a> Inheritence Issue</caption>
+  <tr>
+    <td>
+    <img border="0" src="images/CAAPLMAllAttributes_iinheritence.gif" width="193" height="329"></td>
+  </tr>
+</table>
+<p>[<a href="#Fig.2">Fig.2</a>] shows that an enriched (we can said derived) PLM Class cannot change the quality of an 
+inherited PLM attributes. The new PLM Class can add mandatory or optional 
+attributes. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Identifier Set"></a>Identifier Set</h3>
+<p>The identifier set is the group of attributes which values are used to create 
+a <b>unique index</b> for all the PLM objects of a <b>given PLM class</b>. Throughout this section, <i>
+identifier attributes</i> will designate the set of attributes whereas <i>
+identifier values</i> will refer to the corresponding set of values. The 
+identifier set rule implies that no two PLM objects coming from the same 
+template ( same PLM Class) can share the same identifier 
+values. Each PLM object must have their identifier values differ on at least one 
+value.</p>
+<p>Just like the <a href="#Mandatory or Optional">mandatory</a> attribute, the identifier set 
+verification is done when a PLM object is saved and not during the session. A 
+newly created PLM object will not be saved if its identifier values are 
+identical to an existing PLM object 's. Similarly, an existing PLM object cannot have its identifier values modified 
+in database if the result matches another 
+PLM object 's.</p>
+<p>Let's take for example a PLM Class:</p>
+<table border="0" id="table2">
+  <caption>Fig.3 A PLM Class with an Identifier Set</caption>
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_idset_class.png"></td>
+  </tr>
+</table>
+<p>This PLM class has defined an identifier set with two of its 
+attributes: A and C.</p>
+<p>Now consider, two instances of this PLM Class:</p>
+<table border="0" id="table3">
+  <caption><a name="Fig.4">Fig.4</a> - Valid PLM Objects
+  </caption>
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_idset_inst1.png"></td>
+  </tr>
+</table>
+<p>These two PLM Objects of [<a href="#Fig.4">Fig.4</a>] are allowed to be saved because their identifier 
+values: {&quot;aaaa&quot;, &quot;cccc&quot;} and {&quot;xxxx&quot;, &quot;cccc&quot;} are different and do not match any 
+existing one's.</p>
+<table border="0" id="table4">
+  <caption><a name="Fig.5">Fig.5</a> - Forbidden PLM Objects, because of identifier values</caption>
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_idset_inst2.png"></td>
+  </tr>
+</table>
+<p>However, it would be impossible to save PLM Object 3 and 4 as shown in [<a href="#Fig.5">Fig.5</a>] 
+since their identifier values {&quot;aaaa&quot;, &quot;cccc&quot;} and {&quot;xxxx&quot;, &quot;cccc&quot;} match component 1's and 
+2's respectively.</p>
+<h4>Identifier Set for same PLM Class</h4>
+<p>The identifier set rule only applies to PLM Objects of the same PLM class. 
+PLM Objects of different PLM classes can share the same identifier values.</p>
+<p>Have a look to an example.</p>
+<table border="0" id="table5">
+ <caption>Fig.6 - Two PLM classes sharing the same identifier set
+</caption>
+
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_idset_class_ex.png"></td>
+  </tr>
+</table>
+<p>In the above figure, <code>PLM class X </code>and <code>PLM class Y </code>have 
+the same identifier attributes consisting of attributes A and C. </p>
+<table border="0" id="table6">
+  <caption><a name="Fig.7">Fig.7</a> - PLM Objects of different PLM Classes sharing the same identifier attributes</caption>
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_idset_inst_ex.png"></td>
+  </tr>
+</table>
+<p align="left"><code>PLM Object X1</code> and <code>PLM Object Y1</code> of [<a href="#Fig.7">Fig.7</a>] are allowed to share the same 
+identifier values {&quot;aaaa&quot;, &quot;cccc&quot;} because they are of different 
+PLM classes. </p>
+<p align="left">One concrete case : <code>PLMProductDS</code> class (PLM 
+Product Reference customization)&nbsp; and <code>PLMRepresentationDS</code> (PLM Product Representation 
+Reference customization) class share the same identifier set attributes (PLM_ExternalID, 
+V_version), nevertheless an instance of the <code>PLMProductDS</code> class can have the same identifier values as an 
+instance of the <code>PLMRepresentationDS</code> class.</p>
+<h4>Icon</h4>
+<p>Attributes that are part of the identifier set are flagged by a star icon 
+<img border="0" src="images/CAAPLMAllAttributes_idset.gif" width="16" height="16"> in 
+	DS user interface.</p>
+<h4>Identifier Set for which PLM Class?</h4>
+<p>The primary intention of the identifier set is to speed up queries made by APIs 
+(the <code>CATAdpQueryServices</code> class for example). This is why all PLM Reference classes and 
+PLM Representation Reference classes are required to have an identifier set.</p>
+<p>Moreover, defining an identifier set has a sense only for <b>instantiable</b> 
+(concrete) PLM Class.&nbsp; </p>
+<p>When you define an identifier set for a PLM class, you can use PLM Attributes 
+coming from the customized class or from the base PLM Class. Conversely to the 
+mandatory/optional quality, identifier set quality is not associated with the 
+attribute itself. </p>
+<p>One concrete case: The identifier set for&nbsp; <code>PLMProductDS</code> class (PLM 
+Product Reference customization) is made of of two PLM Attributes (PLM_ExternalID, 
+V_version), both defined on the PLM Class defining the PLM Core Reference entity 
+[<a href="#References">3</a>].</p>
+<h4>Restrictions</h4>
+<p>Here are the restrictions on identifier set attributes:</p>
+<ul>
+	<li>At least one of the attributes must be of the string type.</li>
+    <li>Only simple PLM attributes can be part identifier set&nbsp; (integer, 
+    string, float, boolean, date). </li>
+	<li>All the attributes must have the &quot;Free&quot; protection.&nbsp; (see 
+    next chapter, <a href="#Public and Private">User, Free, External, ExternalRO, or 
+        Public View </a>)</li>
+    <li>All the attributes must be part of the 3D XML specification. (see
+    <a href="#3D XML">3D XML </a>chapter )</li>
+    <li>if the PLM Class is versionable, the <code>V_version</code> attribute must be part of the identifier set.</li>
+    <li>it generally only contains <code>PLM_ExternalID</code> and <code>V_version</code> 
+    , but some exceptions can exist. Check the modeler PLM Package within the 
+    PLM Dictionary Reference.</li>
+</ul>
+<h4>Recommendations</h4>
+<p>If the identifier attributes are not mandatory by definition, they are still 
+required in practice. Let's take for example a PLM class with no identifier attributes 
+as mandatory. The first object can be created without any identifier 
+value but not the subsequent ones. At least one identifier value must be specified 
+on the second PLM Object to differentiate it from the first one, and so on.</p>
+<p>Even if it is not mandatory that PLM_ExternalID be part of the identifier 
+set, in practice, it is strongly recommended. </p>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Context Key"></a>Context Key</h3>
+<p>The context key is a PLM Attribute that can be used to uniquely identify a PLM Connection among all PLM Connections of a PLM Reference. It can also be used to uniquely identify a PLM Port among all PLM Ports of a PLM Reference. 
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Public and Private"></a>User, Free, External, ExternalRO, or 
+        Public View</h3>
+<p>A &quot;protection&quot; flag is associated with each PLM attribute. This flag specifies 
+the accessibility level: who can or cannot use the PLM Attribute. There are two 
+kinds of flag:</p>
+<ul>
+  <li><b>private</b> : The PLM atttribute whose the tag is private is <b>useless</b> 
+  for an application based on PLM modelers,</li>
+  <li><b>public</b>: The PLM atttribute whose the tag is public is <b>useful</b> 
+  for an application based on PLM modelers.</li>
+</ul>
+<p>So since only public flags are useful for you, we only focused on them. </p>
+<p>There are four kinds of public attributes:</p>
+<ul>
+  <li><a href="#ExternalRO PLM Attributes">ExternalRO</a> PLM Attributes</li>
+  <li><a href="#External PLM Attributes">External</a> PLM Attributes</li>
+  <li><a href="#Free PLM Attributes">Free</a> PLM Attributes</li>
+  <li><a href="#User  PLM Attributes">User</a> PLM Attributes</li>
+</ul>
+<p>Note that when a PLM Modeler Class is customized, only Free or User PLM attributes can 
+be added.</p>
+<h4><a name="ExternalRO PLM Attributes"></a>ExternalRO PLM Attributes</h4>
+<p>These kind of PLM Attributes are always accessible client side, but they can 
+never be modified client side. There are always modified by the server. Some 
+examples:</p>
+<ul>
+  <li>date of creation,</li>
+  <li>date of last modification,</li>
+  <li>maturity flag.</li>
+</ul>
+<h4><a name="External PLM Attributes"></a>External PLM Attributes</h4>
+<p>An external PLM attribute is always accessible client side, but it is not 
+completely read-write client side. Only specific API can change its value. If 
+you use the generic API, see&nbsp;
+<a href="#Retrieving Public PLM Attribute value and Information">Retrieving PLM Attribute 
+Value and Information</a> section, you cannot modify it. Some examples:</p>
+<ul>
+  <li>V_discipline,</li>
+  <li>V_user,</li>
+  <li>...</li>
+</ul>
+<p>These PLM Attributes are changed as the result of an operation requested by 
+the client.&nbsp; (most of them are not CAA opened). </p>
+<p>Remark : maturity flag can be by C++ API modifiable, but nevertheless the 
+value is modified server side: change the maturity of a PLM object cannot be 
+done if the PLM object is in session. It is really an &quot;ExternalRO&quot; attribute.</p>
+<h4><a name="Free PLM Attributes"></a>Free PLM Attributes</h4>
+<p>A free PLM attribute is the most open kind of PLM Attributes: always client 
+side accessible, and always readable and writable with generic API. Some 
+examples:</p>
+<ul>
+  <li>PLM_ExternalID,</li>
+  <li>V_ApplicabilityDate,</li>
+  <li>V_version (it is generally server side modified, but it is free to able 
+  you to create business logic (use client side) to valuate it. </li>
+</ul>
+<h4><a name="User  PLM Attributes"></a>User PLM Attributes</h4>
+<p>Such PLM attributes are called 'user' because they are not necessary for the&nbsp;PLM Modeler management, so they are 
+  valuated by the end user. But it is not the main characteristic of the user PLM 
+Attribute. The main one it that it can be <b>present or not client side</b>.</p>
+ 
+  <p>A user PLM Attribute is client side transferred only if inside the<b> security context</b> associated 
+  with the connected people, the PLM Class 
+  containing the PLM attribute has at least one mask (PLM Mask) requiring this 
+  attribute. Made a leap in the final chapter, <a href="#PLM Mask View">PLM Mask</a>, you 
+  will have a better idea of PLM mask and their involvement on the user attribute.</p>
+ 
+<p>Attention, since such PLM attributes are not always necessarily client side 
+transferred, it is strongly not to base an application on user attributes. Do not 
+use them in Business logic [<a href="#References">5</a>] code too.</p>
+<p>You create a such PLM attribute when you want control the PLM attribute 
+accessibility: only the authorized people, through PLM mask definition, can 
+handle them. Most PLM attributes added by the PLM customization are &quot;user&quot;, see
+<code>PLMProductDS</code> example, but it is not mandatory, they can be &quot;free&quot;.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="3D XML"></a>3D XML </h3>
+<p>All the public PLM Attributes can be saved in 3D XML file. It is &quot;can be&quot; and 
+not &quot;are&quot; because 3D XML saving is not automatic. 3D XML files being open files, for IP protection reasons, 
+the modeler and customization designers, can decide to hide some PLM Attributes. 
+So there is a flag, &quot;3D XML availability&quot;, specifying if the public PLM 
+attribute is savable or not in 3DXML.</p>
+<p>For user PLM Attributes, the PLM Attribute will be saved only if the PLM 
+Attribute is present on client side. </p>
+<p>As mandatory/optional option, the 3D XML flag cannot be changed for an inherited PLM Attribute. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Editability"></a>Editability</h3>
+<p>As usual, a PLM Attribute can be read-only or read-write. But conversely to 
+other parameters defining a PLM attribute, this one is not customizable.&nbsp; 
+The protection flag defines the editability state. The table gives the complete 
+situation for the public PLM Attributes :</p>
+<table border="1" id="table12">
+  <caption>Tab.2 Editability</caption>
+  <tr>
+    <th>Protection flag</th>
+    <th>&nbsp;Read-Write </th>
+  </tr>
+  <tr>
+    <td><b>ExternalRO</b></td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><b>External</b></td>
+    <td>No (only by specific method)</td>
+  </tr>
+  <tr>
+    <td><b>Free</b></td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td><b>User</b></td>
+    <td>Yes</td>
+  </tr>
+</table>
+<p>The state Yes/No is the state returned by generic API to access&nbsp; the PLM object 
+attributes.&nbsp; It will be developed in a next section,
+<a href="#Retrieving Public PLM Attribute value and Information">Retrieving PLM Attribute 
+Value and Information</a>.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+
+<h3><a name="Retrieving PLM Attribute Information"></a>Retrieving PLM Attribute Information</h3>
+<p>The Public view of the PLM dictionary, the view described earliest, is 
+accessible through knowledge API. </p>
+<p>According to the kind of type, accessing PLM Attribute information is different:</p>
+	<ul>
+		<li>The type is a custo type , you must use&nbsp; CATCkePLMNavCustoAccessPublicServices::ListAttributesFromCustoType&nbsp; </li>
+		<li>otherwise : you must use&nbsp; CATCkePLMNavPublicServices::ListAttributesFromType 
+		or CATCkePLMNavPublicServices::FindAttributeFromType </li>
+	</ul>
+	<p><em>CATCkePLMNavPublicServices</em> and <em>CATCkePLMNavCustoAccessPublicServices</em> 
+are two classes of the PLMDictionaryNavServices framework.</p>
+<p>From each PLM Attribute, you have the <i>CATAttributeInfos </i>class to get 
+PLM dictionary information&nbsp; (name, string max value, value type, default 
+value, editability,.....). 
+The only things that you cannot get are accessibility flags (protection and 3DXML).</p>
+<p>You 
+will find more details in the technical article &quot;Accessing PLM Attributes&quot; [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Special Cases"></a>Special Cases</h3>
+<p>To close the PLM Dictionary view, we should list some special cases:</p>
+<ul>
+  <li>Each PLM class contains two PLM Attributes, LOCKUSER and LOCKSTATUS, which 
+  are not defined within the PLM 
+  Dictionary (created at run-time view)</li>
+  <li>V_version is a free attribute, but its valuation is done by the server. 
+  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="PLM Object View"></a>PLM Object View</h2>
+<p>In this second part we will address the attributes from PLM Object side, in 
+other words from the instantiation point of view. </p>
+<h3><a name="PLM Object Creation"></a>Creating PLM Object</h3>
+<p>A PLM object is created from a PLM class. When the PLM object is 
+created, it therefore gets all PLM Attributes defined on the PLM Class. </p>
+<table border="0" id="table13">
+  <caption><a name="Fig.8">Fig.8</a> Instantiation Principle</caption>
+  <tr>
+    <td>
+    <img border="0" src="images/CAAPLMAllAttributes_instantiation.gif"></td>
+  </tr>
+</table>
+<p>[<a href="#Fig.8">Fig.8</a>] shows that all PLM Attributes defined by the PLM Class are within the PLM Object. 
+Each PLM attribute is valuated through several levels of API:</p>
+<ul>
+  <li>The initial value comes from the PLM dictionary (default value coming either from the metadata, 
+  or by the system [<a href="#Tab.1">Tab.1</a>] )</li>
+  <li>The API of creation (modeler dependant) will valuate, if necessary, public 
+  and read-write PLM Attributes such as:<ul>
+    <li>either from explicit values ( input of API),</li>
+    <li>or using a business logic [<a href="#References">5</a>].</li>
+  </ul>
+  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Retrieving Public PLM Attribute value and Information"></a>Retrieving PLM Attribute 
+Value and Information </h3>
+<p>As previously for the PLM dictionary view, API to retrieve Value and 
+Information on PLM Attribute associated with a PLM object are inside the KnowledgeInterfaces/PLMDictionaryNavServices frameworks. You will get complete information reading the &quot;Accessing PLM Attributes&quot; [<a href="#References">4</a>] 
+article. </p>
+<p><i>CATICkeObject </i>is the interface to retrieve PLM Attribute value. 
+This interface, usually implemented on the component representing the PLM Object 
+in session [<a href="#References">6</a>], is an input of all API of these two services:</p>
+<ul>
+  <li>
+    <i>CATCkeObjectAttrReadServices </i>for Get purpose</li>
+  <li>
+   <i>CATCkeObjectAttrWriteServices </i>for Set purpose</li>
+</ul>
+<p>If the component does not implement <i>CATICkeObject </i>
+
+, specific methods must be exposed by the modeler.</p>
+<p>To retrieve PLM Attribute information (value type, editability,...) from a 
+PLM object in session: </p>
+<ul>
+	<li>From a PLM component (implementing<em> CATICkeObject</em>)</li>
+	<ul>
+		<li>Use CATCkePLMNavPublicServices::ListAttributesFromObject/ 
+		FindAttributeFromObject </li>
+	</ul>
+	<li>From a PLM Identificator (<em>object implementing CATIAdpPLMIdentificator</em>)</li>
+	 <ul>
+		<li>Use&nbsp; CATCkePLMNavPublicServices::ListAttributesFromPLMIdentificator
+		</li>
+	</ul>
+ 
+</ul>
+
+<p><em>CATCkePLMNavPublicServices</em> and <em>CATCkePLMNavCustoAccessPublicServices</em> 
+are two classes of the PLMDictionaryNavServices framework.</p>
+<p>Using the API such as described below you are at the <i><b>modeler</b></i> 
+level: You reach all public PLM Attributes, and you reach information such as 
+described in the metadata. The next chapter shows that you can have an UI and 
+secured level.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="PLM Mask View"></a>PLM Mask</h2>
+<p>In first this chapter outlines the PLM Mask principles, for the full details, you must refer to the article Understanding PLM Mask [<a href="#References">7</a>]. Then 
+it explains in which context it is necessary to use them.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Mask Principles"></a>Principles (Introduction)</h3>
+<p>PLM mask is a UI and securize layer above the PLM dictionary. PLM mask allows 
+you to redefine PLM attribute features:</p>
+<ul>
+  <li>optional/mandatory option,</li>
+  <li>editability,</li>
+  <li>default values,</li>
+  <li>visibility,</li>
+  <li>authorized values (strong constraint) or help values (light constraint).</li>
+</ul>
+<p>These pictures should make it easier to understand the vocabulary and mechanisms:</p>
+<table border="0" id="table14">
+  <caption><a name="Fig.9">Fig.9</a> mask file</caption>
+  <tr>
+    <td>
+    <img border="0" src="images/CAAPLMAllAttributes_mask1.gif"></td>
+  </tr>
+</table>
+<p>First, we start by building a file whose suffix is <b>mask</b>. A mask file is 
+associated with a metadata. It contains for each PLM Class (yellow dashed boxes) 
+of the metadata, the definition of six 'PLM mask' (little boxes): one by UI 
+contexts : (Write/Query/EZquery/Create/Read/Tree). Each of these PLM masks 
+contains information about each PLM attributes of the PLM class: it re-defines 
+the visibility, the optional option, authorized value, .... </p>
+<p>Then, all of these .mask files are "build" to create a file whose suffix is 
+<b>securitymask</b></p>
+<table border="0" id="table15">
+  <caption>Fig.10 secuitymask file</caption>
+  <tr>
+    <td>
+<img border="0" src="images/CAAPLMAllAttributes_mask2.gif"></td>
+  </tr>
+</table>
+<p>There are these securitymask files, there may be several, which are in the runtimeview. 
+We say security mask because it is associated with these files security 
+information. For a people, and a given context can be associated a security mask. So a person in 
+different contexts may have different masked views.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h3><a name="Use by UI Application"></a>To be Used by UI Application</h3>
+<p>These PLM masks must be used in UI context. You make dialog boxes, for query 
+or attribute's edition purpose, your code must be based on this masked and 
+secured view.</p>
+<p>To retrieve PLM Attribute information (value type, editability,...), 
+according your input you have different methods:</p>
+<ul>
+	<li>From a type&nbsp; (implementing CATIType)<ul>
+		<li>A&nbsp; custo type: CATCkePLMNavCustoAccessPublicServices::ListFilteredAttributesFromMaskAndCustoType
+		<li>Otherwise: CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndType
+
+	</ul>
+	<li>From a PLM component ( <em>implementing CATICkeObject</em>)</li>
+	<ul>
+		<li>Use CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndObject</li>
+	</ul>
+	<li>From a PLM Identificator (<em>object implementing CATIAdpPLMIdentificator</em>)</li>
+	 <ul>
+		<li>Use&nbsp; CATCkePLMNavPublicServices::ListFilteredAttributesFromMaskAndPLMIdentificator
+		</li>
+	</ul>
+ 
+</ul>
+<p>
+
+<em>CATCkePLMNavPublicServices</em> and <em>CATCkePLMNavCustoAccessPublicServices</em> 
+are two classes of the PLMDictionaryNavServices framework.</p>
+<p>
+
+For each returned PLM Attribute you can reach its 
+features (default value, mandatory-optional quality, ...). You will get complete information reading the 
+last chapter of&nbsp; &quot;Accessing PLM Attributes&quot; [<a href="#References">4</a>] 
+article. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="User PLM Attribute"></a>User PLM Attribute</h3>
+<p>The main characteristic of an user PLM attribute is to be present or not 
+client side. The client side accessibility is defined by the PLM mask. Go back 
+to [<a href="#Fig.9">Fig.9</a>], consider one PLM Class (yellow 
+grayed box), if an user PLM attribute is declared visible inside at least one 
+of six PLM masks, the PLM attribute will be present on client side.</p>
+<p>We said that the client side accessibility for an user PLM attribute is &quot;mask dependant&quot;. </p>
+<p>About API, if an user PLM attribute is present client side, the PLM attribute will be 
+always accessible through PLM dictionary APIs (<a href="#Retrieving PLM Attribute Information">Retrieving PLM 
+Attribute Information</a>), and through API for PLM Object (<a href="#Retrieving Public PLM Attribute value and Information">Retrieving PLM Attribute 
+Value and Information</a>), but in your UI application use it only if the mask 
+defined it as visible. By opposite, a 'user' PLM attribute which is not present on 
+client side, will be never accessible by any kind of API. </p>
+ 
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="BasicAttrRename"></a>Some Basic Attributes Renaming</h2>
+<p>In the future the following attributes (column 1) will be renamed. To smooth the 
+change, we suggest to use the respective method (column 2)&nbsp; instead the 
+attribute name.</p>
+<table class="style1">
+	<tr>
+		<th class="style2">Attribute Name</th>
+		<th class="style2">Method Name</th>
+	</tr>
+	<tr>
+		<td class="style2">C_created</td>
+		<td class="style2">GetCreationDateAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">C_modified</td>
+		<td class="style2">GetmodificationDateAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">LOCKSTATUS</td>
+		<td class="style2">GetReservedAttributeName </td>
+	</tr>
+	<tr>
+		<td class="style2">LOCKUSER</td>
+		<td class="style2">GetReservedByAttributeName </td>
+	</tr>
+	<tr>
+		<td class="style2">V_organization</td>
+		<td class="style2">GetOrganizationAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">V_project</td>
+		<td class="style2">GetProjectAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">V_maturity</td>
+		<td class="style2">GetMaturityAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">V_version</td>
+		<td class="style2">GetRevisionAttributeName</td>
+	</tr>
+	<tr>
+		<td class="style2">V_user</td>
+		<td class="style2">GetOwnerAttributeName </td>
+	</tr>
+</table>
+<p>These methods are ones of the <em>CATCkePLMNavPublicServices </em>class ( PLMDictionaryNavServices fw). These methods will be kept in the time.</p>
+<p>Example of use:</p>
+<pre class="code">
+CATUnicodeString AttributeName = CATCkePLMNavPublicServices::<strong>GetOwnerAttributeName</strong>(NULL_var);
+CATICkeParm_var  spCkeParmForUser =  spCkeParmFactory-&gt;CreateString(AttributeName, strEnoviaUser);
+</pre>
+
+<p>If the attribute name is not explicit in your code, i.e. it is a non hard 
+coded string, you can use this method:  <code>RetrieveBasicAttributeNameFromPreviousOne</code>. 
+This method of the same class <em>CATCkePLMNavPublicServices </em>takes as input 
+a type ( NULL today), and the attribute name. The function returns the valid 
+attribute name. </p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article you have learned that:</p>
+<ul>
+  <li>PLM Attributes are entities associated with PLM classes defined in the PLM 
+  dictionary, and having some features (name, optional-mandatory/editability/protection 
+  flag/...),</li>
+  <li>Through API, you have access only to a portion of the PLM attributes, so-called public attributes<table border="1" id="table18">
+    <tr>
+      <th>Protection flag</th>
+      <th>Meaning</th>
+    </tr>
+    <tr>
+      <td><b>External</b></td>
+      <td>The attribute is transferred client side, it is accessible by everybody, 
+    and can only be modified by specific API</td>
+    </tr>
+    <tr>
+      <td><b>ExternalRO</b></td>
+      <td>The attribute is transferred client side, it is accessible by everybody, 
+    but only for consultation purpose.</td>
+    </tr>
+    <tr>
+      <td><b>Free</b></td>
+      <td>The attribute is transferred client side, it is accessible (read and write) 
+    by everybody (Remember that only Free attributes can be part of an 
+    identifier set)</td>
+    </tr>
+    <tr>
+      <td><b>User</b></td>
+      <td>The attributes is deemed extraneous and thus cannot be transferred from 
+    the server to the client. It is only made available on the client if a mask 
+    [<a href="#References">7</a>] explicitly requires it. Consequently, C++ and 
+    Business Logic&nbsp; [<a href="#References">5</a>] code must not rely on the presence of User attributes.
+      </td>
+    </tr>
+  </table>
+  <li>All PLM object instantiated from a PLM Class is defined with all PLM 
+  attributes of the PLM Class,<li>In UI Application, PLM mask must be used.
+  </ul>
+  <script type="text/javascript">insertLinkToTop()</script>
+
+  <h2><a name="References"></a>References</h2>
+<table >
+  <tr>
+    <td >[1]</td>
+    <td><a href="CAAPLMTaAllCusto.htm">Understanding PLM Modeler and Customization</a></td>
+  </tr>
+ 
+  <tr>
+    <td >[2]</td>
+    <td><a href="CAAPLMTaAllPLMDictionary.htm">Understanding PLM Dictionary</a></td>
+  </tr>
+  <tr>
+    <td >[3]</td>
+    <td><a href="CAAPLMTaAllCorePrinciples.htm">PLM Core Modeler Reference</a></td>
+  </tr>
+  <tr>
+    <td >[4]</td>
+    <td> <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmPLMCompAttribute/CAAPLMTaAllKnowPLMAttributes.htm')">Accessing PLM Attributes</a></td>
+  </tr>
+  <tr>
+    <td >[5]</td>
+    <td><a href="CAAPLMTaAllRuleScript.htm">PLM Customization by Business Rules</a></td>
+  </tr>
+  <tr>
+    <td >[6]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbTaPLMCompInBatchSession.htm')">PLM object versus PLM Component</a></td>
+  </tr>
+    <tr>
+    <td >[7]</td>
+    <td><a href="CAAPLMTaAllMask.htm">Understanding PLM Mask</a></td>
+  </tr>
+    </table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+ <tr>
+    <td >Version: <strong>3</strong>  [Nov 2010] </td>
+    <td >Introduction to the Basic Attributes Renaming </td>
+  </tr>
+
+  <tr>
+    <td >Version: <strong>2</strong>  [Mar 2008]</td>
+    <td >Document fully reviewed</td>
+  </tr>
+  
+  <tr>
+    <td >Version: <strong>1</strong> [Oct 2006] </td>
+    <td >Document created</td>
+  </tr>
+  
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+ 
+
+</body>
+
+</html>
+

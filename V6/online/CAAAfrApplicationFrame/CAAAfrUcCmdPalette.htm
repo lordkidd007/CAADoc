@@ -1,0 +1,961 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating a Command with Options in the Tools Palette Box
+</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating a Command with Options in the Tools 
+		Palette</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how a state command can add options in the Tools 
+		Palette. Such options are linked to life cycle of the command, making them 
+		available only when the command is active.&nbsp; </p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a> </li>
+			<li><a href="#UseCase">The CAADegCreateBoxCmd Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAADegCreateBoxCmd Do</a></li>
+					<li><a href="#How">How to Launch CAADegCreateBoxCmd</a></li>
+					<li><a href="#Where">Where to Find the CAADegCreateBoxCmd Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Tools Palette is a special toolbar which is dynamically updated when:</p>
+<ul>
+	<li>Entering an app - The app implements the <em>CATIAfrPaletteOptions</em> 
+		interface.
+		<p>Command headers are added in the Tools Palette once the app is activated, 
+		and they are removed after the app deactivation. This is illustrated in 
+		the use case &quot;Using the Tools Palette for an App&quot;  [<a href="#References">10</a>]</p>
+	</li>
+	<li>Executing a shared/exclusive command - The command implements the <em>CATIAfrCmdPaletteOptions</em> 
+		interface.
+		<p>Command headers may be added when the command is activated and they are 
+		removed when the command is canceled. For a state command, there is also 
+		the possibility to add command headers for a specific state, they are removed 
+		when the state is left. When the command is deactivated, the command headers 
+		become unavailable.</p>
+	<p>&nbsp;</p>
+	</li>
+</ul>
+<p>This use case is intended to show you how to implement <em>CATIAfrCmdPaletteOptions</em> 
+and how to create options using the <em>CATAfrCheckHeaderAccessor</em> class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADegCreateBoxCmd Use Case</h2>
+<p>CAADegCreateBoxCmd is a use case of the CAADialogEngine.edu framework that illustrates 
+AfrStandard framework capabilities.</p>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADegCreateBoxCmd Do</h3>
+<p>CAADegCreateBoxCmd is a state command to create a box. This command is defined 
+in the &quot;CAA: Create Geom&quot; app of the CAAGeometry sample [<a href="#References">1</a>].
+</p>
+<p>A box is defined by three dimensions: the width (W), the depth (D), and the height 
+(H). The CAADegCreateBoxCmd command gives to the end user the possibility to define 
+three kinds of boxes:</p>
+<table>
+	<colgroup align="center" span="3">
+	</colgroup>
+	<tr>
+		<td><strong><a name="Fig1Left">Fig.1 - left</a></strong></td>
+		<td><strong><a name="Fig1Center">Fig.1 - center</a></strong></td>
+		<td><strong><a name="Fig1Right">Fig.1 - right</a></strong></td>
+	</tr>
+	<tr>
+		<td colspan="3">
+		<img alt="Three Boxes" height="168" src="images/CAAAfrCreateBoxThreeBoxes.jpg" width="501"/><br />
+		</td>
+	</tr>
+</table>
+<ul>
+	<li>P1, the first selected point, defines a point of reference.</li>
+	<li>P2 is the second selected point, it defines with P1 the width of the box.
+		<p>If the end user finishes the command, the box is a cube.
+		<a href="#Fig1Left">Fig-1 left</a></p>
+	</li>
+	<li>By indicating a third point (P3), the distance between P2 and P3 defines 
+		the depth.
+		<p>If the end user finishes the command, the box is a parallelepiped where 
+		the depth is equal to the height. <a href="#Fig1Center">Fig-1 center</a></p>
+	</li>
+	<li>By indicating a forth point (P4), the distance between P3 and P4 defines 
+		the height.
+		<p>The three dimensions of the box are different, it is a parallelepiped.
+		<a href="#Fig1Right">Fig-1 right</a></p>
+	</li>
+</ul>
+<p>The choice between these three kinds of boxes is possible thanks to options set 
+in the Tools Palette. The picture 
+below shows this toolbar and icons added by the state command:</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2</caption>
+	<tr>
+		<td valign="top">
+		<img alt="" src="images/CAAAfrCreateBoxPaletteWithCircle.jpg" width="372" height="85"/></td>
+		<td>The three icons, circled in red, enable the end user to create:
+		<ul>
+			<li>A cube:
+				<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/>
+			</li>
+			<li>A parallelepiped with the depth equal to the height:
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>
+			</li>
+			<li>A real parallelepiped:
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/></li>
+		</ul>
+		<p>These three icons are not always in the palette, depending on the current 
+		state:</p>
+		<ul>
+			<li>The three icons are displayed once P1 is selected</li>
+			<li>The first icon disappears from the Palette as soon as P2 is selected. 
+				The end user cannot any more create a cube, he/she can only create 
+				a parallelepiped. Only the two lasts are available</li>
+			<li>Once P3 is indicated, the three icons disappear. The end user will 
+				create a &quot;real&quot; parallelepiped.</li>
+		</ul>
+		<p>
+		<img alt="CAAAfrCreateBoxSwitchOrigin" height="22" src="images/CAAAfrCreateBoxSwitchOrigin.jpg" width="22"/> 
+		is already present during the life of the command.</p>
+		<ul>
+			<li>The icon is highlighted: The origin of the box is the origin of 
+				the model (0,0,0)</li>
+			<li>The icon is normal: The origin of the box is the first selected 
+				point</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<p>The CAADegCreateBoxCmd is a state dialog command that creates a box in the 3D 
+space according to the following UML statechart diagram [<a href="#References">2</a>].</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3</caption>
+	<tr>
+		<td>
+		<img alt="CreateBox UML Diagram" height="417" src="images/CAAAfrCreateBoxUML.jpg" width="640"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADegCreateBoxCmd</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+[<a href="#References">1</a>] for a detailed description of how this use case should 
+be launched.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module 
+name on the command line, but type 3DEXPERIENCE instead. When the application is ready, do the 
+following:</p>
+<ul>
+    <li>Click on <strong>3D</strong>, the west quadrant of Compass</li>
+    <li>In the <strong>3D Modeling apps</strong> section, select <strong>CAA: Create Geom</strong> app  </li>
+	<li>Click <strong>Point</strong> command and create some points</li>
+	<li>Click <strong>Cuboid</strong> command
+		<ul>
+			<li>Select a point</li>
+			<li>Select a second point</li>
+		</ul>
+	</li>
+	<li>Click <strong>Cuboid</strong> command<ul>
+			<li>Click
+				<img alt="CAAAfrCreateBoxSwitchOrigin" height="22" src="images/CAAAfrCreateBoxSwitchOrigin.jpg" width="22"/> 
+				(the icon is highlighted)</li>
+			<li>Select a point</li>
+			<li>Select a second point</li>
+		</ul>
+	</li>
+	<li>Click <strong>Cuboid</strong> command<ul>
+			<li>Select a point</li>
+			<li>Click
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>
+			</li>
+			<li>Select a second point</li>
+			<li>Click
+				<img alt="CAAAfrCreateBoxSwitchOrigin" height="22" src="images/CAAAfrCreateBoxSwitchOrigin.jpg" width="22"/> 
+				(the icon is not highlighted any more)</li>
+			<li>Indicate a point to define the depth (= height)</li>
+		</ul>
+	</li>
+	<li>Click <strong>Cuboid</strong> command<ul>
+			<li>Select a point</li>
+			<li>Select a second point</li>
+			<li>Click
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>
+			</li>
+			<li>Indicate a point to define the depth</li>
+			<li>Indicate a point to define the height</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAADegCreateBoxCmd Code</h3>
+<p>The CAADegCreateBoxCmd use case is made of several classes located in the CAADegGeoCommands.m 
+module of the CAADialogEngine.edu framework:</p>
+<ul>
+	<li>The <em>CAADegCreateBoxCmd</em> class
+		<p>It is the state command which implements the <em>CATIAfrCmdPaletteOptions</em> 
+		interface and enables the end user to create a box.</p>
+	</li>
+	<li>The <em>CAADegBoxPaletteChoiceCmd</em> class
+		<p>The three icons (<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>) 
+		are the representation of three check headers. A check header launches a 
+		command header for the check state and another one for the uncheck state. 
+		These two command headers start the <em>CAADegBoxPaletteChoiceCmd</em> command.</p>
+	</li>
+	<li>The <em>CAADegBoxCreationChoiceNotification</em> class
+		<p>It is a notification sent by the previous <em>CATCommand</em> to inform 
+		the <em>CAADegCreateBoxCmd</em> class that a check button has been pushed. 
+		The notification contains the number of the selected check button.</p>
+	</li>
+</ul>
+<p><code>InstallRootFolder\CAADoc\CAADialogEngine.edu\CAADegGeoCommands.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">11</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are four logical steps in CAADegCreateBoxCmd:</p>
+<ol>
+	<li><a href="#Step1">Defining the CAADegCreateBoxCmd 
+		Class</a></li>
+	<li><a href="#Step2">Defining Options</a>
+	</li>
+	<li><a href="#Step3">Implementing 
+		the CATIAfrCmdPaletteOptions Interface</a></li>
+	<li><a href="#Step4">Using Options</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Defining the CAADegCreateBoxCmd 
+Class</h3>
+<p>The CAADegCreateBoxCmd class is a state command.</p>
+<ol>
+	<li><a href="#Step11">Defining the CAADegCreateBoxCmd.h
+		</a></li>
+	<li><a href="#Step12">Defining the CAADegCreateBoxCmd.cpp</a></li>
+</ol>
+<ol>
+	<li><a name="Step11"></a>Defining the CAADegCreateBoxCmd.h
+		<pre class="code">// DialogEngine framework
+#include &quot;CATStateCommand.h&quot;   
+...
+class CAADegCreateBoxCmd : public <strong>CATStateCommand</strong>
+{
+  <strong>CmdDeclareResource</strong>(CAADegCreateBoxCmd,CATStateCommand);
+
+  <strong>CATDeclareClass</strong> ;
+
+  public :
+    CAADegCreateBoxCmd();
+    virtual ~CAADegCreateBoxCmd();  
+    ...
+    virtual CATLISTP(CATCommandHeader) <strong>GetPaletteStateOptions</strong>() ;
+    virtual CATLISTP(CATCommandHeader) <strong>GetPaletteOptions</strong>() ;
+
+  private :
+    ...
+    virtual void <strong>BuildGraph</strong>() ;
+    CATBoolean  <strong>CheckChoice</strong>(void * iChoice);
+    CATBoolean  <strong>CreateBox</strong>(void * iDummy);
+    ...
+    void <strong>BoxCreationChoiceChange</strong> (CATCommand        * iPublisher, 
+		          CATNotification      * iNotification, 
+		          CATCommandClientData   iUsefulData);
+
+  private :
+   ...
+    int                            _CurrentBoxCreationTypeChoice ;
+
+    CATAfrCheckHeaderAccessor    * _pTwoPointsCmdHdr ;
+    CATAfrCheckHeaderAccessor    * _pThreePointsCmdHdr ;
+    CATAfrCheckHeaderAccessor    * _pFourPointsCmdHdr ;
+    CATAfrCheckHeaderAccessor    * _pOriginCheckHdr ;
+};</pre>
+		<p>This class deriving from the <em>CATStateCommand</em> class contains:</p>
+		<ul>
+			<li>The following macros:
+				<ul>
+					<li><code>CmdDeclareResource</code>: This macro defines the 
+						resource file for the state command [<a href="#References">3</a>]</li>
+					<li><code>CATDeclareClass</code>: As any class that makes up 
+						a component, its includes this macro.</li>
+				</ul>
+			</li>
+			<li>The following (fully or partially explained) methods:
+				<ul>
+					<li><code>GetPaletteStateOptions</code> and <code>GetPaletteOptions</code>: 
+						methods of the
+						<a href="#Step3">
+						<em>CATIAfrCmdPaletteOptions</em></a> interface</li>
+					<li><code>BuildGraph</code>: it is the method which implements 
+						the state chart [<a href="#References">4</a>]</li>
+					<li><code>CheckChoice</code>: it is the condition method to 
+						enable the sorting between the three possibilities to create 
+						a box. Refer to the
+						<a href="#Step42">
+						Using Option - Define the way to create a box</a> section</li>
+					<li><code>CreateBox</code>: the action method which creates 
+						a box in the model. See the
+						<a href="#Step41">Using Option- Locate the 
+						newly box</a> section.</li>
+					<li><code>BoxCreationChoiceChange</code>: callback method enabling 
+						the command to update the icons when one among the three 
+						has been selected- See the
+						<a href="#Exclusivity">
+						Managing Exclusivity Between the Three Icons</a> section</li>
+				</ul>
+			</li>
+			<li>The following data:
+				<ul>
+					<li><code>_CurrentBoxCreationTypeChoice</code>: it is a value 
+						which keeps the index of the current activated check button. 
+						The value ranges from 1 to 3. (1=
+						<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/>, 
+						2=<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>,3=<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>).
+					</li>
+					<li><code>_pTwoPointsCmdHdr</code>, <code>_pThreePointsCmdHdr</code>, 
+						and <code>_pFourPointsCmdHdr</code>: three pointers to access 
+						to the headers representing options to define the way to 
+						define the box.</li>
+					<li><code>_pOriginCheckHdr</code>: the pointer to access to 
+						the check header representing the option to define the origin 
+						of the box.</li>
+				</ul>
+			</li>
+		</ul>
+		<p>The class contains other methods and data. Refer to the code for more 
+		details. </p>
+	</li>
+	<li><a name="Step12"></a>Defining the CAADegCreateBoxCmd.cpp
+		<p>The beginning of the source file is such as:</p>
+		<pre class="code">...
+#include &lt;CATAfrCommandHeader.h&gt;
+
+<strong>CATImplementClass</strong>(CAADegCreateBoxCmd, Implementation,CATStateCommand, CATNull);
+...
+#include &quot;CATCreateExternalObject.h&quot;
+<strong>CATCreateClass</strong>(CAADegCreateBoxCmd);
+...</pre>
+		<ul>
+			<li>The <code>CATImplementClass</code> macro declares that the <em>CAADegCreateBoxCmd</em> 
+				class is a component main class thanks the <code>Implementation</code> 
+				keyword, and OM-derives [<a href="#References">5</a>] from <em>CATStateCommand</em></li>
+			<li>The <code>CATCreateClass</code> macro enables to create an instance 
+				of the command by its name.</li>
+		</ul>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Defining Options</h3>
+<p>Options are command header instances set in the Tools Palette. In the constructor 
+of the <em>CAADegCreateBoxCmd</em> class the command headers are defined. Refer 
+to the technical article entitled &quot;The Command Headers&quot; [<a href="#References">6</a>] 
+for details and warnings about command header creation.</p>
+<p>This state command creates and uses two kinds of options</p>
+<ul>
+	<li><a href="#Option1">
+		</a>Option to define the way to create the box
+		<p>This option uses three command headers instances: <code>CAADegTwoPointsBoxHdr, 
+		CAADegThreePointsBoxHdr, and CAADegFourPointsBoxHdr</code>. Only the creation 
+		of the first one is described, since the two others are built on the same 
+		model.</p>
+		<p>In the <a href="#Exclusivity">Managing 
+		the exclusivity between the three icons</a> section, you will find explanations 
+		how a radio button has been simulated with these three headers.</p>
+	</li>
+	<li><a href="#Option2">Option to locate the newly box</a>
+		<p>This option uses only one check header instance: <code>CAADegOriginBoxHdr</code></p>
+	</li>
+</ul>
+<p>In these two cases, the command header 
+is a check header A check header being a non-exposed class, the <em>CATAfrCheckHeaderAccessor</em> 
+class encapsulates its creation and its access. The <em>CATAfrCheckHeaderAccessor</em> 
+class constructor creates a check header instance only if the instance does not 
+already exist in the command header list associated with the current editor [<a href="#References">6</a>]. 
+Consequently you can create as many <em>CATAfrCheckHeaderAccessor</em> class instances 
+as you want, the methods of this class are redirected on the unique check header 
+instance of the current editor.</p>
+<p>Note, that there is also the CAAAfrViewerFeedbackHdr use case [<a href="#References">7</a>] 
+which describes the usage of the <em>CATAfrCheckHeaderAccessor</em> class in an 
+add-in context.</p>
+<p><strong><a name="Option1"></a>Option to define
+the 
+way to create the box</strong></p>
+<pre class="code">...
+  CATBaseUnknown * pCmd = <strong>CATAfrcommandHeader::CATGetCommandHeader</strong>(&quot;CAADegTwoPointsBoxHdr&quot;);
+  
+  _pTwoPointsCmdHdr = new <strong>CATAfrCheckHeaderAccessor</strong>(&quot;CAADegTwoPointsBoxHdr&quot;);
+  
+  if ( NULL == pCmd )
+  {
+     new <strong>CAADegCreateBoxPaletteHeader</strong>
+                          (&quot;<strong>CAADegTwoPointsBoxCheckHdr</strong>&quot;,
+                          &quot;CAADegGeoCommands&quot;,
+                          &quot;CAADegBoxPaletteChoiceCmd&quot;, (void *) 1);
+
+     new <strong>CAADegCreateBoxPaletteHeader</strong>
+                          (&quot;<strong>CAADegTwoPointsBoxUncheckHdr</strong>&quot;,
+                          &quot;CAADegGeoCommands&quot;,
+                          &quot;CAADegBoxPaletteChoiceCmd&quot;, (void *) 1);
+  
+     _pTwoPointsCmdHdr-&gt;<strong>SetCheckCommand</strong>(&quot;CAADegTwoPointsBoxCheckHdr&quot;);
+     _pTwoPointsCmdHdr-&gt;<strong>SetUncheckCommand</strong>(&quot;CAADegTwoPointsBoxUncheckHdr&quot;);
+
+     _pTwoPointsCmdHdr-&gt;<strong>SetResourceFile</strong>(&quot;CAADegCreateBoxPaletteHeader&quot;);
+     
+     _pTwoPointsCmdHdr-&gt;<strong>SetCheck</strong>(TRUE,FALSE);
+  }
+...</pre>
+<p><code>_pTwoPointsCmdHdr</code> is a newly <em>CATAfrCheckHeaderAccessor</em> 
+class pointer. This pointer will be used in the state command to manage the exclusivity 
+between the three icons. Refer to the
+<a href="#Exclusivity">Managing the exclusivity 
+between the three icons</a> sections.</p>
+<p>But, before creating a <em>CATAfrCheckHeaderAccessor</em> class instance, the
+<em>CATAfrGetCommandHeader</em> global function is used to retrieve a check header 
+pointer. If the check header has never been created for the current editor, this 
+method will return NULL. In this case, after the <em>CATAfrCheckHeaderAccessor</em> 
+class construction you should:</p>
+<ul>
+	<li>Create a command header instance for the check and uncheck states.
+		<p>The <em>CAADegCreateBoxPaletteHeader</em> class is a class automatically 
+		created by the <code>MacDeclareHeader</code> macro. Refer to the
+		<a href="#Step12">Defining the CAADegCreateBoxCmd.cpp</a> 
+		section. The two instances, <code>CAADegTwoPointsBoxCheckHdr</code> and
+		<code>CAADegTwoPointsBoxUncheckHdr</code>, will launch the <em>CAADegBoxPaletteChoiceCmd</em> 
+		command located in the <code>CAADegGeoCommands</code> dll. The last argument,
+		<code>1</code>, is the argument of the <em>CAADegBoxPaletteChoiceCmd</em> 
+		command. This value is different for the two others check header. See the
+		<a href="#Exclusivity">Managing the 
+		exclusivity between the three icons</a> section.</p>
+		<p><code>CAADegTwoPointsBoxCheckHdr</code> and <code>CAADegTwoPointsBoxUncheckHdr</code> 
+		are command header instances without representation since they are not displayed 
+		anywhere. Therefore there is no icon, no 
+		help, short help for these two instances [<a href="#References">8</a>].</p>
+	</li>
+	<li>Associate the <code>CAADegTwoPointsBoxCheckHdr</code> header with the check 
+		state thanks to the <code>SetCheckCommand</code> method
+		<p>When the check header will be checked the <code>CAADegTwoPointsBoxCheckHdr</code> 
+		command header instance will be started.</p>
+	</li>
+	<li>Associate the <code>CAADegTwoPointsBoxUncheckHdr</code> header with the 
+		uncheck state thanks to the <code>SetUncheckCommand</code> method
+		<p>When the check header will be unchecked the <code>CAADegTwoPointsBoxUncheckHdr</code> 
+		command header instance will be started.</p>
+	</li>
+	<li>Associate a resource file with the <code>CAADegTwoPointsBoxHdr</code> header.
+		<p>In the CNext/resources/msgcatalog directory of the CAADialogEngine.edu 
+		framework you find the <code>CAADegCreateBoxPaletteHeader.CATNls</code> 
+		and the <code>CAADegCreateBoxPaletteHeader.CATRsc</code> files. The first 
+		one contains the help, shorthelp,... and the second one contains the icon 
+		name [<a href="#References">8</a>].</p>
+	</li>
+	<li>Initialize the state of the <code>CAADegTwoPointsBoxHdr</code> check header 
+		with the <code>SetCheck</code> method
+		<p>The first argument, <code>TRUE</code>, specify that the <code>CAADegTwoPointsBoxHdr</code> 
+		check header is with the check state. The second argument, <code>FALSE</code>, 
+		specify that no notification is sent to refresh the visualization. For the 
+		two others check header, the first argument is <code>FALSE</code>.</p>
+		<p>You can note that this initialization is done only for the first creation. 
+		When the command is re-launched, the check header already exists and it 
+		has kept the previous state.</p>
+	</li>
+</ul>
+<p><strong><a name="Option2"></a>Option to locate the newly box</strong></p>
+<pre class="code">...
+  pCmd = NULL ;
+  ::<strong>CATAfrGetCommandHeader</strong>(&quot;CAADegOriginBoxHdr&quot;,pCmd);
+  
+  _pOriginCheckHdr = new <strong>CATAfrCheckHeaderAccessor</strong>(&quot;CAADegOriginBoxHdr&quot;);
+  
+  if ( NULL == pCmd)
+  {  
+      _pOriginCheckHdr-&gt;<strong>SetResourceFile</strong>(&quot;CAADegCreateBoxCmd&quot;);
+  }
+...</pre>
+<p><code>_pOriginCheckHdr</code> is a newly <em>CATAfrCheckHeaderAccessor</em> class 
+pointer. This pointer will be used in the <code>CreateBox</code> method Refer to 
+the <a href="#Step4">Using Options</a> section.</p>
+<p>But, before to create a <em>CATAfrCheckHeaderAccessor</em> class instance, the
+<em>CATAfrGetCommandHeader</em> global function is used to retrieve a check header 
+pointer. If the check header has never been created for the current editor, this 
+method will return NULL. In this case, after the <em>CATAfrCheckHeaderAccessor</em> 
+class construction you should only specify the resource file name. In the CNext/resources/msgcatalog 
+directory of the CAADialogEngine.edu framework you find the <code>CAADegCreateBoxCmd.CATNls
+</code>and the <code>CAADegCreateBoxCmd.CATRsc</code> files. The first one contains 
+the help, shorthelp,... and the second one contains the icon name [<a href="#References">8</a>].</p>
+<p>This check header does not launch any command when the button is pushed. It is 
+just a header which keeps a state.</p>
+<p><a name="Exclusivity"></a><strong>Managing 
+Exclusivity Between the Three Icons</strong></p>
+<p>When an icon (<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>,
+<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>) 
+is pushed, the <em>CAADegBoxPaletteChoiceCmd</em> command is launched. This command 
+sends a notification to inform the <em>CAADegCreateBoxCmd</em> state command.</p>
+<pre class="code">...
+CAADegBoxPaletteChoiceCmd::CAADegBoxPaletteChoiceCmd(void *iArgument): 
+                   CATCommand(<strong>NULL</strong>,&quot;CAADegBoxPaletteChoiceCmd&quot;)
+{
+   int value = ( int) iArgument ;
+  
+   CAADegBoxCreationChoiceNotification * pNotification = NULL ;
+   pNotification = new <strong>CAADegBoxCreationChoiceNotification</strong>();     
+   pNotification-&gt;<strong>SetChoice</strong>(value);
+   
+   <strong>SendNotification</strong>(GetFather(),pNotification);
+
+   pNotification = NULL ;
+
+   <strong>RequestDelayedDestruction</strong>(); 
+}
+...</pre>
+<ul>
+	<li><code>iArgument</code> is the argument of the command header. The notification 
+		keeps this value for the <em>CAADegCreateBoxCmd</em> command. Refer to the
+		<a href="#Option1">Option to define the way to create the box</a> section.</li>
+	<li>The notification is sent to the parent of the <em>CAADegBoxPaletteChoiceCmd</em> 
+		command. This parent is NULL, in other words the current command selector 
+		[<a href="#References">10</a>]. The current command (<em>CAADegCreateBoxCmd</em> 
+		), which has the same parent, will receive this notification.</li>
+	<li>You can note that <code>pNotification</code> is not deleted after the sending. 
+		This notification has been created with the <code>CATNotificationDeleteOn</code> 
+		option. It means that the notification will be automatically deleted at 
+		the end of the next transaction, that is, as soon as the dialog between 
+		sending and receiving commands is completed.</li>
+	<li>The last method is <code>RequestDelayedDestruction</code>. The three mandatory 
+		rules to respect for such call in a command's constructor are:
+		<ul>
+			<li>The class will be never derived, <strong>AND</strong></li>
+			<li>Any method will be called after the class construction (avoid public 
+				methods to ensure this point), <strong>AND</strong></li>
+			<li>The <code>RequestDelayedDestruction</code> is the last instruction.</li>
+		</ul>
+	</li>
+</ul>
+<p>In the <code>BuildGraph</code> method of the <em>CAADegCreateBoxCmd</em> command, 
+a callback method has been declared to be inform when a <code>CAADegBoxCreationChoiceNotification</code> 
+class notification is sent.</p>
+<pre class="code">...
+AddAnalyseNotificationCB(NULL, &quot;CAADegBoxCreationChoiceNotification&quot;,
+                (CATCommandMethod)&amp;CAADegCreateBoxCmd::<strong>BoxCreationChoiceChange</strong>,
+                            NULL);
+...</pre>
+<ul>
+	<li><code>NULL</code>:</li>
+	<li><code>CAADegBoxCreationChoiceNotification</code>: The notification class 
+		name</li>
+	<li><code>BoxCreationChoiceChange</code>: the callback method</li>
+	<li><code>NULL</code>: no argument for the callback method</li>
+</ul>
+<p>The <code>BoxCreationChoiceChange</code> method unchecks the two other check 
+buttons.</p>
+<pre class="code">...
+void CAADegCreateBoxCmd::BoxCreationChoiceChange (CATCommand  * iPublisher ,
+                                    CATNotification      * iNotification,
+                                    CATCommandClientData   iUsefulData)
+{
+  ...
+  CAADegBoxCreationChoiceNotification * pNotif = NULL ;
+  pNotif = ( CAADegBoxCreationChoiceNotification *) iNotification ;
+
+  int value = 0 ;
+  HRESULT rc = pNotif-&gt;<strong>GetChoice</strong>(value);
+  ...
+  {
+    if ( <strong>value == 1</strong> )
+    {
+      _pThreePointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);
+      _pFourPointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);
+    }
+    if ( value == 2 )
+    {
+      _pTwoPointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);
+      _pFourPointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);
+    }
+    if ( value == 3 )
+    {
+      _pTwoPointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);
+      _pThreePointsCmdHdr-&gt;SetCheck(<strong>FALSE</strong>,FALSE);             
+    }
+    <strong>_CurrentBoxCreationTypeChoice</strong> = value ;
+...</pre>
+<p><code>GetChoice</code> retrieves the last activated check button. <code>_CurrentBoxCreationTypeChoice,</code> 
+a data member, keeps the current activated check button. See its usage in the
+<a href="#Step42">Using Options- Define the way to create 
+a box</a> section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Implementing the CATIAfrCmdPaletteOptions Interface</h3>
+<p>The <em>CAADegCreateBoxCmd</em> class states that it implements the <em>CATIAfrCmdPaletteOptions</em> 
+interface thanks to the <code>TIE_CATIAfrCmdPaletteOptions</code> macro.</p>
+<pre class="code">...
+#include &quot;TIE_CATIAfrCmdPaletteOptions.h&quot;
+<strong>TIE_CATIAfrCmdPaletteOptions</strong>(CAADegCreateBoxCmd);
+...</pre>
+<p>This interface has two methods:</p>
+<ol>
+	<li><a href="#GetPaletteOptions">GetPaletteOptions</a></li>
+	<li><a href="#GetPaletteStateOptions">GetPaletteStateOptions</a></li>
+</ol>
+<ol>
+	<li><a name="GetPaletteOptions">GetPaletteOptions</a>
+		<p>This method is called when the command is activated. It is the reason 
+		why the command must be an exclusive or shared command [<a href="#References">9</a>].
+		</p>
+		<p>In the use case, the option to add in the Palette is the command header 
+		represented by this icon:
+		<img alt="CAAAfrCreateBoxSwitchOrigin" height="22" src="images/CAAAfrCreateBoxSwitchOrigin.jpg" width="22"/>.
+		</p>
+		<pre class="code">...
+CATLISTP(CATCommandHeader) CAADegCreateBoxCmd::GetPaletteOptions() 
+{
+   CATLISTP(CATCommandHeader) PaletteOptions;
+
+   CATBaseUnknown * pCmd = <strong>CATAfrCommandHeader::CATGetCommandHeader</strong>(&quot;CAADegOriginBoxHdr&quot;);
+
+   if ( NULL != pCmd ) 
+   {
+       PaletteOptions.<strong>Append</strong>((CATCommandHeader*)pCmd);
+       pCmd = NULL ;
+   }
+   return PaletteOptions ;
+}
+...</pre>
+		<p><code>PaletteOptions</code> is a list of command header instance pointers 
+		to return. The <em>CATAfrGetCommandHeader</em> global function is the means 
+		to retrieve a command header instance pointer from its name. The name being 
+		the first argument of the function. This header is kept in the list associated 
+		with the current editor [<a href="#References">6</a>].</p>
+		<p>The <code>CAADegOriginBoxHdr</code> command header instance is a check 
+		header to specify if the newly box should be created at the origin of the 
+		model . Refer to the
+		<a href="#Step2">Defining Options</a> 
+		section for details about the header creation.</p>
+	</li>
+	<li><a name="GetPaletteStateOptions">GetPaletteStateOptions</a>
+		<p>This method is called each time the state command enters in a state. 
+		In most cases, the goal of this method is to retrieve the name of the current 
+		state, and whether the state's name, add the specific command header instance 
+		pointers in the returned list.</p>
+		<pre class="code">...
+CATLISTP(CATCommandHeader) CAADegCreateBoxCmd::GetPaletteStateOptions() 
+{
+   CATLISTP(CATCommandHeader) PaletteStateOptions;
+
+   CATDialogState * pCurrentState = <strong>GetCurrentState</strong>();
+   if ( NULL != pCurrentState )
+   {
+      CATString StateName = pCurrentState-&gt;<strong>GetResourceID</strong>();
+     
+      if ( ! strcmp(&quot;<strong>stWidthPointId</strong>&quot;,StateName) )
+      {
+         <a href="#stWidthPointId">Case stWidthPointId State</a>
+      }else if (  ! strcmp(&quot;<strong>stDepthPointId</strong>&quot; ,StateName) )
+      {
+         Case stDepthPointId State - not detailed
+      }
+   }
+   return PaletteStateOptions ;
+...</pre>
+		<p>The <code>GetCurrentState</code> method retrieves a pointer to the current 
+		state. The <code>GetResourceID</code> method retrieves the resource identifier 
+		of the state. It is the unique argument of the <code>AddDialogState</code> 
+		or <code>GetInitialState</code> methods.</p>
+		<p>In the <code>BuildGraph</code> method, four states are created:</p>
+		<pre class="code">...
+CATDialogState *stCornerPoint = <strong>GetInitialState</strong>(&quot;stCornerPointId&quot;); 
+CATDialogState *stWidthPoint  = <strong>AddDialogState</strong>(&quot;<strong>stWidthPointId</strong>&quot;); 
+CATDialogState *stDepthPoint  = AddDialogState(&quot;<strong>stDepthPointId</strong>&quot;); 
+CATDialogState *stHeightPoint = AddDialogState(&quot;stHeightPointId&quot;); 
+...</pre>
+		<p><code>stCornerPoint</code> is the state to select P1, <code>stWidthPoint</code> 
+		is the state to select P2, <code>stDepthPoint</code> is the state to indicate 
+		P3 and <code>stHeightPoint</code> is the state to indicate P4. Refer to
+		<a href="#Fig1Center">Fig.1</a> for explanations about these four points 
+		and <a href="#References">Fig.3</a> for the UML state chart. For the
+		<code>stWidthPoint</code> state, the three icons (<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>) 
+		are added in the Palette, and for the <code>stDepthPoint</code> state only 
+		the two lasts (<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>,<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/>) 
+		are set.</p>
+		<a name="stWidthPointId">Here</a> is the code to process the 
+		state whose the identifier is <code>stWidthPoint</code>Id:
+		<pre class="code">...
+   CATBaseUnknown * pCmd = <strong>CATAfrCommandHeader::CATAfrGetCommandHeader</strong>(&quot;<strong>CAADegTwoPointsBoxHdr</strong>&quot;);
+  if ( NULL != pCmd ) 
+  {
+     PaletteStateOptions.<strong>Append</strong>(pCmd);
+     pCmd = NULL ;
+  }
+
+  ::<strong>CATAfrGetCommandHeader</strong>(&quot;<strong>CAADegThreePointsBoxHdr</strong>&quot;,pCmd);
+  if ( NULL != pCmd ) 
+  {
+     PaletteStateOptions.Append(pCmd);
+     pCmd = NULL ;
+  }
+
+  ::<strong>CATAfrGetCommandHeader</strong>(&quot;<strong>CAADegFourPointsBoxHdr</strong>&quot;,pCmd);
+  if ( NULL != pCmd ) 
+  {
+     PaletteStateOptions.Append(pCmd);
+     pCmd = NULL ;
+  }
+...</pre>
+		<p><code>PaletteStateOptions</code>, defined just above, is a list of command 
+		header instance pointers. The <em>CATAfrGetCommandHeader</em> global function 
+		is the means to retrieve a command header instance pointer from its name. 
+		The name being the first argument of the function. This header is kept in 
+		the list associated with the current editor [<a href="#References">8</a>].</p>
+		<p>In this state, all the possibilities to create the box are valid. The
+		<code>CAADegTwoPointsBoxHdr</code>, <code>CAADegThreePointsBoxHdr</code>, 
+		and<code> CAADegFourPointsBoxHdr</code> command header instances are check 
+		headers to specify if the newly box should be created with two, three or 
+		four points respectively. Refer to the
+		<a href="#Step2">Defining Options</a> 
+		section for details about the header creations.</p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Using Options</h3>
+<p>The state command has defined two options:</p>
+<ol>
+	<li><a href="#Step41">To locate the newly box</a></li>
+	<li><a href="#Step42">To define the way to create a 
+		box</a>.</li>
+</ol>
+<p>These two options are used in different parts of the command.</p>
+<ul>
+	<li><strong><a name="Step41">Locate the newly box</a></strong><p>
+		The <code>CreateBox</code> method is the action method when the final state 
+		is reached. It creates a new <code>CAASysCuboid</code> [<a href="#References">1</a>] 
+		element in CAAGeometry. Just after the box creation, not detailed here, 
+		it is necessary to specify the origin of this box.</p>
+		<pre class="code">...
+      CATMathPoint CornerPoint ;
+      CATMathPoint BoxOrigin ;
+
+      <strong>FindBoxCornerPoint</strong>(CornerPoint);
+
+      if ( NULL == _pOriginCheckHdr )
+      {
+          BoxOrigin = CornerPoint ;
+      } else if (  FALSE == _pOriginCheckHdr-&gt;<strong>IsChecked</strong>() )
+      {
+         BoxOrigin = CornerPoint ;
+      }
+...</pre>
+		<p>The <code>FindBoxCornerPoint</code> method is a local method which retrieves 
+		the coordinates of the first selected point (P1)
+		<a href="#Fig1Center">Fig.1</a> </p>
+		<p><code>_pOriginCheckHdr</code> is a <em>CATAfrCheckHeaderAccessor</em> 
+		class pointer on the &quot;CAADegOriginBoxHdr&quot; check header. See the
+		<a href="#Step3">Defining Options</a> 
+		section. If the check header is checked (highlighted) the box is located 
+		at the first selected point location, otherwise in (0,0,0) the default
+		<em>CATMathPoint</em> value.</p>
+	</li>
+	<li><a name="Step42"><strong>Define the way to create 
+		a box</strong></a>
+		<p>This option is used in the <code>CheckChoice</code> condition method. 
+		The asterisked transitions on the state chart - <a href="#Fig3">Fig 3</a> 
+		- use this method to accept of not the transition.</p>
+		<p>Here are the transition using the <code>CheckChoice</code> condition 
+		method:</p>
+		<pre class="code">...
+CATDialogTransition *<strong>pState2Transition1</strong>= AddTransition
+  (
+     stWidthPoint,
+     stDepthPoint,
+     AndCondition(IsOutputSetCondition(_daPathElementWidthPoint),
+	              Condition((ConditionMethod) &amp; CAADegCreateBoxCmd::<strong>CheckChoice</strong>,(void*)<strong>4</strong>)),
+     Action((ActionMethod) &amp; CAADegCreateBoxCmd::AcquisitionWidth)
+  ) ;
+CATDialogTransition *<strong>pState2Transition3</strong> = AddTransition
+  (
+     stWidthPoint,
+     NULL,
+     AndCondition(IsOutputSetCondition(_daPathElementWidthPoint),
+	              Condition((ConditionMethod) &amp; CAADegCreateBoxCmd::<strong>CheckChoice</strong>,(void*)<strong>1</strong>)),
+     Action((ActionMethod) &amp; CAADegCreateBoxCmd::CreateBox)
+  ) ;
+CATDialogTransition *<strong>pState3Transition1</strong>= AddTransition
+  (
+     stDepthPoint,
+     stHeightPoint,
+     AndCondition(IsOutputSetCondition(_daIndicationDepthPoint),
+	              Condition((ConditionMethod) &amp; CAADegCreateBoxCmd::<strong>CheckChoice</strong>,(void*)<strong>3</strong>)),
+     Action((ActionMethod) &amp; CAADegCreateBoxCmd::AcquisitionDepth)
+  ) ;
+CATDialogTransition *<strong>pState3Transition3</strong> = AddTransition
+  (
+     stDepthPoint,
+     NULL,
+     AndCondition(IsOutputSetCondition(_daIndicationDepthPoint),
+	              Condition((ConditionMethod) &amp; CAADegCreateBoxCmd::<strong>CheckChoice</strong>,(void*)<strong>2</strong>)),
+     Action((ActionMethod) &amp; CAADegCreateBoxCmd::CreateBox)
+  ) ;    
+...</pre>
+		<ul>
+			<li><code>pState2Transition1</code> is triggered if P2 is selected- 
+				Refer <a href="#Fig1Left">Fig.1</a> - and either
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/>or
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/> 
+				is highlighted</li>
+			<li><code>pState2Transition3</code> is triggered if P2 is selected- 
+				Refer <a href="#Fig1Left">Fig.1</a> - and
+				<img alt="CAAAfrCreateBoxSwitchAgentCube" height="22" src="images/CAAAfrCreateBoxSwitchAgentCube.jpg" width="22"/> 
+				is highlighted.</li>
+			<li><code>pState3Transition1</code> is triggered if P3 is indicated- 
+				Refer <a href="#Fig1Left">Fig.1</a> - and
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepthHeight.jpg" width="22"/> 
+				is highlighted</li>
+			<li><code>pState3Transition3</code> is triggered if P3 is indicated- 
+				Refer <a href="#Fig1Left">Fig.1</a> - and
+				<img alt="CAAAfrCreateBoxSwitchAgentCuboidWidthDepth" height="22" src="images/CAAAfrCreateBoxSwitchAgentCuboidWidthDepth.jpg" width="22"/> 
+				is highlighted</li>
+		</ul>
+		<p>The <code>CheckChoice</code> method takes into the current state account, 
+		it is the last argument of the <code>AddTransition</code> method, and the 
+		current activated check button.</p>
+		<pre class="code">...
+CATBoolean CAADegCreateBoxCmd::<strong>CheckChoice</strong>(void *iChoice)
+{
+  CATBoolean Test = FALSE ;
+  int Choice = (int) iChoice ;
+
+  if ( ( 4 == Choice  ) &amp;&amp; ( _CurrentBoxCreationTypeChoice &gt; 1 ) )
+  {
+    Test = TRUE;
+  }
+  else if ( _CurrentBoxCreationTypeChoice == Choice ) 
+  {
+    Test = TRUE;
+  }
+  return Test ;
+}
+...</pre>
+		<p><code>_CurrentBoxCreationTypeChoice</code> is a data member which keeps 
+		the current activated check button. It is initialized in the constructor, 
+		and refreshed in the
+		<a href="#Step2"><code>BoxCreationChoiceChange</code></a> 
+		method.</p>
+		<p>The <code>CheckChoice</code> method returns <code>TRUE</code> when the 
+		condition is filled otherwise <code>FALSE</code>.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has explained how to implement the <em>CATIAfrCmdPaletteOptions</em> 
+interface to add options in the Tools Palette.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrUcCAAGeometryOverview.htm">The CAAGeometry Sample</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegTaUMLDescription.htm">How 
+		to Describe State Dialog Commands Using UML</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="../CAADegDialogEngine/CAADegTaResources.htm">How 
+		to Assign Resources to a State Dialog Command</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="../CAADegDialogEngine/CAADegTaGraph.htm">How to 
+		Implement the Command Statechart Diagram</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMInheritance.htm">
+		Object Modeler Inheritances</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAAfrTaCommandHeaders.htm">Understanding the Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAAfrUcCheckHeader.htm">Creating a Check Item</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAAfrTaStdCommandHeader.htm">How to Create Standard Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAAfrTaCommandModel.htm">Understanding the Wintop Frame Command 
+		Model</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="CAAAfrUcSamplePaletteWkb.htm">Using the Tools Palette for an App</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2003]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Dec 2006]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,1154 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Mechanical Modeler Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Mechanical Modeler Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes the API changes of the Mechanical Modeler between 
+		V5 and V6 and the migration path for these modifications. <br />
+		To fully understand this article, we recommend you to first read the three 
+		following articles: <br />
+		V6 Adoption Overview [<a href="#References">1</a>], Product Modeler Changes 
+		[<a href="#References">3</a>] and Feature Modeler Changes [<a href="#References">4</a>].
+		</p>
+		<ul>
+			<li><a href="#Introduction">What Has Changed?</a>
+			<ul>
+				<li><a href="#DataModel">Impacts of Data Model Transformation</a></li>
+				<li><a href="#FeatureModeler">Impacts of Feature Modeler Changes</a></li>
+				<li><a href="#Architecture">Impacts of Software Architecture Changes</a></li>
+			</ul>
+			</li>
+			<li><a href="#Scenarios">Migration Paths for Standard Scenarios</a>
+			<ul>
+				<li><a href="#CreatingPart">Creating a Part</a></li>
+				<li><a href="#Containers">Retrieving 
+				the Mechanical Modeler Containers</a></li>
+				<li><a href="#PartFeature">Retrieving the Part Feature</a></li>
+				<li><a href="#GetDocument">Replacing 
+				GetDocument of <em>CATILinkableObject</em></a></li>
+				<li><a href="#GetProduct">Suppression of 
+				GetProduct of <em>CATIPrtPart</em> </a></li>
+				<li><a href="#CopyingFeatures">Copying Mechanical 
+				Features</a></li>
+				<li><a href="#CATMmrWorkModeServices">Replacing <em>CATMmrWorkModeServices</em></a></li>
+				<li>
+				<a href="#CATMmrGetCanonicBRepFromGeometricalElement">
+				Suppression of <em>CATMmrGetCanonicBRepFromGeometricalElement</em></a></li>
+				<li><a href="#BReps">Managing BRep and BRep Access Objects</a>
+				<ul>
+					<li><a href="#CATIBRepAccess">Replacing <em>CATIBRepAccess</em> 
+					and<em> CATIMfBRep</em></a></li>
+					<li><a href="#CATBRepDecode">Replacing <em>CATBRepDecode</em> 
+					Global Functions</a></li>
+				</ul>
+				</li>
+				<li><a href="#CATIMfFsur">Replacing <em>CATIMfFsur</em>, <em>CATIMfRsur</em>, 
+				and <em>CATIMfWireFvertex</em></a></li>
+				<li><a href="#CATIActivate">Replacing <em>CATIActivate</em></a></li>
+				<li><a href="#AboutUserFeature">About User Feature &amp; Power Copy</a></li>
+				<li><a href="#CATIMf3DBehavior2">Suppression of <em>CATIMf3DBehavior2</em></a></li>
+				<li><a href="#CATIMmiPartInfra">Suppression of <em>CATIMmiPartInfrastructureSettingAtt</em></a></li>
+
+			</ul>
+			</li>
+			<li><a href="#Advanced">Migration Paths for Advanced Scenarios</a>
+			<ul>
+				<li><a href="#CATIDescendants">Suppression of <em>CATIDescendants</em></a>
+				<ul>
+					<li><a href="#Part">Scanning a Mechanical Part</a></li>
+					<li><a href="#PartBody">Scanning a Part Body</a></li>
+					<li><a href="#Set">Scanning a Mechanical Set</a></li>
+					<li><a href="#GSD">Inserting a Shape Design Feature</a></li>
+					<li><a href="#MechFeat">Inserting a Mechanical Feature</a></li>
+					<li><a href="#Param">Inserting a Knowledge Parameter</a></li>
+				</ul>
+				</li>
+				<li><a href="#CATIReplace">Implementing <em>CATIReplace</em></a></li>
+				<li><a href="#Errors">Update Error management</a></li>
+				<li><a href="#CATIMmiMechanicalImportApplicative3">Suppression of 
+				<em>CATIMmiMechanicalImportApplicative3</em></a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>What Has Changed?</h2>
+<p>The evolutions of the Mechanical Modeler in V6 follow the global changes described 
+in the V6 Adoption Overview, which are <strong>Data Model</strong> transformation 
+and <strong>Software Architecture</strong> changes. The Mechanical Modeler is also 
+very impacted by the new secured <strong>Feature Modeler</strong> platform.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="DataModel"></a>Impacts of Data Model Transformation</h3>
+<ul>
+	<li><strong>No more file persistency</strong> : <br />
+	V5 is based on a file system persistency managed in session by an instance of 
+	the CATDocument object. For Mechanical Modeler, the dedicated document is the 
+	CATPart. <br />
+	In V6, file persistency is replaced by database persistency. The CATDocument 
+	object in session is suppressed and the CATPart document is replaced by a data 
+	stream called the <strong>3D Shape</strong>. <br />
+	The API impacts due to V5 Document suppression are described in the article 
+	&quot;V5 Document/File Persistency Removal Impacts&quot;[<a href="#References">6</a>].
+	</li>
+	<li><strong>New Product data model</strong>: <br />
+	In V5, the Product Modeler is based on the Feature Modeler and its data is stored 
+	in a CATProduct document. <br />
+	In V6, The Product Modeler is based on the PLM Core Modeler, bringing great 
+	changes in concepts and APIs. Where in V5 the handle on the Mechanical Part 
+	is the CATDocument, in V6 it is the <strong>PLM Representation Reference</strong> 
+	which is linked to the 3D Shape. The article &quot;From the PLM Representation to 
+	the 3D Shape&quot;[<a href="#References">7</a>] describes this new model for Mechanical 
+	Modeler.</li>
+</ul>
+<p>The two following pictures illustrate the Mechanical Modeler data models for 
+V5 and V6:</p>
+<p><img alt="" src="images/CAACenMmrV5Model.png" width="579" height="306"/></p>
+<p><img alt="" src="images/CAACenMmrV6Model.png" width="579" height="295"/></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="FeatureModeler"></a>Impacts of Feature Modeler Changes</h3>
+<p>The Feature Modeler provides in V6 a whole new API platform to access and manage 
+features. As well as having to migrate calls to Feature Modeler APIs, there is a 
+direct consequence on the Mechanical Modeler APIs due to the suppression of the
+<em>CATISpecObject</em> interface, requiring many signature changes. In most cases,
+<em>CATISpecObject</em> has been replaced by <em>CATIMmiMechanicalFeature</em> interface.<br />
+The articles &quot;Feature Modeler Changes - Global View&quot; [<a href="#References">4</a>] 
+and &quot;Feature Modeler Changes by Scenarios&quot;[<a href="#References">5</a>] describe 
+this new platform.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Architecture"></a>Impacts of Software Architecture Changes</h3>
+<p>The architecture changes result in a set of new frameworks for the Mechanical 
+Modeler&#39;s CAA APIs. The new frameworks have been named following a general nomenclature 
+that includes the prefix CAT and the &quot;UseItf&quot; suffix for standard API frameworks 
+and &quot;ExtendItf&quot; for advanced API frameworks. The separation between standard and 
+advanced APIs corresponds to a new packaging model in V6 in which more complex tasks 
+are separated from standard tasks: for Mechanical Modeler, the standard APis enable 
+to manage DS Mechanical Features, whereas the extend APIs enable to manage new applicative 
+Features, extended from DS Mechanical Features. <br />
+Classes and Interfaces have been moved into these new frameworks and possibly renamed 
+using &quot;CATIMmiUse&quot; prefix. For example <em>CATIGeometricalElement</em> is replaced 
+by <em>CATIMmiUseGeometricalElement</em>. The global migration methodology is described 
+in the article &quot;V6 Adoption Methodology&quot;[<a href="#References">2</a>]. <br />
+Concerning method signature changes, all Mechanical Modeler methods in V6 return 
+an HRESULT and output variables are passed out as arguments. <br />
+The following table lists the Mechanical Modeler frameworks for V5 and V6: </p>
+<table cellspacing="2">
+	<tr>
+		<th>V5 frameworks</th>
+		<th>V6 frameworks</th>
+	</tr>
+	<tr>
+		<td>MecModInterfaces</td>
+		<td>CATMecModUseItf</td>
+	</tr>
+	<tr>
+		<td>MechanicalModeler</td>
+		<td>CATMecModLiveUseItf</td>
+	</tr>
+	<tr>
+		<td>MechanicalModelerUI</td>
+		<td>CATMecModUIUseItf</td>
+	</tr>
+	<tr>
+		<td>MechanicalCommands</td>
+		<td>CATRepTemplateUseItf</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>CATMecModExtendItf</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>CATMecModUIExtendItf</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Scenarios"></a>Migration Paths for Standard Scenarios</h2>
+<p>The Mechanical Modeler adoption articles following this article give the lists 
+of modified classes and interfaces with their migration path, framework by framework.
+<br />
+The purpose here is to detail some scenarios, either because the used APIs are not 
+Mechanical Modeler APIs and they are commonly used in Mechanical Modeler applications, 
+either because the migration path is more complex than just a change of name.
+<br />
+We have distinguished the standard tasks from the advanced tasks in separate chapters.</p>
+<h3><a name="CreatingPart"></a>Creating a Part</h3>
+<p><strong>V5</strong></p>
+<pre class="code">...
+<strong>CATDocument</strong>* pDoc = NULL;
+rc = <strong>CATDocumentServices</strong>::<strong>New</strong>(&quot;Part&quot;, pDoc);	                          
+...</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+  //Retrieve the product factory
+  <strong>CATIPrdRepresentationReferenceFactory</strong> * pIPLMRepRefFactory = NULL;
+  rc = <strong>CATPrdFactory::CreatePrdFactory</strong>(IID_CATIPrdRepresentationReferenceFactory,(void**) &amp;pIPLMRepRefFactory);
+...
+  //Retrieve the PLM Environment  
+  <strong>CATIAdpEnvironmen</strong>t * pIAdpEnvironment = NULL;
+  rc = <strong>CATAdpDictionaryServices::GetEnvironment</strong>(Repository.CastToCharPtr(),EnvToUse,&amp;pIAdpEnvironment);
+...
+  //Create the Representation Reference with a 3D Shape
+  <strong>CATIPsiRepresentationReference</strong> * pPsiCreatedRepRef  = NULL;  
+  CATListValCATICkeParm_var EmptyList; 
+  rc = pIPLMRepRefFactory-&gt;<strong>Create3DShape</strong>(pIAdpEnvironment, EmptyList, pPsiCreatedRepRef);
+...</pre>
+<p>Where in V5 we create a CATPart document, in V6 we create a PLM Representation 
+Reference who&#39;s main data stream is a 3D Shape. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Containers"></a>Retrieving the Mechanical 
+Modeler Containers</h3>
+<p>The content of a Part Document, as the content of a 3D Shape is structured by 
+Containers. The aim is to retrieve these containers.</p>
+<p><strong>V5</strong></p>
+<p>In V5, the <em>CATIContainerOfDocument</em> interface enables you to retrieve 
+from the CATDocument the four containers of the Part document:</p>
+<ul>
+	<li>The Specification Container</li>
+	<li>The Result Container</li>
+	<li>The BRep Container</li>
+	<li>The Product Container</li>
+</ul>
+<pre class="code">...
+<strong>CATDocument</strong>* pDoc = ...;
+<strong>CATIContainerOfDocument</strong> * piContainerOfDoc = NULL ;
+rc = pDoc -&gt;QueryInterface(IID_CATIContainerOfDocument,(void **) &amp;piContainerOfDoc);
+...
+CATIContainer* piContainerOnSpec = NULL ;
+pContainerOfDocDoc-&gt;<strong>GetSpecContainer</strong>(piContainerOnSpec);                       
+...
+CATIContainer* piContainerOnResult = NULL ;
+pContainerOfDocDoc-&gt;<strong>GetResultContainer</strong>(piContainerOnResult);                     
+...
+CATIContainer* piContainerOnBRep = NULL ;
+pContainerOfDocDoc-&gt;<strong>GetBRepContainer</strong>(piContainerOnBRep); 
+...
+CATIContainer* piContainerOnProduct = NULL ;
+pContainerOfDocDoc-&gt;<strong>GetProductContainer</strong>(piContainerOnProduct); 
+</pre>
+<p><strong>V6</strong></p>
+<p>In V6, only the Specification Container and the Result Container are available. 
+Indeed, the Product Container doesn&#39;t exist anymore in V6 model. As for the BRep 
+Container, it used to be accessible but was not use in any CAA Api. In V6, it is 
+no longer accessible. <br />
+The Containers are retrieved from the Representation Reference in session using 
+the <em>CATIPLMNavRepReference</em> interface. </p>
+<pre class="code">....
+  // Retrieving the Specification Container
+  <strong>CATIPLMNavRepReference </strong>* piNavRepRef  = ... ;
+  <strong>CATIMmiPrtContainer</strong> * piContainerOnSpec= NULL;
+  piNavRepRef-&gt;<strong>RetrieveApplicativeContainer</strong>(&quot;<strong>CATPrtCont</strong>&quot;,
+  IID_CATIMmiPrtContainer,(void**&amp;)piContainerOnSpec)
+...
+
+  //Retrieving the Result Container
+  <strong>CATGeoFactory</strong> * pGeoContainer= NULL;
+  piNavRepRef-&gt;<strong>RetrieveApplicativeContainer</strong>(&quot;<strong>CGMGeom</strong>&quot;,
+  IID_CATGeoFactory,(void**&amp;)pGeoContainer)
+
+...</pre>
+<p>Note that the Geometrical Container could also be retrieved from the Specification 
+Container, using the <code>GetGeometricalContainer</code> method of the <em>CATIMmiPrtContainer</em> 
+interface.</p>
+<pre class="code">...
+  CATIMmiPrtContainer * piContainerOnSpec= ...;
+  CATICGMContainer_var spGeomContainer;
+  piContainerOnSpec-&gt;<strong>GetGeometricalContainer</strong>(spGeomContainer); 
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PartFeature"></a>Retrieving the Part Feature</h3>
+<p>The aim is to retrieve the Part feature[<a href="#References">8</a>] from the 
+Specification Container. We have just seen in the precedent paragraph how to retrieve 
+the Specification Container, nevertheless we will give the full code sample, seeing 
+this sequence of calls is very common in Mechanical Modeler applications. </p>
+<p><strong>V5</strong></p>
+<p>In V5, there is another way to retrieve the Part feature, using <em>CATInit</em> 
+instead of <em>CATIContainerOfDocument</em>. </p>
+<pre class="code">...
+<strong>CATDocument</strong>* pDoc = ...;
+<strong>CATInit</strong> * pInitOnDoc = NULL ;
+rc = pDoc-&gt;QueryInterface(IID_CATInit,(void **) &amp;pInitOnDoc);
+...
+<strong>CATIPrtContainer</strong> * pIPrtContOnDocument = NULL ;
+pIPrtContOnDocument = (CATIPrtContainer*)pInitOnDoc-&gt;<strong>GetRootContainer</strong>(&quot;CATIPrtContainer&quot;);
+...
+<strong>CATISpecObject</strong>_var spSpecObjectOnPart = pIPrtContOnDocument-&gt;<strong>GetPart</strong>();	 
+...</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+<strong>CATIPLMNavRepReference_var </strong>spRepRef  = ... ; 
+<strong>CATIMmiPrtContainer</strong> *piContainerOnSpec = NULL ;
+spRepRef-&gt;<strong>RetrieveApplicativeContainer</strong>(&quot;<strong>CATPrtCont</strong>&quot;,IID_CATIMmiPrtContainer,(void **) &amp; piContainerOnSpec)
+...
+<strong>CATIMmiMechanicalFeature</strong>_var spThePart;  
+rc = pContainer-&gt;<strong>GetMechanicalPart</strong>(spThePart);	
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="GetDocument"></a>Replacing GetDocument 
+of <em>CATILinkableObject</em> </h3>
+<p>In V5, you can retrieve from any Mechanical Feature the CATDocument to which 
+it belongs, using the <code>GetDocument</code> method of the <em>CATILinkableObject
+</em>interface. <br />
+In V6, the handle on the Part being the <strong>Representation Reference</strong>, 
+the need is to retrieve a pointer on this PLM component. This can be done using 
+the static method <code>GetPLMComponentOf</code> of the <em>CATPLMComponentInterfacesServices</em> 
+class. This method computes the PLM Product Representation Reference whose 3D Shape 
+contains our feature.</p>
+<pre class="code">....
+  CATBaseUnknown * piMyMechanicalFeature=...;
+  CATIPLMComponent_var spPLMRepRef;
+  rc = <strong>CATPLMComponentInterfacesServices</strong>::<strong>GetPLMComponentOf</strong>(piMyMechanicalFeature,spPLMrepRef);
+...</pre>
+<p><code>piMyMechanicalFeature</code> can be any Mechanical Feature in the 3D Shape.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="GetProduct"></a>Suppression of GetProduct of 
+<em>CATIPrtPart</em></h3>
+<p>The <code>GetProduct</code> method of the <em>CATIPrtPart</em> interface has 
+been deleted because it is no longer meaningful in the V6 model. Indeed, the 3D 
+Shape is linked to a PLM Representation Reference that can be instantiated several 
+times. We have seen in the section just above how to retrieve the PLM Representation 
+Reference.</p>
+<p>Note that <em>CATIPrtPart</em> interface has been replaced by <em>CATIMmiUsePrtPart</em>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CopyingFeatures"></a>Copying Mechanical Features</h3>
+<p>The <em>CATMmrInterPartCopy</em> class has been replaced by the <em>CATIMmiUseCreateImport</em> 
+interface.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+  <strong>CATMmrInterPartCopy</strong> * ptCATMmrInterPartCopy = NULL ;
+
+  CATIProduct_var spComp3 = ... ;
+  CATIProduct_var spComp1 = ... ;
+  
+  CATISpecObject_var SourceToCopy = spOnBodyOfComp3 ;
+  CATISpecObject_var Target       = spSpecObjectOnMechPartOfComp1 ;
+
+  ptCATMmrInterPartCopy =  new <strong>CATMmrInterPartCopy</strong> (SourceToCopy,Target) ;
+                                                    
+  if ( I am in Assembly context )
+  {
+     ptCATMmrInterPartCopy -&gt;<strong>SetSourceInstance</strong>(spComp3);
+     ptCATMmrInterPartCopy -&gt;<strong>SetTargetInstance</strong>(spComp1);
+  }
+
+  // Sets the option of copy 
+  CATBoolean CopyWithLink = ...
+  ptCATMmrInterPartCopy -&gt;<strong>SetLinkMode</strong>(CopyWithLink) ; 
+  
+  // Executes the copy
+  CATUnicodeString ErrorMsg ;
+  rc = ptCATMmrInterPartCopy -&gt;<strong>Run</strong>(&amp;ErrorMsg);
+  if ( FAILED(rc) )
+  {
+      cout &lt;&lt;&quot; Msg=&quot; &lt;&lt; ErrorMsg.CastToCharPtr() &lt;&lt; endl;
+      return 1 ;
+  }
+
+  // Retrieves the result
+  CATISpecObject_var Result ;
+  rc = ptCATMmrInterPartCopy -&gt;<strong>GetResult</strong>(Result);
+                   
+...</pre>
+<p><strong>V6</strong></p>
+<p>Here is an extract of the CAAMmrInterIntraPartCopy use case [<a href="#References">9</a>]</p>
+<pre class="code">...
+   <strong>CATIMmiUseCreateImport</strong>* pInterPartCopy = NULL; 
+   rc = <strong>CATMmiUseServicesFactory::CreateMmiUseCreateImport</strong>(pInterPartCopy); 
+   if ( FAILED(rc) || ( NULL == pInterPartCopy)) return 1;
+
+   CATBaseUnknown_var SourceToCopy = spOnBodyOfComp3 ;
+  <strong> CATIMmiMechanicalFeature_var</strong> Target = spPartRequestOnMechPartOfComp1 ;
+    
+   rc = pInterPartCopy-&gt;<strong>SetObject</strong>(SourceToCopy);
+   rc = pInterPartCopy-&gt;<strong>SetTarget</strong>(Target);
+    
+   CATIPLMNavOccurrence_var spOccurrenceComp3 = ...;
+   CATIPLMNavOccurrence_var spOccurrenceComp1 = ...;
+    
+   if ( I am in Assembly context )
+   {
+      rc = pInterPartCopy -&gt;<strong>SetPLMOccurrences</strong>(spOccurrenceComp3,spOccurrenceComp1);
+   }
+   
+   // Sets the option of copy 
+   CATBoolean CopyWithLink = ...
+   rc = pInterPartCopy -&gt;<strong>SetLinkMode</strong>(CopyWithLink) ; 
+
+   // Executes the copy
+  <strong> CATIMmiMechanicalFeature_var</strong> Result ;
+   rc = pInterPartCopy-&gt;<strong>Run</strong>(Result);
+     
+   // mandatory to begin another copy
+   rc = pInterPartCopy-&gt;<strong>Reset</strong>();
+     
+...</pre>
+<p>The principal changes are:</p>
+<ul>
+	<li>The source and target objects are set independently from the class constructor.</li>
+	<li>In case of assembly context, the source and target PLM Occurrences are needed.</li>
+</ul>
+<p><br />
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATMmrWorkModeServices"></a>Replacing <em>CATMmrWorkModeServices</em></h3>
+<p>This class is replaced by the <em><strong>CATIPsiRepresentationLoadMode</strong></em> 
+interface that is in CAT3DPhysicalRepInterfaces Framework. This interface implemented 
+by PLM Representation Reference enables you to pilot the loading mode. In the article 
+&quot;PLM Representation Reference Overview&quot; [<a href="#References">10</a>] you will 
+find explanations on the V6 loading modes. </p>
+<p><br />
+The following table gives you the correspondence between V5 and V6 modes:</p>
+<table class="fill">
+	<tr>
+		<th>V5</th>
+		<th>V6</th>
+	</tr>
+	<tr>
+		<td>WM_PRODUCT</td>
+		<td>VisuMode</td>
+	</tr>
+	<tr>
+		<td>WM_BREP</td>
+		<td>LinkableMode</td>
+	</tr>
+	<tr>
+		<td>WM_DESIGN</td>
+		<td>EditMode</td>
+	</tr>
+	<tr>
+		<td>WM_DEFAULT</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>WM_VISUALIZATION</td>
+		<td>NA</td>
+	</tr>
+</table>
+<p><br />
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATMmrGetCanonicBRepFromGeometricalElement"></a>Suppression 
+of <em>CATMmrGetCanonicBRepFromGeometricalElement </em> </h3>
+<p>This method has been suppressed. Here is the code sample of the method:</p>
+<pre class="code">HRESULT <strong>CATMmrGetCanonicBRepFromGeometricalElement</strong>
+                              (const CATIMmiUseGeometricalElement*  iGeometricalElement,
+                               CATIMmiUseBRepAccess** oBRepAccess,
+                               int* oDimension)
+{
+  HRESULT rc = E_UNEXPECTED;
+  
+  if (iGeometricalElement &amp;&amp; oBRepAccess &amp;&amp; oDimension)
+  {
+    *oBRepAccess = NULL;
+    *oDimension = -1;
+    rc = E_FAIL;
+
+    int dim = -1;
+    CATBaseUnknown* mfFeature = (CATBaseUnknown*)iGeometricalElement;
+    CATIMfPoint_var pt = mfFeature;
+    if (pt != NULL_var)
+      dim = 0;
+    else
+    {
+      CATIMfLine_var ln = mfFeature;
+      if (ln != NULL_var)
+        dim = 1;
+      else
+      {
+        CATIMfPlane_var pln = mfFeature;
+        if (pln != NULL_var)
+          dim = 2;
+      }
+    }
+    if (dim &gt; -1)
+    {
+      CATIMmiUseGeometricalElement_var geomElem = mfFeature;
+      if (NULL_var != geomElem)
+      {
+        CATBody_var body;
+        HRESULT rc = geomElem-&gt;GetBodyResult(body);
+        if (NULL_var != body)
+        {
+          CATLISTP(CATCell)  cells;
+          body-&gt;GetAllCells(cells,dim);
+          int nbCells = cells.Size();
+          if (nbCells == 1)
+          {
+            CATCell_var cell = cells[1];
+            if (NULL_var != cell)
+            {
+              CATIMmiUseBRepDecodeServices_var spBRepDecodeService ;
+              CATMmiUseServicesFactory::CreateBRepDecodeServices(spBRepDecodeService);
+              if (spBRepDecodeService != NULL_var)
+              {
+                CATIMmiUseBRepAccess_var brepdecode;
+                rc = spBRepDecodeService-&gt;DecodeCellInGeomElt(brepdecode, cell, geomElem);
+                if (brepdecode!= NULL_var)
+                {
+                  *oBRepAccess = (CATIMmiUseBRepAccess*)brepdecode;
+                 (*oBRepAccess)-&gt;AddRef();
+                 *oDimension = dim;
+                 rc = S_OK;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return rc;
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="BReps"></a>Managing BRep and BRep Access Objects</h3>
+<h4><a name="CATIBRepAccess"></a>Replacing <em>CATIBRepAccess</em> and <em>CATIMfBRep</em></h4>
+<p>These two interfaces that manage respectively BRep Access objects and BRep Features, 
+have been restructured. Methods that were common to both type of objects have been 
+transferred to two new interfaces, and separated by theme: <br />
+</p>
+<ul>
+	<li><em><strong>CATIMmiUseTopoAccess</strong></em> interface contains methods 
+	that give access to information on the topology. </li>
+	<li><em><strong>CATIMmiUseBRep</strong></em> interface contains methods that 
+	give access to information on the BRep and BRep Access objects. </li>
+</ul>
+<p>The remaining methods specific to either BRep Access objects, either to BRep 
+objects have been transferred each to a new interface: </p>
+<ul>
+	<li><em>CATIBRepAccess</em> interface is replaced by <em><strong>CATIMmiUseBRepAccess</strong></em> 
+	interface.</li>
+	<li><em>CATIMfBRep</em> interface is replaced by <em><strong>CATIMmiUseMfBRep</strong></em> 
+	interface.</li>
+</ul>
+<p>In the CATIA Adoption article &quot;MecModInterfaces&quot;[<a href="#References">16</a>], 
+you&#39;ll find the correspondence table for each method of these interfaces.</p>
+<script type="text/javascript">insertLinkToTop();
+</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="CATBRepDecode"></a>Replacing CATBRepDecode Global Functions</h4>
+<p>The <code>CATBRepDecode</code> global functions in <code>CATMfBRepDecode.h</code> 
+enable to create BRep Access objects from topological cells. These functions have 
+been transferred to a new class of services: <em><strong>CATIMmiUseBRepDecodeServices</strong></em>. 
+This class can be instantiated using <code>CATMmiUseServicesFactory::CreateBRepDecodeServices</code>.
+</p>
+<p>In the CATIA Adoption article &quot;MechanicalModeler&quot;[<a href="#References">17</a>], 
+you&#39;ll find the correspondence table for each global function declared in CATMfBRepDecode.h.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIMfFsur"></a>Replacing <em>CATIMfFsur</em>, <em>CATIMfRsur</em>, and 
+<em>CATIMfWireFvertex</em></h3>
+<p>These interfaces are just a filter on a selecting feature of Fsur type, a RSur 
+type, or a WireFvertex type respectively. To replace them, you can:</p>
+<ul>
+	<li>Get the limitation type: use CATIMmiUseBRep::GetLimitationType.</li>
+	<li>Get topological type, use: CATIMmiUseTopoAccess::GetBrepFtrGeometryType.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIActivate"></a>Replacing <em>CATIActivate</em> </h3>
+<p>The new API is <em><strong>CATIMmiResultFreeze</strong></em>. This interface 
+enables you to freeze (deactivate) or unfreeze (activate) a link created by a copy/paste 
+as result with link inside the same 3D Shape [<a href="#References">11</a>]. It 
+is no longer supported to perform this operation on an external link.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="AboutUserFeature"></a>About User Feature and Power Copy</h3>
+<p>In V6, some functionalities are no longer supported: <em>CATIUdfFactory</em>,
+<em>CATIUdfFeature</em>, <em>CATIUdfFeatureSet</em> and <em>CATIUdfFeatureUser</em> 
+interfaces have been suppressed. The remaining available interfaces are <em>CATIUdfFeatureInstance</em> 
+and <em>CATIUdfInstantiate</em>. A new class, <em><strong>CATTemplatesAccessServices</strong></em> 
+has been created, it contains two methods of the <em>CATIUdfFactory</em> interface:
+</p>
+<table class="fill">
+	<tr>
+		<th>CATIUdfFactory </th>
+		<th>CATTemplatesAccessServices</th>
+	</tr>
+	<tr>
+		<td>CATListValCATISpecObject_var* GetPowerCopyList()</td>
+		<td>HRESULT GetPowerCopyList (const CATBaseUnknown_var &amp;iPartContainer,CATLISTV(CATIUdfInstantiate_var) 
+		&amp;iListOfPowercopyReferences);</td>
+	</tr>
+	<tr>
+		<td>CATListValCATISpecObject_var* GetUserFeatureList()</td>
+		<td>HRESULT GetUserFeatureList (const CATBaseUnknown_var &amp;iPartContainer,CATLISTV(CATIUdfInstantiate_var) 
+		&amp;iListOfUserFeatureReferences);</td>
+	</tr>
+</table>
+<p>The article &quot;An Overview of Power Copies and User Features [<a href="#References">12</a>] 
+and the use case [<a href="#References">13</a>] explain the use of this interface.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIMf3DBehavior2"></a>Suppression of<em> CATIMf3DBehavior2</em> interface</h3>
+<p>This interface that has a unique method, <code>IsAVolume()</code> has been suppressed, 
+along with its adapter class, CATMf3DBehavior2Adapter. The <code>IsAVolume()</code> 
+method has been added in <em><strong>CATIMf3DBehavior</strong></em> interface.
+<br />
+If you have an implementation of this interface, you need to transfer the code of 
+the <code>IsAVolume</code> method to an implementation of the <em>CATIMf3DBehavior</em> 
+interface, using the <em>CATMf3DBehaviorAdapter</em>. </p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIMmiPartInfra"></a>Suppression of <em>CATIMmiPartInfrastructureSettingAtt</em> interface</h3>
+<p> 
+In V6, Settings are accessed using generic methods of the <strong>CATSysSettingRepository
+</strong>class that relies on a XML-based description of the setting 
+repositories and attributes. Thus, the <em>CATIMmiPartInfrastructureSettingAtt
+</em>and <em>CATIMmiPartInfrastructureSettingAtt2</em> interfaces have become 
+useless.<br />
+MechanicalModeler settings are 
+described in <strong>3DShapeInfrastructure3DShape.xml</strong> file. Refer to 
+the article &quot;Understanding Setting Repositories and Attributes&quot;[<a href="#References">21</a>] for details.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Advanced"></a>Migration paths for Advanced Scenarios</h2>
+<p>Advanced scenarios are tasks that deal with creating and managing new applicative 
+features. These scenarios are very impacted by the new Feature Modeler platform, 
+with its new secured way to access and manage feature Catalogs. <br />
+We will not repeat the migration paths for Feature Modeler that are already described 
+in the Feature Modeler Adoption articles[<a href="#References">5</a>][<a href="#References">15</a>], 
+but we will concentrate on the specific Mechanical Modeler changes. The Combined 
+Curve Use Case[<a href="#References">18</a>] covers completely the creation and 
+integration of a new Mechanical Feature and therefore is a good example to see how 
+to use the new Feature Modeler platform within a Mechanical Modeler application.</p>
+<h3><a name="CATIDescendants"></a>Suppression of CATIDescendants </h3>
+<p>The <em>CATIDescendants</em> interface is too permissive for the secured access 
+provided by the new feature Modeler platform. It is replaced by dedicated applicative 
+APIs. For Mechanical Modeler, the APIs to use depend on what you need to do and 
+on what type of object you are working with. Here are examples of scenarios: </p>
+
+	<h4><a name="Part"></a>Scanning a Mechanical Part: Use CATIPartRequest Interface</h4>
+	<p><strong>V5</strong></p>
+	<pre class="code">...
+// Navigating under a Mechanical Part using CATIDescendants
+CATIDescendants *piPartAsDescendants = NULL;
+rc = spPart-&gt;QueryInterface(IID_CATIDescendants, (void**)&amp;piPartAsDescendants) ;
+...
+// Extracts the lists of its Body Features
+CATLISTV(CATISpecObject_var) BodyListDesc;  
+pPartAsDescendants-&gt;GetAllChildren(&quot;CATIMechanicalTool&quot;, BodyListDesc);
+ 
+// Extracts the lists of its OGS
+CATLISTV(CATISpecObject_var) OGSList;  
+pPartAsDescendants-&gt;GetAllChildren(&quot;CATIMmiOrderedGeometricalSet&quot;,OGSList);
+ 
+//Extracts the lists of its GS
+CATLISTV(CATISpecObject_var) GSList;  
+pPartAsDescendants-&gt;GetAllChildren(&quot;CATIMmiNonOrderedGeometricalSet&quot;,GSList);
+...</pre>
+	<p><strong>V6</strong></p>
+	<pre class="code">...
+// Navigating from a Mechanical Part using CATIPartRequest
+CATIPartRequest *piPartAsRequest = 0;
+rc = spPart-&gt;QueryInterface(IID_CATIPartRequest, (void**)&amp;piPartAsRequest) ;
+...
+// Extracts the lists of its Body Features
+CATLISTV(CATBaseUnknown_var) BodyList;  
+pPartAsRequest-&gt;GetSolidBodies(stdContext, BodyList);
+
+// Extracts the lists of its surfacic sets
+CATLISTV(CATBaseUnknown_var) SurfacicSetList;  
+pPartAsRequest-&gt;GetSurfBodies(stdContext, SurfacicSetList);
+...</pre>
+	
+	<h4><a name="PartBody"></a>Scanning a Part Body: Use CATIMmiUseBodyContent	Interface</h4>
+	<p><strong>V5</strong></p>
+	<pre class="code">...
+// Navigating under a Mechanical Part using CATIDescendants
+CATIDescendants *piPartAsDescendants = NULL;
+rc = spPart-&gt;QueryInterface(IID_CATIDescendants, (void**)&amp;piPartAsDescendants) ;
+...
+// Gets the fillet features
+CATLISTV(CATISpecObject_var) filletFeatures;
+CATIDescendants *pPartAsDescendant = 0;
+rc = spPart-&gt;QueryInterface(IID_CATIDescendants, (void**)&amp;pPartAsDescendant);
+if( SUCCEEDED(rc)) 
+{
+   pPartAsDescendant-&gt;GetAllChildren("CATIFillet", filletFeatures);
+
+...</pre>
+
+	<p><strong>V6</strong></p>
+	<pre class="code">...
+
+CATIMmiUseBodyContent_var spBodyContent = spMainBody;
+...
+CATListValCATBaseUnknown_var listFeat;
+rc = spBodyContent-&gt;GetMechanicalFeatures(listFeat);
+
+... 
+CATListValCATBaseUnknown_var filletFeatures;
+for (int currentFeat=1; currentFeat&lt;=listFeat.Size();currentFeat++)
+{
+   CATBaseUnknown* pFillet = NULL;
+   CATBaseUnknown_var hFeat = listFeat[currentFeat];
+   if (!!hFeat)
+   {
+     pFillet = hFeat-&gt;QueryInterface("CATIPdgUseFillet");
+     if (pFillet) 
+       filletFeatures.Append(pFillet);
+
+...</pre>
+
+	
+	
+	
+	<h4><a name="Set"></a>Scanning a MechanicalSet: Use CATIMmiMechanicalSet Interface</h4>
+ 	<p><strong>V5</strong></p>
+	<pre class="code">...
+CATIDescendants * piMechanicalSet = ...;
+CATListValCATISpecObject_var hChildren;
+piMechanicalSet-&gt;GetDirectChildren(&quot;CATI3DGeoVisu&quot;, hChildren);
+...</pre>
+	<p><strong>V6</strong></p>
+	<pre class="code">...
+CATIMmiMechanicalSet_var hMechanicalSet = ...; 
+CATListValCATIMmiMechanicalFeature_var FeatureList;
+rc = hMechanicalSet-&gt;GetMechanicalFeatures(FeatureList);
+...</pre>
+	
+	<h4><a name="GSD"></a>Inserting a Shape Design Feature: Use CATIGSMUseProceduralView Interface</h4>
+	<p><strong>V5</strong></p>
+	<pre class="code">...
+// Append a point in a GeometricalSet
+CATIDescendants * piDescendantsOnGS  = NULL ;
+rc = spSpecOnGS-&gt;QueryInterface(IID_CATIDescendants,(void**)&amp;piDescendantsOnGS);
+
+CATISpecObject_var spPoint = ...;
+piDescendantsOnGS-&gt;Append(spPoint);
+...</pre>
+	<p><strong>V6</strong></p>
+	<pre class="code">...
+// Append a point in a GeometricalSet
+CATIMmiMechanicalFeature_var spGeomSet = ...;
+CATIGSMUseProceduralView_var spProceduralViewOnPoint = spPoint;
+...
+rc = spProceduralViewOnPoint-&gt;InsertInProceduralView(spGeomSet);
+...</pre>
+	
+	<h4><a name="MechFeat"></a>Inserting a Mechanical Feature: Use CATIMmiUseBasicInsertion Interface</h4>
+	<p><strong>V5</strong></p>
+	<pre class="code">...
+CATIDescendants * piDescendantsOnGS  = ...;
+CATISpecObject * piFeatureToInsert = ...;
+
+// Append at the end of a Set
+piDescendantsOnGS-&gt;Append(piFeatureToInsert);
+
+// Append at a given position
+int pos = ...;
+piDescendantsOnGS-&gt;AddChild(piFeatureToInsert,pos);
+...</pre>
+	<p><strong>V6</strong></p>
+	<pre class="code">...
+CATIMmiUseBasicInsertion_var spBasicInsertion = MyMechanicalFeature; 
+...
+CATIMmiMechanicalFeature_var  spFeatSet = ...;
+CATIMmiMechanicalFeature_var  spFeat = ...;
+
+// Insert inside the destination Set
+spBasicInsertion-&gt;InsertInside(spFeatSet);
+
+// Insert after a Feature
+spBasicInsertion-&gt;InsertAfter(spFeat);
+...</pre>
+	<p>Note: to insert a Solid Feature in a procedural Body, you must use the
+	<em><strong>CATIMmiUseSolidInsertion</strong></em> interface, wich replaces 
+	the V5 interface <em>CATIPrtProceduralView</em>. Indeed, <em>CATIDescendants</em> 
+	was not supposed to be used in this case because it doesn&#39;t manage the links 
+	between Solid Features with the ResultIN and ResultOUT attributes. </p>
+	
+	<h4><a name="Param"></a>Inserting a Knowledge Parameter under a Mechanical 
+	Feature</h4>
+	<p><strong>V5</strong></p>
+	<p>In V5, the <em>CATIDescendants</em> interface enables a user to set an Knowledge 
+	Parameter on a Mechanical Feature in an implicit way.<br />
+	In the the following sample, extract of the Combined Curve Use Case, the parameter 
+	&quot;Computed Length&quot; is stored on the MultiMeasure Feature.</p>
+	<pre class="code">...
+CATIDescendants *piDescendantsOnMmrMultiMeasure = NULL;
+rc = pMultiMeasure-&gt;QueryInterface(IID_CATIDescendants, (void**) &amp;piDescendantsOnMmrMultiMeasure);
+if(SUCCEEDED(rc) &amp;&amp; NULL != piDescendantsOnMmrMultiMeasure)
+{
+   CATICkeParmFactory_var spParmFact = this; // this = the factory to create MultiMemasure feature
+   if(!!spParmFact)
+   {
+      spParmFact-&gt;InitStartUps();
+      CATICkeParm_var spValuatedParm;
+
+      spValuatedParm = spParmFact-&gt;CreateLength(&quot;Computed Length&quot;,0);
+      spValuatedParm-&gt; SetUserAccess (CATICkeParm::ReadOnly);
+      piDescendantsOnMmrMultiMeasure-&gt;Append(spValuatedParm);
+      
+...</pre>
+	<p><strong>V6</strong></p>
+	<p>In V6, it&#39;s no longer possible to store a parameter in a implicit way, it 
+	can only be stored on something that has been explicitly declared in the catalog. 
+	For the MultiMeasure Feature in the Combined Curve Use case, we needed to add 
+	3 parameters in the catalog declaration.</p>
+	<pre class="code">...
+feature CAAMmrMultiMeasure MechanicalElement@`MechMod.feat` #startup  
+{
+   specobject FeatureToMeasure #in
+   component BRepFeatureToMeasure #in
+   component <strong>ComputedLength</strong> #out
+   component <strong>ComputedWetArea</strong> #out
+   component <strong>ComputedVolume</strong> #out
+}
+...</pre>
+<p>These parameters are then managed as attributes with the Feature Modeler APIs.</p>
+	<pre class="code">...
+CATIMmiMechanicalFeature_var spTarget = pMultiMeasure;
+if (spTarget != NULL_var)
+{
+  CATICkeParmFactory_var spParmFact = this;
+  if (spParmFact != NULL_var)
+  {
+    spParmFact-&gt;InitStartUps();
+
+    CATICkeParm_var spValuatedParm = spParmFact-&gt;CreateLength(&quot;ComputedLength&quot;,0);
+    spValuatedParm-&gt;SetUserAccess(CATICkeParm::ReadOnly);
+
+    CATFmFeatureFacade FeatFacadeOnParam;
+    FeatFacadeOnParam = spValuatedParm;
+    CATFmAttributeName AttrKey = CATFmAttributeName(&quot;ComputedLength&quot;); 
+    CATFmAttributeValue FmAttrValue;
+    FmAttrValue.SetFeature(FeatFacadeOnParam);
+    rc = MultiMeasureFeatFacade.SetValue(AttrKey, FmAttrValue);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIReplace"></a>Implementing CATIReplace</h3>
+<p>In V5, applications that implement <em>CATIReplace</em> use the <em>CATSpecReplaceExt</em> 
+adaptor and have also to implement <em>CATIAttrBehavior</em> interface. <br />
+In V6, applications that need to implement <em>CATIReplace</em> for new features 
+that are extensions of Mechanical Features should use the <em><strong>CATMmrReplaceAdapter</strong></em> 
+adaptor. The <em>CATIAttrBehavior</em> interface is suppressed in V6, but its unique 
+method, <code><strong>GetRequestedBehavior</strong></code>, needs to be implemented 
+in your <em>CATIReplace</em> implementation. You can look at an example with the 
+Combined Curve Use Case in the chapter &quot;Modifying Combined Curve specifications&quot; 
+[<a href="#References">19</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Errors"></a>Update Error Management</h3>
+<p>In Mechanical Modeler, we call update error an error that occurs during the Feature&#39;s 
+Build/Update process and that blocks the construction of the resulting geometry. 
+The aim is to give user a maximum of information on the origin of the problem to 
+enable him to modify the defecting features. <br />
+In V5, there is one class and one interface to manage Update Errors:</p>
+<ul>
+	<li><em><strong>CATMfErrUpdate</strong></em>: class that manages all information 
+	on the update error, derives from <em><strong>CATMfError</strong></em> class.</li>
+	<li><em><strong>CATIUpdateError</strong></em>: interface that enables to associate 
+	an update error with a Mechanical Feature.</li>
+</ul>
+<p>In V6, a distinction has been made in between &quot;Use&quot; and &quot;Extend&quot; methods.</p>
+<ul>
+	<li><em>CATIUpdateError</em> interface is replaced by: <br />
+	<em><strong>CATIMmiUseUpdateError</strong></em> interface for &quot;Use&quot; functionalities 
+	=&gt; Read an error diagnostic on a feature.<br />
+	<strong><em>CATIMmiUpdateError</em></strong> interface for &quot;Extend&quot; functionalities 
+	=&gt; Set or Unset an update error on a feature. </li>
+	<li><em>CATMfErrUpdate</em> class is replaced by <em><strong>CATIMmiErrUpdate</strong></em> 
+	interface, available in the &quot;Extend&quot; scope. This interface provides services 
+	to manage an UpdateError and can be instantiated using <em><strong>CATMmiExtendServicesFactory::CreateUpdateErrorAccess</strong></em>.
+	<p><em>CATMfErrUpdate</em> derived from <em>CATMfError</em> class, a specific 
+	error class for Mechanical Modeler errors. This class has also been suppressed 
+	and the new <em>CATIMmiErrUpdate</em> interface deals directly with a <code>
+	CATError</code>. A consequence of this is that users must modify any calls to
+	<code>CATThrow</code> and <code>CATCatch</code> that had <code>CATMfErrUpdate</code> 
+	or <code>CATMfError</code> as input argument and use a <code>CATError</code> 
+	instead. </p>
+	</li>
+</ul>
+<p><strong>V5 code sample</strong></p>
+<pre class="code">...
+// CATThrow
+
+CATMfErrUpdate *pErrorNoValidInput = new CATMfErrUpdate();
+CATUnicodeString Diagnostic(&quot;One of the inputs is wrong.&quot;);
+pErrorNoValidInput-&gt;SetDiagnostic(1,Diagnostic);
+CATThrow(pErrorNoValidInput);
+
+...
+
+// CATCatch
+
+CATIUpdateError * piUpdateErrorOnThis = NULL;
+rc = QueryInterface(IID_CATIUpdateError, (void**) &amp;piUpdateErrorOnThis);
+
+CATCatch (CATMfErrUpdate, pUpdateError)
+{
+   // Associates the error with the feature to build
+   if (NULL != piUpdateErrorOnThis) 
+   {
+      piUpdateErrorOnThis-&gt;SetUpdateError(pUpdateError); 
+   }
+...</pre>
+<p><strong>V6 code sample</strong></p>
+<pre class="code">...
+// CATThrow
+
+CATIMmiErrUpdate *piErrorAccess = NULL;
+rc = CATMmiExtendServicesFactory::CreateUpdateErrorAccess(piErrorAccess);
+
+CATError * pErrorNoValidInput = NULL;
+if (NULL != piErrorAccess)
+{
+   piErrorAccess-&gt;CreateNewError(pErrorNoValidInput);
+   CATUnicodeString Diagnostic(&quot;One of the inputs is wrong.&quot;);
+   piErrorAccess-&gt;SetMmiDiagnostic(pErrorNoValidInput,Diagnostic);
+   CATThrow(pErrorNoValidInput);
+}
+
+...
+
+// CATCatch
+
+CATIMmiUpdateError_var spUpdateErrorOnThis = NULL_var;
+CATCatch (CATError, pError)
+{
+   CATError * pErrorToThrow = NULL;
+
+   // Create access to Update Error
+   CATIMmiErrUpdate *piErrorAccess = NULL;
+   rc = CATMmiExtendServicesFactory::CreateUpdateErrorAccess(piErrorAccess);
+
+   if (NULL != piErrorAccess)
+   {
+     // Check if the error is an update error
+     if (S_OK == piErrorAccess-&gt;IsAnUpdateError(pError))
+     {
+       // Associates the error with the Feature to build
+       if (NULL_var != spUpdateErrorOnThis)
+         spUpdateErrorOnThis-&gt;SetMmiUpdateError(pError);
+     }
+     else
+     {
+       // Create a new update error
+       piErrorAccess-&gt;CreateNewError(pErrorToThrow);
+       piErrorAccess-&gt;SetMmiDiagnostic(pErrorToThrow,pError-&gt;GetNLSMessage());
+
+       // Clean-up
+       ::Flush(pError);
+
+       // Associates the error with the Feature to build
+       if (spUpdateErrorOnThis != NULL_var) 
+        spUpdateErrorOnThis-&gt;SetMmiUpdateError(pErrorToThrow);
+    }
+  }
+...</pre>
+<p>Refer to the article &quot;A Description of Update Errors&quot;[<a href="#References">20</a>] 
+for more detailed information.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATIMmiMechanicalImportApplicative3"></a>Suppression of CATIMmiMechanicalImportApplicative3</h3>
+<p>This interface that had a unique method, <code>BreakLink</code>, has been suppressed. 
+The <code>BreakLink</code> method has been replaced by <code>BreakExternalLink</code> 
+in <em><strong>CATIMmiMechanicalImportApplicative</strong></em> interface. <br />
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The new V6 packaging model separates APIs in two types of frameworks: </p>
+<ul>
+	<li>standard frameworks : they have &quot;UseItf&quot; nomenclature and supply methods 
+	for standard tasks.</li>
+	<li>specialized frameworls : they have &quot;ExtendItf&quot; nomenclature and supply methods 
+	for advanced tasks.</li>
+</ul>
+<p>Important API modifications are due to the <em>CATDocument</em> removal and the 
+Product Model data model transformations.</p>
+<p>Inside the 3D Shape, a lot of API modifications are due to the new Feature Model 
+platform, with the suppression of <em>CATISpecObject</em> and <em>CATIDescendants</em> 
+interfaces. </p>
+<p>Most methods now return an HRESULT and method output values are passed out by 
+argument.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAACenAdoptionOverview.htm">V6 Adoption Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAACenAdoptionMethodology.htm">V6 Adoption Methodology</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAACenPstTaP1P2Migration.htm">Product Modeler Changes</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAACenOsmTaSpecsModelerAdoption.htm">Feature Modeler Changes 
+		- Global View</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAACenOsmTaSpecsModelerExtendAdoption.htm">Feature Modeler 
+		Changes by Scenarios</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAACenPLMTaAllDocumentRemoval.htm">File Persistency Removal 
+		Impacts</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrTa3DShape.htm');">
+		From the PLM Representation to the 3D Shape</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrTaContentsSpecCont0.htm');">
+		The Part Feature</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrUcInterPartCopy.htm');">
+		Copying Mechanical Features</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm');">
+		PLM Representation Reference Overview</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrTaFreeze.htm');">
+		Internal Copy With Link</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaTaPowerCopyAndUserFeatures.htm')">
+		An Overview of Power Copies and User Features</a> </td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaUcUdfInstantiation.htm')">
+		Instantiating a User Feature Reference</a> </td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrUcCreateExplicitPart.htm');">
+		Creating a 3D Shape Representation</a></td>
+	</tr>
+	<tr>
+		<td>[15]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatMod/CAAFmTaCommonProtocols.htm');">
+		Understanding Common Protocols</a></td>
+	</tr>
+	<tr>
+		<td>[16]</td>
+		<td>Migration for <a href="CAACenBUMecModInterfaces.htm">MecModInterfaces</a> 
+		framework</td>
+	</tr>
+	<tr>
+		<td>[17]</td>
+		<td>Migration for <a href="CAACenBUMechanicalModeler.htm">MechanicalModeler</a> 
+		framework</td>
+	</tr>
+	<tr>
+		<td>[18]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMmrUcCombinedCurveSamplesOverview.htm');">
+		Creating a New Geometrical Feature: the Combined Curve</a></td>
+	</tr>
+	<tr>
+		<td>[19]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMcaUcReplace.htm');">
+		Modifying Combined Curve Specifications</a></td>
+	</tr>
+	<tr>
+		<td>[20]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecMod/CAAMmrTaErreurUpdateUse.htm');">
+		A Description of Update Errors</a></td>
+	</tr>
+	<tr>
+		<td>[21]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAASysMiddleware/CAASysTaMidSettingUnderstanding.htm');">
+		Understanding Setting Repositories and Attributes</a></td>
+	</tr>
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Feb 2011]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Oct 2011]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

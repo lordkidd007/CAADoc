@@ -1,0 +1,485 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Using mkodt</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>Java Unit Test Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Using mkodt</h3>
+      <em>Creating and running test objects</em></td>
+  </tr>
+  <tr>
+    <td class="tech" colspan="2">Technical Article</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article shows how to create and run java test objects, and how to use
+      the commands and their options.
+      <ul>
+        <li><b><a href="#SetOdtParam">Using SetOdtParam</a></b>
+          <ul>
+            <li><a href="#JAVABATCH">Selecting the JAVABATCH type</a></li>
+            <li><a href="#OS">Selecting the Operating System to Replay a Test
+              Object</a></li>
+            <li><a href="#JRE">Selecting the Java RunTime&nbsp; Environment (JRE)
+              to replay a Test Object</a></li>
+            <li><a href="#max_time">Modifying the Maximum Replay Time of a Test
+              Object</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#WhichDir">Using WhichDir</a></b></li>
+        <li><b><a href="#ODTInit">Using ODTInit</a></b></li>
+        <li><b><a href="#JavaReplay">Using JavaReplay</a></b></li>
+        <li><b><a href="#mkodt options">Using mkodt Options</a></b>
+          <ul>
+            <li><a href="#basic options">Using Basic Options</a></li>
+            <li><a href="#concatenation">Using Concatenation Options (-p and -r)</a></li>
+            <li><a href="#option -NOMaxTime">Using -NOMaxTime Options</a></li>
+            <li><a href="#Change the output directory">Changing the Output
+              Directory</a></li>
+            <li><a href="#others options : -q, -X, -l, -L">Using Others Options:
+              -q, -X, -l, -L</a></li>
+          </ul>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="SetOdtParam"></a>Using SetOdtParam</h3>
+<p>SetOdtParam enables you to select the operating systems with which you want
+the test object to be replayed, and to set the maximum replay time</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h4><a name="JAVABATCH"></a>Selecting the |JAVABATCH type</h4>
+
+<p>To declare an ODT as a java ODT, the script must contain:</p>
+<p>SetOdtParam TYPE=JAVABATCH</p>
+<p>With this line the java environment will be set automatically, using the
+environment variable ADL_ODT_JRE. The CLASSPATH and the PATH wii be updated
+using this ADL_ODT_JRE variable.</p>
+<p><b>Examples:</b></p>
+<blockquote>
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParam TYPE=JAVABATCH
+JavaReplay Appli
+exit $?</pre>
+      </tr>
+    </table>
+</blockquote>
+<p>This line must appear in each script of java ODTs.</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="OS"></a>Selecting the Operating System to Replay a Test Object</h4>
+<p>By default, a test object is replayed with any operating systems available on
+your site. If you don't want to replay a test object with a given operating
+system, use:</p>
+<pre>SetOdtParam Replay_xxx=NO</pre>
+<p>where <code>xxx</code> can have the following values: <code>AIX</code>, <code>SunOS</code>, <code>HP-UX</code>, <code>Unix</code>, <code>Windows_NT</code>,
+<code>aix_a</code>, <code>solaris_a</code>, <code>hpux_b</code>,
+and <code>intel_a</code>.
+<p><b>Examples:</b></p>
+<ul>
+  <li>To prevent a java test object to be replayed with intel_a:
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParam TYPE=JAVABATCH</pre>
+          <pre>SetOdtParam Replay_intel_a=NO
+JavaReplay Appli
+exit $?</pre>
+      </tr>
+    </table>
+  </li>
+  <li>To replay a java test object only on AIX:
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParam TYPE=JAVABATCH</pre>
+          <pre>SetOdtParam Replay_Windows_NT=NO
+SetOdtParam Replay_solaris_a=NO
+SetOdtParam Replay_hpux_b=NO
+JavaReplay Appli
+exit $?</pre>
+      </tr>
+    </table>
+  </li>
+</ul>
+
+<h4><a name="JRE"></a>Selecting the Java RunTime Environment (JRE) to replay a Test Object</h4>
+<p>By default, a test object is replayed with any JRE available on the OS. Here
+are the possible value of the JRE (The ADL_ODT_JRE environment variable ) for
+each OS:</p>
+<blockquote>
+  <table>
+    <tr>
+      <td>Solaris and Windows</td>
+      <td><code>sunjre_a</code></td>
+    </tr>
+    <tr>
+      <td>AIX</td>
+      <td><code>ibmjre_a</code></td>
+    </tr>
+    <tr>
+      <td>HP_UX</td>
+      <td><code>hpjre_a</code></td>
+    </tr>
+    <tr>
+      <td>Windows (Microsoft JRE)</td>
+      <td><code>msjre_a</code></td>
+    </tr>
+  </table>
+</blockquote>
+<p>On Windows, the default value of the JRE is sunjre_a.</p>
+<p>If you don't want to replay a test object with a JRE, use:</p>
+<pre>SetOdtParam Replay_xxx=NO</pre>
+<p>where <code>xxx</code> can have the following values: sunjre_a, sgijre_a,
+ibmjre_a, hpjre_a, msjre_a.
+<p><b>Examples:</b></p>
+<ul>
+  <li>To prevent a test object to be replayed with the Microsoft Java RunTime
+    Environment:
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParam TYPE=JAVABATCH</pre>
+          <pre>SetOdtParam Replay_msjre_a=NO
+JavaReplay Appli
+exit $?</pre>
+      </tr>
+    </table>
+  </li>
+  <li>To replay a test object only on NT and with the Microsoft Java RunTime
+    Environment only:
+    <table class="code">
+      <tr>
+        <td>
+          <pre>SetOdtParam TYPE=JAVABATCH</pre>
+          <pre>SetOdtParam Replay_Unix=NO
+SetOdtParam Replay_sunjre_a=NO
+
+JavaReplay Appli
+exit $?</pre>
+      </tr>
+    </table>
+  </li>
+</ul>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="max_time"></a>Modifying the Maximum Replay Time of a Test Object</h4>
+<p>The default replay time of a test object is five minutes. To modify this
+replay time, add to the test object script:</p>
+<pre>SetodtParam max_time=xx</pre>
+<p>where <code>xx</code> is the maximum replay time you want to set. It can't
+exceed 60 minutes.</p>
+<p><b>Example:</b></p>
+<p>The following example shows a test object with a maximum replay time of ten
+minutes that will be replayed with Windows only.
+<table class="code">
+  <tr>
+    <td>
+      <pre>SetOdtParam max_time=10
+SetOdtParam Replay_Unix=NO
+JavaReplay MyAppli
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="WhichDir"></a>Using WhichDir</h3>
+<p>This command can be used in shell script to find a directory or a file in the
+workspace concatenation using the <code>ADL_ODT_CONCATENATION</code> variable.
+It will be used to add .zip, .jar.... files in the CLASSPATH environment
+variable.</p>
+<p><b>Example</b>: This test object that doesn't replay with Windows is going to
+find in the workspace concatenation the file <code>$OS/docs/java/GW0Start.jar
+and will add this file in the CLASSPATH:</code></p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>SetOdtParam TYPE=JAVABATCH</pre>
+      <pre>SetOdtParam Replay_Windows_NT=NO&nbsp;
+<font FACE="Courier New" SIZE="2">export CLASSPATH=$CLASSPATH${ADL_ODT_SEPARATOR}$(WhichDir $OS/docs/java/GW0Start.jar)</font>
+
+JavaReplay MyAppli
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="ODTInit"></a>Using ODTInit</h3>
+<p>The ODTInit command is used to factorize steps of ODTs; Indeed, sometimes,
+ODTs could generate and use the same resources... But each ODT will create his
+own resources during a replay.</p>
+<p>To use this command, the developer&nbsp; must create a shell script named <i>ODTInit_logicname.sh
+</i>in the ADL_ODT_IN directory. This shell will generate resources that will be
+used on this ODT.</p>
+<h3><a name="JavaReplay"></a>Using JavaReplay</h3>
+<p>The JavaReplay command is used to launch the given application or applet with
+the a given JRE .</p>
+<p><b>Example</b>:&nbsp;</p>
+<p>Normally, to test a java Application, you have to launch, after having
+updated the PATH and the CLASSPATH variables:</p>
+<p>java MyAppli</p>
+<p>or&nbsp;</p>
+<p>jview MyAppli</p>
+<p>&nbsp;</p>
+<p>With mkodt java, you do not have to set PATH and CLASSPATH, except to add
+specific .jar in your CLASSSPATH; To launch your java application, you just have
+to type your ODT as a JAVABATCH ODT and to use the JavaReplay command:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>SetOdtParam TYPE=JAVABATCH</pre>
+      <pre>
+<font FACE="Courier New" SIZE="2">export CLASSPATH=$CLASSPATH${ADL_ODT_SEPARATOR}$(WhichDir $OS/docs/java/GW0Start.jar)</font>
+
+JavaReplay MyAppli
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<p>This ODT will be replayed on every JRE. The default JRE for each OS are:</p>
+<table>
+  <tr>
+    <td>Solaris and Windows</td>
+    <td><code>sunjre_a</code></td>
+  </tr>
+  <tr>
+    <td>AIX</td>
+    <td><code>ibmjre_a</code></td>
+  </tr>
+  <tr>
+    <td>HP_UX</td>
+    <td><code>hpjre_a</code></td>
+  </tr>
+  <tr>
+    <td>Windows (Microsoft JRE)</td>
+    <td><code>msjre_a</code></td>
+  </tr>
+</table>
+<p>If you wish to replay your ODT on the Microsoft's JRE (on Windows), you
+must launch:</p>
+<p>set ADL_ODT_JRE=msjre_a</p>
+<p>mkodt -s monODT</p>
+<p>This will set the ADL_ODT_JRE to msjre_a, and, with the SetOdtParam TYPE=JAVABATCH
+and the javaReplay command used in the script, the replay on this JRE will be
+done automatically without having to se more variables.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+
+<h3><a name="mkodt options"></a>Using mkodt Options</h3>
+<h4><a name="basic options"></a>Using Basic Options</h4>
+<p>These standard options are used to replay ODTs in a local workspace or in an
+official workspace:</p>
+<table>
+  <tr>
+    <th>Command Line</th>
+    <th>ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -W MONWS -F MONFW -a ( option -W available on UNIX
+      only)</td>
+    <td width="50%">Replay all ODTs of $HOME/MONWS/MONFW</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d /u/lego/CXR4/BSF -a -S -o /u/users/toto/output</td>
+    <td width="50%">Replay all Switch ODTs of CXR4 and generate Output in
+      /u/users/toto/output directory</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -s DRW*Rec</td>
+    <td width="50%">Replay all ODTs DRW*Rec of the current workspace.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="concatenation"></a>Using Concatenation Options (-p and -r)</h4>
+<table border="1" width="100%">
+  <tr>
+    <th width="50%">Command Line</th>
+    <th width="50%">ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -p
+      e:\steplib\CXR4\LocalWS</td>
+    <td width="50%">
+      <p>$ADL_ODT_CONCATENATION= e:\steplib\CXR4\LocalWS</p>
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -r
+      e:\steplib\CXR4\LocalWS</td>
+    <td width="50%">
+      <p>$ADL_ODT_CONCATENATION=\\renoir\CXR4\BSF</p>
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d \\renoir\CXR4\BSF -a -S -o E:\users\toto\output -r
+      e:\steplib\CXR4\LocalWS -p \\renoir\CXR4rel\BSF</td>
+    <td width="50%">
+      <p>$ADL_ODT_CONCATENATION=\\renoir\CXR4rel\BSF</p>
+      <p>Runtime Concatenation = e:\steplib\CXR4\LocalWS</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="option -NOMaxTime"></a>Using -NOMaxTime Option</h4>
+<p>This option suspend the supervision of max_time ODT:</p>
+<p>Example:</p>
+<p>For the following example:
+<table class="code">
+  <tr>
+    <td>
+      <pre>SetOdtParam TYPE=JAVABATCH</pre>
+      <pre>SetOdtParam  max_time=1
+JavaReplay Appli
+exit $?</pre>
+    </td>
+  </tr>
+</table>
+<ul>
+  <li>mkodt without -NOMaxTime option:</li>
+  <p><img border="0" src="images/KillMaxTime.gif" width="604" height="251"></p>
+  <p>Elapsed time &gt; max_time; the ODT is killed.</p>
+  <li>mkodt with -NOMaxTime option:
+    <p><img border="0" src="images/NOMaxTime.gif" width="604" height="263"></p>
+    <p>Elapsed time &gt; max_time defined in the shell (SetOdtParam max_time=1)
+    because -NOMaxTime had been used!!!</p>
+  </li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Change the output directory"></a>Changing the Output Directory</h4>
+<p>To change the output directory, there are two possibilities:</p>
+<ol>
+  <li>use the -o mkodt's options:
+    <p><img border="0" src="images/OutputOption.gif" width="654" height="230"></p>
+    <p>Created directories:</p>
+    <p><img border="0" src="images/OutputOptionRes.gif" width="681" height="279"></p>
+  </li>
+  <li>set the ADL_ODT_OUT variable before running mkodt:
+    <p><img border="0" src="images/ADL_ODT_OUT.gif" width="772" height="317"></p>
+    <p>Created directories:</p>
+    <p><img border="0" src="images/ADL_ODT_OUTRes.gif" width="661" height="252"></p>
+    <p>If ADL_ODT_OUT is not set or if users don't use the -o option, the output
+    directory is: WSROOT/FW.tst/FunctionTests/Output/$OS. If the workspace is
+    read-only, the output will be saved in ADL_ODT_TMP.</p>
+    <p><i><b>Example:</b></i></p>
+    <p><img border="0" src="images/NoOutput.gif" width="700" height="259"></p>
+    <p>In this example, we replayed ODTs DRW*Rec* in frameworks Drafting*.tst in
+    the CXR4rel level; mkodt found 524 ODTs; Furthermore, there is no option -o
+    in the command line and the ADL_ODT_OUT is not set, so the mkodt ouput's
+    will be sqved in ADL_ODT_TMP\MKODT_save_297. The command had been
+    interrupted by user (^C).</p>
+  </li>
+</ol>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="others options : -q, -X, -l, -L"></a>Using Other Options: -q, -X,
+-l, -L</h4>
+<p>These options are used to modify the output of the mkodt command (-q, -X) or
+to give a list of ODT to replay (-L, -l):</p>
+<table border="1" width="100%">
+  <tr>
+    <th width="50%">Command Line</th>
+    <th width="50%">ODTs Replayed</th>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d E:\users\toto\MONWS -a -S -q -o E:\users\toto\output&nbsp;
+      (intel_a)</td>
+    <td width="50%">Replay all Switch ODTs of MONWS in quiet mode.</td>
+  </tr>
+  <tr>
+    <td width="50%">mkodt -d /u/users/toto\MONWS -s CCPCutRec -X -o E:\users\toto\output&nbsp;</td>
+    <td width="50%">The ODT CCPCutRec will be replayed and its output will be
+      redirected on output screen in real time.</td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <p>mkodt -d /u/users/toto\MONWS -L /u/users/toto\MONWS/ FileListODT -X -o
+      E:\users\toto\output</p>
+      <p>or</p>
+      <p>mkodt -d /u/users/toto\MONWS -L FileListODT -X -o E:\users\toto\output&nbsp;</td>
+    <td width="50%">
+      <p>The file FileListODT contain the ODT list to replay; This file has the
+      following format:</p>
+      <p>FW1 TypeODT ODTName1</p>
+      <p>FW2 TypeODT ODTName2</p>
+      <p>&#8230;&#8230;</td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <p>mkodt -d /u/users/toto\MONWS -l FileListFWODT -X -o
+      E:\users\toto\output&nbsp;</p>
+    </td>
+    <td width="50%">
+      <p>The file FileListFWODT contain the ODT list to replay; This file has
+      the following format:</p>
+      <p>ODTName1</p>
+      <p>ODTName2</p>
+      <p>...</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>1</strong>  [March 2001]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

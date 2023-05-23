@@ -1,0 +1,163 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding Common Protocols</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Common Protocols</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains how, and under which condition, you can update, 
+		delete a DS feature.</p>
+		<div id="toc">
+		</div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>What are Common Protocols</h2>
+<p>We provide a set of protocols which can be applied on any kind of object, in 
+other words trans-modeler available. The principle of these protocols is always 
+the same:</p>
+<ul>
+	<li>You request a <em>CATIUseEntity</em> interface pointer on the object to 
+		apply the protocol.</li>
+	<li>You call a method of the protocol using this pointer.</li>
+</ul>
+<p>By this way, the protocols are the same whatever the input object, but they will 
+only work if the object authorizes the protocol,i.e. implements <em>CATIUseEntity</em>.
+</p>
+<p>The <em>CATIUseEntity</em> interface is implemented on some DS features: like 
+Mechanical or Knowledge features. Refer to your modeler/application documentation 
+for more details about the implementation.</p>
+<p>All the protocols are defined in the DataCommonProtocolUse fw. Currently the 
+protocols are Delete, CopyPaste and Update. lets us describe them.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Delete"></a>Delete Protocol</h2>
+<p>The Delete protocol is two methods of DataCommonProtocolServices class:</p>
+<ul>
+	<li><strong>CanDelete</strong> , returning a CATBoolean value.</li>
+	<li><strong>Delete</strong>, operating the delete operation.</li>
+</ul>
+<p>The second one calling the first one. Have a look how to use the Delete call:</p>
+<pre class="code">...
+CATBaseUnknown *pOnMyFeat = &#8230;. ;
+<strong>CATIUseEntity</strong>  * pUseEntityOnMyFeat = NULL ;
+HRESULT rc = pOnMyFeat-&gt;QueryInyterface(IID_CATIUseEntity, (void**)&amp; pUseEntityOnMyFeat);
+If ( SUCCEEDED(rc) )
+{
+   rc = <strong>DataCommonProtocolServices</strong>::<strong>Delete</strong>(pUseEntityOnMyFeat)
+   if ( FAILED(rc) ) 
+   {
+      CATError * pError = CATError::<strong>CATGetLastError</strong>(rc) ;
+      ....
+      pError-&gt;Release() ;
+      pError = NULL ;
+   }
+   pUseEntityOnMyFeat -&gt;Release();
+   pUseEntityOnMyFeat = NULL;
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Update"></a>Update Protocol</h2>
+<p>The update protocol is two methods of DataCommonProtocolServices class:</p>
+<ul>
+	<li><strong>IsUpToDate</strong>, returning a CATBoolean value.</li>
+	<li><strong>Update</strong>, operating the update operation.</li>
+</ul>
+<p>The second one calling the first one. Have a look how to use the Update call:</p>
+<pre class="code">...
+CATBaseUnknown *pOnMyFeat = &#8230;. ;
+<strong>CATIUseEntity</strong>  * pUseEntityOnMyFeat = NULL ;
+HRESULT rc = pOnMyFeat-&gt;QueryInyterface(IID_CATIUseEntity, (void**)&amp; pUseEntityOnMyFeat);
+If ( SUCCEEDED(rc) )
+{
+   rc = <strong>DataCommonProtocolServices</strong>::<strong>Update</strong>(pUseEntityOnMyFeat)
+   if ( FAILED(rc) ) 
+   {
+      CATError * pError = CATError::<strong>CATGetLastError</strong>(rc) ;
+      ....
+      pError-&gt;Release() ;
+      pError = NULL ;
+   }
+   pUseEntityOnMyFeat -&gt;Release();
+   pUseEntityOnMyFeat = NULL;
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CopyPaste"></a>Copy/Paste Protocol</h2>
+<p>The copy/paste protocol is three methods of DataCommonProtocolCCPServices class. 
+The Copy/paste protocol is exactly what you can do interactively.</p>
+<ul>
+	<li><strong>GetAvailableFormats</strong>.
+		<p>This method returns the formats ( express as string) available for a 
+		Paste as &quot;special&quot;.</p>
+	</li>
+	<li><strong>CopyAndPasteTo</strong>
+		<p>This method is equivalent to the succession of these two interactive 
+		commands: Edit -&gt; Copy + Edit -&gt; Paste . You give a list of object 
+		(expressed as a <em>list of CATIUseEntity</em> interface pointers), and 
+		you get the result of the copy as a list of <em>CATIUseEntity</em> interface 
+		pointers.</p>
+	</li>
+	<li><strong>CopyAndPasteSpecialTo</strong>
+		<p>This method is equivalent to the succession of these two interactive 
+		commands: Edit -&gt; Copy + Edit -&gt; Paste Special . You give a list of 
+		object (expressed as a <em>list of CATIUseEntity</em> interface pointers), 
+		and a format (one available among the ones returned by <code>GetAvailableFormats</code> 
+		) and you get the result of the copy as a list of <em>CATIUseEntity</em> 
+		interface pointers. </p>
+		<p>The <code>CopyAndPasteTo</code> method is equivalent to <code>CopyAndPasteSpecialTo</code> 
+		using as format the first one of the list returned by <code>GetAvailableFormats</code>.</p>
+	</li>
+</ul>
+<p>The two methods, <code>CopyAndPasteTo</code> and <code>CopyAndPasteSpecialTo</code>, 
+returns a list of new object (as a list of CATIUseEntity) created by the copy. Input 
+and Output lists have the same size. The result of the ieme object to copy is the 
+ieme element of the output list. If the ieme copy has failed, the ieme element of 
+the output list is NULL_var.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>You can apply delete, update and copy/paste methods on some DS features.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sept 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

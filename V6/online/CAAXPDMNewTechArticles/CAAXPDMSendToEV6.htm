@@ -1,0 +1,417 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Send Sample to <strong>3D</strong>EXPERIENCE Platform</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+<style type="text/css">
+.style1 {
+	font-weight: normal;
+}
+</style>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Send Sample to <strong>3D</strong>EXPERIENCE Platform</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use-Case</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article illustrates about sending of sample data to <strong>3D</strong>EXPERIENCE Platform by 
+		using event exchange services.This functionality is implemented in 
+		MyX-CAD and MyX-PDM application. These applications are sample application.Here it is 
+		important to understand user could create or use their own application 
+		to achieve this functionality. </p> 
+		<ul> 
+		<li> <a href="#What">What you will learn with this Use?</a></li>
+		<li> <a href="#How">How does this usecase work?</a></li>
+		<li> <a href="#Usecase">Usecase Implementation</a></li>
+		<li> <a href="#Inshort">InShort</a></li>
+		<li> <a href="#References">References</a></li>
+		</ul>
+		
+		</td>
+		</tr>   
+  </table>
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h2> <a name="What"> </a> What you will learn with this Usecase</h2>
+<p>This usecase is intended to show the usage of events web services in sending 
+the event to gateway via simple scenario.This usecase illustrates import 
+scenario by using the basic data type of MyX-CAD i.e. Component data.</p>
+<p>User will be able to understand about how to determine event parameters and 
+how to send the event to <strong>3D</strong>EXPERIENCE gateway.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="How"> </a> How does this usecase work?</h2>
+<p>Here we are using the MyX-CAD application to create sample data. This sample 
+data is saved with <code>.CAACmp </code>file format. For details 
+about data creation refer to <a href="#References">How to use MyX-CAD data 
+Type[1]</a>.</p>
+<p><strong>&quot;Send Sample to <strong>3D</strong>EXPERIENCE Platform&quot;</strong> functionality is provided in MyX-PDM addins 
+which are required to be loaded in MyX-CAD application. When user clicks on Send 
+to <strong>3D</strong>EXPERIENCE Platform command this usecase gets invoked.</p>
+<p>How to execute this command is mentioned in <a href="#References">How to Use MyX-PDM ?[2]</a> 
+and <a href="#References">X-PDM Addins[3]</a>.</p>
+<p style="height: 13px">This usecase is packaged in <strong class="style1">CAAVIXPDMIntegration.edu
+</strong>framework, which illustrates about processing events of MyX-PDM gateway.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="Check"></a> Before Launching the usecase</h2>
+<p> For this section please refer to <a href="#References">Description[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Usecase"> </a>Usecase implementation</h2>
+<p> 
+
+This usecase is split into different java files : <em>&nbsp;<strong>Send_Sample_To_EV6.java , 
+AdapterEventSend.java, ReadFile.java, WriteXPDMXML.java,XPGEventServices.java and XPGEventWebServicesWrapper.java</strong></em></p>
+<p> 
+
+<em>E</em>xecution of this usecase starts when user enters all the parameters 
+mentioned in Send to <strong>3D</strong>EXPERIENCE Platform window and click on Send to 
+<strong>3D</strong>EXPERIENCE Platform button. Control of the 
+application will be transferred to MyX-PDM. How to use this command is explained 
+in <a href="#References">X-PDM Addins[4]</a>.</p>
+<p> 
+
+Remaining processes are completed at MyX-PDM and status of execution will be 
+sent to MyX-CAD.Communication between MyX-CAD and MyX-PDM is achieved with 
+socket programming. Execution involves multiple steps which are mentioned as 
+follows :</p>
+<p> 
+
+In 
+
+<em>Send_Sample_To_EV6.java</em>,following operations will be performed :</p>
+
+<ol> <li> Copies the .CAACmp file in gateways shadow directory</li>
+	<li> Copies the .cgr file in gateways shadow directory</li>
+	<li> Invokes to XPDMXML writer</li>
+	<li> Copies XPDMXML to local shadow directory</li>
+	<li> Invoke to AdapterEventSend </li>
+</ol>
+
+<h3> Reading Component File </h3>	
+<p> Sending assembly and component data uses same java code. In 
+Send_Sample_To_EV6.java this import is differentiated depending on the X-CAD 
+file selected by user. This is mentioned in below:</p>	
+<pre class="code">
+...
+ if (FileName.endsWith(".CAAcmp")&amp;&amp; browsed==true)
+ {
+    obj.BrowseCAAcmpFile(FileName, directory, _XMLpath,user,OrgName,PrjName);			
+ }
+...
+</pre>
+		<p>
+To read component file data we use	<code>ReadFile::BrowseCAAcmpFile</code> method. 
+This method requires name of component file, shadow directory or user mentioned 
+directory path, output XPDMXML path, user, organization and project name entered 
+by user in Send to <strong>3D</strong>EXPERIENCE Platform window. </p>
+<pre class="code">
+public void BrowseCAAcmpFile(String fileName , String Directory, String _XMLpath, String _userN, String OrgName, String PrjName)
+{
+  this.file = fileName;
+  XMLUse xml = new XMLUse();
+  FileInputStream input = new FileInputStream(this.file);
+  XMLNode node = xml.parse(input, "UTF-8"); 
+  String _node = node.getAttribute("name");
+  WriteXPDMXML Cmpobj=new WriteXPDMXML();
+  Cmpobj.WriteCmpXML(_XMLpath,_node, _userN,OrgName,PrjName);
+...
+}	
+</pre>
+<p>
+This method is used to read component file data.</p>
+<p>
+Once assembly file is read successfully then it will invoke to <code>WriteXPDMXML::WriteCmpXML</code>	
+with all necessary arguments. XMLPath is path for storing output XPDMXML, node is the name of 
+Component. 
+other arguments are same as mentioned earlier for	<code>ReadFile::BrowseCAAcmpFile</code>.</p>
+
+<h3> Writting XPDMXML File</h3>
+<p> We are using Product domain for writting XPDMXML for component and assembly data. Refer to 
+<a href="#References">XPDMXML for Product Domain [6]</a> to know about different elements and types 
+used here.</p>
+<pre class="code">
+public void WriteCmpXML(String FilePath, String rootName, String _userN , String OrgName, String PrjName)
+{
+   XMLNode xml = WriteXMLHeader();
+   ...
+   CreateProductNode(rootid,rootName,String.valueOf(i));			
+   ...
+   CreateProductNode(Rep3DAggr,rootName.concat("_3D"),"1");	
+   ...
+   CreateRep3DAggrNode(Rep3DAggr,Owned,File_Ref);
+   ...	   
+   CreateFileNode(FileNode,rootName.concat(".cgr"));	
+   ...	
+   XMLWriter(FilePath,xml);
+}
+</pre>
+<p> This all methods are explained in <a href="#References">Send Assembly Data 
+to 3DEXPERIENCE Platform [10]</a>. Refer to <a href="#References">XPDMXML for 
+Basic Data Type :Component [9]</a> for output XPDMXML.</p>
+<p> <em>AdapterEventSend </em>invokes to the <code> XPGEventServices </code>and different methods present in this class.
+
+Methods which are invoked are listed below:</p>
+<pre class="code"> ...
+ XPGEventServices event = new XPGEventServices(_XPDMGatewayUrl, _adapterShadowDir, _localShadowDir);
+ event.init(_eventMirror, _XPDM_user);
+ event.addMetadataFile(xmlFileName);
+ event.addAttachments(_attachmentFiles);
+...
+ event.send();
+</pre>
+<p> XPGEventServices is a wrapper for <em>XPGEventWebServicesWrapper.java. </em>XPGEventWebServicesWrapper provides the wrapper to Event Web services which are 
+provided by <code><strong>IXPGEventsService</strong>  </code>interface.</p>
+<p> Constructor of XPGEventServices internally calls to <em><strong>init</strong></em> method of <em>XPGEventWebServicesWrapper 
+is given below:</em></p>
+<pre class="code">
+ ListOfSitesType sites = this.getListOfSites();
+ for (SiteType site :  sites.getItem())
+{
+    if (site.getType().equals(SiteLocationType.LOCAL)) // searching for local site
+        _localSiteId = site.getId();
+    else // getting a target site id;, taking first one that is configured
+        _targetSiteId = site.getId();
+...
+}
+...
+</pre>
+
+
+<p> <em><strong>init</strong></em> method internally calls to <code><em>getListOfSites</em> </code>method ,which gives the 
+details of local and target site ID . This information is required while 
+exchanging data between two sites.</p>
+<p> Implementation of other mehtods in XPGEventServices :</p>
+<pre class="code">
+...
+// Check for event will be supported by XPDM Gateway
+this._event = _eventWS.isSupportedEvent(eventName);
+
+// Create a new que for user
+this._queueName = new QueueNameType();
+this._queueName.setValue(userid);
+
+// Create a new Attachmentcontent
+this._attachment = _eventWS.generateNewAttachmentContent();
+
+//Sets the event path
+this._shadow.setEventPath(_attachment.getEventPath().getValue());
+
+...
+</pre>
+<p> Here,<code> _eventWS</code> is an object of <code> 
+XPGEventWebServicesWrapper</code>. Information about SupportedEventType will be serarched from event-config.xml 
+which is present in <strong>@GatewayInstallation@\config\event\XWS</strong>. Refer to
+<a href="#References">Gateway[5]</a> for details.</p>
+<p> In Gateway, there is a dedicated queue for each user. 
+All the events owned by this user will be present in this queue.</p>
+<p> <em><strong>
+generateNewAttachmentContent</strong> </em>method is used to create the object 
+of type <code>AttachmentContentType</code>. This object is filled with unique 
+event path. Adapter now process and generate the data required for this event.
+<em><strong>addmetadataFile</strong></em> method is used to add the XPDMXML file 
+to be transferd between gateway. Implementation of this method is given below:</p>
+<pre class="code">...
+public void addMetadataFile(String XPDMXMLfileName) throws Exception
+{
+  if (this._event.getEventConfig().isHasMetadata()) 
+  {
+     _attachment.setXpgxml(new XPGXMLContentOptionType());
+     FileReferenceType xpdmxml  = new FileReferenceType();
+     xpdmxml.setFileName(XPGShadowUtils.getFilename(XPDMXMLfileName));
+     xpdmxml.setTransferMode(TransferModeType.ASCII);
+     _attachment.getXpgxml().setFileReference(xpdmxml);
+     _shadow.copyToShadow(XPDMXMLfileName, XPDMXMLfileName);
+  }
+...     
+</pre>
+<p> We retrieve configuration of event by using <code> getEventConfig </code>method.This 
+method gives information about processing location,file references to be used 
+either metadata or bulkdata.</p>
+<p>If the events only require Meta data and local processing of event and if this file size is small then it 
+can be directly sent to the gateway without any file transfer by adding the 
+content of this file as a <code>string</code> inside the <code>inline</code> 
+choice of the <code>xpgxml</code> element of the <code>
+iLocallyProcessedEventContent</code> input parameter.</p>
+<p>Here,we set the transfer mode as ASCII and we copied XPDMXML file from local 
+shadow(any directory mentioned ) to Gateways shadow directory.</p>
+<p>If the event also requires bulk data files or if the xml file size is too big 
+then it must be firstly stored into the event path and secondly referenced 
+inside the <code>fileReference</code> choice of the <code>xpgxml</code> element 
+of the <code>iLocallyProcessedEventContent</code> input parameter.Similarly, the 
+bulk data files must be stored into the event path then referenced into the
+<code>bulkDatareferences</code> element of the <code>
+iLocallyProcessedEventContent</code> input parameter. This is achieved with
+<strong>addAttachments</strong> method. Implementation for this method is given 
+below:</p>
+<pre class="code">
+public void addAttachments(List<String>  fileNameList) throws Exception
+{	
+	if(fileNameList!= null)
+	{
+		for(String fileName : fileNameList)
+		{
+			addAttachment(fileName);
+		}
+	}
+}
+// addAttachments internally calls to addAttachment(String filename)	
+public void addAttachment(String  fileName) throws Exception
+{	
+    if (this._event.getEventConfig().isHasBulkdata()) 
+    {
+	 ListOfFileReferencesType bulkData = this.getAttachments();
+	 FileReferenceType bulk  = new FileReferenceType();
+	 bulk.setFileName(fileName);
+	 bulk.setTransferMode(TransferModeType.BINARY);
+	 bulkData.getItem().add(bulk);
+	 _shadow.copyToShadow(fileName, fileName);
+     }
+    ...
+ }
+</pre>
+<p> Refernces to this bulkdata are retrieved by using <code>getAttachment</code> method.We use ASCII transfer mode for metadata files and BINARY for bulkdata 
+transfer.</p>
+<p> Once all the parameters required for event processing are determine,then we 
+can send the event to <strong>3D</strong>EXPERIENCE gateway. For this purpose we use Send method. 
+Send method of XPGEventServices internally calls to SendEvent method of XPGEventWebServicesWrapper. Implementation of SendEvent method is as follows:</p>
+<pre class="code">
+public EventUIDType sendEvent(EventNameType iSupportedEventName,QueueNameType iQueueName,
+                              AttachmentContentType iLocallyProcessedEventContent,ListOfProcessingArgsType iProcessingArgs )
+{	
+   EventUIDType  eventUID = null;
+   try
+    {
+      if(XPGConnectivityWrapper.get_traceLevel()&gt;=1)
+         System.out.println("==&gt;Calling the Web Service sendEvent ");
+      String eventDescription = "Event sent from the MyX-PDM usecase.";
+      eventUID = _eventPort.sendEvent(iSupportedEventName, iQueueName, _localSiteId, _targetSiteId, iLocallyProcessedEventContent, iProcessingArgs,eventDescription);
+			
+      if (eventUID == null)
+         throw new Exception("eventUID is null");    	
+    }
+    catch (SendEventErrorType err) {...}
+    catch(Exception e){...}
+    ...
+    return eventUID;
+}
+</pre>
+<p> All the parameters required for sending this event are already determined. <code> _eventPort</code> 
+is handle of web service interface <strong>IXPGEventsService.</strong> This 
+method returns the ID of the sent event. We can retrieve the state of this event 
+by using <strong>getEventState</strong> method which requires the ID of an 
+event. EventState gives the information about status of event.While sending 
+event to <strong>3D</strong>EXPERIENCE if it's state is <code> REMOTE_PROCESSING_RESPONSE_RECEIVED</code> that means event is successfully received 
+and processed at <strong>3D</strong>EXPERIENCE side.</p>
+<p> All this steps and role of adapter is explained in <a href="#References">
+Sample bus adapter for MyX-PDM[6]</a>. Also refer to <a href="#References">
+Integration Architecture[7]</a> for details about scenario.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Inshort"></a>In Short</h2>
+<p>This article gives details about sending the data from MyX-PDM to 
+<strong>3D</strong>EXPERIENCE Platform. 
+User will come to know about event web services.This article deals with how to 
+retrieve the events for processing,how to process event data at sample bus 
+adapter,how to determine the parameters required for sending event and how to send it to
+<strong>3D</strong>EXPERIENCE gateway using web services.</p>
+<p>This article also explains about necessary steps involved in writting XPDMXML 
+for component data.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+    
+       <td >[1]</td>
+       <td >
+		<a href="../CAADEC/CAAVIUcMyxCAD_UI.htm">How to use MyX-CAD data Type ?</a></td>
+     </tr>  
+     <tr>
+    
+       <td >[2]</td>
+        <td ><a href="CAAMy-XPDMApplication.htm">How to Use MyX-PDM ?</a></td>
+       </tr>
+          <tr>
+       <td >[3]</td>
+       <td ><a href="CAAXPDMAddin.htm">X-PDM Addins</a></td>
+     </tr>
+
+   
+ 
+     <tr>
+       <td >[4]</td>
+       <td ><a href="CAAUsecaseDesc.htm">Description</a></td>
+     </tr>
+   
+ 
+     <tr>
+       <td >[5]</td>
+       <td ><a href="CAAXPDMGateway.htm">Gateway</a></td>
+     </tr>
+      <tr>
+       <td >[6]</td>
+       <td ><a href="CAAXPDMSampleBusXPDMAdapter.htm">Sample bus adapter for MyX-PDM</a></td>
+     </tr>
+     <tr>
+       <td >[7]</td>
+       <td ><a href="CAAX-PDMArchitecture.htm">Integration Architecture</a></td>
+     </tr>
+    <tr>
+       <td >[8]</td>
+       <td ><a href="CAAXPDMXMLProduct.htm">XPDMXML for Product Domain</a></td>
+     </tr>
+     
+     <tr>
+       <td >[9]</td>
+       <td ><a href="CAAXPDMComponentXPDMXML.htm">XPDMXML for Basic Data Type :Component</a> </td>
+     </tr>
+         <tr>
+       <td >[10]</td>
+       <td ><a href="CAAXPDMComponentXPDMXML.htm">Send Assembly Data to 3DEXPERIENCE Platform</a> </td>
+     </tr>
+
+
+
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Mar 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

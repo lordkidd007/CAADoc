@@ -1,0 +1,433 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<link rel="stylesheet" type="text/css" href="../CAAShrResources/caav5.css"/>
+<script type="text/javascript" src="../CAAShrResources/DSDocHighlight.js">
+/* */</script>
+<script type="text/javascript" src="../CAAShrResources/submit.js">
+/* */</script>
+<title>Material Modeler Description &amp; Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Material Modeler Description &amp; Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This article presents the Material modeler, and explains how to customize 
+		it.</p>
+		<ul>
+			<li><a href="#Description">Description</a>
+			<ul>
+				<li><a href="#Object Model">Object Model</a></li>
+				<li><a href="#PLM Package">PLM Packages</a></li>
+				<li><a href="#Business Logic Description">Business Logic</a></li>
+			</ul>
+			</li>
+			<li><a href="#Customization">Customization</a>
+			<ul>
+				<li><a href="#Modeler PLM Package Customization">PLM Package Customization</a></li>
+				<li><a href="#UI mask customization">UI Mask Customization</a></li>
+				<li><a href="#Business Logic Customization">Business Logic Customization</a></li>
+			</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Description</h2>
+<p>This section first presents the objects representing the Material modeler. Then 
+it describes how this object model view has been translated towards PLM objects 
+based on PLM Core Modeler objects. You will see the description of each PLM package 
+defining these PLM objects.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Object Model"></a>Object Model</h3>
+<p>Material modeler is composed of two main parts: objects used to define a material 
+and its properties, and the object to model the fact that an entity of the modeler 
+PRODUCT is &#39;made of&#39; or &#39;covered by&#39; a given material.</p>
+<p>This is summarized in the following UML schema:</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Material UML Model</caption>
+	<tr>
+		<td><img alt="Conceptual Model" src="CAAMaterial_Slide1.png"/></td>
+	</tr>
+</table>
+<ul>
+	<li><strong>Material</strong>: is the main object of the modeler. It models 
+	a physical material entity. It is composed of Domains.</li>
+	<li><strong>Domain</strong>: is an object that gathers attributes (and their 
+	value) defining the material. A domain represents the view of the material in 
+	a given application or for a given subpart of physics. For instance &#39;Drafting&#39; 
+	domain contains the specific hatching pattern of the material used in drawings. 
+	A given domain belongs to a single material. Each domain of a material has a 
+	type that is stored in the V_discipline attribute. Depending on the type it 
+	is allowed or not to have multiple domains of a same type aggregated by a material. 
+	If it is allowed, one of the domain can be flagged as the &#39;default&#39; one. Some 
+	applications use this flag to solve ambiguity when many domains of a given type 
+	are available.</li>
+	<li><strong>Selector</strong>: a selector exposes a subset of attributes from 
+	one or many domains. A given selector belongs to a single material. A selector 
+	and the domains it is pointing at are aggregated by the same material. When 
+	a domain gathers models of the material that are mutually exclusive, a selector 
+	can be created to expose some of these models that are complementary and consistent.</li>
+	<li><strong>Applied-Core-Material</strong>: is the object that models the fact 
+	that an entity of PRODUCT modeler is &#39;made of&#39; a given material. An Applied-Core-Material 
+	has a unique link towards a material (that is to be subtyped as a Core Material). 
+	It has also another link towards a single &#39;materialized&#39; entity named support. 
+	It is aggregated by a Product named context. The support is either the context 
+	itself, a Representation Instance aggregated by the context or its Representation 
+	Reference.</li>
+	<li><strong>Applied-Covering-Material</strong>: is the object that models the 
+	fact that a Product or a Product Instance is covered by a thin layer of a given 
+	material. It has a unique link towards a material (that is to be subtyped as 
+	Covering Material). It has another link towards a single support that is either 
+	the context or a Product Instance aggregated (directely or not) by the context.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PLM Package"></a>PLM Packages</h3>
+<p>Material modeler is described through 3 modeler PLM packages :</p>
+<ul>
+	<li><a href="#CATMaterial">CATMaterial</a></li>
+	<li><a href="#CATMaterialRef">CATMaterialRef</a></li>
+	<li><a href="#CATMaterialRefElement">CATMaterialRefElement</a></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="CATMaterial"></a>CATMaterial</h4>
+<p>Applied-Core-Material and Applied-Covering-Material are implemented using the 
+same class of CATMaterial PLM Package: CATMatConnection. It is the V_discipline 
+attribute of CATMatConnection that is used to sub-type Applied-Core-Material and 
+Applied-Covering-Material.</p>
+<table>
+	<caption><a name="Fig.2">Fig.2</a> CATMaterial UML model</caption>
+	<tr>
+		<td><img alt="Implementation Model" src="CAAMaterial_Slide2.png"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>
+		CATMatConnection</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_implement0"></a><a name="CATMaterialRef">CATMaterialRef</a></h4>
+<p>Material is implemented using the CATMatReference class of the PLM Package CATMaterialRef.</p>
+<p>Domain is implemented using the MaterialDomain and MaterialDomainInstance classes 
+of the PLM Package CATMaterialRef.</p>
+<p>The class CATMatRefConnection is used to flag one of the domain as the &#39;default&#39; 
+one (when this is allowed by the domain&#39;s type).</p>
+<table>
+	<caption><a name="Fig.3">Fig.2</a> CATMaterialRef UML model</caption>
+	<tr>
+		<td><img alt="CATMaterialRef" src="CAAMaterial_Slide4.png"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMCoreReference</td>
+		<td>
+		CATMatReference</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepReference</td>
+		<td>
+		MaterialDomain</td>
+	</tr>
+	<tr>
+		<td>PLMCoreRepInstance</td>
+		<td>
+		MaterialDomainInstance</td>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>
+		CATMatRefConnection</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_implement1"></a><a name="CATMaterialRefElement">CATMaterialRefElement</a></h4>
+<p>Selector object is implemented using the CATMatRefElemConnection class of the 
+PLMPackage CATMaterialRefElement. It uses the relations hold by the connection object 
+to expose features in Domains.</p>
+<table>
+	<caption><a name="Fig.4">Fig.2</a> Package CATMaterialRefElement UML model</caption>
+	<tr>
+		<td><img alt="CATMaterialRefElement" src="CAAMaterial_Slide3.png"/></td>
+	</tr>
+</table>
+<table class="fill">
+	<tr>
+		<th>PLM Core Class</th>
+		<th>Specialized as</th>
+	</tr>
+	<tr>
+		<td>PLMConnection</td>
+		<td>
+		CATMatRefElemConnection</td>
+	</tr>
+</table>
+<p>Refer to the modeler PLM package documentation [<a href="#References">1</a>] 
+for a complete view of its contents included 3DXML support.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Description"></a>Business Logic</h3>
+<p>This section lists and describes the PLM Opening ID implemented by the following 
+PLM classes of the XXX modeler.</p>
+<ul>
+	<li>CATMatReference</li>
+	<li>ExternalClassName2, Implemented Business Logic</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="ExternalClassName1, implemented Business Logic"></a>ExternalClassName1, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>ID1</td>
+		<td>script description per operation</td>
+	</tr>
+	<tr>
+		<td>ID2</td>
+		<td>script description per operation</td>
+	</tr>
+</table>
+<p><em>&lt;Explanations:</em></p>
+<ul>
+	<li><em>col1: PLM Openings ID name: the ones of INFRA + the ones provided by 
+	this modeler</em></li>
+	<li><em>col2: Describe the behavior of the implementation &gt;</em></li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="ExternalClassName1, implemented Business Logic0"></a>ExternalClassName1, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>ID1</td>
+		<td>script description per operation</td>
+	</tr>
+	<tr>
+		<td>ID2</td>
+		<td>script description per operation</td>
+	</tr>
+</table>
+<p><em>&lt;Explanations:</em></p>
+<ul>
+	<li><em>col1: PLM Openings ID name: the ones of INFRA + the ones provided by 
+	this modeler</em></li>
+	<li><em>col2: Describe the behavior of the implementation &gt;</em></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Customization"></a>Customization</h2>
+<p>Customization first deals with the modeler PLM package customization [<a href="#References">2</a>]. 
+It consists in to create a new package containing new PLM classes for each &quot;Customizable&quot; 
+PLM class of the modeler PLM package. Then, you should take into account the UI 
+masks creation to create either a new security mask file, or to update the default 
+one [<a href="#References">3</a>]. Finally, you can integrate your own business 
+logic on each new PLM classes by implementing provided PLM opening ID [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modeler PLM Package Customization"></a>PLM Package Customization</h3>
+<p>This part consist in to create a new package when the modeler PLM package must 
+be customized.</p>
+<ul>
+	<li>CATMaterial, only contains instantiable PLM classes, no customization can 
+	be done.</li>
+	<li><a href="#P3_custo">CATMaterialRef</a>, contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+	<li><a href="#P4_custo">CATMaterialRefElement</a>, contains at least one &quot;ToBeCustomized&quot; 
+	PLM class, it have to be customized to be used.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P3_custo"></a>CATMaterialRef</h4>
+<p><a href="#P3_custo">CATMaterialRef</a> must be partially customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>CATMatReference</td>
+		<td>Yes</td>
+		<td>It is strongly advised to use as IdentifierSet the sole attribute
+		<strong>PLM_ExternalID</strong></td>
+	</tr>
+	<tr>
+		<td>MaterialDomain</td>
+		<td>Yes</td>
+		<td>It is strongly advised to use as IdentifierSet the sole attribute
+		<strong>PLM_ExternalID</strong></td>
+	</tr>
+	<tr>
+		<td>MaterialDomainInstance</td>
+		<td>Yes</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>CATMatRefConnection</td>
+		<td>No</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<p>The advice about IdentifierSet is aimed at improving data exchanges between a 
+customized site and a site using the pre-defined VPM Team customization.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P4_custo"></a>CATMaterialRefElement</h4>
+<p><a href="#P4_custo">CATMaterialRefElement</a> must be customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+		<th>Remarks</th>
+	</tr>
+	<tr>
+		<td>CATMatRefElemConnection</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UI mask customization"></a>UI Mask Customization</h3>
+<p>When a PLM attribute is defined (inside modeler PLM package) some features like 
+its editability criteria, mandatory/optional option, can be overwritten by UI mask. 
+You can say this PLM attribute is not writable in Query context, this PLM attribute 
+is mandatory in Create context, this user PLM attribute is not never visible and 
+so one. A set of UI masks form a security mask file. We say security mask because 
+it is associated with these files security information. For a people, and a given 
+context can be associated a security mask.</p>
+<p>For each customized Modeler PLM package, at least one UI mask file must be created 
+(for the default security mask ), since it must contain the new PLM Attributes. 
+When you use the tool to create a customization, a default UI mask file is provided 
+taken into account the added PLM attributes. You can modify the default file to 
+introduce your change.</p>
+<p>If you want create a new security mask file, you should provide a UI mask for 
+all the &quot;AsIs&quot; modeler PLM packages and for each customization of the &quot;Customizable&quot; 
+modeler PLM package.</p>
+<h4>Rules to respect for a new UI mask creation</h4>
+<p>To create a UI mask you should respect the following rules:</p>
+<ul>
+	<li>CATMaterialRef PLM Package
+	<ul>
+		<li>Attribute V_Group of CATMatReference class should remain editable in 
+		Create context and Visible in Read context.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Customization"></a>Business Logic Customization</h3>
+<p>You can yourself integrate your business logic for each customization of:</p>
+<ul>
+	<li>CATMatReference
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>PLMImportExportAttributesValuation</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+	<li>MaterialDomain
+	<table class="fill">
+		<tr>
+			<th>PLM Opening ID</th>
+			<th>Remarks</th>
+		</tr>
+		<tr>
+			<td>PLMImportExportAttributesValuation</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>PLMIdentificationInitialization</td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>Modeler PLM Package Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>UI Mask Concepts and Customization Principles</td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>Business Logic Openness Infrastructure Reference, in the DS Product 
+			Documentation Portal, Client Collaborative Platform, Virtual Product 
+			Modeling, VPM Knowledge Standardization, PLM Openings</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

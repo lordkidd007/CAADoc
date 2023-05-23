@@ -1,0 +1,390 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Internal Copy With Link</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Internal Copy With Link</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article deals with features which are coming from a copy inside 
+		the same 3D Shape.</p>
+		<ul>
+			<li><a href="#100000">What Is an Internal Copy with Link?</a></li>
+			<li><a href="#200000">How to Retrieve the Original Feature?</a></li>
+			<li><a href="#300000">Freezing an Internal Copy Feature</a>
+				<ul>
+					<li><a href="#310000">How to Freeze and Unfreeze</a></li>
+				</ul>
+			</li>
+			<li><a href="#400000">Changing the Reference</a>
+				<ul>
+					<li><a href="#410000">Using the Replace Viewer</a></li>
+					<li><a href="#420000">Without Using the Replace Viewer</a></li>
+					<li><a href="#430000">How Does it Work</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What Is an Internal Copy with Link?</h2>
+<p>An internal copy with link is obtained interactively by copying and pasting a 
+mechanical feature (as result with link) <strong>inside the same 3D Shape</strong>. 
+It may also be created by code using the <em><strong>CATIMmiUseCreateImport</strong></em> 
+interface [<a href="#References">1</a>] (inside a 3D Shape, option with link).
+</p>
+<table>
+	<caption>Fig.1: Point.2 Is a Copy of Point.1</caption>
+	<tr>
+		<td>
+		<img alt="Point.2 Is a Copy of Point.1" height="102" src="images/CAAMmrFreezeCopy.jpg" width="168"/></td>
+	</tr>
+</table>
+<p>The <strong>internal copy</strong> is a feature which has a geometrical result 
+copied from the original feature. It implements the interface <em><strong>CATIMmiInternalCopyWithLink</strong></em>.
+</p>
+<p>Beware of the feature result: the feature implementing <em>CATIMmiInternalCopyWithLink
+</em>is not always the feature returned by the <code>Run</code> method of the
+<em>CATIMmiUseCreateImport</em> interface. It is true for the following mechanical 
+features : point, line, plan, curve.&nbsp; But it is not true for the following 
+cases: PartBody, Geometrical Set, Ordered Geometrical Set, or a sketch.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>How to Retrieve the Original Feature?</h2>
+<p>The unique method of <em>CATIMmiInternalCopyWithLink</em> interface enables you 
+to retrieve the feature which has been copied. This possibility is valid while the 
+Internal Copy is not a datum [<a href="#References">2</a>] . Refer to the use case 
+[<a href="#References">3</a>] for an example of usage of this interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Freezing an Internal Copy Feature</h2>
+<p>When the original feature is modified, the update mechanism [<a href="#References">4</a>] 
+will copy the geometry of the copied feature to the internal copy.</p>
+<p>In some cases the user may want to update the Part while keeping the geometry 
+of some internal copies : this is called <strong>freezing</strong> the internal 
+copy.</p>
+<p>When an internal copy is frozen, the original feature may be modified without 
+impacting the geometry of the internal copy.</p>
+<p>The concept of freezing is different from the concept of deactivating (described 
+in [<a href="#References">5</a>] : deactivating is equivalent to a temporary deletion). 
+If an internal copy is frozen, its geometry still exists and is always displayed 
+in 3D viewer.</p>
+<p>The interactive &quot;Freeze&quot; command is accessible from the contextual 
+submenu. Once the feature is frozen the following icon (a blank snowflake) appears:</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2: A Point and its Copy After Freezing</caption>
+	<tr>
+		<td>
+		<img alt="A Point and its Copy After Freezing" height="77" src="images/CAAMmrFreezeIcon.jpg" width="115"/></td>
+	</tr>
+</table>
+<p>Note: a frozen copy isn't a datum, so you can always use <em>CATIMmiInternalCopyWithLink</em> 
+to retrieve the original feature.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>How to Freeze and Unfreeze</h3>
+<p>The interface <em><strong>CATIMmiResultFreeze</strong></em> must be called on 
+the internal copy : its type may be a point, a line, a surface, a plane, volume 
+or a solid.</p>
+<p>Here is the way to freeze the internal copy feature:</p>
+<pre class="code">...
+<strong>CATIMmiResultFreeze</strong> * pIFreezeOnInternalFeature = ... ;
+
+HRESULT hr = pIFreezeOnInternalFeature-&gt;<strong>Freeze</strong>();
+CATBoolean  status = pIFreezeOnInternalFeature-&gt;<strong>IsFrozen</strong>(); // status is TRUE
+
+...</pre>
+<p>Here is the way to unfreeze the internal copy feature: Note that after unfreezing, 
+the geometry does not change, an update of the copy must be called to synchronize 
+the geometry.</p>
+<pre class="code">...
+<strong>CATIMmiResultFreeze</strong> * pIFreezeOnInternalFeature = ...
+
+HRESULT hr = pIFreezeOnInternalFeature-&gt;<strong>Unfreeze</strong>();
+CATBoolean  status = pIFreezeOnInternalFeature-&gt;<strong>IsFrozen</strong>(); // status is FALSE
+
+<strong>CATIUseEntity</strong> *pUseEntityOnInternalFeature= NULL;
+hr = pIFreezeOnInternalFeature-&gt;QueryInterface(IID_CATIUseEntity , (void**)&amp; pUseEntityOnSelFeat);
+if (SUCCEEDED(hr))
+{
+  hr = <strong>DataCommonProtocolServices::Update</strong>(pUseEntityOnInternalFeature);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Changing the Reference</h2>
+<p>Changing the reference of an internal copy with link can be done using the
+<em><strong>CATIMmiInternalCopyWithLinkEdition</strong></em> interface. Any object 
+that implements the <em>CATIMmiInternalCopyWithLink</em> interface, implements also 
+the <em>CATIMmiInternalCopyWithLinkEdition</em> interface. However, changing the 
+reference of an internal import is only available for <strong>solid</strong> internal 
+copies for now.</p>
+<p><strong>CASE1:</strong> The most simple example explained visually</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3 Before the Change</caption>
+	<tr>
+		<td><img alt="Before the Change" src="images/CAAMmrCASE1_1_Data.jpg"/></td>
+	</tr>
+</table>
+<p>On the pictutre just above you can see <code>Solid.1</code> (highlighted feature) 
+an (internal) copy of <code>PartBody</code>. The <code>Solid.1</code> geometry is 
+a copy of the <code>PartBody</code> geometry. (it is not visible on the picture, 
+but there are two pad (<code>Pad.1</code> and <code>Solid.1</code>, this last is 
+highlighted) at the same place).</p>
+<table>
+	<caption><a name="Fig4"></a>Fig.4 After the Change</caption>
+	<tr>
+		<td><img alt="After the Change" src="images/CAAMmrCASE1_2_DataAfterEdit.jpg"/></td>
+	</tr>
+</table>
+<p>On the picture just above, you can see the result of the change of reference 
+for <code>Solid.1. Body.2</code> (containing triangle pad) is the new reference 
+for <code>Solid.1.</code> Now the <code>Solid.1</code> geometry is a copy of the
+<code>Body.2</code> geometry. (it is not visible on the picture, but there are two 
+pad (<code>Pad.2</code> and <code>Solid.1</code>, this last is highlighted) at the 
+same place)</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="410000"></a>Using the Replace Viewer</h3>
+<p>Client scenarios are rarely so simple. As stated earlier, when an internal copy 
+is created, its geometry is a copy of the geometry of its reference.</p>
+<p>Sub elements of the geometry of the internal copy can be used to build other 
+features. These features are therefore children of the internal copy. When the reference 
+of an internal copy is changed, its geometry changes too. The old copied geometry 
+is replaced with a copy of the geometry of its new reference. Children features 
+that were based on sub elements of the old copied geometry cannot automatically 
+be replugged on sub elements of the new copied geometry. In order to do so, user 
+intervention is needed.</p>
+<p>The user will have to specify, via the <strong>Replace Viewer</strong>, on which 
+sub elements of the new geometry these children have to be rerouted. If this is 
+not done, the features that referenced sub elements of the internal copy will not 
+be able to update themselves correctly.</p>
+<p><strong>CASE2</strong>: Changing the reference in a interactive context with 
+the help of the Replace Viewer</p>
+<table>
+	<caption><a name="Fig5"></a>Fig.5 Before the Change</caption>
+	<tr>
+		<td><img alt="Before the Change" src="images/CAAMmrCASE2_1_Data.jpg"/></td>
+	</tr>
+</table>
+<p>Just above you can see <code>Solid.1</code> an internal copy with Link of
+<code>PartBody</code> (containing <code>Pad.1</code>). Further, <code>Solid.1</code> 
+is filleted (as depicted by <code>EdgeFillet.1</code> in the spec tree)</p>
+<p>Now you replace the initial reference of <code>Solid.1(PartBody</code>) by
+<code>Body.2.</code> Changing its reference to Body.2 would mean that <code>Solid.1
+</code>will then be based on the geometry contained in Body.2<code>.</code> The 
+EdgeFillet cannot automatically replug itself on any Edge of the new geometry. Therefore 
+user intervention is required.</p>
+<table>
+	<caption><a name="Fig6"></a>Fig.6 The Replace Viewer</caption>
+	<tr>
+		<td>
+		<img alt="The Replace Viewer" src="images/CAAMmrCASE2_2_ReplaceViewer.jpg"/></td>
+	</tr>
+</table>
+<p>Thanks to the Replace viewer, the end user can choose an edge on the new geometry 
+of <code>Solid.1</code> to be the input of the EdgeFillet.</p>
+<table>
+	<caption>Fig.7 New Edge Selection</caption>
+	<tr>
+		<td>
+		<img alt="New Edge Selection" src="images/CAAMmrCASE2_3_ReplaceViewer2.jpg"/></td>
+	</tr>
+</table>
+<p>The edge was defined by 2 faces on the old geometry (left-hand side). The user 
+now has to select the 2 faces that define the edge on the new geometry (right-hand 
+side).</p>
+<table>
+	<caption>Fig.8 Re-Route Is Done</caption>
+	<tr>
+		<td>
+		<img alt="Re-Route Is Done" src="images/CAAMmrCASE2_4_DataAfterEdit.jpg"/></td>
+	</tr>
+</table>
+<p>When the end user closes the dialog box, <code>EdgeFillet.1</code> is correctly 
+defined. There is no update error.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="420000"></a>Without Using the Replace Viewer</h3>
+<p>For an interactive command, you have the choice to use or not the Replace viewer 
+for manual re-routing. In batch mode, the Replace viewer has no sense, it will be 
+never launched.</p>
+<p>So, if after the replace a manual re-route is necessary, and it cannot be done, 
+it could imply an update error for some internal copy children.</p>
+<table>
+	<caption>Fig.9 Change without a Re-Route</caption>
+	<tr>
+		<td>
+		<img alt="Change without a Re-Route" src="images/CAAMmrCASE3_1_DataAfterEdit.jpg"/></td>
+	</tr>
+</table>
+<p>On the picture just above, you can see the result of the change of reference 
+of <code>Solid.1</code> from <code>PartBody</code> (box) to <code>Body.2</code>
+(triangle). The replace has been successful, but an input 
+of <code>EdgeFillet.1</code>, based on <code>Solid.1</code> whose geometry has changed, 
+is a none-existent edge. So it implies an update error for the <code>EdgeFillet.1</code> 
+feature (see update error icon). The edgefillet is not geometrically represented.</p>
+<p>The user will then have to solve these errors manually through the update error 
+panel.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="430000"></a>How Does it Work?</h3>
+<p>The <em><strong>CATIMmiInternalCopyWithLinkEdition</strong></em> interface contains 
+one method, <code>SetSelected</code>, whith the following arguments:</p>
+<ul>
+	<li>The new reference
+	<p>As of today, the <code>SetSelected</code> method only works on Solid feature 
+	[<a href="#References">2</a>]. By consequence the new reference feature can 
+	only be an hybrid body [<a href="#References">5</a>], a feature implementing 
+	the <em><strong>CATIMmiUseMechanicalTool</strong></em> interface.</p>
+	</li>
+	<li>A boolean specifying if the viewer must be launched to solve manual re-root.
+	<p>This boolean has no sense in a batch, in this case the value will not be 
+	taken into account. But inside an interactive command, if the value is true, 
+	and if a manual re-root is required, the Replace viewer will be launched. This 
+	viewer is a shared state command. It de-activates your command, and when the 
+	end user closes the dialog box, your command is re-activated.</p>
+	</li>
+</ul>
+<p>The <code>SetSelected</code> returns E_FAIL and a <em>CATError</em> (that you 
+retrieve using CATGetLastError ) when the method fails. The kind of error can be:</p>
+<table class="fill">
+	<tr>
+		<th>Message Id</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>101</td>
+		<td>Cannot change the reference of an internal copy to a NULL object.</td>
+	</tr>
+	<tr>
+		<td>102</td>
+		<td>The reference of the given internal copy cannot be changed. Only solid 
+		internal imports can be changed.</td>
+	</tr>
+	<tr>
+		<td>103</td>
+		<td>The internal copy is frozen. Its reference cannot be changed as longs 
+		it is frozen.</td>
+	</tr>
+	<tr>
+		<td>201</td>
+		<td>Cannot create a Specification with a NULL object.</td>
+	</tr>
+	<tr>
+		<td>202</td>
+		<td>Failed to retrieve keys and accesses to given object.</td>
+	</tr>
+	<tr>
+		<td>203</td>
+		<td>Failed to create Specification.</td>
+	</tr>
+	<tr>
+		<td>204</td>
+		<td>Failed to generate the list of Inputs for the given Specification.</td>
+	</tr>
+	<tr>
+		<td>205</td>
+		<td>Cannot create a Link with a NULL object.</td>
+	</tr>
+	<tr>
+		<td>206</td>
+		<td>Link creation failed.</td>
+	</tr>
+	<tr>
+		<td>301</td>
+		<td>&nbsp;</td>
+	</tr>
+	<tr>
+		<td>405</td>
+		<td>Failed to set Link on given Input.</td>
+	</tr>
+</table>
+<p>and returns</p>
+<ul>
+	<li><code>S_OK</code> when the replace has been successfully done. But it does 
+		mean that update operation will be a success.</li>
+	<li><code>E_NOTIMPL</code> when the import feature is not a valid one (not a 
+		solid).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>While an internal copy feature is unfreezed (default behavior), if the geometry 
+of the original feature is modified, the geometry of the copied feature is automatically 
+modified too. Freezing an internal copy allows you to temporarily disable this update.</p>
+<p>Just after the internal copy feature unfreezing, do not forget to update the 
+internal feature: unfreeze api does not launch the update mechanism. Then, the next 
+modifications on the original feature will be automatically taken into account in 
+the copied feature.</p>
+<p>The <em>CATIMmiInternalCopyWithLinkEdition</em> interface enables you to change 
+the reference feature.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrUcInterPartCopy.htm">Copying Mechanical Features</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaContentsSpecCont2.htm">The Geometrical Features</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrUcRefOfInternalCopy.htm">Retrieving Reference Feature 
+		From a Copy as Link Inside Same 3D Shape</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrTaSpecResultForMechFeat.htm">Specification/Result Mechanism 
+		Applied to Mechanical Features</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAMmrTaContentsSpecCont1.htm">The Geometrical Feature Sets</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

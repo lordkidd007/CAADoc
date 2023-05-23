@@ -1,0 +1,252 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding the PLM Channel Data Exchange Optimization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding the PLM Channel Data Exchange Optimization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>In the large companies, there is a need to exchange data to synchronize 
+		them or simply share information inter site or outside the company (suppliers). 
+		DS offers a protocol to formalize data exchange between databases, the PLM 
+		Channel. [<a href="#References">1]</a></p>
+		<p>A PLM channel is a Exchange medium created between two specific repositories, 
+		to allow optimized back and forth data exchange and ownership transfers 
+		of PLM Entities. The current technical article discusses the optimization 
+		aspect of this data exchange.</p>
+		<ul>
+			<li><a href="#Intro">Introduction to the Optimization</a></li>
+			<li><a href="#Scenarios">Scenarios of Optimization</a><ul>
+				<li><a href="#Avoid publish of non modified objects">Avoid Publishing 
+				Non-Modified Objects</a></li>
+				<li><a href="#Avoid publishing objects to master site">Avoid Publishing 
+				Objects to Their Master Site</a></li>
+				<li><a href="#Publish objects in error during last trip">Publishing 
+				Objects in Error During Last Round Trip</a></li>
+			</ul>
+			</li>
+			<li><a href="#Prog Interfaces for Optimization">Programming Interface 
+			for Optimization</a></li>
+			<li>
+			<a href="#Mulitple Briefcases generation in PLM Channel publish">Multiple 
+			Briefcase Generation in PLM Channel Publish</a></li>
+			<li><a href="#Programming Interface for Multiple BC scenario">Programming 
+			Interface for Multiple Briefcase Scenario</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Intro"></a>Introduction to the Optimization</h2>
+<p>Customer uses PLMChannel API to transfer data back and forth between sites. There 
+is a lot a data exchanged between sites and the timeframe to perform these exchanges 
+is very short. To optimize the exchange cycle between sites, we can avoid exchanging 
+data if we know that the target site is already up-to-date. That way, when publishing 
+a scope of objects:</p>
+<ul>
+	<li>Up-to-date objects are not published.</li>
+	<li>Not up-to-date objects are published (because the object has been modified 
+	on source site, or the previous synchronization failed for example).</li>
+</ul>
+<p>The main targeted benefits are:</p>
+<ul>
+	<li>Less data extracted from the repository to create a publication</li>
+	<li>Reduced revision size.</li>
+	<li>Reduced publication time.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Scenarios"></a>Scenarios of Optimization</h2>
+<p>The data exchange optimization can be better understood with the scenarios listed 
+below:</p>
+<ul>
+	<li>Avoid publishing non-modified objects</li>
+	<li>Avoid publishing objects to master site</li>
+	<li>Publishing objects in error during last round trip</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Avoid publish of non modified objects"></a>Avoid Publishing Non-Modified 
+Objects</h3>
+<p>Site A and Site B are the source and target sites respectively. The steps of 
+the exchange follow:</p>
+<ul>
+	<li>A publishes o1 and o2. (o1 and o2 being 2 objects)</li>
+	<li>B synchronizes o1 and o2 in his own database and generates an acknowledgement</li>
+	<li>A acknowledges the exchange</li>
+	<li>A modifies o1</li>
+	<li>A publishes o1 and o2 and provides the B&#8217;s acknowledgment as an input of 
+	publish API</li>
+	<li>The publication contains only o1, and o2 is filtered out</li>
+	<li>Non modified object are not published to reduce the publication time and 
+	the amount of extracted data.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Avoid publishing objects to master site"></a>Avoid Publishing Objects 
+to Their Master Site</h3>
+<ul>
+	<li>Object o1 is located on A</li>
+	<li>Object o2 is located on B and B has the site ownership of o2</li>
+	<li>B publishes o2 to A with publication P1</li>
+	<li>A synchronizes o2 to his own database</li>
+	<li>B acknowledges the exchange</li>
+	<li>Now A publishes o1 and o2 to B, providing P1 as an input of publish API. 
+	(An acknowledgement or a publication can be provided)</li>
+	<li>The publication of A contains o1, and o2 is filtered out. (Publication is 
+	P2)</li>
+	<li>Objects belonging to the master site are filtered out. More accurately, 
+	object belonging to the master site are always up-to-date. Therefore, o2 is 
+	filtered out because o2 is up-to-date</li>
+	<li>B synchronizes P2 and generates an acknowledgement Ack1</li>
+	<li>A acknowledges the exchange</li>
+	<li>A modifies o1</li>
+	<li>A publishes o1 and o2 providing the acknowledgement file Ack1 to the publish 
+	API</li>
+	<li>The publication contains o1, and o2 is filtered out</li>
+	<li>Objects belonging to the master site are filtered out. In this case, the 
+	input is an acknowledgement.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Publish objects in error during last trip"></a>Publishing Objects in 
+Error During Last Round Trip</h3>
+<ul>
+	<li>Object o1 is located on A. (o1 being missing on B or not up-to-date)</li>
+	<li>A publishes o1 to B through publication P1</li>
+	<li>B synchronizes P1 but synchronization failed for o1. B generates an acknowledgement</li>
+	<li>A acknowledges the exchange</li>
+	<li>A publishes o1 to B and provides B&#8217;s acknowledgement to the publish API</li>
+	<li>The publication contains o1 because the acknowledgement mentions that o1 
+	is not up-to-date</li>
+	<li>Objects in error during last round trip are not filtered out</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Prog Interfaces for Optimization"></a>Programming Interface for Optimization</h2>
+<p>The Publish method performs an optimization by referring an acknowldgement file. 
+This file contains information regarding the distant objects, which determines the 
+objects for publish and those which can be filtered out from publish.</p>
+<pre class="code">HRESULT <strong>SetAcknowledgementPathForPublishOptimization</strong>(const CATUnicodeString&amp; iAcknowledgementFilePath);</pre>
+<p>The API of the <em>CATPLMExchangeServices</em> class specified above sets the 
+acknowledgement file path for the publish operation which happens subsequently. 
+In other words, it activates the filtering of the PLM entities, during publish.</p>
+<p>The method can take only a publication or an acknowledgement corresponding generated 
+byto the peer plug. It is recommended to provide the acknowledgement of the previous 
+peer plug synchronization because optimization data may not be up to date and may 
+miss some optimization.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Mulitple Briefcases generation in PLM Channel publish"></a>Multiple 
+Briefcase Generation in PLM Channel Publish</h2>
+<p>The amount of data has a direct effect to the V6 server which cannot handle an 
+infinite amount of data. This amount of data that the V6 server supports during 
+one transaction depends of each V6 installation.<br>
+Therefore, the customer needs to control in some way, the size of the import transaction 
+that its own installation can handle. </p>
+<p>Another point to consider is that when an object is failing during the synchronization 
+of a PLMChannel, the whole transaction is roll backed. If the size of the transaction 
+is smaller, the number of roll backed objects is smaller.</p>
+<p>The Highlight provides a set of API that enables to:</p>
+<ul>
+	<li>Publish the input data into a set a PLMBriefcase instead of one .PLMBriefcase</li>
+	<li>Specify the approximate number of objects per briefcase in that case. (The 
+	number is an approximation due to data integrity rules constraints)</li>
+	<li>Synchronize the generated set of .PLMBriefcase in one Synchronize call</li>
+</ul>
+<p>The customer needs to define the approximate number of objects per briefcase. 
+The client process to define that figure is a balance between:</p>
+<ul>
+	<li>Constraints to reduce the size of briefcases:<ul>
+		<li>The possible rollback issue. If one object is failing, the whole briefcase 
+		is rollbacked</li>
+		<li>The server capability</li>
+	</ul>
+	</li>
+	<li>Constraints to increase the size of briefcases:<ul>
+		<li>Performances are better with greater briefcase: less client/server calls. 
+		Treatments are factorized and more efficient with greater set of objects</li>
+		<li>Filtering, realized by Optimization, as explained in the earlier section, 
+		reduces the size of data per briefcase</li>
+	</ul>
+	</li>
+</ul>
+<p>A recommended value could be 1000 objects briefcase. A value less than 1000 objects 
+may have negative effects on elapsed performances. </p>
+<p>When this figure is defined, the customer publishes his scope of data into an 
+empty directory. This directory will be filled with several briefcases. The customer 
+copies these several briefcases into a directory on the target site. The synchronization 
+on the target site takes this directory into account to synchronize sequentially 
+each briefcase.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Programming Interface for Multiple BC scenario"></a>Programming Interface 
+for Multiple Briefcase Scenario</h2>
+<p>The services for working with multiple Briefcases in a PLM Channel context are 
+exposed by the <em>CATPLMExchangeChannelServices</em>.</p>
+<pre class="code">HRESULT <strong>SetMultipleBriefcaseParametersForPublish</strong>(const int iNumberOfComponentPerBriefcase, const CATUnicodeString&amp; iDirectory);</pre>
+<p>The API below specifies the number of components per Briefcase and the directory 
+in which those will be generated.</p>
+<pre class="code">HRESULT <strong>SetMultipleBriefcaseDirectoryForSynchronize</strong>(const CATUnicodeString&amp; iDirectory);</pre>
+<p>The API above sets the directory from which the Briefcases are fetched, at the 
+time of synchronization at the target site.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In the large companies, there is a need to exchange data to synchronize them 
+or simply share information inter site or outside the company (suppliers). DS offers 
+a protocol to formalize data exchange between databases, the PLM Channel. It is 
+an Exchange medium created between two specific repositories, to allow optimized 
+back and forth data exchange and ownership transfers of PLM Entities. </p>
+<p>The current technical article discusses the steps involved to optimize this data 
+exchange. This is realized by taking into account the record of the last synchronization 
+that happened at the target site and thus filtering out those PLM entities from 
+the current publish, which are not relevant. The optimization also involves publishing 
+the PLM entities inside multiple briefcases to take into account the rollback possibility, 
+server capability and performance.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAASrmTaSupplyChain.htm">Exchanging Data Using PLM Channel</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2011]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

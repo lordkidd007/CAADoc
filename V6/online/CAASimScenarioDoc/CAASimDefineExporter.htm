@@ -1,0 +1,142 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Mesh Parts and Their Attributes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Define your own exporter</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article's main goal is to help partners understand how to define their
+		own exporter.</p>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>Implement a new simulation exporter</h2>
+<p>To define a new exporter, an implementation of <code>CATISimManagerSIMExporter</code> must 
+be created thanks to <code>CATImplementClass</code> macro. As we create an implementation, the last 
+argument of the macro is ignored and should be <code>CATNull</code>.</p>
+<pre class="code">...
+CATImplementClass( CATSimManagerSIMExporterCAA, Implementation, CATISimManagerSIMExporter, CATNull );
+CATImplementBOA( CATISimManagerSIMExporter,CATSimManagerSIMExporterCAA );
+...
+</pre>
+<p>The implementing component must also conform to the <code>CATCreateClassInstance</code> protocol 
+which means:</p>
+<ul>
+	<li>Implements a factory function in the exporter implementation class source file.</li>
+	<li>Associates this factory function to one (or several) string identifier(s). 
+	In our exemple, the string identifier is &quot;CAAExporterDS&quot;.</li>
+</ul>
+<pre class="code">...
+CATCreateAndAddOMFactoryFunctionWithSpecificKeyName( CAAExporterDS, CATSimManagerSIMExporterCAA );
+...
+</pre>
+<p>It is also mandatory to create a new entry in the .func dictionary of your framework in order
+ObjectModeler could load the  * implementation library if necessary. This entry will be as this : 
+"IdentifierName OMFactoryFunctionType libMyImplLibrary". If your framework doesn't already have 
+a .func file, create it in the dictionaries directory (same as for .dic files).</p>
+<pre class="code">
+CAAExporterDS	OMFactoryFunctionType	libCAASimRepExporter
+</pre>
+<p>The required exporter string identifier must follow some rules:</p>
+<ul>
+	<li>Must not conform to standard class naming rules, and in particular must be different from the 
+	implementing component name</li>
+	<li>Must be long enough to be unique as it will be added to a global memory map.</li>
+	<li>Must be short enough to be easily understood, used and memorized.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>How to call the simulation exporter</h2>
+<p>First, you need to set the simulation exporter arguments:</p>
+<ul>
+	<li>Create an instance of the export argument class which adheres to <code>CATISimImportExportArg</code>
+	interface with the help of the following code snippet:</li>
+<pre class="code">
+HRESULT hr = S_OK;
+CATISimImportExportArgs * piExporterArgs = NULL;
+hr = ::CATInstantiateComponent ( "CATSimImportExportArgs", IID_CATISimImportExportArgs, (void **) &amp;piExporterArgs );
+</pre>
+	<li>With this instance, you should be able to set the path to which data is exported, set how 
+	units are converted	and set additional parameters.</li>
+</ul>
+<p>Then, a query for <code>CATISimManagerSIMExport</code> interface has to be performed on a simulation
+manager instance. (i.e. FEM root, a Scenario Manager, or a Result Manager)</p>
+<p>Finally, you should call the <code>CATISimManagerSIMExport::Export</code> method
+using the string identifier and the arguments of the simulation exporter.</p>
+<p>For further informations on how to call a simulation exporter refer to the use case "Exporting FEM representation" 
+[<a href="#References">1</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>How to manage units</h2>
+<p>You can also export the simulation datas in specific units by setting the target unit system, the source
+one being assumed to be MKS. This is achieved by instanciating a <code>CATFmtUnitsConverter</code> class.</p>
+<p>For further informations on how to manage units refer to the use case "Exporting FEM representation" 
+[<a href="#References">1</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>How to manage parameters</h2>
+<p>To manage parameters, you need an implementation of <code>CATIFmtparameterSet</code> interface.
+Similarly to <code>CATISimImportExportArgs</code>, this interface is implemented on a component that conforms 
+to the <code>CATCreateClassInstance</code> protocol.</p>
+<p>Hence, to get an instance of this component you should to call:</p>
+<pre class="code">
+HRESULT hr = S_OK;
+CATIFmtParameterSet * piParameterSet = NULL;
+hr = ::CATInstantiateComponent ( "CATFmtParameterSet", IID_CATIFmtParameterSet, (void **) &amp;piParameterSet );
+</pre>
+<p>With the help of this instance, you are able to read/write parameter value(s) using string to identify them,
+as explained in the <code>CATIFmtParameterSet</code> interface header file.</p>
+<p>For further informations on how to manage parameters refer to the use case "Exporting FEM representation" 
+[<a href="#References">1</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAASimScenarioDoc/CAASimExporterUseCase.htm">
+		Exporting FEM representation</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

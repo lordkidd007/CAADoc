@@ -1,0 +1,395 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Accessing the Machining Resources</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Accessing the Machining Resources</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes the CAAMfgAccessMachiningResource use case and 
+		explains how to access to the Machining Resources of a PPRContext such like 
+		the cutting tools or NC machine, and how to access to the part operation 
+		which contains the part to be machined.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAMfgAccessMachiningResource Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAMfgAccessMachiningResource 
+						Do</a></li>
+					<li><a href="#How">How to Launch CAAMfgAccessMachiningResource</a></li>
+					<li><a href="#Where">Where to Find the CAAMfgAccessMachiningResource 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to learn how to navigate in a PPRContext in a Machining 
+application context.</p>
+<p>The PPRContext is a specific product structure which contains regular Products, 
+Processes and Resources. Through a process, the products are manufactured by one 
+or several resources like robots in an assembly line or a NC machine in a flexible 
+machining cell.</p>
+<p>From a data model point of view, the resources are products with dedicated extension 
+defined by an attribute which is called the Main Type. The resources specific to 
+the machining domain are the cutting tools, the tool assemblies and the NC machine. 
+These machining resources are usually aggregated under another resource that is 
+used to organize these machining resources. This particular resource has the Main 
+Type &quot;organizational&quot;. This &quot;organizational&quot; resource can be 
+itself embedded in a more or less complex product structure representing the organization 
+of the plant. It can contain for instance manufacturing lines, machining cells, 
+etc.</p>
+<table>
+	<caption><a name="Picture1"></a>Fig. 1: Example of PPRContext Product Structure</caption>
+	<tr>
+		<td>
+		<img alt="PPRContext Product Structure" src="images/CAAMfgAccessMachiningResourceComplexPPRContext.jpg"/>
+		</td>
+		<td>Here the &quot;Plant&quot; component is the PPRContext
+		<p>
+		<img alt="PPRContext" src="images/CAAMfgAccessMachiningResourceLegend.jpg"/></p>
+		</td>
+	</tr>
+</table>
+<p><strong>Note</strong>: the Machining applications can support a complex product 
+structure. But it is not possible in current release to have several NC machines 
+opened at the same time in a machining workbench, so if the product structure contains 
+several NC machines, the user will have to select a part of it (see
+<a href="#Picture2">Fig. 2</a>) which only contains one NC machine.</p>
+<table>
+	<caption><a name="Picture2"></a>Fig. 2: PPRContext Product Structure to Be Opened 
+	in a Machining Workbench</caption>
+	<tr>
+		<td>
+		<img alt="PPRContext Product Structure to Be Opened in a Machining Workbench" src="images/CAAMfgAccessMachiningResourceSelectedPPRContext.jpg"/>
+		</td>
+		<td>This sub structure with one NC machine can be opened in a Machining 
+		workbench</td>
+	</tr>
+</table>
+<p>When no NC machine is defined, the transition to the Machining workbench automatically 
+creates an additional product structure with an &quot;organizational&quot; Resource 
+named Machining Cell.1 that aggregates a single NC Machine (<a href="#Picture3">Fig. 
+3</a>). Then the created tools are aggregated to this Machining Cell.</p>
+<table>
+	<caption><a name="Picture3"></a>Fig. 3: Default Resource Structure Added to 
+	the PPRContext for Machining Applications</caption>
+	<tr>
+		<td>
+		<img alt="Default Resource Structure Added to the PPRContext for Machining Applications" src="images/CAAMfgAccessMachiningResourceDefaultMachResource.jpg"/>
+		</td>
+	</tr>
+</table>
+<p>For example, when a Part component is opened, doing the transition toward a Machining 
+workbench automatically creates the following product structure:</p>
+<table>
+	<caption>Fig. 4: Minimal Product Structure in a Machining Workbench</caption>
+	<tr>
+		<td>
+		<img alt="Minimal Product Structure in a Machining Workbench" src="images/CAAMfgAccessMachiningResourceTransition.jpg"/>
+		</td>
+		<td>The &quot;Setup Assembly&quot; component is the Product containing the 
+		Part to be machined</td>
+	</tr>
+</table>
+<p>This use case is relying on such a structure (<a href="#Picture5">Fig. 5</a>). 
+The objective is to retrieve the machining resources and the setup assembly. The 
+main steps are the following:</p>
+<ul>
+	<li>Retrieve the setup assembly.</li>
+	<li>Retrieve the &quot;organizational&quot; Resource (Machining Cell.1) that 
+		aggregates the tools and the NC machine.</li>
+	<li>Retrieve the cutting tools and NC machine.</li>
+</ul>
+<table>
+	<caption><a name="Picture5"></a>Fig. 5: Use Case Product Structure</caption>
+	<tr>
+		<td>
+		<img alt="Use Case Product Structure" src="images/CAAMfgAccessMachiningResourceSimplePPRContext.jpg"/>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAMfgAccessMachiningResource Use Case</h2>
+<p>CAAMfgAccessMachiningResource is a use case of the CAAMachiningUse.edu framework 
+that illustrates how to retrieve Machining resources thanks to generic interfaces 
+provided in the DELPLMResourceModelInterfaces framework.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAMfgAccessMachiningResource Do</h3>
+<p>CAAMfgAccessMachiningResource steps are the following:</p>
+<ul>
+	<li>Create the PLM session PLM component.</li>
+	<li>Retrieve in this PPRContext the setup assembly.</li>
+	<li>Retrieve in this PPRContext the &quot;organizational&quot; Resource that 
+		aggregates the tools and the NC machine.</li>
+	<li>Retrieve in the &quot;organizational&quot; Resource the NC machine and the 
+		two cutting tools.</li>
+	<li>Close the PLM session.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAMaiAccessMachiningRHow to Launch CAAMfgAccessMachiningResource</h3>
+<p>To launch CAAMfgAccessMachiningResource, you will need to set up the build time 
+environment, then compile CAAMfgAccessMachiningResource.m module along with its 
+prerequisites, set up the run time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>Launch the use case as follows:</p>
+<pre class="code">mkrun -c<em> &quot;CAAMfgAccessMachiningResource repository server user password SecurityCtx PLMType PLM_ExternalID V_version Resource_Id Reference|RepReference&quot;</em></pre>
+<p>where the description of the arguments is the following:</p>
+<table class="fill">
+	<colgroup align="center" span="1">
+	</colgroup>
+	<tr>
+		<th>Position</th>
+		<th>Name</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td>repository</td>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td>server</td>
+		<td>The name and port of the server as <em>name</em>:<em>port_number</em>
+		</td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td>user</td>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td>password</td>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<td>5</td>
+		<td>SecurityCtx</td>
+		<td>a string representing the security context (Role.Organization.Project). 
+		The role to be established during the session. It doesn't require any particular 
+		privilege since the use case only lists all available environments.</td>
+	</tr>
+	<tr>
+		<td>6</td>
+		<td>PLMType</td>
+		<td>A PLM Type for component to be opened is session</td>
+	</tr>
+	<tr>
+		<td>7</td>
+		<td>PLM_ExternalID</td>
+		<td>The <code><strong>PLM_ExternalID</strong></code> value of the input 
+		PPRContext PLM Reference</td>
+	</tr>
+	<tr>
+		<td>8</td>
+		<td>V_version</td>
+		<td>The <code><strong>V_version</strong></code> of the input PPRContext 
+		PLM Reference</td>
+	</tr>
+	<tr>
+		<td>9</td>
+		<td>Resource_Id</td>
+		<td>The identifier of the &quot;organizational&quot; Resource instance (The 
+		machining cell)</td>
+	</tr>
+</table>
+<p>For more information:</p>
+<ul>
+	<li>On the first five arguments that are related to the connection, refer to 
+		the &quot;Connecting to V6 Server&quot; use case [<a href="#References">2</a>].
+	</li>
+	<li>On the three following (PLMType, PLMExternalID and V_Version), refer to 
+		the Querying, Expanding and Opening PLM Object [<a href="#References">3</a>].</li>
+</ul>
+<p>You can execute this use case with any PPRContext reference with a structure 
+similar to the one described above (<a href="#Picture5">Fig. 5</a>) or you can 
+import the 3D XML file supplied in the CAAMachiningUse.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMachiningUse.edu\InputData\CAAMfgAccessMachiningResource.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This 3D XML file contains the PPRContext Reference with the following attributes:</p>
+<ul>
+	<li><code><strong>PLM_ExternalID</strong></code>: <code>CAAMaiAccessMachiningResource_CAAMaiPPRContextXXX</code> 
+		where XXX is the identification string entered by the user when importing 
+		the 3dxml file.</li>
+	<li><code><strong>Version</strong></code>: ---</li>
+</ul>
+<p>It also contains an &quot;organizational&quot; resource instance which is a Machining 
+Cell identified by the name &quot;CAAMaiAccessMachiningResource_Machining Cell.1.1&quot;.</p>
+<p>
+<img alt="Machining Cell" src="images/CAAMfgAccessMachiningResourceWorkbench.jpg"/></p>
+<p><strong>Notice</strong>: Please refer to the article [<a href="#References">1</a>] 
+to know how to import and reimport such a 3D XML file in your PLM repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAMfgAccessMachiningResource Code</h3>
+<p>The CAAMfgAccessMachiningResource use case is made of a main located in the CAAMfgAccessMachiningResource.m 
+module of the CAAMachiningUse.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMachiningUse.edu\CAAMfgAccessMachiningResource.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The main steps in CAAMfgAccessMachiningResource are:</p>
+<ol>
+	<li><a href="#Step2">Opening a PPRContext PLM Component</a></li>
+	<li><a href="#Step3">Retrieving the Setup Assembly in the PPRContext and the &quot;Organizational&quot; 
+		Resource in the PPRContext</a></li>
+	<li><a href="#Step5">Retrieving the NC Machine and the Two Cutting Tools in 
+		the &quot;Organizational&quot; Resource</a></li>
+</ol>
+<p>Steps 1 and 5 are not specific to this use case, so please refer to the &quot;Creating 
+a Basic PLM Batch&quot; use case [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Opening a PPRContext PLM Component</h3>
+<p>As a PPRContext is a Product, finding a PPRContext in the database and opening 
+it is completely similar to finding and opening a regular Product. So the sequence 
+of calls is the same than in the
+<!-- a href="../../../CAAPLMClientAdapterDoc.edu/CAAPlmServerAccess.doc/src/CAAAdpUcQueryOpen.htm#Step1" -->
+Querying, Expanding and Opening PLM Components<!-- /a --> use case [<a href="#References">3</a>].</p>
+<pre class="code"> ... 
+   const CATString StrPLMType	= argv[6];
+	...
+   CATOmbLifeCycleRootsBag bag;
+   CATIPLMComponent * pPPRContext = NULL;
+   
+   result = ::CAAOpenPLMComponent(StrPLMType, PPRContextId, version, IID_CATIPLMComponent, (void**) &amp;pPPRContext, bag, TRUE);
+   ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Retrieving the Setup Assembly in the PPRContext and the &quot;Organizational&quot; 
+Resource in the PPRContext</h3>
+<p>To retrieve the first level instances of any Product, Process or Resource, parse 
+product structure.</p>
+<p>First we use the iterator on <strong>CATIPLMProducts</strong> to parse children 
+of PPR context.</p>
+<pre class="code">...
+  CATIPLMProducts_var spPLMProduct(spPPRContext);
+  if (NULL_var != spPLMProduct)
+  {
+    CATIPrdIterator * pIterator = NULL;
+    if (SUCCEEDED(spPLMProduct-&gt;Iterator(pIterator)) &amp;&amp; pIterator != NULL)
+    {
+      CATBaseUnknown * pMyInterfaceOnChildren = NULL;
+      while (SUCCEEDED(pIterator-&gt;Next(pMyInterfaceOnChildren)) &amp;&amp; pMyInterfaceOnChildren != NULL)
+      {
+        ...
+        CATSysReleasePtr(pMyInterfaceOnChildren);
+      }
+      CATSysReleasePtr(pIterator);
+    }
+  }
+...</pre>
+<p>Use DELIPLMRMNavigation interface to check if you have resource or product.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Retrieving the NC Machine and the Two Cutting Tools in the &quot;Organizational&quot; 
+Resource</h3>
+<p>Here the Machining Cell is a resource and we can use the DELIPLMRMNavigation 
+interface. These interface allows to retrieve instances of resources aggregated 
+to a given resource with different filters. The Main Type filter is interesting 
+in the Machining context because it allows to sort:</p>
+<ul>
+	<li><strong>NC Machines</strong> with the <code>NCMachine</code> Main Type</li>
+	<li><strong>Cutting Tools</strong> and <strong>Tools Assemblies</strong> with 
+		the <code>ToolDevice</code> Main Type</li>
+</ul>
+<pre class="code">...
+    <strong>DELIPLMRMNavigation_var</strong> spPLMResource ...;
+    
+    // Get Machine
+    DELIPLMRMNavigation::MAINTYPE type = <strong>DELIPLMRMNavigation::NCMachine</strong>;
+    result = spPLMResource-&gt;<strong>GetSubResources</strong> (listOfMachines, &amp;type);
+    
+    ...
+    
+    // Get the Tools / Tool Assemblies
+    type = <strong>DELIPLMRMNavigation::ToolDevice</strong>;
+    result = spPLMResource-&gt;<strong>GetSubResources</strong> (listOfToolDevice, &amp;type);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article provides an example on how to navigate in a PPRContext in order 
+to find the Machining resources like the NC machine and cutting tools.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcBasicBatch.htm'); return false;">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcQueryOpen.htm'); return false;">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jun 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jan 2008]</td>
+		<td>Document updated with new API</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Jan 2010]</td>
+		<td>Document updated with new API</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

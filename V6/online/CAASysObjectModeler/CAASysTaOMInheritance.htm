@@ -1,0 +1,343 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Object Modeler Inheritances</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Object Modeler Inheritances</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains the Object Modeler (OM) inheritance for interfaces 
+		and for components.</p>
+		<ul>
+			<li><a href="#100000">Code Reusability and Factorization</a></li>
+			<li><a href="#200000">Interface Inheritance</a></li>
+			<li><a href="#300000">Component Inheritance</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>Code Reusability and Factorization</h2>
+<p>CAA offers some powerful means in addition to declaring and implementing interfaces. 
+You can take advantage of interfaces already implemented in existing components 
+to reuse existing code, and to allow for scalability, bringing new developments 
+without overwriting the whole code or rebuilding all existing client applications. 
+These means are interface inheritance, component inheritance, both being Object 
+Modeler inheritance, extensions and the way to share extensions between components.</p>
+<p>Inheritance is one of the major elements of the object model. With common object-oriented 
+languages like C++, inheritance brings to a class the type of its base classes. 
+This means that the derived class inherits their data members methods. The same 
+mechanism applies for interfaces and for their implementations within CAA components.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Object Modeler Interface Inheritance</h2>
+<p>Object Modeler (OM) interface inheritance is one of the main means to factorize 
+behavior. Remember that an interface brings to a component one of its behavioral 
+facets rather than only a set of methods. Deriving an interface from another one 
+adds to the current interface the behavior exposed by the base interface to make 
+a more complex, specialized, or comprehensive behavior.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Object Modeler Interface Inheritance" height="247" src="images/CAASysOMInheritance3.gif" width="240"/></td>
+		<td>Assume that the <em>CAAIXX</em> interface derives from the <em>CAAIAA</em> 
+		interface. This derivation must be altogether a C++ derivation between the 
+		abstract classes that stand for the interfaces, and an OM-derivation stated 
+		using the <code>CATImplementInterface</code> macro. A component implementing
+		<em>CAAIXX</em> gets the behavior provided by the inherited <em>CAAIAA</em> 
+		in addition to the behavior specific to <em>CAAIXX</em>. On the figure beside, 
+		the <em>CAACmp</em> component which implements <em>CAAIXX</em> among other 
+		interfaces inherits the support of <em>CAAIAA</em> from <em>CAAIXX</em>. 
+		This means that <code>QueryInterface</code> returns <code>S_OK</code> when 
+		asked for <em>CAAIAA</em> using a pointer to another interface implemented 
+		by <em>CAACmp</em>, such as <em>CAAIYY</em>, without <em>CAACmp</em> needs 
+		to declare implementing <em>CAAIAA</em> (no TIE, no dictionary entry.) Nevertheless,
+		<em>CAACmp</em> needs to provide the body of the <code>MAA1</code> and
+		<code>MAA2</code> methods.</td>
+	</tr>
+</table>
+<p>Assume that the <em>CAACmp</em> class, that is the <em>CAACmp</em> component 
+main class, implements itself the <em>CAAIXX</em> and <em>CAAIYY</em> (usually, 
+interfaces are im^plemented using extension classes, and the component main clas 
+is quite empty.) The <em>CAACmp</em> class source file could be as follows:</p>
+<pre class="code">...
+#include &quot;TIE_CAAIXX.h&quot;
+#include &quot;TIE_CAAIYY.h&quot;
+...
+CATImplementClass(CAACmp, Implementation, CATBaseUnknown, CATNull); 
+...
+TIE_CAAIXX(CAACmp);           // No TIE to declare CAAIAA
+TIE_CAAIYY(CAACmp);           // implementation
+...
+HRESULT CAACmp::MAA1()        // CAAIAA methods need to be
+{                             // implemented
+  ...
+}
+
+HRESULT CAACmp::MAA2()
+{
+  ...
+}
+...</pre>
+<p>A client application typical usage of interface inheritance could be as follows:</p>
+<pre class="code">...
+HRESULT rc = E_FAIL;
+IUnknown *piUnknownOnCmp = NULL;
+rc = ::CATInstantiateComponent(&quot;CAACmp&quot;, IID_IUnknown, (void **) &amp;piUnkownOnCmp);
+if ((SUCCEEDED(rc) &amp;&amp; NULL != piUnkownOnCmp)
+{
+  CAAIYY *piCAAIYYOnCmp = NULL; 
+  HRESULT rc = piUnkownOnCmp -&gt;QueryInterface(IID_CAAIYY, (void**) &amp;piCAAIYYOnCmp);
+  piUnkownOnCmp -&gt;Release();
+  if (SUCCEEDED(rc))
+  {
+    CAAIAA *piCAAIAAOnCmp = NULL;
+    rc = piCAAIYYOnCmp-&gt;QueryInterface(IID_CAAIAA, (void**) &amp;piCAAIAAOnCmp);
+    piCAAIYYOnCmp-&gt;Release();
+    if (SUCCEEDED(rc))
+    {
+      piCAAIAAOnCmp-&gt;MAA1();
+      piCAAIAAOnCmp-&gt;MAA2();
+      piCAAIAAOnCmp-&gt;Release();
+    }
+  }
+}
+...</pre>
+<p>The component is created using the <code>CATInstantiateComponent</code> global 
+function which returns a pointer to <em>IUnknown</em>. Then a pointer to <em>CAAI</em><em>YY</em> 
+is asked, and using this pointer, a pointer to <em>CAAI</em><em>AA</em> is asked 
+and successfully returned. It can be used as if <em>CAACmp</em> were implementing
+<em>CAAI</em><em>AA</em>, when it only implements <em>CAAI</em><em>AA</em> methods 
+and inherits <em>CAAI</em><em>AA</em> support from <em>CAAI</em><em>XX</em>.</p>
+<p>In addition, a pointer to the derived interface <em>CAAI</em><em>XX</em> can 
+be used to call the <code>MAA1</code> and <code>MAA2</code> methods of the base 
+interface <em>CAAI</em><em>AA</em> in addition to its own methods <code>MXX1</code> 
+and <code>MXX2</code>, as shown in the following example.</p>
+<pre class="code">...
+CAAIXX *piCAAIXXOnCmp = NULL;
+HRESULT rc = piCAAIYYOnCmp-&gt;QueryInterface(IID_CAAIXX, (void**) &amp;piCAAIXXOnCmp);
+if (SUCCEEDED(rc))
+{
+  piCAAIXXOnCmp-&gt;MXX1();
+  piCAAIXXOnCmp-&gt;MXX2();
+  piCAAIXXOnCmp-&gt;MAA1();
+  piCAAIXXOnCmp-&gt;MAA2();
+  piCAAIXXOnCmp-&gt;Release();
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Object Modeler Component Inheritance</h2>
+<p>A component that implements interfaces can OM-derive from another component that 
+itself implements other interfaces. The derived component can be seen as a kind 
+of the base component from which it derives, since it has the behavior of this component 
+in addition to its own behavior. This is called OM-inheritance. It has nothing to 
+do with C++ inheritance, although there are some similarities. OM component inheritance 
+allows for code reusability and factorization.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Object Modeler Component Inheritance with Implementations" height="255" src="images/CAASysOMInheritance1.gif" width="243"/></td>
+		<td>The OM-inheritance brings to <em>CAADerivedCmp</em> the ability to execute 
+		the methods of the inherited implementation of the <em>CAAIXX</em> and
+		<em>CAAIYY</em> interfaces, in the same way than any C++ derived class instance 
+		can execute the methods of its base classes.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="Object Modeler Component Inheritance with Implementations and Extensions" height="381" src="images/CAASysOMInheritance2.gif" width="451"/></td>
+		<td>The difference is that there can be no C++ inheritance links between 
+		the classes that make up <em>CAADerivedCmp</em> and those that make up
+		<em>CAABaseCmp</em>, except between the component main classes, that is, 
+		those that are declared using the keyword <code>Implementation</code> in 
+		the <code>CATImplementClass</code> macro: the <em>CAADerivedCmp</em> component 
+		main class must C++-derive from the <em>CAABaseCmp</em> component main class. 
+		The OM component inheritance makes <em>CAADerivedCmp</em> implement the 
+		interfaces implemented by <em>CAABaseCmp</em> without explicitly declaring 
+		that <em>CAADerivedCmp</em> implements these interfaces (no TIE, no dictionary 
+		entry), and without providing the code for their methods. In other words, 
+		the OM component inheritance allows <code>QueryInterface</code> to return 
+		S_OK and a valid pointer to <em>CAAIXX</em>, for example, when it is called 
+		using a pointer to <em>CAAIZZ</em> on <em>CAADerivedCmp</em>. This is expressed 
+		thanks the macro <code>CATDeclareClass</code> in the <em>CAADerivedCmp</em> 
+		main class header file, and thanks to the <code>CATImplementClass</code> 
+		macro in the associated source file. This class name must be the component 
+		name, that is, <em>CAADerivedCmp</em>.</td>
+	</tr>
+</table>
+<p>The <em>CAADerivedCmp</em> class header file is as follows:</p>
+<pre class="code">...
+#include &quot;CAABaseCmp.h&quot;
+...
+class CAADerivedCmp : public CAABaseCmp
+{
+  <strong>CATDeclareClass</strong>;
+  public :
+    CAADerivedCmp();
+    virtual ~CAADerivedCmp();
+  private :
+    CAADerivedCmp(const CAADerivedCmp &amp;iObjectToCopy);
+};</pre>
+<p>And its source file is as follows:</p>
+<pre class="code">...
+#include &quot;CAADerivedCmp.h&quot;
+...
+<strong>CATImplementClass(CAADerivedCmp, Implementation, CAABaseCmp, CATNull)</strong>;
+
+CAADerivedCmp::CAADerivedCmp() {}
+CAADerivedCmp::~CAADerivedCmp() {}</pre>
+<p>The <code>CATImplementClass</code> macro states that the class <em>CAADerivedCmp</em> 
+is a component main class thanks to the <code>Implementation</code> keyword, and 
+that the component OM-derives from the component whose main class is <em>CAABaseCmp</em>. 
+The fourth argument must always be set to <code>CATNull</code> for component main 
+classes. The class includes only a constructor and a destructor. A copy constructor 
+is declared in the class private part and is not implemented. This prevents the 
+compiler from creating the copy constructor as public without you know.</p>
+<p>The <em>CAAExtZZ</em> extension class header file is as follows:</p>
+<pre class="code">...
+#include &quot;CATBaseUnknown.h&quot;
+...
+class CAAExtZZ : public CATBaseUnknown
+{
+  <strong>CATDeclareClass</strong>;
+  public :
+    CAAExtZZ ();
+    virtual ~CAAExtZZ ();
+    HRESULT MZZ1();
+    HRESULT MZZ2();
+  private :
+    CAAExtZZ(const CAAExtZZ &amp;iObjectToCopy);
+};</pre>
+<p>The <em>CAAExtZZ</em> extension class header file is as follows:</p>
+<pre class="code">...
+#include &quot;CAADerivedCmp.h&quot;
+...
+<strong>CATImplementClass(CAAExtZZ, DataExtension, CATBaseUnknown, CAADerivedCmp)</strong>;
+#include &quot;TIE_CAAIZZ.h&quot;
+TIE_CAAIZZ(CAAExtZZ);
+
+CAAExtZZ::CAAExtZZ () {}
+CAAExtZZ::~CAAExtZZ () {}
+
+HRESULT CAAExtZZ::MZZ1()
+{
+  ...
+}
+...
+HRESULT CAAExtZZ::MZZ2()
+{
+  ...
+}</pre>
+<p>The <code>CATImplementClass</code> macro states that the class <em>CAAExtZZ</em> 
+extends the <em>CAADerivedCmp</em>, thanks to the <code>DataExtension</code> keyword. 
+No OM-inheritance can be set to an extension, and the third argument must always 
+be set to either <em>CATBaseUnknown</em> or <code>CATNull</code>. The class includes 
+a constructor and a destructor. A copy constructor is declared in the class private 
+part and is not implemented. This prevents the compiler from creating the copy constructor 
+as public without you know. In addition, it implements the <em>CAAIZZ</em> methods.</p>
+<p>Let's see how a client application can make use of OM component inheritance.</p>
+<pre class="code">...
+HRESULT rc = E_FAIL;
+IUnknown *piUnknownOnDerivedCmp = NULL;
+rc = ::CATInstantiateComponent(&quot;CAADerivedCmp&quot;, IID_IUnknown, (void **) &amp;piUnkownOnDerivedCmp);
+
+if (SUCCEEDED(rc) &amp;&amp; NULL != piUnknownOnDerivedCmp)
+{
+  CAAIZZ *piCAAIZZOnDerivedCmp = NULL;
+  rc = piUnknownOnDerivedCmp-&gt;QueryInterface(IID_CAAIZZ, (void **) &amp;piCAAIZZOnDerivedCmp);
+  piUnknownOnDerivedCmp-&gt;Release();
+  if (SUCCEEDED(rc))
+  {
+    piCAAIZZOnDerivedCmp-&gt;MZZ1();
+    piCAAIZZOnDerivedCmp-&gt;MZZ2();
+    CAAIXX * piCAAIXXOnDerivedCmp= NULL;
+    rc = piCAAIZZOnDerivedCmp-&gt;QueryInterface(IID_CAAIXX, (void **) &amp;piCAAIXXOnDerivedCmp);
+    piCAAIZZOnDerivedCmp-&gt;Release();
+    if (SUCCEEDED(rc))
+    {
+      piCAAIXXOnDerivedCmp-&gt;MXX1();
+      piCAAIXXOnDerivedCmp-&gt;MXX2();
+      piCAAIXXOnDerivedCmp-&gt;Release();
+    }
+  }
+}
+...</pre>
+<p>As you can see, even if <em>CAADerivedCmp</em> doesn't implement the methods 
+of <em>CAAIXX</em>, it supports this interface. This support is due to the OM component 
+inheritance. Note also that although the <em>CAAIZZ</em> interface is implemented 
+by the <em>CAAExtZZ</em> extension class, this class is never explicitly handled. 
+The <em>CAADerivedCmp</em> component is instantiated using the <code>CATInstantiateComponent</code> 
+global function and handled first as a pointer to <em>IUnknown</em>, and pointers 
+to the interfaces it implements can then be retrieved, whatever the actual C++ classes 
+that make up the component and that contain the methods' code. The component remains 
+a black box for the client application.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Object Modeler inheritances deal with interfaces and components. Interfaces 
+that OM-derive must also C++ derive, while this makes sense only for component main 
+classes. OM-inheritance is declared using the <code>CATDeclareInterface</code> and
+<code>CATImplementInterface</code> macros for interfaces, and using the <code>CATDeclareClass</code> 
+and <code>CATImplementClass</code> macros for components in the component main class, 
+and in the component extension classes as well.</p>
+<p>OM-inheritance for interfaces enables the derived interface to be seen as its 
+base interface.</p>
+<p>OM-inheritance for components enables the derived component to expose the inherited 
+interfaces and their implementations as if they were its own.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAASysQrOMHRESULT.htm">What Is HRESULT?</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAASysQrOMstdcall.htm">About __stdcall</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAASysQrOMGUID.htm">About Globally Unique IDentifiers</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

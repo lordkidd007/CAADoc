@@ -1,0 +1,191 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>XMLParser Interface CATISAXEntityResolver</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../XMLParser.htm">This Framework</a>  <a href="interface_CATISAXDocumentHandler_95982.htm">Previous</a>  <a href="interface_CATISAXErrorHandler_70897.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>XMLParser Interface CATISAXEntityResolver</h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">System.IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">System.IDispatch</a>
+    |
+    +---<a href="../System/class_CATBaseUnknown_40786.htm">System.CATBaseUnknown</a>
+      |
+      +---CATISAXEntityResolver
+ </pre>
+<p><b>Usage: you can freely reimplement this interface.</b></p>
+<hr>
+<p>
+ interface <b>CATISAXEntityResolver</b>
+</p>
+<p>
+<b><i> Interface for resolving entities.</i></b><br>
+
+
+ <p>If a SAX application needs to implement customized handling
+ for external entities, it must implement this interface and
+ register an instance with the SAX parser using 
+ the parser <a href="../XMLParser/interface_CATISAXParser_32446.htm#SetEntityResolver">CATISAXParser.SetEntityResolver</a> method 
+<a href="../DNBSystem/struct__0.htm#">.</a>.</p>
+ <p>The parser will then allow the application to intercept any
+ external entities (including the external DTD subset and external
+ parameter entities, if any) before including them.</p>
+
+ <p>Many SAX applications will not need to implement this interface,
+ but it will be especially useful for applications that build
+ XML documents from databases or other specialised input sources,
+ or for applications that use URI types other than URLs.</p>
+
+ <p>The following resolver would provide the application
+ with a special character stream for the entity with the system
+ identifier "http://www.myhost.com/today":</p>
+
+<pre>
+
+ #include "CATISAXEntityResolver.h"
+ #include "CATISAXInputSource.h"
+	
+ class MyResolver : public CATBaseUnknown {
+     public:
+         HRESULT ResolveEntity (
+             const CATUnicodeString & iPublicId, 
+             const CATUnicodeString & iSystemId, 
+             CATISAXInputSource *& oInputSource);
+         ...
+ };
+ 
+ // Declaration of the class as a CNext implementation class.
+ CATImplementClass( MyResolver, Implementation, CATBaseUnknown, CATnull );
+ 
+ // Implement the CATISAXEntityResolver interface.
+ #include "TIE_CATISAXEntityResolver.h"
+ TIE_CATISAXEntityResolver( MyResolver );
+ 
+ 
+ HRESULT MyResolver::ResolveEntity (
+     const CATUnicodeString & iPublicId, 
+     const CATUnicodeString & iSystemId, 
+     CATISAXInputSource *& oInputSource) {
+ 
+     HRESULT hr = E_FAIL;
+     oInputSource = NULL;
+     if (iSystemId == "http://www.myhost.com/today") {
+         hr = CATISAXInputSourceFactory::CreateURLInputSource(iSystemId, oInputSource);
+     }
+     return hr;
+ }
+
+</pre>
+
+ <p>The application can also use this interface to redirect system
+ identifiers to local URIs or to look up replacements in a catalog
+ (possibly by using the public identifier).</p>
+
+ <p>The 
+<a href="../XMLParser/class_CATSAXHandlerBase_55505.htm">CATSAXHandlerBase</a> class implements the default behaviour for this interface, which is simply always to return <tt>NULL</tt> (to request
+ that the parser use the default system identifier).</p>
+
+ 
+<dl>
+  <dt> <b>See also:</b> 
+  <dd> <a href="../XMLParser/interface_CATISAXInputSource_64700.htm">CATISAXInputSource</a>, <a href="../XMLParser/class_CATSAXHandlerBase_55505.htm">CATSAXHandlerBase</a>, <a href="../XMLParser/interface_CATISAXParser_32446.htm#SetEntityResolver">CATISAXParser.SetEntityResolver</a>
+</dl>
+</p>
+<hr>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#ResolveEntity(CATUnicodeString&amp;,CATUnicodeString&amp;,CATISAXInputSource_var&amp;)"><b>ResolveEntity</b></a>(CATUnicodeString&amp;,CATUnicodeString&amp;,CATISAXInputSource_var&amp;)
+<dd>  Allows the application to resolve external entities.
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="ResolveEntity"></a><a name="ResolveEntity(CATUnicodeString&amp;,CATUnicodeString&amp;,CATISAXInputSource_var&amp;)"></a> <dt> o <b>ResolveEntity</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>ResolveEntity</b>(<td> const <a href="../System/class_CATUnicodeString_52958.htm">CATUnicodeString&amp;</a> <td><tt>iPublicId</tt>,<tr><td></td><td> const <a href="../System/class_CATUnicodeString_52958.htm">CATUnicodeString&amp;</a> <td><tt>iSystemId</tt>,<tr><td></td><td>CATISAXInputSource_var&amp; <td><tt>oInputSource</tt>) = 0  </table></dt>
+<dl>
+  <dd>
+ Allows the application to resolve external entities.
+
+ <p>The 
+<a href="../XMLParser/interface_CATISAXParser_32446.htm">CATISAXParser</a> will call this method before opening any external entity except the top-level document entity (including the
+ external DTD subset, external entities referenced within the
+ DTD, and external entities referenced within the document
+ element): the application may request that the parser resolve
+ the entity itself, that it use an alternative URI, or that it
+ use an entirely different input source.</p>
+
+ <p>Application writers can use this method to redirect external
+ system identifiers to secure and/or local URIs, to look up
+ public identifiers in a catalogue, or to read an entity from a
+ database or other input source (including, for example, a dialog
+ box).</p>
+
+ <p>If the system identifier is a URL, the SAX parser must
+ resolve it fully before reporting it to the application.</p>
+
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt> iPublicId</tt>
+   <dd>  The public identifier of the external entity being referenced 
+ (can be an empty </dd>
+<a href="../System/class_CATUnicodeString_52958.htm">CATUnicodeString</a> if no public identifier was given). 
+    <dt><tt> iSystemId</tt>
+   <dd>  The system identifier of the external entity being referenced.
+ </dd>
+    <dt><tt> oInputSource</tt>
+   <dd> An InputSource object describing the new input source,
+         or <tt>NULL</tt> to request that the parser open a regular
+         URI connection to the system identifier.
+
+ </dl>
+ <dt><b>Errors Returned</b>:</dt>
+ <dd>
+   <table class="errtab">
+     <tr>
+       <th class="errth">Error Class</th>
+       <th class="errth">Error Id</th>
+       <th class="errth">Description</th>
+     </tr>
+     <tr>
+        <td class="errtd"></dd>
+<a href="../XMLParser/class_CATSAXException_45267.htm">CATSAXException</a> </td>        <td class="errtd">XMLParserERR_2000</td>
+        <td class="errtd">The method can raise a CATSAXException</td>
+     </tr>
+     <tr>
+        <td class="errtd">
+<a href="../XMLParser/class_CATSAXIOException_56699.htm">CATSAXIOException</a> </td>        <td class="errtd">XMLParserERR_2001</td>
+        <td class="errtd">If an I/O error occurs, possibly the result of creating a new 
+<a href="../XMLParser/interface_CATISAXInputSource_64700.htm">CATISAXInputSource</a> the method can raise this error.</td>
+     </tr>
+   </table>
+ </dd>
+
+ 
+  <dt> <b>See also:</b> 
+  <dd> <a href="../XMLParser/interface_CATISAXInputSource_64700.htm">CATISAXInputSource</a>
+</dl>
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>CATISAXEntityResolver.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>CATXMLParserItf</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

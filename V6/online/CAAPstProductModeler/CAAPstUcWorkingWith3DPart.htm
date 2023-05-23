@@ -1,0 +1,759 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Working with a 3D Part</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Working with a 3D Part</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the CAAPstWorkingWith3DPart use case. A 3D Part 
+		is a Product Reference which aggregates one and only one instance of a Mono-Instantiable 
+		Representation Reference (Rep Ref) beneath it, as illustrated in this Use 
+		Case (UC). It further demonstrates other key features of a 3D Part.</p>
+		<p>A Product Instance and more than one Representation Instance (Rep Inst) 
+		cannot be aggregated under a 3D Part. It is also impossible to delete the 
+		only Rep Inst existing under a 3D Part.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstWorkingWith3DPart Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAPstWorkingWith3DPart Do</a></li>
+					<li><a href="#How">How to Launch CAAPstWorkingWith3DPart</a></li>
+					<li><a href="#Where">Where to Find the CAAPstWorkingWith3DPart 
+						code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case fundamentally teaches us the key features of a 3D Part. These include:</p>
+<ul>
+	<li>A 3D Part is a special Product Reference, which aggregates a single instance 
+		of a Mono-Instantiable Rep Ref under it.</li>
+	<li>It can aggregate at max, only a single Rep Instance beneath it.</li>
+	<li>The only Rep Instance aggregated beneath Root, cannot be deleted.</li>
+	<li>It cannot aggregate a Product Instance beneath it.</li>
+</ul>
+<p>In the process, user also gets exposure to the following APIs:</p>
+<ul>
+	<li><code>CATAdpQueryServices</code> to build and launch a query in the underlying 
+		database.</li>
+	<li><code>CATAdpSaver</code>, <code>CATAdpOpener</code> to load PLM Components 
+		in session.</li>
+	<li>Knowledge APIs exposed by <em>CATCkeObjectAttrReadServices</em> to read 
+		the PLM Attributes (V_usage, in this case)</li>
+	<li>The <em>CATIPLMRepInstances</em> services on a Product Reference which handles 
+		the Rep Instances beneath Root.</li>
+	<li>Product Structure Navigation services exposed by <em>CATIPLMNavRepInstance</em>,
+		<em>CATIPLMNavRepReference</em> (Navigate, Check for Mono-Instantiable Rep 
+		Ref, Check for the Rep Ref content type), <em>CATIPLMProducts</em> (Instantiate 
+		another Product under Root).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstWorkingWith3DPart Use Case</h2>
+<p>CAAPstWorkingWith3DPart is a use case of the CAAProductStructure.edu framework 
+that illustrates the ProductStructureInterfaces frameworks capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstWorkingWith3DPart Do</h3>
+<p>The Use Case executes on an input model as the one depicted below. [<a href="#Fig1">Fig. 
+1</a>]</p>
+<p>It consists of a Root Reference, a 3D Part, <strong>CAAPstWorkingWith3DPart_Root</strong> 
+which has a single instance of a mono-Instantiable Rep Ref namely. <strong>Representation967</strong> 
+beneath it.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Input Model</caption>
+	<tr>
+		<td>
+		<img alt="Input Model" height="164" src="images/CAAPstWorkingWith3DPart_Fig1.jpg" width="256"/></td>
+	</tr>
+</table>
+<p>The steps involved are:</p>
+<ul>
+	<li>The UC begins with building a query with the input Attribute-Value sets. 
+		The query is launched on an underlying database and we retrieve an Identificator 
+		of the 3D Part.</li>
+	<li>The 3D Part is then loaded in session and inserted in BAG.</li>
+	<li>Display the V_usage attribute value of the 3D Part. Confirm it outputs 3DPart.</li>
+	<li>Confirms only a single Rep Inst exists beneath Root.</li>
+	<li>Confirms its an instance of a Mono-Instantiable Rep Ref.</li>
+	<li>Confirms this Rep Inst cannot be deleted.</li>
+	<li>Confirms a new Rep Inst cannot be aggregated under Root
+		<ul>
+			<li>Open an input Rep Ref in session and insert it in BAG.</li>
+			<li>Instantiates this Rep Ref under 3D Part. It fails.</li>
+		</ul>
+	</li>
+	<li>Confirms no Product Instance exists under Root.</li>
+	<li>Confirms a Product Instance cannot be aggregated under Root<ul>
+		<li>Open an input Child Reference in session and insert it in BAG.</li>
+		<li>Instantiate this Child Ref under the 3D Part. It fails.</li>
+		</ul>
+	</li>
+	<li>Confirm the aggregated Rep Ref Authoring Stream type is &quot;Structured 
+		Content&quot;.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstWorkingWith3DPart</h3>
+<p>To launch CAAPstWorkingWith3DPart , you will need to set up the build time environment, 
+then compile CAAPstWorkingWith3DPart along with its prerequisites, set up the run 
+time environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot;CAAPstWorkingWith3DPart Repository Server User Password 
+SecurityCtx PLMType PLM_ID_RepRef MajorRevision_RepRef PLM_ID_ChildRef 
+MajorRevision_ChildRef 
+PLM_ExternalID PLM_IDValue MajorRevision MajorRevision_Value PLMChildType&quot;</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as ServerName:ServerPort/rootURI</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose role as administrator (since we are modifying PLM data)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String Representing PLM Type</td>
+	</tr>
+	<tr>
+		<th>PLM_ID_RepRef</th>
+		<td>PLM_ExternalID of the Rep Ref for instantiation under Root</td>
+	</tr>
+	<tr>
+		<th>MajorRevision_RepRef</th>
+		<td>MajorRevision of the Rep Ref for instantiation under Root</td>
+	</tr>
+	<tr>
+		<th>PLM_ID_ChildRef**</th>
+		<td>PLM_ExternalID of the Child Ref for instantiation under Root</td>
+	</tr>
+	<tr>
+		<th>MajorRevision_ChildRef**</th>
+		<td>MajorRevision of the Child Ref for instantiation under Root</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID***</th>
+		<td>PLM_ExternalID attribute indicator</td>
+	</tr>
+	<tr>
+		<th>PLM_ID Value***</th>
+		<td>PLM_ExternalID Attribute Value of Root Component</td>
+	</tr>
+	<tr>
+		<th>MajorRevision***</th>
+		<td>MajorRevision attribute indicator</td>
+	</tr>
+	<tr>
+		<th>MajorRevision Value***</th>
+		<td>MajorRevision Attribute Value of Root Component</td>
+	</tr>
+	<tr>
+		<th>PLMChildType</th>
+		<td>A String Representing PLM Type For Child</td>
+	</tr>
+</table>
+<p>* The PLMType like VPMReference, meaning it should have atleast PLM_ExternalID 
+and MajorRevision as its IdentificationSet attributes</p>
+<p>*** PLM_ExternalID and MajorRevision are the IdentificationSet Attributes for a 
+KnowledgeType VPMReference kind. Also note that V_name and MajorRevision can 
+also be used to identify the product, but it cannot guarantee the unicity</p>
+<p>The input model for Root Reference is retrieved by importing the CAAPstWorkingWith3DPart.3dxml 
+file from the CAAProductStructure.edu fwk.</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure.edu\InputData\CAAPstWorkingWith3DPart.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>The CAAPstWorkingWith3DPart.3dxml contains a PLM Reference with the following 
+attributes:</p>
+<table class="fill">
+	<tr>
+		<th>Attribute</th>
+		<th>Value</th>
+	</tr>
+	<tr>
+		<td>PLM_ExternalID</td>
+		<td>CAAPstWorkingWith3DPart_Root</td>
+	</tr>
+	<tr>
+		<td>MajorRevision</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>PLM_ExternalID</td>
+		<td>CAAPstWorkingWith3DPart_RepRef</td>
+	</tr>
+	<tr>
+		<td>MajorRevision</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>PLM_ExternalID</td>
+		<td>CAAPstWorkingWith3DPart_ChildRef</td>
+	</tr>
+	<tr>
+		<td>MajorRevision</td>
+		<td>A</td>
+	</tr>
+</table>
+<p>End user can use their own data but it should necessarily be PRODUCT data of 
+PLMProductDS type or similar type. By similar we imply that it should essentially 
+have at least PLM_ExternalID and MajorRevision as its IdentificatorSet attributes. The 
+UC minimum argument condition checks for that.</p>
+<p>The article [<a href="#References">1</a>] details the steps involved to import 
+and reimport a 3DXML into your PLM Repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstWorkingWith3DPart Code</h3>
+<p>The CAAPstWorkingWith3DPart use case is located in the CAAPstWorkingWith3DPart.m 
+module of the CAAProductStructure.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructure.edu\CAAPstWorkingWith3DPart.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in CAAPstWorkingWith3DPart:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Loading Input PLM Component in Session</a></li>
+	<li><a href="#Step2">Retrieving the V_usage Attribute Value of the Loaded Component</a></li>
+	<li><a href="#Step3">Confirming that One and Only One Rep Inst Exists beneath 
+		a 3D Part</a></li>
+	<li><a href="#Step4">Confirming that the Only Rep Inst Is an Instance of a MonoInstantiable 
+		Rep Ref</a></li>
+	<li><a href="#Step5">Confirming that Rep Inst below 3D Part Cannot Be Deleted</a></li>
+	<li><a href="#Step6">Confirming Failure to Aggregate a New Rep Inst under a 
+		3D Part</a></li>
+	<li><a href="#Step7">Confirming that no Product Instance Exists under a 3D Part</a></li>
+	<li><a href="#Step8">Confirming that a Product Reference Cannot Be Instantiated 
+		under a 3D Part</a></li>
+	<li><a href="#Step9">Retrieving Content Kind of Data Pointed to by the Rep Ref</a></li>
+	<li><a href="#Step10">Emptying the Bag</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The CAAPstWorkingWith3DPart use case begins by creating a session and connecting 
+to the input Repository. This, being the most fundamental prerequisite for all batch 
+use cases, it is the first step in their execution. In this case, we create a session 
+and connect to Repository with the Administrator Role (since we are modifying PLM 
+data in database). There are other parameters as well, details of which can be found 
+in the &quot;Connecting to V6 Server&quot; use case article [<a href="#References">2</a>]. 
+This article primarily deals with Opening and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Loading Input PLM Component in Session</h3>
+<p>To begin with, the steps executed are:</p>
+<ul>
+	<li>We build an <code>Attribute Set</code> object with the input Identification 
+		Attribute-Value sets.</li>
+	<li>Finally a <em>CATIAdpPLMIdentificator</em>* on the Identificator in the 
+		database of the input PLM Component is retrieved (<code>poIdentOnPLMComp</code>).</li>
+</ul>
+<p>These steps are executed through a global routine CAARetrieveIDofUniquePLMObject 
+referenced in the Use Case [<a href="#References">6</a>]. With the Identificator 
+retrieved, we proceed towards loading the input PLM Component in session.</p>
+<pre class="code">CATICkeObject* piCkeObjectOnRoot = NULL;
+<strong>CATAdpOpener AdpOpener(Bag)</strong>;
+hr = <strong>AdpOpener.CompleteAndOpen</strong>(<strong>opiIDComp</strong>,IID_CATICkeObject,(void**)&amp;<strong>piCKEObjectOnRoot</strong>);
+</pre>
+<ul>
+	<li>A call to <code>CompleteAndOpen</code> method of the <code>CATAdpSaver</code> 
+		class opens a PLM Reference. The arguments are:
+		<ul>
+			<li><code>opiIDComp</code>, a <em>CATIAdpPLMIdentificator</em>* on the 
+				Identificator of the loaded component in the underlying database.</li>
+			<li><code>IID_CATICkeObject</code>, the IID of the Interface to be retrieved 
+				on the loaded PLM Component.</li>
+			<li><code>piCkeObjectOnRoot</code>, a <em>CATICkeObject</em>* on the 
+				loaded PLM Component [output].</li>
+		</ul>
+	</li>
+</ul>
+<p>These steps involving loading a PLM Component in session are further detailed 
+in the UC [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the V_usage Attribute Value of the Loaded Component</h3>
+<p>A 3D Part is a PLM Reference with V_usage attribute valuated as &quot;3DPart&quot;.</p>
+<pre class="code">	CATIValue_var spValueOnV_usage;
+	CATUnicodeString strAttrName(<strong>&quot;V_usage&quot;</strong>);
+	if(NULL != piCKEObjectOnRoot)
+		hr = <strong>CATCkeObjectAttrReadServices::GetValue</strong>(piCKEObjectOnRoot,strAttrName,spValueOnV_usage);
+
+	CATUnicodeString strV_usageValue;
+	if (NULL_var != spValueOnV_usage)
+		hr = <strong>spValueOnV_usage-&gt;AsString</strong>(strV_usageValue);</pre>
+<p>A call to <code>CATCkeObjectAttrReadServices::GetValue</code> returns an attribute 
+value of a PLM Component. Its arguments are:</p>
+<ul>
+	<li><code>piCKEObjectOnRoot</code>, a <em>CATICkeObject</em>* type on the loaded 
+		component.</li>
+	<li><code>strAttrName</code>, a <em>CATUnicodeString</em> type, represents the 
+		attribute name (<code>V_usage</code>).</li>
+	<li><code>spValueOnV_usage</code>, a <em>CATIValue_var</em> type, represents 
+		the attribute value (<code>V_usage</code> value).</li>
+</ul>
+<p>A call to <code>CATIValue::AsString</code> on <code>spValueOnV_usage</code> returns:</p>
+<ul>
+	<li><code>strV_usageValue</code>, a <em>CATUnicodeString</em> type, representing 
+		the <code>V_usage</code> value.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Confirming that One and Only One Rep Inst Exists beneath 
+a 3D Part</h3>
+<p>A 3D Part is a PLM Reference with one and only one Rep Instance aggregated beneath 
+it.</p>
+<pre class="code">	<strong>CATIPLMRepInstances* piPLMRepInstOnRoot</strong> = NULL;
+	hr = <strong>piCKEObjectOnRoot-&gt;QueryInterface</strong>(<strong>IID_CATIPLMRepInstances</strong>,(void**)&amp;<strong>piPLMRepInstOnRoot</strong>);
+
+	if (SUCCEEDED(hr))
+	{
+		int iCount = 0;
+		hr = <strong>piPLMRepInstOnRoot-&gt;Count</strong>(<strong>iCount</strong>);
+		if (FAILED(hr) || (<strong>iCount != 1</strong>))
+			<strong>return 1</strong>;</pre>
+<p>A <code>CATIPLMRepInstances::Count</code> API implemented on a PLM Reference 
+returns the total count of Rep Instances aggregated beneath it. It returns:</p>
+<ul>
+	<li><code>iCount</code>, an int type, which we confirm is One. Else the UC execution 
+		terminates.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Confirming that the Only Rep Inst Is an Instance of a MonoInstantiable 
+Rep Ref</h3>
+<p>A 3D Part has One and Only One Instance of a MonoInstantiable Rep Ref beneath 
+it. In the substeps ahead we confirm this by:</p>
+<ul>
+	<li><a href="#Step41">Navigating for the Only Rep Instance beneath a 3D Part</a></li>
+	<li><a href="#Step42">Retrieving the Rep Ref it Was Instantiated from</a></li>
+	<li><a href="#Step43">Confirming if the Rep Ref Is MonoInstantiable</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step41"></a>Navigating for the Only Rep Instance beneath a 3D Part</h4>
+<p>The only Rep Inst beneath a 3D Part is retrieved.</p>
+<pre class="code">CATIPrdIterator* piPrdIteratorOnRootIterator = NULL;
+hr = <strong>piPLMRepInstOnRoot-&gt;Iterator</strong>(<strong>piPrdIteratorOnRootIterator</strong>);
+
+CATIPLMNavRepInstance* piNavRepInstOnRepInst = NULL;
+if (NULL != piPrdIteratorOnRootIterator)
+{
+	CATBaseUnknown* pBUOnRepInst = NULL;
+	if (SUCCEEDED(<strong>piPrdIteratorOnRootIterator-&gt;Next</strong>(<strong>pBUOnRepInst</strong>)))
+	{
+		if (NULL != pBUOnRepInst)
+		{
+			hr = <strong>pBUOnRepInst-&gt;QueryInterface</strong>(<strong>IID_CATIPLMNavRepInstance</strong>,(void**)&amp;<strong>piNavRepInstOnRepInst</strong>);
+</pre>
+<p>The <code>CATIPLMRepInstances::Iterator</code> call on <code>piPlmRepInstOnRoot</code>, 
+returns</p>
+<ul>
+	<li><code>piPrdIteratorOnRootIterator</code>, a <em>CATIPrdIerator</em>* type, 
+		representing a list of Rep Instances beneath a 3D Part.</li>
+</ul>
+<p>A call to <code>CATIPrdIterator::Next</code> returns:</p>
+<ul>
+	<li><code>pBUOnRepInst</code>, a <em>CATBaseUnknown</em>* type on the Rep Inst.</li>
+</ul>
+<p>A call to <code>QI</code> on <code>pBUOnRepInst</code>, returns:</p>
+<ul>
+	<li><code>piNavRepInstOnRepInst</code>, a <em>CATIPLMNavRepInstance</em>* type 
+		on the Rep Inst under a 3D Part.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step42"></a>Retrieving the Rep Ref it Was Instantiated from</h4>
+<p>The Rep Inst was retrieved in the earlier step. The Rep Ref corresponding to 
+it can easily be retrieved, as the steps below depict.</p>
+<pre class="code">CATIPLMNavRepReference* piNavRepRefOnRepRef = NULL;
+hr = <strong>piNavRepInstOnRepInst-&gt;GetRepReferenceInstanceOf</strong>(<strong>piNavRepRefOnRepRef</strong>);</pre>
+<p>The <code>CATIPLMNavRepInstance::GetRepReferenceInstanceOf</code> on the Rep 
+Inst returns:</p>
+<ul>
+	<li><code>piNavRepRefOnRepRef</code>, a <em>CATIPLMNavRepReference</em>* type, 
+		on the Rep Ref corresponding to this Rep Inst.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step43"></a>Confirming if the Rep Ref Is MonoInstantiable</h4>
+<p>Finally we confirm if the retrieved Rep Ref is MonoInstantiable.</p>
+<pre class="code">hr = <strong>piNavRepRefOnRepRef-&gt;IsOnceInstantiable</strong>();
+if (<strong>S_OK == hr</strong>)
+	cout &lt;&lt; &quot;<strong>Rep Ref beneath 3DPart is Mono-Instantiable</strong>. Expected&quot; &lt;&lt; endl;
+else if (<strong>S_FALSE==hr</strong>)
+	cout &lt;&lt; &quot;<strong>Rep Ref beneath 3DPart is Multi-Instantiable.</strong> Impossible case&quot; &lt;&lt; endl;</pre>
+<p>A call to <code>CATIPLMNavRepReference::IsOnceInstantiable</code> returns:</p>
+<ul>
+	<li><code>S_OK</code>, if the Rep Ref is MonoInstantiable.</li>
+	<li><code>S_FALSE</code>, if the Rep Ref is MultiInstantiable.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Confirming that Rep Inst below 3D Part Cannot Be Deleted</h3>
+<p>The only Rep Inst occurring beneath a 3D Part cannot be deleted.</p>
+<pre class="code">CATIPrdRepInstance* piPrdRepInstOnRepInst = NULL;
+if (NULL != piNavRepInstOnRepInst)
+{
+	hr = <strong>piNavRepInstOnRepInst-&gt;QueryInterface</strong>(<strong>IID_CATIPrdRepInstance</strong>,(void**)&amp;<strong>piPrdRepInstOnRepInst</strong>);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = <strong>piPLMRepInstOnRoot-&gt;RemoveRepInstance</strong>(<strong>piPrdRepInstOnRepInst</strong>);
+		if (SUCCEEDED(hr))
+			return 1;
+
+		cout &lt;&lt; &quot;Failure to remove the only Rep Inst beneath 3DPart. Expected Behavior&quot; &lt;&lt; endl;</pre>
+<p>A call to <code>QI</code> on <code>piNavRepInstOnRepInst</code> returns:</p>
+<ul>
+	<li><code>piPrdRepInstOnRepInst</code>, a <em>CATIPrdRepInstance</em>* type 
+		on the Rep Instance beneath 3D Part.</li>
+</ul>
+<p>A call to <code>CATIPLMRepInstances::RemoveRepInstance</code> on <code>piPLMRepInstOnRoot</code>, 
+takes as an argument:</p>
+<ul>
+	<li><code>piPrdRepInstOnRepInst</code>, a <em>CATIPrdRepInstance</em>* type 
+		on the Rep Instance beneath 3D Part, for deletion.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Confirming Failure to Aggregate a New Rep Inst under a 3D 
+Part</h3>
+<p>A 3D Part has one and only one Instance of a Mono-Instantiable Rep Ref beneath 
+it. An attempt to instantiate another Rep Ref beneath it, should fail. This is illustrated 
+by:</p>
+<ul>
+	<li><a href="#Step61">Loading an Input Rep Ref in Session</a></li>
+	<li><a href="#Step62">Instantiating this Rep Ref under 3D Part and Confirming 
+		Failure</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step61"></a>Loading an Input Rep Ref in Session</h4>
+<p>The Rep Ref which we intend to instantiate under the 3D Part is loaded in the 
+current session. The <code>IdentificationSet</code> attributes of this Rep Ref, 
+input for UC execution, enable us to run a query and identify the Rep Ref in the 
+underlying database.</p>
+<pre class="code">...
+    CATIAdpPLMIdentificator* opiIDComp_RepRef = NULL;
+    const char* iStrPLMRepType = iArgv[15];
+     
+     hr = ::CAARetrieveIDofUniquePLMObject(iListAttributeName_RepRef,iListAttributeValue_RepRef,														
+				       iStrPLMRepType,opiIDComp_RepRef);
+     <strong>CATAdpOpener</strong> opener(Bag);
+     hr= opener.<strong>CompleteAndOpen</strong>(opiIDComp_RepRef,IID_CATIPsiRepresentationReference, (void**) &amp;piPsiRepRefOnNewRepRef);
+...	</pre>
+<p>The article &quot;Querying, Expanding &amp; Opening PLM Object&quot; [<a href="#References">3</a>]provides 
+the details of the CAA recommended routines for PLM Product Ref and Rep Ref retrieval.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step62"></a>Instantiating this Rep Ref under 3D Part and Confirming 
+Failure</h4>
+<p>We attempt to instantiate the loaded Rep Ref under the 3D Part. A failure is 
+expected.</p>
+<pre class="code">const CATUnicodeString iRepInstName(&quot;NewRepInst&quot;);
+CATBaseUnknown* oRepInstance = NULL;
+
+if (NULL != piPLMRepInstOnRoot)
+	hr = <strong>piPLMRepInstOnRoot-&gt;AddRepInstance</strong>(iRepInstName,<strong>piPsiRepRefOnNewRepRef</strong>,oRepInstance);
+else
+	hr = E_FAIL;
+
+<strong>if (SUCCEEDED(hr) || (NULL != oRepInstance))
+	return 1;</strong>
+cout &lt;&lt; &quot;Failure to instantiate a second Rep Ref under 3DPart. Expected Behavior&quot; &lt;&lt; endl;</pre>
+<p>A call to <code>CATIPLMRepInstances::AddRepInstance</code> takes as inputs</p>
+<ul>
+	<li><code>iRepInstName</code>, a <em>CATUnicodeString</em> type, representing 
+		the name of the new Rep Inst.</li>
+	<li><code>piPsiRepRefOnNewRepRef</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type on the previously loaded Rep Ref.</li>
+	<li><code>oRepInstance</code>, a <em>CATBaseUnknown</em>* type, on the newly 
+		created Rep Inst.</li>
+</ul>
+<p>If the return is SUCCESS, the UC execution terminates, since a failure is expected 
+here.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Confirming that no Product Instance Exists under a 3D Part</h3>
+<p>A 3D Part does not have a single Product Instance beneath it.</p>
+<pre class="code">CATIPLMNavReference* piNavRefOnRoot = NULL;
+hr = <strong>piCKEObjectOnRoot-&gt;QueryInterface</strong>(<strong>IID_CATIPLMNavReference</strong>,(void**)&amp;<strong>piNavRefOnRoot</strong>);
+if (SUCCEEDED(hr))
+{
+	CATListPtrCATIPLMNavEntity ioChildrenList;
+	CATPLMCoreType coreType = PLMCoreInstance;
+	hr = <strong>piNavRefOnRoot-&gt;ListChildren</strong>(<strong>ioChildrenList</strong>,1,&amp;<strong>coreType</strong>);
+	if (S_OK==hr)
+	{
+		<strong>if (ioChildrenList.Size()&gt;0)
+		{
+			cout &lt;&lt; &quot;3DPart has a Product Instance beneath it. Failure case&quot; &lt;&lt; endl;
+			return 1;</strong>
+		} 
+
+			cout &lt;&lt; &quot;No Product Instances beneath 3DPart. Expected Behavior&quot; &lt;&lt; endl;
+	} else
+return 1;</pre>
+<p>A call to <code>QI</code> on <code>piCKEObjectOnRoot</code> returns:</p>
+<ul>
+	<li><code>piNavRefOnRoot</code>, a <em>CATIPLMNavReference</em>* type on the 
+		input Root Component.</li>
+</ul>
+<p>A <code>CATIPLMNavReference::ListChildren</code> returns the list of Product 
+Instances beneath the Root. Its inputs are:</p>
+<ul>
+	<li><code>ioChildrenList</code>, a <em>CATListPtrCATIPLMNavEntity</em> type 
+		[output].</li>
+	<li>1, implies we filter only by a single type .</li>
+	<li><code>coreType</code>, a <em>CATPLMCoreType</em> type, valuated to <code>
+		PLMCoreInstance</code>.</li>
+</ul>
+<p>The UC execution terminates if the size of ioChildrenList is greater than zero, 
+since no Product Instances are expected to occur under a 3D Part.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step8"></a>Confirming that a Product Reference Cannot Be Instantiated 
+under a 3D Part</h3>
+<p>A Product Reference cannot be instantiated under a 3D Part. Here we make an attempt 
+to instantiate one, and illustrate its failure. The substeps involved are:</p>
+<ul>
+	<li><a href="#Step81">Loading an Input Child Product Reference in Session</a></li>
+	<li><a href="#Step82">Instantiating the Child Ref under a 3D Part and Confirming 
+		Failure</a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step81"></a>Loading an Input Child Product Reference in Session</h4>
+<p>We begin by loading an input Child Ref in session. The attributes of the Child 
+Ref, input for UC execution, enable us to run a query and identify the Child Ref 
+in the underlying database.</p>
+<pre class="code">CATUnicodeString strPLM_IDChildRef(iArgv[9]);
+CATUnicodeString strV_versionChildRef(iArgv[10]);
+CATIPLMProducts* piPLMProdOnChildRef = NULL;
+...
+iListAttributeValue.Append(strPLM_IDChildRef);
+iListAttributeValue.Append(strV_versionChildRef);
+		
+CATIAdpPLMIdentificator* opiIDComp_coreRef = NULL;
+	
+const char* iStrCoreType = iArgv[6];
+		
+hr = ::CAARetrieveIDofUniquePLMObject(iListAttributeName,iListAttributeValue,														
+				  iStrCoreType,opiIDComp_coreRef);
+
+<strong>CATAdpOpenParameters</strong> params(CATAdpExpandParameters::Navigation);
+<strong>CATAdpOpener</strong> opener2(Bag,params);
+hr= opener2.<strong>CompleteAndOpen</strong>(opiIDComp_coreRef,IID_CATIPLMProducts, (void**) &amp;piPLMProdOnChildRef);
+...</pre>
+<p>The call to <code>CompleteAndOpen</code> of <em>CATAdpOpener</em> loads a Ref 
+in session. Its input arguments include</p>
+<ul>
+	<li><code>opiIDComp_coreRef</code>, a <em>CATIAdpPLMIdentificator</em>* which 
+		retrieved from API call <strong>CAARetrieveIDofUniquePLMObject</strong>.</li>
+	<li><code>IID_CATIPLMProducts</code>, a IID type, for the Interface type to 
+		be retrieved on the Child Ref loaded in session.</li>
+	<li><code>piPLMProdOnChildRef</code>, a <em>CATIPLMProducts</em>* type on the 
+		Child Ref loaded in session.</li>
+</ul>
+<p>*The <code>CATAdpOpener</code> is specifically for loading a PRODUCT Rep Ref, 
+meaning restricted to a <code>PRODUCT</code> Modeler. Also it works under an assumption 
+that the Product Ref for loading is of the authoring type for a PRODUCT Ref, in 
+a session connected to a Repository within an Environment, both specified as inputs 
+by the user.</p>
+<p>An essential prerequisite while handling PLM Components, is to insert them in 
+a BAG [<a href="#References">4</a>].</p>
+<p>A call to <code>CATOmbLifeCycleRootsBag::InsertRoot</code> [<a href="#References">5</a>] 
+accomplishes this. Its arguments include:</p>
+<ul>
+	<li><code>piPLMProdOnChildRef</code>, a <em>CATIPLMProducts</em>* type on the 
+		Product Ref loaded in the current session.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step82"></a>Instantiating the Child Ref under a 3D Part and Confirming 
+Failure</h4>
+<p>An attempt is made to instantiate a Product Ref under a 3D Part. It fails, since 
+a 3D Part has only a single Instance of a Mono-Instantiable Rep Ref under it.</p>
+<pre class="code">CATIPLMProducts* piPLMProdOnRoot = NULL;
+hr = <strong>piCKEObjectOnRoot-&gt;QueryInterface</strong>(<strong>IID_CATIPLMProducts</strong>,(void**)&amp;<strong>piPLMProdOnRoot</strong>);
+if (SUCCEEDED(hr))
+{
+  ...
+  CATBaseUnknown* opInstance = NULL;
+  hr = <strong>piPLMProdOnRoot-&gt;AddProduct</strong>(<strong>piPLMProdOnChildRef</strong>,<strong>opInstance</strong>);
+  <strong>if (SUCCEEDED(hr) || (NULL != opInstance))
+    return 1;</strong>
+  cout &lt;&lt; &quot;Failure to add a Product Instance beneath a 3DPart. Expected Behavior&quot; &lt;&lt; endl;</pre>
+<p>A call to <code>QI</code> on <code>piCKEObjectOnRoot</code>, returns:</p>
+<ul>
+	<li><code>piPLMProdOnRoot</code>, a <em>CATIPLMProducts</em>* type, on the 3D 
+		Part loaded in session.</li>
+</ul>
+<p>A call to <code>CATIPLMProducts::AddProduct</code> on <code>piPLMProdOnRoot</code>, 
+instantiates a Product Ref under the input 3D Part. Its input arguments include:</p>
+<ul>
+	<li><code>piPLMProdOnChildRef</code>, a <em>CATIPLMProducts</em>* type on the 
+		Child Ref for instantiation.</li>
+	<li><code>opInstance</code>, a <em>CATBaseUnknown</em>* type on the newly created 
+		Child Instance.</li>
+</ul>
+<p>If the above call succeeds, the UC execution terminates, since it is impossible 
+to instantiate a new Product Ref under a 3D Part.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step9"></a>Retrieving Content Kind of Data Pointed to by the Rep Ref</h3>
+<p>The Rep Ref instantiated beneath a 3D Part points to an authoring stream of type &quot;StructuredContent&quot;, 
+which essentially refers to a V5 Structured Stream type.</p>
+<pre class="code">CATPLMAuthoringStreamDescriptorKind oContentKind ;
+if (NULL != piNavRepRefOnRepRef)
+ hr = <strong>piNavRepRefOnRepRef-&gt;GetContentKind(oContentKind)</strong>;
+else
+  hr = E_FAIL;<br /><br />if(FAILED(hr))<br />	return 1;
+
+if (<strong>StructuredContent == oContentKind</strong>)
+  cout &lt;&lt; &quot;The content kind of a Rep Ref beneath a 3DPart is Structured Content&quot; &lt;&lt; endl;
+else
+{
+  cout &lt;&lt; &quot;The expected Content Kind of a Rep Ref beneath a 3DPart is Structured Content&quot; &lt;&lt; endl;
+  <strong>return 1</strong>;
+}</pre>
+<p>A call to <code>CATIPLMNavRepReference::GetContentKind</code> on <code>piNavRepRefOnRepRef</code> 
+returns:</p>
+<ul>
+	<li><code>oContentKind</code>, a <em>CATPLMAuthoringStreamDescriptorKind</em> 
+		type, represents the Rep Ref authoring stream descriptor.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step10"></a>Emptying the Bag</h3>
+<p>At the beginning we had deployed a BAG [<a href="#References">4</a>] to manage 
+the lifecycle of the PLM Components in session, in an effective manner. At the end 
+of UC execution, we simply have to empty this BAG, so that all PLM Components within 
+it are unloaded from the current session.</p>
+<pre class="code">Bag.RemoveAll();</pre>
+<p>A single call to <code>CATOmbLifeCycleRootsBag::RemoveAll</code> accomplishes 
+this. [<a href="#References">5</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAPstWorkingWith3DPart use case ends by simply closing the PLM session. 
+Since all CAA Batch Use Cases necessarily conclude by closing the PLM session, we 
+have a dedicated article on this topic namely. &quot;Connecting to V6 Server&quot; 
+[<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The operation creates in the repository (database), a new version of the PLM 
+Component. In this Use case we are demonstrating how to version repref PLM Components. 
+and its effect on a Port which points to a target within this VersionedUp Rep Ref.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm">
+		Understanding PLM Component Life Cycle</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAOmbUcListPLMComponent.htm">
+		Understanding PLM Component's Lifecycle in Session</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm">
+		Querying PLM Components</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+<pre>
+
+</pre>
+
+</body>
+
+</html>

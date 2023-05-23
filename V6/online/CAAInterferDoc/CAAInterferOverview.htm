@@ -1,0 +1,290 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Interference Solver Overview</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a> Interference Solver </h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract" >
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This article discusses the Interference Solver APIs.</p>
+		<ul>
+			<li><a href="#Overview">Interference Solver Overview</a></li>
+			<li><a href="#Main Classes">Interference Solver Main Classes</a></li>
+			<li><a href="#Interference API Usage Example">Interference API Usage Basic Example</a> </li>
+			<li><a href="#Licensing">Licensing</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2 ><a name="Overview"></a>Interference Solver Overview</h2>
+
+<h3>&nbsp;<a name="Overview"></a>Overview</h3>
+<p>In different applications customers need to check interferences between components to validate his design.<br>
+CATInterfereSolverUseItf Framework provides APIs allowing to check all interferences between components.<br>
+<br>
+These API provide three modes of computation:   
+<ol class="style3">
+	<li><strong>Clash</strong>: Clash computation (or collision detection) is basically the process of detecting all intersections between a set of component</li>
+	<li><strong>Contact</strong>: Contact detection is the process of detecting overlapping components and the areas where they actually overlap.</li>
+	<li><strong>Clearance</strong>: Clearance detection is the process of detecting all solids and surfaces whose distance is less than a tolerance value.</li>
+</ol>
+<p class="style1">
+They  computes and return the list of detected Interferences <br>
+<br>
+The information available on the detected interferences are: 
+</p>
+<ol class="style3">
+	<li><strong>Basic Information</strong>: for each interference retrieve the Type of interference (clash, Contact, Clearance), 3D 
+	accuracy, Objects in interference.</li>
+	<li><strong> Numerical Information </strong>: for each interference retrieve numerical information( 
+	contact point definition for contact, 
+	minimum distance for clearance .</li>
+	<li><strong>Geometrical Information</strong>: for each interference retrieve geometrical 
+	information ( curve intersection definition for clash, triangle definition
+	for Contact and Clearance.</li>
+</ol>
+<p>
+Computation is done without persistency, no data are generated.<br>
+</p>
+<h3 class="style2"><a name="Main Principes"></a>Main Principles</h3>
+<h4 class="style2"><a name="Interference Solver API Usage"></a>Interference Solver API Usage</h4>
+<p>
+These API allows to check interferences between components. <br>
+Computation is done using 3D representation associated to the components (see CAT3DBagRep)<br>
+To use these API the user has to retrieve for each component he wants to check the associated 3D Representation.<br>
+For that use on the component the Buildrep() or GiveRep()methods available with CATI3DGeoVisu interfaces.<br>
+<strong>Example:</strong><br>
+Once the Root Product reference is opened, navigate on the occurrences.<br>
+For each leaf of occurrence retrieve the associated CAT3DBagRep (CATI3DGeoVisu::GiveRep  () )<br>
+<br>
+
+</p>
+
+<h4 class="style2"><a name="Tesselation"></a>Tessellation and Solver accuracy</h4>
+<p>
+Computation is not done on the exact geometry but is done on tessellation which is a set of triangle used to approximate the exact geometry.<br>
+We introduce the 3D accuracy or SAG which is the maximum distance between the exact geometry and the tessellation.
+</p>
+<p style="width: 566px; height: 127px">
+<img alt="Tessellation" src="images/Tessellation.gif" width="741" height="326"><br>
+</p>
+<p>
+Solver is based on tessellation and its accuracy is linked to the SAG of the tessellation used for each components.<br>
+</p>
+<p>
+<img alt="Contact examples" src="images/Contact_1.gif" width="762" height="163"></p>
+<h4 class="style2"><a name="Interference Computation Level"></a>Interference Computation Level</h4>
+<p>
+Interference computation Level manage when the level of interference the user wants to get<br>
+These API provide two level of computation:<br>
+<ul class="style3">
+	<li><strong>LOW</strong>: in this case the solver computation will stop at the first founded clash.	</li>
+	<li><strong>HIGH</strong>: in this case the solver computation will calculate all interferences.	</li>
+</ul>
+</p>
+<h4 class="style2"><a name="Interference Detail Result Level"></a>Interference Detail Result Level</h4>
+<p>
+Interference Detail Result Level manage the granularity of the result provided by the solver in term of CAT3DBagReb and its sub element.<br>
+Actually the Solver result is identical at the 3D Object representation granularity.<br>
+<strong>Example</strong>:<br>
+If the CAT3BagDrep is retrieved from a leaf component, the solver granularity will be the component.<br>
+If the CAT3BagDrep is retrieved from a node containing components, the solver granularity will be the node.<br>
+<strong>NB</strong>: <em>in this version the method SetDetailResultLevel managing this computation level is not implemented.
+</em>  
+</p>
+<br>
+<h4 class="style2"><a name="Modify 3D Representation Position"></a>Modify 3D Representation Position</h4>
+<p>
+The CAT3DBagRep used by the solver for computation are not updated in position if the component position change.<br> 
+To update the position in of the CAT3DBagRep used by the solver, the user has to call the methods UpdatePositionOfFirstGroup or
+ UpdatePositionOfSecondGroup.<br> 
+In the same way the user can use the methods UpdatePositionOfFirstGroup or UpdatePositionOfSecondGroup to modify the CAT3DBagRep position of a component 
+without modifying the component itself. <br>
+<br>
+
+<h2><a name="Main Classes"></a>Interference Solver Main Classes</h2>
+<p>
+Interference Solver CAA exposes two main Interfaces to manage computation parameters and detected interferences: <br>
+<ul class="style3">
+	<li><strong>CATIInterfSolverModel</strong>: this class manage the whole computation. <br> 
+	It will be used to specify the lists of components to be checked (group1,group2), the computation mode (clash, contact, clearance) and 
+	the result information the user wants to compute on the interferences (basic, numerical, geometrical).<br>
+	This class manages compuation and results.<br>
+	</li>
+ 	<li><strong>CATIInterfSolverResultITF</strong>: this class will be used to get all information on the interference (basic, numerical, geometrical).<br>
+	</li>
+
+</ul>
+ 
+
+<p><br>
+<img alt="Classes Shema" longdesc="Classes_Shema" src="images/Classes_Schema.gif" width="536" height="477"></p>
+ 
+<h2><a name="Interference API Usage Example"></a>Interference API Usage Basic Example</h2>
+<pre class="code">...
+// ---------------------------------------------------------------------------------------------
+// create CATIInterfSolverModel classe
+// ---------------------------------------------------------------------------------------------
+
+CATIInterfSolverModel * piMyInterfSolverModel = NULL;
+
+HRESULT RC=::CATInstantiateComponent ("CATInterfSolverModel",
+				   IID_CATIInterfSolverModel,
+				   (void**)&amp; piMyInterfSolverModel);
+if ( FAILED (RC) )
+{
+    // Problem in the component Creation
+    return 1;
+}
+// --------------------------------------------------------------------------
+// Groups specification 
+// --------------------------------------------------------------------------
+
+for (int iId=0; iId++; iId &lt; number_product_of_group1)
+{
+    piMyInterfSolverModel -&gt; AddToFirstGroup(CAT3DBagRep , iId );
+}
+
+for (int jId=0; jId++; jId &lt; number_product_of_group2)
+{
+   piMyInterfSolverModel -&gt; AddToSecondGroup (CAT3DBagRep, jId );
+}
+// --------------------------------------------------------------------------
+// specification definition
+// --------------------------------------------------------------------------
+
+piMyInterfSolverModel -&gt; SetTypeOfComputation (CATIInterfSolverModel::ITFSolverComputeCONTACT);
+
+// --------------------------------------------------------------------------
+// Init
+// --------------------------------------------------------------------------
+HRESULT HR_init = piMyInterfSolverModel -&gt; Init();
+
+// --------------------------------------------------------------------------
+// Compute
+// --------------------------------------------------------------------------
+HRESULT HR_compute = piMyInterfSolverModel -&gt; Compute();
+// --------------------------------------------------------------------------
+// Result
+// --------------------------------------------------------------------------
+CATLISTP (CATIInterfSolverResultITF) * piListInterfSolverResultITF = NULL;
+
+HRESULT HR_result = piMyInterfSolverModel -&gt; GetResult( &amp; piListInterfSolverResultITF );
+
+if (SUCCEEDED(HR_result))
+{
+    int nb_interf = piListInterfSolverResultITF -&gt;size();
+	
+
+    CATIInterfSolverResultITF * piInterfSolverResultITF = NULL;
+
+    for (int i_itf=1; i_itf++; i_itf &lt;= nb_interf)
+    {
+	// Get Interference
+	piInterfSolverResultITF = (*piListInterfSolverResultITF) [i_itf];
+
+	// Browse Interference
+	if (piInterfSolverResultITF != NULL)
+	{
+		 InterfSolverItfType type_status = CATIInterfSolverResultITF::ITFSolverItfTypeNONE;
+
+		 piInterfSolverResultITF-&gt;GetTypeStatus(type_status);
+
+		 if (type_status == CATIInterfSolverResultITF::ITFSolverItfTypeNONE)
+		 {
+		        // we have NONE
+		 }
+		 else if (type_status == CATIInterfSolverResultITF::ITFSolverItfTypeCLASH)
+		 {
+			// we have a CLASH status
+		 }
+		 else if (type_status == CATIInterfSolverResultITF::ITFSolverItfTypeCONTACT)
+		 {
+			// we have a CONTACT status
+		 }
+		 // else if (&#8230;)
+
+		 //----------------------------------------
+		 // Pointer no any longer needed
+		 //----------------------------------------
+		 piInterfSolverResultITF -&gt; Release();
+		 piInterfSolverResultITF = NULL;
+
+	} // end if	
+	
+    } // end for
+
+} // end if (HR_result)
+
+// ---------------------------------------------------------------------------------------------
+// Pointer no any longer needed
+// ---------------------------------------------------------------------------------------------
+
+If (SUCCEEDED(HR_result))
+{
+	delete piListInterfSolverResultITF;
+	piListInterfSolverResultITF = NULL;
+}
+
+piMyInterfSolverModel -&gt;Release();
+piMyInterfSolverModel = NULL;
+
+// The &#8220;CATInterfSolverComponentCreate&#8221; sample is finished
+
+return 0 ;
+}
+
+
+  ...</pre>
+
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3 class="style2"><a name="Licensing"></a>Licensing</h3>
+<p>Interference Solver CAA  are available if the technical product IDY or PIC / PIM commercial product
+licenses are granted. 
+</p>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3 class="style2"><a name="InShort"></a>In Short</h3>
+<p>This article has explained Interference API behaviors.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3 class="style2"><a name="History"></a>History</h3>
+<table class="history" style="margin-left: 80px">
+	<tr>
+	<td>Version: <strong>1</strong> [Sept 2010]</td><p></p>
+	<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</html>

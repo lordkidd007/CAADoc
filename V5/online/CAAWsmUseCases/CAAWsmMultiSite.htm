@@ -1,0 +1,981 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Multi-site Management</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Multi-site Management</h3>
+      <p><em>Working with multiple SCM sites</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article explains how to share components between multiple SCM
+      installations over a W.A.N. (Wide Area Network).
+      <ul>
+        <li><b><a href="#Principles">Principles</a></b></li>
+        <li><a href="#Global Architecture"><b>Global architecture</b></a>
+          <ul>
+            <li><a href="#The Parent and Child Sites">Parent and Child Sites</a></li>
+            <li><a href="#Hardware architecture">Hardware and client/server
+              inter-site architecture</a></li>
+            <li><a href="#Software architecture">Software inter-site
+              architecture</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#Starting a Multi-site Transfer">Creating an inter-site
+          transfer</a></b>
+          <ul>
+            <li><a href="#Parent Site">On the parent remote site</a></li>
+            <li><a href="#Child Site">On the child local site</a></li>
+            <li><a href="#CreationRootExample">Example with a root workspace on
+              the local site</a></li>
+            <li><a href="#CreationDevelopmentExample">Example with a multitree
+              development workspace on the local site</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#Using Inter-site Transfer">Using an inter-site transfer</a></b>
+          <ul>
+            <li><a href="#UsingRootExample">Example with a root workspace on the
+              local site</a></li>
+            <li><a href="#UsingDevelopmentExample">Example with a multitree
+              development workspace on the local site</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#Commands reference">Short commands reference</a></b>
+          <ul>
+            <li><u><a href="#adl_mk_is_transfer">adl_mk_is_transfer</a></u></li>
+            <li><u><a href="#adl_ls_fw_is">adl_ls_fw_is</a></u></li>
+            <li><u><a href="#adl_ls_transfer">adl_ls_transfer</a></u></li>
+            <li><u><a href="#adl_rm_transfer">adl_rm_is_transfer</a></u></li>
+            <li><u><a href="#adl_set_is_transfer">adl_set_is_transfer</a></u></li>
+            <li><u><a href="#adl_ren_transfer">adl_ren_transfer</a></u></li>
+            <li><u><a href="#adl_link_is_transfer">adl_link_is_transfer</a></u></li>
+            <li><u><a href="#adl_attach_is">adl_attach_is</a></u></li>
+            <li><u><a href="#adl_detach_is">adl_detach_is</a></u></li>
+            <li><u><a href="#adl_sync_is">adl_sync_is</a></u></li>
+            <li><u><a href="#adl_promote_is">adl_promote_is</a></u></li>
+            <li><u><a href="#adl_solve_merge_is">adl_solve_merge_is</a></u></li>
+          </ul>
+        </li>
+        <li><b><a href="#Handling concurrent changes">Handling Concurrent
+          Changes</a></b></li>
+        <li><b><a href="#Advices">Advices - Recommendations</a></b>
+          <ul>
+            <li><u><a href="#Workspaces">workspaces</a></u></li>
+            <li><u><a href="#Frameworks">frameworks</a></u></li>
+          </ul>
+        </li>
+        <li><a href="#InShort"><b>In Short</b></a></li>
+        <li><a href="#References"><b>References</b></a></li>
+        <li><a href="#History"><b>History</b></a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Principles"></a>Principles</h2>
+<p>Nowadays, many enterprises are international enterprises. So, people working
+on various places in the world must be able to work together, and the developed
+code has to be accessible and synchronized at any moment, and for people working
+on the same project, but in different localizations in the world.</p>
+<p>SCM is designed for managing in one or several databases the objects produced
+by developers. When all users are connected over the same L.A.N. (Local Area
+Network) one single SCM installation is enough to manage all objects: this
+installation defines one site whatever the number of databases is <a href="#References">[1]</a>.</p>
+<p>When development projects take place over different geographic places, it is
+needed to install SCM on all places, therefore setting up several SCM sites <a href="#References">[2]</a>.</p>
+<p>If those sites are connected over a W.A.N., SCM provides inter-site commands
+for replicating objects between them.&nbsp;This set of commands will allow SCM
+to be used by several teams in different countries, as if they all were in the
+same site. The process becomes identical between people working in two different
+sites, at different hours of the day, and people working in the same office. SCM
+objects are going to be shared by several SCM sites.</p>
+<p>This is the aim of those new commands: everybody can work as if they were in
+the same office, therefore, being able to work on the same products, promoting
+and synchronizing their data at any moment.</p>
+<table border="0">
+  <tr>
+    <td width="100%">
+      <p align="center"><i>Figure1: around the world<br>
+      </i><img border="0" src="images/intersite1.gif" width="349" height="245"></p>
+      <p>&nbsp;</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Global Architecture"></a>Global Architecture</h2>
+<p>Inter-site exchanges involve two types of sites:</p>
+<ul>
+  <li>
+    <p style="text-align: justify; line-height: 12.0pt; mso-layout-grid-align: none; text-autospace: none; margin-left: 11.2pt">The
+    <b>remote site</b>: considered as being the &quot;<b>parent site</b>&quot;&nbsp;</li>
+  <li>
+    <p style="text-align: justify; line-height: 12.0pt; mso-layout-grid-align: none; text-autospace: none; margin-left: 11.2pt">The
+    <b>local site:</b> considered as being the &quot;<b>child site</b>&quot;.</li>
+</ul>
+<h4><a name="The Parent and Child Sites"></a> Parent and Child Sites (or remote
+and local sites)</h4>
+<p>All the workspaces belonging to both sites can be seen as pertaining to the
+same global workspace tree; data are transferred from one workspace of a site to
+another workspace of the other site, and in both ways.</p>
+<table border="0" width="497">
+  <tr>
+    <td valign="top" width="793"><i>Figure 2-1: a global workspace tree</i>
+      <p><img border="0" src="images/intersite2-1.gif" width="387" height="558">
+      <p align="center">&nbsp;</p>
+      <p align="center">&nbsp;</p>
+    </td>
+  </tr>
+</table>
+<p>The local integration transfer workspace o the local site can be seen as
+being a child workspace of the parent remote workspace and the usual attachment,
+promotion and synchronization operations that exist within a local workspace
+tree are replaced here by inter-site commands.</p>
+<p>&nbsp;</p>
+<table border="0" width="495">
+  <tr>
+    <td valign="top" width="672">
+      <p align="center"><i>Figure 3-1: a global workspace tree after creating a
+      transfer (adl_mk_is_transfer)</i></p>
+      <p><img border="0" src="images/intersite3-1.gif" width="387" height="603">
+      <p align="center">&nbsp;</td>
+  </tr>
+</table>
+<p>Considering the &quot;Site 2&quot; as being the transfer initiator, then</p>
+<p>on site 1: remote site</p>
+<ul>
+  <li>The <b>REMOTE_MIRROR_WS</b>:
+    <ul>
+      <li><u>Function</u>: this workspace is an intermediary workspace, reserved
+        exclusively for the inter-site transfer. It will be created by the
+        adl_mk_is_transfer command. No SCM action must be executed in this
+        intermediary workspace. This workspace has no image. This workspace
+        should not be deleted.</li>
+      <li><u>Responsible</u>: the SCM administrator of the remote site</li>
+    </ul>
+    <p>&nbsp;</li>
+  <li>The <b>REMOTE_PARENT_WS</b>:
+    <ul>
+      <li><u>Function</u>: this workspace is the workspace which collect the
+        promotion sent by the local_transfer_ws. This workspace can be either
+        the root workspace, or an integration workspace (int ws), or any project
+        workspace (prj ws)</li>
+      <li><u>Responsible</u>: a developer, or a project manager, or the release
+        manager of the remote site</li>
+    </ul>
+  </li>
+</ul>
+<p>on site 2: local site</p>
+<ul>
+  <li>The <b>LOCAL_TRANSFER_WS</b>:
+    <ul>
+      <li><u>Function</u>: this workspace is the workspace which attaches,
+        synchronizes, promotes to the parent workspace. This workspace can be a
+        root workspace, as well as a development workspace. The transfer
+        workspace can be a root workspace if there is only one person working on
+        the project; the use then, will be simple. If the transfer workspace is
+        a integration workspace, for two or more development workspace, a dummy
+        root workspace will be created, with specific parameters. See the second
+        example for more details.</li>
+      <li><u>Responsible</u>: the release manager or a developer of the local
+        site</li>
+    </ul>
+  </li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<p><b><a name="Hardware architecture"></a>Hardware and Client/server inter-site
+architecture</b></p>
+<p>The figure 4 shows the hardware architecture, associated to an inter-site
+transfer.&nbsp;</p>
+<p><i>Figure 4: Hosts involved in inter-site transfers<br>
+</p>
+<p><img border="0" src="images/intersite4.gif" width="510" height="390"></i></p>
+<p>&nbsp;</p>
+<p>The inter-site commands are based on a tcp-ip client/server
+architecture.&nbsp;</p>
+<p>On the <b>parent remote site</b>, a SCM inter-site Transfer Manager has been
+set up on one host and is waiting on a known port for remote clients to connect.</p>
+<ul>
+  <li>the Transfer Manager should be located on a SCM client host server. It is
+    not recommended&nbsp; to run the transfer manager on the SCM server itself,
+    for performances reasons.</li>
+  <li>For more information on a transfer manager creation, see the <a href="CAAWsmGettingStarted.htm#launching the Multi-site Transfer Manager">Transfer
+    Manager documentation</a></li>
+</ul>
+<p>On the <b>local site</b>, any user might be able to start a transfer by
+executing the inter-site transfer's commands.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="Software architecture"></a><b>Software inter-site architecture:
+inter-site commands</b></h4>
+<p>All the inter-site command's names are composed by the adl suffix, and most
+of them contain the &quot;is&quot; abbreviation (&quot;is&quot; stands for
+&quot;<b>i</b>nter-<b>s</b>ite). The others contain the word
+&quot;transfer&quot;.</p>
+<p>These commands are used by the local site to manage the inter-site SCM
+exchanges.</p>
+<p>A set of administrator's commands:</p>
+<ul>
+  <li>adl_mk_is_transfer: creates a transfer</li>
+  <li>adl_rm_transfer: removes a transfer</li>
+  <li>adl_ren_transfer: renames a transfer</li>
+  <li>adl_set_is_transfer: updates transfer parameters</li>
+  <li>adl_link_is_transfer: for multi-tree workspaces</li>
+</ul>
+<p>A set of user's commands:</p>
+<ul>
+  <li>adl_ls_transfer: lists existing transfers</li>
+  <li>adl_ls_fw_is: lists attachable components</li>
+  <li>adl_attach_is: attaches components from remote site</li>
+  <li>adl_detach_is: detaches a component</li>
+  <li>adl_sync_is: synchronises with the remote site</li>
+  <li>adl_promote_is: promotes to the remote site</li>
+</ul>
+<p><a name="Figure5"></a>The figure 5 shows commands launched in a global
+workspace tree</p>
+<table border="0" width="516">
+  <tr>
+    <td valign="top" width="372">
+      <p align="center"><i>Figure 5: commands in a global workspace tree</i></p>
+      <p align="center"><img border="0" src="images/intersite5.gif" width="488" height="558"></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h2><a name="Starting a Multi-site Transfer"></a>Creating an inter-site transfer</h2>
+<p>The inter-site <b>creation</b> is managed by the adl_mk_is_transfer command.
+Before creating the transfer, we strongly recommend you to read the following <a href="#Advices">advices</a>.</p>
+<p>A transfer is created by the local site administrator, using the
+adl_mk_is_transfer command. For more details, see the documentation reference of
+the <a href="../CAAWsmQuickRefs/CAAWsmMkIsTransfer.htm">adl_mk_is_transfer</a>
+command. The transfer's creation has to be prepared, on the parent remote site
+as well as on the child local site.</p>
+<h4><a name="Parent Site"></a>On the parent remote site</h4>
+<p>On the parent site, called also remote site, a workspace will receive the
+modification sent from the child workspace. This workspace can be either the
+root workspace, as well as a project workspace.</p>
+<p>The SCM administrator on the parent site has to:&nbsp;</p>
+<ul>
+  <li>Start on the machine &lt;host_name&gt; the SCM inter-site Transfer Manager
+    <a href="#References">[3]</a> by specifying the communication port
+    &lt;port&gt; (adl_transfer_mngr)</li>
+  <li>Give to the local SCM administrator the data he needs: transfer manager
+    &lt;host_name:port&gt;</li>
+  <li>Realize the necessary firewall update with the network team: allow the
+    machine &lt;host_name&gt; to receive data on the port &lt;port&gt;</li>
+</ul>
+<p>The user responsible of the parent's workspace has to:&nbsp;</p>
+<ul>
+  <li>Collect the modifications sent to the parent's workspace (adl_collect)</li>
+  <li>Publish the modifications (adl_publish)</li>
+</ul>
+<p>Here are three samples of a remote site workspace's structure:&nbsp;</p>
+<ul>
+  <li>In the first example, the local site is considered as a development
+    workspace, exactly like the remote development workspace. They both promote
+    in the remote project workspace.</li>
+</ul>
+<p><i>Figure 6-1: architecture first example&nbsp;</i></p>
+<p><img border="0" src="images/intersite6-1.gif" width="463" height="565"></p>
+<ul>
+  <li>In the second example, the local site promotes directly in the remote root
+    workspace. In this case, the local transfer workspace is an integration
+    workspace. All necessary controls must have been done on the local site, to
+    verify there are no error.
+    <p><i>Figure 6-2: architecture second example&nbsp;</i></p>
+    <p><img border="0" src="images/intersite6-2.gif" width="437" height="502"></p>
+    &nbsp;</li>
+  <li>In the third example, the local site promotes to a remote project
+    workspace. In this case, there are three developers, working together: two
+    developers on the local site and one developer on the remote site. They are
+    in the same team, and promote in the same remote project workspace. A dummy
+    local root workspace must then be created. All necessary controls must have
+    been done on the local site, to verify there are no error.
+    <p><i>Figure 6-3: architecture third example&nbsp;</i></p>
+  </li>
+</ul>
+<p><img border="0" src="images/intersite6-3.gif" width="454" height="565"></p>
+<h4><a name="Child Site"></a>On the child local site</h4>
+<p>Before launching adl_mk_is_transfer, on the child site, called also <b>local
+site</b>, the <b>local administrator</b> has to:&nbsp;</p>
+<ul>
+  <li>Ask for a transfer manager &lt;host_name:port&gt; to the remote site
+    administrator</li>
+  <li>Ask for a remote parent workspace's name to the remote SCM site
+    administrator and/or the remote release manager</li>
+  <li>Realize the necessary firewall update with the network team</li>
+  <li>Create the transfer tree and the transfer workspace (adl_mk_tree,
+    adl_mk_ws, or adl_mk_root_ws)</li>
+  <li>Choose a dedicated local host where the transfer will be created (via
+    adl_mk_is_transfer), and the inter-site commands will be launched</li>
+  <li>Create the transfer dedicated to the inter-site transfer workspace
+    (adl_mk_is_transfer) on the dedicated local host</li>
+  <li>Manage the inter-site transfer, using the following commands:
+    adl_link_is_transfer, adl_ls_transfer, adl_set_is_transfer,
+    adl_ren_transfer, adl_rm_transfer.</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<p><u>Warning:</u> the adl_mk_is_transfer command is a mono-tree command. This
+means for a multi-tree workspace, you have to:</p>
+<ul>
+  <li>use the adl_mk_is_transfer command for one tree</li>
+  <li>use the adl_link_is_transfer command for the others trees of the
+    multi-tree workspace</li>
+</ul>
+<p>Once this is done, all the inter-site commands are multi-tree commands.</p>
+<p>&nbsp;</p>
+<p><b>Here are two complete transfer examples</b>. One with a root workspace on
+the local site, and one with a development workspace on the local site; both
+transfers are done with a project workspace on the remote site.</p>
+<h4><a name="CreationRootExample"></a><a name="Transfer Example">E</a>xample
+with a root workspace on the local site</h4>
+<p><b>-1-</b>&nbsp; In the <b>remote</b> site:</p>
+<ul>
+  <li>Creation of the tree MainRemoteTree</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_tree MainRemoteTree -db DatabaseName -cs ContentServerId ...</p>
+<ul>
+  <li>Creation of the root workspace and the project workspace where the
+    transfers will be done, with the shared frameworks</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_root_ws&nbsp; RemoteRootWs ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_ws RemoteProjectWs -parent_ws RemoteRootWs&nbsp; ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws RemoteProjectWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_attach Fw1 Fw2 ... -mod</p>
+<p><b>-2-</b> In the <b>remote</b> site:</p>
+<ul>
+  <li>Update of the firewall, in order to allow the transfer between the remote
+    site and the local site. <u>Responsible</u>: the network administrator of
+    the remote site.</li>
+  <li>Start the transfer manager, on a dedicated server, named
+    &quot;ServerName&quot;, with the port number &quot;PortNumber&quot;. <u>Responsible</u>:
+    the SCM administrator.</li>
+</ul>
+<p>To create the transfer manager, the following command has to be launched:</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_transfer_mngr -port PortNumber -cmdfile ParametersFile</p>
+<p>For more details and content of the parameter file, see the <a href="#References">[5]</a>
+&quot;<a href="CAAWsmGettingStarted.htm#launching the Multi-site Transfer Manager">Getting
+started</a>&quot; article</p>
+<p>&nbsp;</p>
+<p><b>-3-</b> In the <b>local</b> site:</p>
+<ul>
+  <li>Creation of the tree: LocalTree</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_tree LocalTree -db DatabaseName -cs ContentServerId ...</p>
+<ul>
+  <li>Creation of the transfer root workspace</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_root_ws LocalRootWs</p>
+<ul>
+  <li>Creation of the transfer</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws LocalRootWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_is_transfer -ws LocalRootWs -r_is_server HostName:PortNumber -r_parent_ws
+RemoteProjectWs</p>
+<p>The transfer's name is not mandatory. A default transfer's name will be given
+if no transfer name has been chosen.</p>
+<p>&nbsp;</p>
+<h4><a name="CreationDevelopmentExample"></a>Example with a multitree
+development workspace on the local site</h4>
+<p><b>-1-</b>&nbsp; In the <b>remote</b> site:</p>
+<ul>
+  <li>Creation of the two trees: RemoteTree1 and RemoteTree2</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_tree RemoteTree1 -db DatabaseName -cs ContentServerId ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_tree RemoteTree2 -db DatabaseName ...</p>
+<ul>
+  <li>For each tree, creation of the root workspace and creation of the project
+    workspace where the transfers will be done, with the shared frameworks</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_root_ws&nbsp; RemoteRootWs1 ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_ws RemoteProjectWs1 -parent_ws RemoteRootWs1&nbsp; ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws RemoteProjectWs1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_attach Fw1-1 Fw1-2 ... -mod</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_root_ws&nbsp; RemoteRootWs 2...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_ws RemoteProjectWs2 -parent_ws RemoteRootWs&nbsp;2 ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws RemoteProjectWs1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_link_ws -parent_ws RemoteRootWs2 -tree RemoteTree2</p>
+<p><b>-2-</b> In the <b>remote</b> site:</p>
+<ul>
+  <li>Update of the firewall, in order to allow the transfer between the remote
+    site and the local site. Responsible: the network administrator of the
+    remote site.</li>
+  <li>Starting the transfer manager, on a dedicated server, named
+    &quot;ServerName&quot;, with the port number &quot;PortNumber&quot;.
+    Responsible: the SCM administrator.</li>
+</ul>
+<p>To start the transfer manager, the following command has to be launched:</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_transfer_mngr -port PortNumber -cmdfile ParametersFile</p>
+<p>For more details, see the <a href="#References">[5]</a> &quot;<a href="CAAWsmGettingStarted.htm#launching the Multi-site Transfer Manager">Getting
+started</a>&quot; article</p>
+<p>&nbsp;</p>
+<p>See <a href="#Figure5">figure 5</a> for this example</p>
+<p><b>-3-</b> In the <b>local</b> site:</p>
+<ul>
+  <li>Creation of the two trees: LocalTree1 and LocalTree2</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---&gt; local site
+administrator:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_mk_tree LocalTree1 -db
+DatabaseName -cs ContentServerId ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_tree LocalTree2 -db DatabaseName -cs ContentServerId ...</p>
+<ul>
+  <li>Creation of the two dummy root workspaces with no image</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---&gt; local site
+administrator:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_mk_root_ws LocalDummyRootWs1
+-no_image<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_root_ws LocalDummyRootWs2 -no_image</p>
+<ul>
+  <li>Creation of the integration project workspace
+    <p>---&gt; local project administrator: adl_mk_ws LocalProjectWs -parent_ws
+    LocalDummyRootWs1 -dir ...<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_link_ws LocalProjectWs -tree LocalTree2 -parent_ws LocalDummyRootWs2</p>
+    &nbsp;</li>
+  <li>Creation of the two multitree development workspaces, one for each
+    developer</li>
+</ul>
+<blockquote>
+  <p>---&gt; developer number One:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_mk_ws
+  LocalWsOne -tree LocalTree1 -parent_ws LocalProjetcWs -dir ...<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  adl_link_ws LocalWsOne -parent_ws LocalDummyRootWs2 -all_trees<br>
+  ---&gt; developer number Two:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_mk_ws
+  LocalWsTwo -tree LocalTree1 -parent_ws LocalDummyRootWs1 -dir ...<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  adl_link_ws LocalWsTwo -parent_ws LocalDummyRootWs2 -all_trees</p>
+</blockquote>
+<ul>
+  <li>Forbid the local promotion for the project workspace LocalProjectWs, in
+    order to avoid errors, and to realize promotions only via intersite
+    transfers</li>
+</ul>
+<blockquote>
+  <p>---&gt; local site administrator:&nbsp;&nbsp;&nbsp;&nbsp; adl_set_ws
+  LocalProjectWs -no_promote_cmd</p>
+</blockquote>
+<ul>
+  <li>Creation of the transfer, from the local integration project workspace</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---&gt; local project
+responsible:&nbsp;&nbsp;&nbsp; adl_ch_ws LocalProjectWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_mk_is_transfer -ws LocalProjectWs -r_is_server HostName:PortNumber
+-r_parent_ws<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+RemoteProjectWs1 -tree LocalTree1 -no_cr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_link_is_transfer -ws LocalProjectWs -r_parent_ws RemoteProjectWs1 -tree
+LocalTree2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>The transfer's name is not mandatory. A default transfer's name will be given
+if no transfer name has been chosen.</p>
+<p>&nbsp;</p>
+<h2><a name="Using Inter-site Transfer"></a>Using an inter-site transfer</h2>
+<p>The user responsible of the child's workspace has to:</p>
+<ul>
+  <li>Go under the transfer workspace (adl_ch_ws)</li>
+  <li>See the list of attachable&nbsp; components (adl_ls_fw_is -all)</li>
+  <li>Attach the components to be shared (adl_attach_is)</li>
+  <li>Synchronize the workspace (adl_sync_is)</li>
+  <li>Work in the workspace, or in the children workspaces, as used to (adl_co,
+    adl_mk_elem, adl_mv etc...)</li>
+  <li>Promote all the modifications (adl_promote_is)</li>
+  <li>If needed, launch the adl_solve_merge_is command. For this particular
+    case, see the <a href="#adl_solve_merge_is">paragraph below</a></li>
+</ul>
+<p><b>Here are two complete transfer examples</b>. One with a root workspace on
+the local site, and one with a development workspace on the local site; both
+transfers are done with a project workspace on the remote site.</p>
+<h4><a name="UsingRootExample"></a>Example with a root workspace on the local
+site</h4>
+<p><b>-1-</b> In the <b>local</b> site:</p>
+<ul>
+  <li>List of the available frameworks</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws LocalRootWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ls_fw_is -all</p>
+<ul>
+  <li>Attach the desired frameworks</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_attach_is Fw1 Fw2 ... -mod</p>
+<ul>
+  <li>Synchronize and promote the modifications</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_sync_is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_co ...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_promote_is</p>
+<p>&nbsp;</p>
+<p>The user responsible of the parent's workspace has to:</p>
+<ul>
+  <li>Go under the transfer workspace (adl_ch_ws)</li>
+  <li>Collect modifications (adl_collect)</li>
+</ul>
+<p><b>-2-</b> In the <b>remote</b> site:</p>
+<ul>
+  <li>Collect all the modifications</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws RemoteProjectWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_collect</p>
+<h4>&nbsp;</h4>
+<h4><a name="UsingDevelopmentExample"></a>Example with a multitree development
+workspace on the local site</h4>
+<p><b>-1-</b> In the <b>local</b> site:</p>
+<ul>
+  <li>List of the available frameworks
+    <p>&nbsp;---&gt; project responsible:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adl_ch_ws
+    LocalWs1<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_ls_fw_is -all<br>
+    &nbsp;</p>
+  </li>
+  <li>Attach the desired frameworks, from concerned trees
+    <p>&nbsp;&nbsp;---&gt; project
+    responsible&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adl_attach_is Fw1-1 Fw1-2 ...
+    -mod -tree LocalTree1<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_publish<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+  </li>
+  <li>List of the available frameworks and attach them</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ---&gt; developer number
+One:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_ch_ws LocalWs1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ls_fw -all<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_attach Fw1-1 Fw1-2 ... -mod -tree LocalTree1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ---&gt; developer number
+Two:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; adl_ch_ws LocalWs2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ls_fw -all<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_attach Fw1-1 Fw1-2 ... -mod -tree LocalTree2</p>
+<ul>
+  <li>Synchronize and promote the modifications
+    <p>---&gt; both
+    developers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_sync&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    synchronization<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_co ...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    modification<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_promote&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; promotion</p>
+  </li>
+  <li>Synchronize and promote the modifications
+    <p>---&gt; project responsible
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adl_sync_is&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    synchronize<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_collect&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; collect
+    modifications<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    adl_promote_is&nbsp;&nbsp;&nbsp; promotion is done on both trees at the same
+    time.</p>
+  </li>
+</ul>
+<p>&nbsp;</p>
+<p>The user responsible of the parent's workspace has to:</p>
+<ul>
+  <li>Go under the transfer workspace (adl_ch_ws)</li>
+  <li>Collect modifications (adl_collect)</li>
+</ul>
+<p><b>-2-</b> In the <b>remote</b> site:</p>
+<ul>
+  <li>Collect all the modifications</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_ch_ws RemoteProjectWs<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+adl_collect</p>
+<p>&nbsp;</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h2><a name="Commands reference"></a>Short commands reference</h2>
+<p>Here is an overview of the main commands. For more details, see each command
+reference.</p>
+<h4>&nbsp;<a name="adl_mk_is_transfer"></a>adl_mk_is_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmMkIsTransfer.htm">adl_mk_is_transfer</a>
+is the command that allows the local site administrator to define a transfer
+with a remote site. This command is an administrator command.</p>
+<p>For an inter-site transfer, necessary data are:</p>
+<ul>
+  <li>the child site name</li>
+  <li>the child site workspace name</li>
+  <li>the child site workspace tree name</li>
+  <li>the parent workspace name</li>
+  <li>the parent workspace tree name</li>
+  <li>the transfer name</li>
+  <li>the server where the transfer manager runs</li>
+</ul>
+<p>To launch the command: the administrator will be in the local transfer
+workspace.</p>
+<p>Actions realized by the adl_mk_is_transfer command:</p>
+<ul>
+  <li>If the local workspace is a multitree workspace, the command displays a
+    message saying you have to use the &quot;-tree&quot; option if it is not
+    already done</li>
+  <li>If no transfer name is given, a default name is chosen: Transfer1,
+    Transfer2, ... The transfer's name is unique for a given workspace</li>
+  <li>The command verifies the connection (ping)</li>
+  <li>The command verifies the existence of the remote tree</li>
+  <li>The command verifies the existence of the remote workspace</li>
+  <li>The command looks for the SCM remote workspace name ID</li>
+  <li>The command verifies the existence of the local tree</li>
+  <li>When the command is launched (one time only), it creates the report
+    dedicated workspace (which has no image) on the remote site. It keeps in the
+    local database all the parameters described just before.</li>
+</ul>
+<p>&nbsp;</p>
+<h4><a name="adl_ls_fw_is"></a>adl_ls_fw_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmLsFwIs.htm">adl_ls_fw_is</a> is
+the command that visualizes all the available frameworks for the transfer in the
+remote parent workspace. Those frameworks are shared between two distant sites,
+exactly as if they were shared by two persons working in the same team.</p>
+<p>&nbsp;</p>
+<h4><a name="adl_ls_transfer"></a>adl_ls_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmLsTransfer.htm">adl_ls_transfer</a>
+is the command that visualizes all the transfers available on a given site. This
+command is a user command.</p>
+<p>&nbsp;</p>
+<h4><a name="adl_rm_transfer"></a>adl_rm_is_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmRmIsTransfer.htm">adl_rm_is_transfer</a>
+is the command that suppresses the transfer given in parameter, on the current
+site. This command is an administrator command.</p>
+<p>Actions realized by the adl_rm_is_transfer command:</p>
+<ul>
+  <li>Removes all the data and transfer's tids relatives to the given transfer
+    of the local site</li>
+</ul>
+<p>&nbsp;</p>
+<h4><a name="adl_set_is_transfer"></a>adl_set_is_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmSetIsTransfer.htm">adl_set_is_transfer
+</a>is the command that allows the administrator to update parameters of a given
+transfer, and if necessary, for a given tree. This command is an administrator
+command.</p>
+<p>The parameters that can be updated are:</p>
+<ul>
+  <li>the server reference: host name and port number (option:&nbsp;
+    &quot;-r_is_server)</li>
+  <li>the remote parent workspace name (option: -remote_parent_ws_name)</li>
+  <li>the remote tree name (option: -remote_tree_name)</li>
+  <li>the local tree (option: -l_tree)</li>
+</ul>
+<p>&nbsp;</p>
+<h4><a name="adl_ren_transfer"></a>adl_ren_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmRenTransfer.htm">adl_ren_transfer</a>
+is the command that allows the administrator to rename the transfer's name. This
+command is an administrator command.</p>
+<p>&nbsp;</p>
+<h4><a name="adl_link_is_transfer"></a>adl_link_is_transfer</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmLinkIsTransfer.htm">adl_link_is_transfer</a>
+is the command that links a transfer between several trees.</p>
+<p>&nbsp;</p>
+<h4><a name="adl_attach_is"></a>adl_attach_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmAttachIs.htm">adl_attach_is</a>
+is the command that attaches one or several of the available frameworks, so the
+developers can work on those SCM objects. This command is an user command.</p>
+<p>Like for all SCM operations the replication of objects between sites is
+performed between workspaces and the granularity of exchange is the framework.</p>
+<p>&nbsp;</p>
+<h4><a name="adl_detach_is"></a>adl_detach_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmDetachIs.htm">adl_detach_is</a>
+is the command that detaches one or several of the available frameworks. This
+command is an user command, and cannot be launched in the root workspace..</p>
+<p>&nbsp;</p>
+<h4><a name="adl_sync_is"></a>adl_sync_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmSyncIs.htm">adl_sync_is</a> is
+the command that allows the user to synchronize the local transfer workspace
+with his remote parent workspace. All the modifications done in the remote
+parent workspace will be reported in the local transfer workspace.</p>
+<p>Actions realized by the adl_sync_is command:</p>
+<ul>
+  <li>The command verifies that the current workspace is one of the workspaces
+    defined in the administrator transfer's table</li>
+  <li>The command verifies that no promotion is running at the same time in the
+    local workspace</li>
+  <li>The command verifies if the local workspace is not already synchronized</li>
+  <li>The command synchronizes the local workspace, and reports all the
+    modification done in the parent remote workspace, in the local workspace</li>
+  <li>The command publishes the updates</li>
+</ul>
+<p>&nbsp;</p>
+<h4><a name="adl_promote_is"></a>adl_promote_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmPromoteIs.htm">adl_promote_is</a>
+is the command that allows the user to promote all the local modifications done
+in the local workspace, to his remote parent workspace.</p>
+<p>Actions realized by the adl_promote_is command:</p>
+<ul>
+  <li>The command verifies that the current workspace is one of the workspaces
+    defined in the administrator transfer's table</li>
+  <li>The command publishes the updates</li>
+  <li>The command promotes all the frameworks</li>
+</ul>
+<p>&nbsp;</p>
+<h4><a name="adl_solve_merge_is"></a>adl_solve_merge_is</h4>
+<p><a href="../CAAWsmQuickRefs/CAAWsmSolveMergeIs.htm">adl_solve_merge_is</a>
+is the command that resolves the merges if necessary, between the objects, if
+they have been modified concurrently in the remote workspace, and in the local
+workspace. This command must be launched in the local workspace.</p>
+<p>This command will be necessary if there is a conflict between the remote
+mirror workspace and the local root workspace. Here are two cases that can
+happen:</p>
+<p>- Case 1 -</p>
+<ul>
+  <li>adl_promote_is&nbsp; in the local workspace</li>
+  <li>adl_rm req&nbsp; in the remote workspace</li>
+  <li>adl_sync_is in the local workspace</li>
+  <li>another adl_sync_is later in the local workspace. In this case, if the
+    synchronization is OK, than there is no problem. The synchronization can
+    fail, if there is a merge to resolve in the mirror workspace and in the
+    local workspace. To resolve this case, you have to launch in the local
+    workspace an adl_solve_merge_is command</li>
+</ul>
+<p>The adl_solve_merge_is command downloads the objects in the local workspace,
+resolves the merge, then sends immediately the result in the mirror workspace.</p>
+<p>- Case 2 -</p>
+<ul>
+  <li>adl_promote_is&nbsp; in the local workspace</li>
+  <li>adl_publish&nbsp; in the remote workspace at the same time. In this case,
+    the promotion is stopped in the remote workspace. Merge can happen, and they
+    are not resolved then.</li>
+</ul>
+<p>The adl_solve_merge_is has to be launched in the local workspace.</p>
+<p>&nbsp;</p>
+<h3><a name="Handling concurrent changes"></a>Handling Concurrent Changes</h3>
+<p>Like across workspaces belonging to the same site, concurrent changes may
+happen when sharing components between sites.&nbsp;</p>
+<p>There are two kind of concurrent changes:&nbsp;</p>
+<ul>
+  <li>those that are handled automatically by SCM: for instance when a developer
+    changes the contents of a .cpp file while another one moves the file into
+    another location; the result of these two actions will be the new contents
+    at the new location.</li>
+  <li>those that are conflicting changes because they are the same operation
+    performed concurrently in two different workspaces:
+    <ul>
+      <li>two changes of one file's contents</li>
+      <li>two move or renaming of the same file or directory</li>
+      <li>two creation of two files having the same name and in the same
+        location</li>
+    </ul>
+  </li>
+</ul>
+<p>The first kind of concurrent changes is automatically managed by SCM commands
+and there is no particular action to be done when sharing components.</p>
+<p>The second kind of concurrent changes lead to solving merges <a href="#References">[6]</a>
+when the conflicting changes come in the same workspace. When sharing
+components, the solving of merges occurs <u>always in the child site transfer
+workspace</u>. When they occur, the user has to solve them all before being able
+to continue the transfer.</p>
+<p>In fact the way data are exchanged between sites follow the same (default)
+rules as between parent and child workspaces on one site:</p>
+<ol>
+  <li>the child workspace synchronizes itself against the contents of the parent
+    workspace</li>
+  <li>the synchronization may lead to some merges that must be solved in the
+    child workspace</li>
+  <li>once all merges are solved, the child workspace is allowed to promote its
+    changes to the parent workspace</li>
+</ol>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Advices"></a>Advices - Recommendations</h3>
+<h4><a name="Workspaces"></a>Workspaces</h4>
+<p>Here are some rules and advices to follow to take full benefits of the
+transfer capabilities:</p>
+<ul>
+  <li>It is better to dedicate a workspace for transfers than using one devoted
+    to other tasks (development, integration, etc) because it provides an
+    isolated place where changes are better handled and it let time to users to
+    check that changes can be forwarded and eventually to ask remote teams to
+    fix some bugs and to start new transfers.</li>
+  <li>On the local site, the local transfer workspace can be a root workspace.
+    It can also be a project workspace, but the project developer responsible
+    will have to follow the second example rules.</li>
+  <li>On the remote site, either a project workspace or a root workspace can be
+    the remote parent workspace</li>
+  <li>A transfer is restricted to a tree on both sites, this means that if
+    transfers are to be set up between multi-tree workspaces, one transfer will
+    have to be set up for each tree (see <a href="#adl_mk_is_transfer">adl_mk_is_transfer</a>
+    and <a href="#adl_link_is_transfer">adl_link_is_transfer</a>).</li>
+  <li><u>All</u> objects contained in the remote parent workspace can be
+    exchanged. Then&nbsp;
+    <ul>
+      <li>the first transfer may have to transfer a large amount of data if no
+        one is already present in the target site</li>
+      <li>further transfers will handle the delta of changes, that is to say
+        that each time a transfer is started, it compares the whole current
+        workspace's contents against what was in it for the previous transfer,
+        differences found are to be transferred.</li>
+    </ul>
+  </li>
+</ul>
+<h4><a name="Frameworks"></a>Frameworks</h4>
+<p>Here are the steps to go through before being able to share components
+between sites.</p>
+<ul>
+  <li>Think about the set of frameworks that needs to be shared. This set may
+    lead to involve several workspace trees and several workspaces, so different
+    transfers may be needed to share those components.</li>
+  <li>Think about the structure of components on both sites: is there a
+    particular installation on one site regarding the setting of a customer
+    checker library <a href="#References">[4]</a>? In that case we must warn
+    that no checker is called when exporting/importing objects between sites and
+    then that both sites must share the same structure (even if SCM commands can
+    handle different structures, it may not be the same for other tools).</li>
+  <li>Think about the way components will be shared and integrated in both
+    sites.&nbsp;
+    <ul>
+      <li>is there a site which will be the supplier of the other? The supplier
+        will be the child site and corresponding teams will use the inter-site
+        transfer's commands to exchange data.</li>
+      <li>does a team will have to take the lead of a development? In that case,
+        the corresponding site will be the parent site and will be the site
+        where the SCM inter-site Transfer Manager will be started.</li>
+    </ul>
+  </li>
+  <li>Decide under whom identity the SCM inter-site Transfer Manager will be
+    started. Remember that it will execute SCM commands on Parent site's
+    workspaces. Decide on which host it will be started: this host must be
+    reachable from child site's hosts and SCM processes running on it must be
+    able to connect to the other SCM daemons (monitor, file server).</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+<p>Sharing components between sites consists in using the adl_is_xxx commands
+which establishes a connection with the SCM inter-site and shares data between
+different sites. Exchanges are done between usual SCM workspaces. The user who
+runs those commands is responsible for solving any conflicting change between
+the two sites.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="CAAWsmAdministration.htm#Trees">Multiple databases</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td><a href="CAAWsmGettingStarted.htm#Declaring the site">Defining a site</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[3]</td>
+    <td><a href="CAAWsmGettingStarted.htm#launching the Multi-site Transfer Manager">The
+      SCM Multi-site Transfer Manager</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[4]</td>
+    <td><a href="CAAWsmCustomerLib.htm">The Custom Checker Library</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAWsmGettingStarted.htm">Getting started</a></td>
+  </tr>
+  <tr>
+    <td valign="top">{6]</td>
+    <td><a href="CAAWsmMerge.htm">Merging Concurrent Changes</a></td>
+  </tr>
+  <tr>
+    <td valign="top"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>4</strong> [August 2002]</td>
+    <td valign="top">Document update</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>3</strong> [June 2002]</td>
+    <td valign="top">Document update: insert more examples</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>2</strong> [May 2002]</td>
+    <td valign="top">Document update: integrating the inter-site transfer use</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Nov 2001]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

@@ -1,0 +1,551 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Creating StartUps in Catalogs</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>3D PLM PPR Hub Open Gateway</h1>
+    </td>
+    <td valign="top">
+      <h2>Feature Modeler</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Creating StartUps in Catalogs</h3>
+      <em>The first step in working with features</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article accompanies the CAAOsmCatalogSU use case. It explains how
+      to create and save a catalog, how to create StartUps within the catalog
+      and how to define a StartUp structure by adding simple and feature
+      attributes to it.
+      <ul>
+        <li><strong><a href="#Learn">What You Will Learn With This Use Case</a></strong></li>
+        <li><strong><a href="#Where to Locate a catalog of StartUps?">Where to
+          Locate a Catalog of StartUps</a></strong></li>
+        <li><a href="#UseCase"><strong>The CAAOsmCatalogSU Use Case</strong></a>
+          <ul>
+            <li><a href="#What">What Does CAAOsmCatalogSU Do</a></li>
+            <li><a href="#How">How to Launch CAAOsmCatalogSU</a></li>
+            <li><a href="#Where">Where to Find the CAAOsmCatalogSU Code</a></li>
+          </ul>
+        </li>
+        <li><strong><a href="#Step">Step-by-Step</a></strong></li>
+        <li><strong><a href="#InShort">In Short</a></strong></li>
+        <li><strong><a href="#References">References</a></strong></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Learn"></a>What You Will Learn With This Use Case</h3>
+<p>This use case is intended to help you make your first steps in programming
+the ObjectSpecsModeler (also called the &quot;feature&quot; modeler). Its main
+intent is to explain how to define and create StartUps within Catalogs. Through
+this use case, you will also learn some important concepts about the underlying
+data structure of a feature in general and about the recommended ways of
+programming with features. More specifically, you will learn how to:
+<ul>
+  <li>Create, save and edit a Catalog</li>
+  <li>Create StartUps within the Catalog</li>
+  <li>Add simple and feature attributes to a StartUp</li>
+</ul>
+<p>Before getting to the use case itself, it is important to get an
+understanding of what StartUps are and how they are used in modeling features.
+See the referenced article [<a href="#References">1</a>].&nbsp;</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where to Locate a catalog of StartUps?"></a>Where to Locate a
+catalog of StartUps?</h3>
+<p>When accessing a catalog of StartUps, it must be found under  the run-time directory:</p>
+<table width="100%">
+  <tbody>
+    <tr>
+      <td>Windows</td>
+      <td><code>InstallRootDirectory\OS\resources\graphic\</code></td>
+    </tr>
+  </tbody>
+</table>
+<p>where <code>InstallRootDirectory</code> is the directory where the CAA CD-ROM 
+is installed, and OS is a directory the name of which depends on the operating 
+system. Refer to [<a href="#References">2</a>] to get the list of the currently 
+supported operating systems and their associated directory names.</p>
+<p>  In order for the catalog to be accessible from the run-time directory, it should be  stored
+in the following directory:</p>
+<table width="100%">
+  <tbody>
+    <tr>
+      <td>Windows</td>
+      <td><code>InstallRootDirectory\FW\CNext\resources\graphic\</code></td>
+    </tr>
+    <tr>
+      <td>UNIX</td>
+      <td><code>InstallRootDirectory/FW/CNext/resources/graphic/</code></td>
+    </tr>
+  </tbody>
+</table>
+<p>where <code>FW</code> is the framework containing the catalog creation code.
+When updating the run-time view (mkCreateRuntimeView), the catalog will be automatically transferred to the  run-time directory.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="UseCase"></a>The CAAOsmCatalogSU Use Case</h3>
+<p>CAAOsmCatalogSU is a use case of the CAAObjectSpecsModeler.edu framework that
+illustrates CATIA ObjectSpecsModeler framework capabilities.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="What"></a>What Does CAAOsmCatalogSU Do</h4>
+<p>The goal of CAAOsmCatalogSU is to create a catalog and to define StartUps
+within it. The notion of &quot;books&quot; is used as an example. The StartUps
+describe different kinds of books such as novels or dictionaries. First, several
+StartUps are created that will be used as feature attributes later on. They are
+&quot;CAAOsmPublisher&quot; and &quot;CAAOsmChapter&quot;. Next, the actual
+&quot;Book&quot; StartUps are created: &quot;CAAOsmBook&quot;,
+&quot;CAAOsmNovel&quot; (which is a kind of &quot;CAAOsmBook&quot;) and
+&quot;CAAOsmDictionary&quot; (which is also a kind of &quot;CAAOsmBook&quot;).
+Here is a schematic relational view of these StartUps and their attributes:
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td width="100%"><img border="0" src="images/CAAOsmBook.gif" width="718" height="382"></td>
+  </tr>
+</table>
+<p>Note that since &quot;CAAOsmNovel&quot; is a kind of &quot;CAAOsmBook&quot;
+(i.e., its supertype is &quot;CAAOsmBook's&quot; type), it also has the
+attributes &quot;Title&quot; and &quot;BookPublisher&quot; that it has inherited
+from &quot;CAAOsmBook&quot;. The same is true for &quot;CAAOsmDictionary&quot;.</p>
+<p>Note also that this use case creates two other StartUps called
+&quot;CAAOsmAdd&quot; and &quot;CAAOsmSquare&quot; which are used in the
+CAAOsmBuildUpdate use case.</p>
+<p>Here is a complete image of the contents of the catalog:</p>
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td width="100%"><img border="0" src="images/CAAOsmBook1.gif" width="401" height="487"></td>
+  </tr>
+  <tr>
+    <td width="100%"><img border="0" src="images/CAAOsmBook2.gif" width="375" height="172"></td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="How"></a>How to Launch CAAOsmCatalogSU</h4>
+<p>To launch CAAOsmCatalogSU, you will need to set up the build time
+environment, then compile CAAOsmCatalogSU along with its prerequisites, set up
+the run time environment, and then execute the sample. This is fully described
+in the referenced article [<a href="#References">2</a>].&nbsp;</p>
+<p>mkrun -c &quot;CAAOsmCatalogSU CatalogStorageName&quot;&nbsp;</p>
+<ul>
+  <li><b>CatalogStorageName</b>&nbsp; is the name of the entire path where the catalog is
+    to be stored. The extension .CATfct is not mandatory: it is added on by default during
+    the save operation.&nbsp;</li>
+</ul>
+<p>Note: It is not necessary to locate the newly catalog in the CNext/resources/graphic
+directory of the CAAObjectSpecsModeler.edu framework, since one has been already
+provided.&nbsp;</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Where"></a>Where to Find the CAAOsmCatalogSU Code</h4>
+<p>CAAOsmCatalogSU code is located in the CAAOsmCatatalogSU.m use case module of the
+CAAObjectSpecsModeler.edu framework:</p>
+<table>
+  <tr>
+    <td>Windows</td>
+    <td><code>InstallRootDirectory\CAAObjectSpecsModeler.edu\CAAOsmCatalogSU.m</code></td>
+  </tr>
+  <tr>
+    <td>Unix</td>
+    <td><code>InstallRootDirectory/CAAObjectSpecsModeler.edu/CAAOsmCatalogSU.m</code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code> is the root directory of your CAA V5
+installation. It is made of a unique source file named CAAOsmCatalogSU.cpp.
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<!---------------------------------comment------------------------------------->
+<h3><a name="Step"></a>Step-by-Step</h3>
+<p>There are eight logical steps in CAAOsmCatalogSU:</p>
+<ol>
+  <li><a href="#Create_Catalog">Creating a Catalog</a></li>
+  <li><a href="#Create_StartUps">Creating StartUps</a></li>
+  <li><a href="#Add_Attributes">Adding attributes to StartUps</a></li>
+  <li><a href="#Save_Catalog">Saving the Catalog</a></li>
+  <li><a href="#EditingCatalog">Editing the Catalog</a></li>
+  <li><a href="#PublicSpecs">Declaring Public Specs</a></li>
+  <li><a href="#DeleteSession">Deleting the Session</a></li>
+  <li><a href="#NLSFile">Creating the NLS file</a></li>
+</ol>
+<p>We will now comment each of those sections by looking at the code.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Create_Catalog"></a>Creating a Catalog</h4>
+<p>To create a catalog, use the <code>CreateCatalog</code> global function which
+returns a pointer to <i>CATICatalog</i>:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>...
+CATICatalog *piCatalog = NULL;
+CATUnicodeString storageName = argv[1];
+HRESULT rc = <b>::CreateCatalog</b>(&amp;storageName, 
+                             &amp;piCatalog);
+if (NULL == piCatalog) 
+{
+   cout &lt;&lt; &quot;ERROR in creating Catalog&quot; &lt;&lt; endl &lt;&lt; flush;
+   <b>return</b> 2;
+}
+else cout &lt;&lt; &quot;Catalog created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>Catalogs have the suffix .<code>CATfct</code> by default. In other words,
+when creating a catalog, you need not specify this suffix in the catalog name,
+but if you do, another one will not be added. The name of the catalog is taken
+from the first argument passed to this program. For now, a new catalog should be
+created in the resources/graphic directory of your workspace in order for the <code>OpenCatalog</code>
+method to be able to find it.</p>
+<p>A client identification must also be added to the catalog using the <code>SetClientId</code>
+method found in the <i>CATICatalog</i> interface:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>CATUnicodeString clientId(&quot;CAAOsmClientId&quot;);
+rc = piCatalog -&gt; <b>SetClientId</b>(&amp;clientId);
+if (NULL == rc) cout &lt;&lt; &quot;ClientID setOK&quot; &lt;&lt; endl &lt;&lt; flush;
+else cout &lt;&lt; &quot;ERROR in setting ClientID&quot; &lt;&lt; endl &lt;&lt; flush;</pre>
+    </td>
+  </tr>
+</table>
+<p>This identification is necessary in order to open the catalog later on. The
+string defined by <code>SetClientId </code>is added on as a suffix to the name
+of each StartUp added to the catalog. This identifier should remain unique to
+this particular catalog in order to insure the uniqueness of the StartUp name in
+the case where more than one catalog were used at the same time. So, choose your
+identifier carefully, such that you will be able to distinguish your features
+from others.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Create_StartUps"></a>Creating StartUps</h4>
+<p>To create a StartUp , use the <code>CreateSUInCatalog</code> method found in
+the <i>CATICatalog</i> interface. For example, here is how the StartUp
+&quot;Novel&quot; is created:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>CATBaseUnknown *pNovelSU = NULL;
+CATUnicodeString novelSUName(&quot;CAAOsmNovel&quot;);
+CATUnicodeString novelSUType(&quot;CAAOsmNovel&quot;);
+rc = piCatalog -&gt; <b>CreateSUInCatalog</b> (<b>&amp;pNovelSU</b>,          // Pointer to the StartUp in the catalog
+                                     &amp;novelSUName,       // StartUp name
+                                     &amp;novelSUType,       // StartUp type
+                                     &quot;CATISpecObject&quot;,   // Interface 
+                                     &amp;bookSUType);       // StartUp supertype
+if (NULL == pNovelSU)
+{
+    cout &lt;&lt; &quot;ERROR in creating CAAOsmNovel StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
+    piCatalog -&gt; <b>Release</b>();
+    <b>return</b> 3;
+}
+else cout &lt;&lt; &quot;CAAOsmNovel StartUp created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+// Get a CATISpecObject handle on the CAAOsmNovel StartUp
+<b>CATISpecObject *piNovelSU = (CATISpecObject*) pNovelSU;</b></pre>
+    </td>
+  </tr>
+</table>
+<p>Creating a StartUp means simply reserving a non-structured data slot in the
+catalog. The actual data structure is created when adding attributes to the
+StartUp.</p>
+<p>Note that this specific StartUp has a supertype, referenced by the variable <code>bookSUType</code>
+which references the StartUp called &quot;CAAOsmBook&quot; defined previously in
+the program. The StartUp &quot;CAAOsmNovel&quot; will, therefore, inherit all of
+the attributes of the StartUp &quot;CAAOsmBook&quot;.</p>
+<p>The <i>CATBaseUnknown</i> <code>pNovelSU</code> pointer acquired through <code>CreateSUInCatalog</code>
+is directly cast to a <i>CATISpecObject</i> handle and must be released at the
+end of its use.</p>
+<p>Note also that, in general, when exiting the program on error, current
+pointers must be released (for example in this case: <code>piCatalog</code>).</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Add_Attributes"></a>Adding Attributes to StartUps</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>CATUnicodeString novelAuthor(&quot;Author&quot;);
+CATISpecAttribute *piNovelAuthor = piNovelSU -&gt; 
+		<b>AddAttribute</b>(novelAuthor,
+		             tk_string);
+if (NULL == piNovelAuthor) cout &lt;&lt; &quot;ERROR in adding CAAOsmNovel Author attribute&quot; &lt;&lt; endl &lt;&lt; flush;
+else cout &lt;&lt; &quot;Novel Author attribute added OK&quot; &lt;&lt; endl &lt;&lt; flush;
+	 
+piNovelAuthor -&gt; <b>Release</b>();
+	
+CATUnicodeString novelChapter(&quot;NovelChapter&quot;);
+CATISpecAttribute *piNovelChapt = piNovelSU -&gt;
+		<b>AddAttribute</b>(novelChapter,
+		             tk_list,
+	   		     tk_component);
+if (NULL == piNovelChapt) cout &lt;&lt; &quot;ERROR in adding CAAOsmNovel Chapter attribute&quot; &lt;&lt; endl &lt;&lt; flush;
+else cout &lt;&lt; &quot;CAAOsmNovel Chapter attribute added OK&quot; &lt;&lt; endl &lt;&lt; flush;
+	
+piNovelChapt -&gt; <b>Release</b>();
+pNovelSU -&gt; <b>Release</b>();</pre>
+    </td>
+  </tr>
+</table>
+<p>Once the StartUp has been created, attributes are added to it in order to
+define its data structure. Use the <code>AddAttribute</code> method using the <i>CATISpecObject</i>
+handle acquired on the StartUp.</p>
+<p>Do not forget that all pointers acquired <code>AddAttribute</code> must also
+be released when they are no longer used.</p>
+<p>Note that the &quot;NovelChapter&quot; attribute is added as type <code>tk_list</code>
+and <code>tk_component</code>. This will allow a number of unique
+&quot;Chapter&quot; features to be attached to a &quot;CAAOsmNovel&quot;
+feature.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Save_Catalog"></a>Saving the Catalog</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>// Save catalog
+
+rc = <b>::SaveCatalog</b>(&amp;piCatalog,
+	           &amp;storageName);
+piCatalog -&gt; <b>Release</b>();
+piCatalog = NULL;
+if (FAILED(rc))
+{
+   cout &lt;&lt; &quot;ERROR in saving catalog document&quot; &lt;&lt; endl &lt;&lt; flush;
+   return 5;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>When all StartUps and their attributes have been created, the catalog can be
+saved. We use here the same name as for the creation of the catalog. Because the
+AccessC<code>atalog</code> method systematically looks for the catalog in the
+&quot;resources/graphic&quot; directory under the current workspace, it is
+simpler to save it there directly. In order to save the catalog, use the <code>SaveCatalog</code>
+global function. Note that a <code>Remove</code> operation need not be performed
+on a catalog.[<a href="#Top">Top</a>]</p>
+<h4><a name="EditingCatalog"></a>Editing the Catalog</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>// Open the Catalog in Edit mode
+rc = ::<b>UpgradeCatalog</b> (&amp;storageName,
+                       &amp;piCatalog,
+	              &amp;clientId); 
+if (SUCCEEDED(rc) &amp;&amp; NULL != piCatalog) cout &lt;&lt; &quot;Catalog accessed for Upgrade OK&quot; &lt;&lt; endl &lt;&lt; flush;
+else
+{
+    cout &lt;&lt; &quot;ERROR on UpgradeCatalog&quot; &lt;&lt; endl &lt;&lt; flush;
+    <b>return</b> 6;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>Use the <code>UpgradeCatalog</code> global function to open a catalog for
+editing (in other words, in read/write mode). This function requires the entire
+pathname, name and .<code>CATfct</code> extension to be passed as input. It also
+requires the client id. It returns a <i>CATICatalog</i> pointer to the opened
+catalog. This pointer can then be used to add new StartUps and/or attributes to
+the catalog.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<p><b><a name="PublicSpecs"></a>Declaring Public Specs</b></p>
+<p>If your StartUps are &quot;public&quot;, this means that they will be
+registered as such in a declarative file. This declarative file's name is the
+same as that of the catalog but it has a .<code>CATSpecs</code> suffix. For each
+&quot;public&quot; StartUp, you can also list the attributes that are also
+&quot;public&quot;. These attributes will be available for consultation, all
+other attributes of the &quot;public&quot; StartUp will not be available at all.
+The declarative file also registers information concerning the authorization you
+may give for your StartUp to be derived by others in order to create a new
+StartUp. The declarative file for each catalog containing information on the
+publication of your StartUps can be created through a specific batch program as
+seen in the use case &quot;Managing Public Features and Attributes&quot; [<a href="#References">3</a>].
+However, it is also possible for you to register this information automatically
+at the time you create your StartUp in the first place. This is done by
+valuating two optional arguments of the <code>CreateSUInCatalog</code> method of
+<i>CATICatalog</i>:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>CATBaseUnknown *pAddSU = NULL;
+CATUnicodeString addSUName = &quot;CAAOsmAdd&quot;;
+CATUnicodeString addSUType = &quot;CAAOsmAdd&quot;;
+CATBoolean publicSU = TRUE;
+CATBoolean derivableSU = TRUE;
+rc = piCatalog -&gt; <b>CreateSUInCatalog</b>(&amp;pAddSU,
+                                    &amp;addSUName,
+ 			         &amp;addSUType,
+			         &quot;CATISpecObject&quot;,
+				NULL,
+		    	         <b>publicSU</b>,
+			         <b>derivableSU</b>);
+if (NULL != pAddSU) cout &lt;&lt; &quot;CAAOsmAdd StartUp created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+else
+{
+    cout &lt;&lt; &quot;ERROR in creating CAAOsmAdd StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
+    piCatalog -&gt; <b>Release</b>();
+    <b>return</b> 1;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>As you can see above, the CATBoolean publicSU argument is valuated to TRUE:
+this means that the StartUp will be registered in the corresponding .CATSpecs
+file. By also setting the CATBoolean derivableSU argument to TRUE, the StartUp
+is marked as &quot;derivable&quot; by others, i.e., others are authorized to
+create their own new StartUps deriving from this one.&nbsp;</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="DeleteSession"></a>Deleting the Session</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>// Delete session
+rc = <b>::Delete_Session</b>(sessionName);
+if (FAILED(rc))
+{
+   cout &lt;&lt; &quot;ERROR in deleting session&quot; &lt;&lt; endl &lt;&lt; flush;
+   <b>return</b> 6;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>The Session must also be deleted. If you do not yourself create the session,
+it is done by default in the <code>CreateCatalog</code> method. In any case, it
+is your responsibility to delete the session at the end of your batch program.
+Use the <code>Delete_Session</code> global function:</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h4><a name="NLSFile"></a>Creating the NLS file</h4>
+<p>In order to have NLS on the feature names that may appear in the
+specifications tree during an interactive session, it is necessary to create a .<code>CATNls</code>
+file corresponding to each .<code>CATfct</code> catalog.&nbsp; The .<code>CATNls</code> file is a normal
+text file.&nbsp; Its name must be the same as the catalog name + &quot;NLS&quot;
+and the .<code>CATNls</code> suffix.&nbsp; For example, the catalog <b> CAAOsmCatalogSU.CATfct</b>
+would have a corresponding NLS file called <b> CAAOsmCatalogSUNLS.CATNls</b>.&nbsp; The
+file is delivered in the CNext + resources + msgcatalog directory of your
+framework.&nbsp; The contents of the file must follow a precise format: for each
+feature name that is displayed to the user, a text line must be created
+containing the correspondence FeatureName = &quot;Feature Name Value&quot;. For
+example, in the case of a StartUp whose name is <code> CAAOsmNovel</code>, you would enter the
+following text line: <i> CAAOsmNovel = &quot;Novel&quot;</i>. Then, in the
+specifications tree, &quot;Novel&quot; would appear as the feature name. Here is
+an example of the NLS file created for the CAAOsmCatalog.CATfct feature catalog
+file:</p>
+
+<table class="code">
+  <tr>
+    <td>
+      <font FACE="Courier New" SIZE="2"><code>CAAOsmPublisher=&quot;Publisher&quot;;</code>
+      <p><code>CAAOsmChapter=&quot;Chapter&quot;;</code></p>
+      <p><code>CAAOsmBook=&quot;Book&quot;;</code></p>
+      <p><code>CAAOsmNovel=&quot;Novel&quot;;</code></p>
+      <p><code>CAAOsmDictionary=&quot;Dictionary&quot;;</code></p>
+      <p><code>CAAOsmAdd=&quot;Add&quot;;</code></p>
+      <p><code>CAAOsmSquare=&quot;Square&quot;;</code></font>
+    </td>
+  </tr>
+</table>
+
+<p align="right"><a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="InShort"></a>In Short</h3>
+<p>This use case has demonstrated how to create and define StartUps in Catalogs.
+It has also exposed a number of concepts on the feature modeler, such as types
+and supertypes, simple and feature attributes. Specifically, this use case has
+illustrated:</p>
+<ul>
+  <li>The creation of catalogs using the <code>CreateCatalog</code> global
+    function</li>
+  <li>The specific identification of a catalog and of the StartUps it will
+    contain using the <code>SetClientId</code> method of <i>CATICatalog</i></li>
+  <li>The creation of StartUps in the catalog using the <code>CreateSUInCatalog</code>
+    method of <i>CATICatalog</i></li>
+  <li>Adding attributes to StartUps using the <code>AddAttribute</code> method
+    of <i>CATISpecObject</i></li>
+  <li>Saving a catalog document using the <code>SaveCatalog </code>global
+    function.</li>
+  <li>Editing the catalog using the <code>UpgradeCatalog</code> global function.</li>
+  <li>Creating the corresponding .<code>CATSpecs</code> declarative file.</li>
+  <li>Creating the corresponding NLS file.</li>
+</ul>
+<p>Other use cases will demonstrate how to use features based on these StartUps.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAOsmTechArticles/CAAOsmOverview.htm">Feature
+      Modeler Overview</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td><a href="../CAADocUseCases/CAADocRunSample.htm">Building
+      and Launching a CAA V5 Use Case</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[3]</td>
+    <td><a href="CAAOsmPublicSpecsFile.htm">Managing
+      Public Features and Attributes</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Feb 2000]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>2</strong> [Nov 2000]</td>
+    <td valign="top">Document modified</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <b>3</b> [Feb 2002]</td>
+    <td valign="top">Document modified</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

@@ -1,0 +1,257 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Tessellated Geometry Conversion</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>MultiCAD Import: Exact Geometry Conversion</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article describes how to convert the Geometry data present in an 
+		external format file to Exact Geometry</td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Introduction</h2>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+
+
+<p>The Exact Geometry conversion capability of MultiCAD convertors can be used 
+to convert the geometry data present in any external format file. This 
+conversion gives us the Exact geometry in CATIA tab. The external format can be 
+any format declared in the .capa file and there should be implementation of 
+different interfaces to convert the geometry data.</p>
+<p>Geometrical shapes can be fully explained with the help of Topology and 
+Geometry. To generate a shape, there is very specific Topology and Geometry associated with it. Combination of both these helps us to determine the Exact geometry 
+shapes. </p>
+<p>In MultiCAD Exact geometry conversion, we have to send both 
+these information to geometry kernels through callback functions 
+implementations. This information or data is used to generate the Exact shape. 
+So it is very crucial to know the geometry and topology concepts thoroughly.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Exact Geometry concepts</h2>
+<p>Basically, there are two types of geometrical Bodies. One with thickness and 
+other without thickness (surface). In our use-cases we will deal with bodies 
+without thickness. The most basic shape is to create a Triangular surface. This 
+surface has different elements which explains the topological and geometrical 
+information to generate it. Some of these elements are Shell, Face, Loop, Edge, 
+Edge-Use, Plane, Line etc. There are Interfaces for each of these elements e.g. 
+CATIExchangeShell, CATIExchangeFace etc. We have to implement all those 
+interfaces which are needed to generate the desired shape. The desired shape is 
+present in the form of XML data, hence we should have sufficient and relevant 
+data to generate Exact geometry.</p>
+<p>Here we will see which geometrical and topological elements are needed for a 
+simple Triangular surface.</p>
+<table>
+	<tr>
+		<td><strong>LIST OF ELEMENTS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></td>
+		<td><strong>SIZE</strong></td>
+	</tr>
+	<tr>
+		<td>Body</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>Shell</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>Face</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>Loop</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>Edge</td>
+		<td>3</td>
+	</tr>
+	<tr>
+		<td>Edge-Use</td>
+		<td>3</td>
+	</tr>
+</table>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Architecture of Exact Geometry Conversion&nbsp;</h2>
+<p>The picture shown below illustrates MultiCAD Convertor Import Architecture 
+for Exact Geometry conversion only.&nbsp;</p>
+<table>
+	<caption>Fig.1. Architecture</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAV6ExactConvCodeImage.jpg" width="1203" height="552"></td>
+	</tr>
+</table>
+<p>&nbsp;</p>
+<h3>Implementation Code flow architecture</h3>
+<p>When we Import an xCAD file (step 'a'), the control goes to the V6 Writer 
+provided by DS. This writer checks for the CAA Component through specific 
+Late-type (see article [<a href="#References">2</a>]). This CAA Component is called as V6 Reader.</p>
+<p>If the CAA Component is implemented, V6 Writer sends callbacks to the APIs 
+implemented in the component. V6 Reader then answers to all the callbacks of V6 
+Writer by implementing the interfaces as shown in the class diagram above. It 
+answers to the calls through the implementation classes in the alphabetical 
+series as illustrated in above Fig.1.</p>
+<p>The main class here is the 
+'CATIExchangeBoundaryRepresentation' interface implementation class. This class 
+builds up all 
+the geometry information present in the component XML file selected by creating 
+all the Interface implementation class objects and retaining their corresponding 
+Interface Pointers. Then all the Get() APIs of these interfaces are filled with 
+the required Geometry information. Then using those Interface pointers, DS 
+Writer calls all the Get() APIs and retrieves the Geometry information. It then 
+passes it to core APIs to create the Exact geometry.</p>
+<p>A Physical 3D Part gets created and stored in the database/Vault</p>
+<p><strong>NOTE</strong>: Here the number of interface pointers created is equal 
+to the number of geometrical and topological elements needed to create the 
+geometrical shape. e.g. for a simple triangular plane, the List of elements and 
+their size has been given in above table</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Interface Implementation</h2>
+<p> There are Interfaces for every element type from the above list of Elements. All these 
+interfaces should be implemented by the developer.</p>
+<p> Basically, we have one interface pointer for every single element. So if we 
+have 3 Edges, we have 3 interface pointers of CATIExchangeEdge pointing to the 
+implementation class of that interface. This Interface pointer eventually 
+fetches or Gets the required data related to Geometry or Topology from the 
+Implementation class APIs.</p>
+<table class="fill">
+	<tr>
+		<th>LIST OF INTERFACES</th>
+	</tr>
+	<tr>
+		<td>CATIExchangeInputDocument</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeBoundaryRepresentation</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeBody</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeRepresentation</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeShell</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeFace</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeLoop</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeEdge</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeEdgeUse</td>
+	</tr>
+		<tr>
+		<td>CATIExchangePlane</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeSurface</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeLine</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeCurve</td>
+	</tr>
+	<tr>
+		<td>CATIExchangePCurve</td>
+	</tr>
+</table>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Basic Scenario for File based Import</h2>
+<p> The Basic Scenario for the File based Import in CATIA V6 to convert into 
+tessellated geometry will demonstrate 
+following points:</p>
+<p> 1. Select the xCAD component file to be imported to V6 (extension .CAAcmp)<br>
+2. Reading the xCAD file. In case of XML format file, we need to implement DOM 
+or SAX parsers to read the data.<br>
+3. Passing the relevant data from file to the Format Convertor APIs<br>
+4. Conversion of the data into Geometry shape.<br>
+5. A Physical 3D Part is generated and saved in database / Vault</p>
+<h3> Pre-requisites</h3>
+<p> The information present inside the xCAD file should be in XML format (since 
+we have demonstrated the use-cases with XML format files). The file can be of 
+any extension, but for our use-cases it should be .CAAcmp</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h2><a name="In short"></a>In Short</h2>
+<p>We have seen the Basic geometry concept and terminologies required to 
+generate a 3D Part/Shape using Boundary representation technique. Also we have 
+seen the Architecture and Implementation code flow of Exact Conversion with 
+Interface list.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References</h2>
+ <table>
+     <tr>
+    
+       <td >&nbsp;</td>
+       <td >&nbsp;</td>
+     </tr>  
+     <tr>
+    
+       <td >[2]</td>
+       <td ><a href="CAAConvertorImportPlugIn.htm">Import Plug-in</a></td>
+     </tr> 
+   </table>
+   
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [July 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

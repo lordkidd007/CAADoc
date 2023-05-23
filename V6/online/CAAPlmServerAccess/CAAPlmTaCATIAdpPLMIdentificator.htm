@@ -1,0 +1,370 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Object Identification</title>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Object Identification</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>This article explains what the is the identifier of PLM Object,&nbsp; 
+		and what you can do with it. </p>
+      <ul>
+        <li><a href="#What is a PLM Component Identificator">What is a PLM 
+		Object Identifier?</a></li>
+		<li><a href="#What does with a PLM Component Identificator">What Can You 
+		Do with a PLM Object Identifier?</a></li>
+		<li><a href="#How to retrieve the PLM Component Identificator">How to 
+		Retrieve a PLM Object Identifier?</a></li>
+		<li><a href="#PLM Component Identificator Validity">PLM Object 
+		Identifier Validity</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="What is a PLM Component Identificator"></a>What is a PLM Object 
+Identifier?</h2>
+<p>The PLM Object&nbsp; [<a href="#References">1</a>] Identifier is the key 
+that uniquely identifies a PLM Object 
+in database. In session this identifier is an Object Modeler component [<a href="#References">2</a>] implementing the <i>
+CATIAdpPLMIdentificator</i> interface.</p>
+<table border="0" id="table2">
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmCATIAdpPLMIdentificator_CompAdp.gif" width="396" height="68"></td>
+	</tr>
+</table>
+<p>This identifier is stable (the identifier will not change), no matter 
+what modifications occurring to the PLM Object among the following:</p>
+<ul>
+	<li>attribute modifications</li>
+	<li>structure modifications ( component aggregration , component removal)</li>
+	<li>maturity change</li>
+</ul>
+<p>Nevertheless </p>
+<ul>
+	<li>if the PLM Object is re-created in another database (using the Import as New 
+	command), 
+	it is no longer the same PLM Object, thus the new PLM Object has another 
+	identifier,</li>
+	<li>if the PLM Object is versioned, the new version is new PLM Object 
+	with a new identifier. </li>
+</ul>
+<p>Whatever the type of the PLM Object ( PLM Reference, PLM Representation 
+Reference, PLM Instance, PLM Representation Instance, PLM Port, PLM Connection), 
+the PLM Object has an identifier. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="What does with a PLM Component Identificator">
+</a>What Can You Do with a PLM Object Identifier?</h2>
+<p>The PLM Object Identifier has many usages:</p>
+<ul>
+	<li><a href="#load and open in session a PLM Component">Load 
+in session a PLM Object,</a></li>
+	<li><a href="#Make  Short Transaction Operations">Make&nbsp; &quot;short 
+transaction&quot; Operations</a>,</li>
+	<li><a href="#Retrieve Identifier Set Attributes">Retrieve PLM Object Identifier Set 
+	Attributes</a>,</li>
+	<li><a href="#Compare Components">Compare PLM Objects,</a></li>
+	<li><a href="#Make Hash Table of PLM Components">Make Hash Table of PLM 
+	Objects.</a></li>
+</ul>
+<h3><a name="load and open in session a PLM Component"></a>Load in Session a PLM 
+Object</h3>
+<p>One usage of the PLM Object identifier is to<b> </b> 
+load 
+a PLM Object in session.&nbsp; You cannot directly open a component using its attributes, even 
+with its identifier set 
+attributes [<a href="#References">3</a>], you must have a&nbsp; <i>
+CATIAdpPLMIdentificator</i> interface pointer. Here are the method to open a PLM 
+Reference /A PLM Representation Reference </p>
+<ul>
+	<li>&nbsp;<code>CATAdpOpener::CompleteAndOpen(</code>CATIAdpPLMIdentificator* <b>
+	ipCompIdentificator</b>,IID&,void** <b>opCompSession</b>) </li>
+
+</ul>
+<p>The first argument of these two methods,<code> ipCompIdentificator, </code>is 
+the PLM Object identificator, and <code>opCompSession </code>is an IID 
+interface pointer on the PLM Object in session.&nbsp; </p>
+<p>Please, note that this list of method is exhaustive. It means that even if all kind of 
+PLM Objects (instance, port, connection, reference) have an identifier, you can 
+only open as root the stand-alone PLM Objects: the PLM References and the PLM Representation References.&nbsp; 
+But nevertheless, when a PLM Reference is opened, its aggregating components 
+(instance, port, connections) are loaded too.</p>
+<h3><a name="Make  Short Transaction Operations"></a>Make&nbsp; &quot;Short Transaction&quot; 
+Operations</h3>
+<p>You can also use the PLM Object identifier to make &quot;short 
+transaction&quot;<b> </b>operations. In other words, to modify directly in database 
+the PLM Object:</p>
+<ul>
+	<li>Change the maturity using <code>ApplyMaturityTransition</code> of the <i>
+	CATAdpMaturityServices</i> class , [<a href="#References">4</a>] </li>
+	<li>Version the component using <code>NewVersion</code> of the <i>
+	CATAdpVersioningServices</i> class, [<a href="#References">5</a>] </li>
+	<li>Compute the rep size using <code>GetRepresentationsDataSize</code><b>
+	</b>of the <i>CATAdpDataSizeServices</i> class. [<a href="#References">6</a>]</li>
+</ul>
+<p>Except the last case, the PLM Object must not be loaded in session to 
+apply the operation.</p>
+<h3><a name="Retrieve Identifier Set Attributes"></a>Retrieve PLM Object Identifier Set 
+Attributes.</h3>
+<p>With a CATIAdpPLMIdentificator interface, you can retrieve the identifier set attributes. There 
+is the
+<code>GetIdentificationSet</code> method of the <i>CATAdpQueryServices </i>class. 
+But this method is valid only for the PLM Objects with an identifier set. </p>
+<h3><a name="Compare Components"></a>Compare PLM Objects</h3>
+<p>Another usage of the PLM Object identifier is to compare PLM Objects. 
+You have the <code>IsEqual</code> method 
+	of the <i>CATIAdpPLMIdentificator</i> interface to make the comparison.</p>
+<table class="code" id="table5">
+  <tr>
+    <td>
+      <pre>...
+<b>CATIAdpPLMIdentificator</b>* <b>pAdpMycomp1</b> = ... ;
+<b>CATIAdpPLMIdentificator</b>* <b>pAdpMycomp2</b> = ... ;
+CATBoolean Equal ;
+pAdpMycomp2-<b>&gt;IsEqual(</b>pAdpMycomp1,Equal)<b>  ;</b>
+if ( TRUE == Equal )
+{
+....
+</pre>
+    </td>
+  </tr>
+</table>
+<h3><a name="Make Hash Table of PLM Components"></a>Make Hash Table of PLM 
+Objects</h3>
+<p>The method <code>ComputeHaskKey</code> of the <i>CATIAdpPLMIdentificator</i> 
+interface enables you to retrieve a key number to create an hash table [<a href="#References">9</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="How to retrieve the PLM Component Identificator"></a>How to 
+retrieve a PLM Object Identifier?</h2>
+<h3><a name="From Database"></a>From Database</h3>
+<p>If a PLM Object is not opened in session, to retrieve its PLM Object 
+identifier the only means is to make a database<b> query</b>. There are two kinds of 
+query:</p>
+<ul>
+	<li><b>Query with the identifier set 
+attributes</b> and the PLM Object custo type [<a href="#References">7</a>].</li>
+</ul>
+<blockquote>
+	<p>&nbsp;It is the <code>GetElementByIdentificationSet </code>method of the 
+	<i>CATAdpQueryServices </i>class. 
+	In this case you have only one result, since the identifier set attributes 
+	is unique for a PLM Object custo type [<a href="#References">3</a>]. </p>
+</blockquote>
+<ul>
+	<li><b>Query with a set of attributes</b> and the PLM Object custo 
+	type [<a href="#References">7</a>]. </li>
+</ul>
+<blockquote>
+	<p>It is the <code>GetElementsFromAttributes
+	</code>method of the <i>CATAdpQueryServices </i>class. In this case, the 
+	result can be multiple.&nbsp; </p>
+</blockquote>
+<h3><a name="From a PLM Component in Session"></a>From a PLM Object in Session</h3>
+<p>All PLM Objects in session implement the <i>CATIPLMComponent</i> interface 
+(It's why we call them PLM Component once in session). This interface, through the <code>GetAdpID</code> method enables you 
+to retrieve the PLM Object identifier.&nbsp; </p>
+<h2 align="left"><a name="PLM Component Identificator Validity"></a>PLM Object 
+Identifier Validity</h2>
+<p align="left">To be exact this chapter explains the validity of a <i>
+CATIAdpPLMIdentificator</i> interface pointer. </p>
+<h3 align="left">Partially Valid Still the PLM Object is not Saved</h3>
+<p align="left">The PLM Object identifier consists in several parts whose 
+some are fill up only when the PLM Object is created at the first time in the 
+database. While the PLM Object does not exist in database (a Save has not 
+been performed)&nbsp; you cannot execute
+<a href="#What does with a PLM Component Identificator">short transaction</a> 
+(i.e. remote operations).&nbsp; But you can use it to compare two PLM Objects, 
+or to create an hash table key.&nbsp; The save operation does not change 
+anything which could change the comparison test, or change the key value 
+returned by the <code>ComputeHaskKey</code> method. </p>
+<p align="left">The method <code>IsValidForRemoteUsage</code> returns the 
+validity of the CATIAdpPLMIdentificator interface pointer. </p>
+<p align="left">But attention, once the PLM Object is saved for the first 
+time in database, you must re-ask a <i>CATIAdpPLMIdentificator</i> interface 
+pointer to have a valid pointer.&nbsp; Here a simple scenario:</p>
+<table class="code" id="table6">
+  <tr>
+    <td>
+      <pre>...
+<b>Create</b> <b>Component</b> (CATIPLMComponent *pCompInsession=....)
+CATIAdpPLMIdentificator* pAdpMycomp = NULL ;
+pCompInsession-><b>GetAdpID</b>(pAdpMycomp);
+pAdpMycomp-><b>IsValidForRemoteUsage</b> <b>returns FALSE</b>
+<b>Save Session</b>
+pAdpMycomp-> <b>IsValidForRemoteUsage</b> always <b>returns FALSE</b>
+pAdpMycomp->Release();
+pCompInsession-><b>GetAdpID</b>(pAdpMycomp);
+pAdpMycomp-><b>IsValidForRemoteUsage</b> <b>returns TRUE</b>
+...</td>
+  </tr>
+</table>
+<h3 align="left">Still Valid after a PLM Object Unloading</h3>
+<p align="left">The same CATIAdpPLMIdentificator interface pointer can be 
+re-used to re-open a PLM Object or to make a <a href="#What does with a PLM Component Identificator">short transaction</a> operation once its 
+PLM Object has been unloaded from the session. Consider the two following scenarios: </p>
+<ul>
+	<li>Retrieving the identifier from one method of the <i>CATAdpQueryServices</i> class</li>
+</ul>
+<table class="code" id="table3">
+  <tr>
+    <td>
+      <pre>...
+<b>CATIAdpPLMIdentificator</b>* <b>pAdpMycomp</b> = NULL ;
+CATAdpIdentificationSet MyAttributeSetsForMyComp ; 
+CATIAdpType  *pCATIAdpTypeForMyComp = .... ;
+CATAdpQueryServices<i>::</i><b>GetElementByIdentificationSet</b>(pCATIAdpTypeForMyComp ,MyAttributeSetsForMyComp ,<b>pAdpMycomp </b>) 
+CATIPLMComponent * pCompInsession = NULL ;
+CATOmbLifeCycleRootsBag Bag ;
+CATAdpOpener opener(Bag);
+opener.<b>CompleteAndOpen</b>(pAdpMycomp ,IID_CATIPLMComponent,pCompInSession) ;
+
+.....
+Bag-&gt;<b>RemoveRoot</b>(pCompInSession);
+...
+opener.<b>CompleteAndOpen</b>(pAdpMycomp ,IID_CATIPLMComponent,pCompInSession) ;
+</pre>
+    </td>
+  </tr>
+</table>
+<p>In this scenario, the identifier is retrieved from the <code>GetElementByIdentificationSet</code><b> </b>method of the <i>CATAdpQueryServices</i> class. Next the 
+PLM Object is 
+loaded in session using the <code>CompleteAndOpen</code> method. Thereafter the 
+life cycle of the PLM Object in session (named a PLM Component), <code>pCompInSession</code> is 
+managed by the bag object [<a href="#References">8</a>]. After the <code>RemoveRoot</code> method, the 
+PLM Component is unloaded. But 
+nevertheless the <code>pAdpMycomp</code><b> </b>pointer is still valid. You can 
+use it to re-open the component, or to make a <a href="#What does with a PLM Component Identificator">short transaction</a> operation.</p>
+<ul>
+	<li>Retrieving the identifier from the <i>CATIPLMComponent</i> interface</li>
+</ul>
+<table class="code" id="table4">
+  <tr>
+    <td>
+      <pre>... 
+CATIPLMComponent * pCompInsession = ...;
+<b>CATIAdpPLMIdentificator</b>* pAdpMycomp = NULL ;
+pCompInsession-&gt;<b>GetAdpID</b>(pAdpMycomp);
+CATOmbLifeCycleRootsBag Bag ;
+Bag-&gt;<b>InsertRoot</b>(pCompInSession);
+.....
+Bag-&gt;<b>RemoveRoot</b>(pCompInSession);
+...
+CATIPLMComponent * pNewCompInsession = NULL ;
+opener.<strong>CompleteAndOpen</strong>(pAdpMycomp ,IID_CATIPLMComponent,pCompInSession) ; ;
+</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">In this scenario, you have retrieved a <i>CATIPLMComponent</i> interface pointer, <code>pCompInsession,</code>&nbsp; on a component which has 
+been previously loaded. The identifier is retrieved 
+with the <code>GetAdpID</code> method of the&nbsp; <i>CATIPLMComponent</i> interface. But nevertheless, after the <code>RemoveRoot</code> method, the <code>pAdpMycomp</code><b> </b>pointer is still valid. You can 
+use it to re-open the component, or to make a <a href="#What does with a PLM Component Identificator">short transaction</a> operation.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The PLM Object identifier is handled by the <i>CATIAdpPLMIdentificator</i> interface. It is the unique key to identify a 
+PLM Object in database. You can 
+use it for the following operations:</p>
+<ul>
+	<li>Load PLM Objects (only PLM Reference &amp; PLM Representation 
+	Reference),</li>
+	<li>Apply short transaction operations (modification directly in database),</li>
+	<li>Compare PLM Objects.</li>
+</ul>
+<p>You have also learned that the PLM Object identifier is always valid even 
+if the PLM Object has been unloaded from the session. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <colgroup>
+		<col valign="top" span="1">
+	</colgroup>
+    <td valign="top">[1]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">
+	PLM Core Modeler Overview</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td>
+	<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">	Creating Components</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[3]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">
+	PLM Attributes</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[4]</td>
+    <td><a href="CAAAdpUcMaturity.htm">Changing PLM Object Maturity</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAPlmTaVersioningPrinciples.htm">Versioning a PLM Object</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[6]</td>
+    <td><a href="CAAAdpUcRepSize.htm">Computing PLM Representation Reference Size</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[7]</td>
+    <td>
+	<a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">
+	PLM Customization</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[8]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm')">Understanding
+	PLM Component Life Cycle</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[9]</td>
+    <td>
+	<a href="../CAASysMiddleware/CAASysUcMidHashTables.htm">	Using Hash Table</a></td>
+  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Nov 2006]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+   <script type="text/javascript">insertLinkToTop()</script>
+  </tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script></body>
+
+</html>
+
+

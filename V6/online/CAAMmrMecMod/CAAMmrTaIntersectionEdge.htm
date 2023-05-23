@@ -1,0 +1,451 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Intersection Edge: a Procedural BRep Feature</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Intersection Edge: a Procedural BRep Feature</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This advanced article explains what is an Intersection Edge, and how 
+		to create it.</p>
+		<ul>
+			<li><a href="#100000">What Is an Intersection Edge?</a></li>
+			<li><a href="#200000">How to Create an Intersection Edge?</a>
+				<ul>
+					<li><a href="#210000">Creating an Empty Intersection Edge</a></li>
+					<li><a href="#220000">Featurizing a Selecting Edge</a></li>
+				</ul>
+			</li>
+			<li><a href="#300000">Featurization Parameters</a>
+				<ul>
+					<li><a href="#310000">Standard Featurization</a></li>
+					<li><a href="#320000">Continuity in Tangency Featurization</a></li>
+					<li><a href="#330000">No Propagate Featurization</a></li>
+				</ul>
+			</li>
+			<li><a href="#400000">Resolution Modes</a>
+				<ul>
+					<li><a href="#410000">MfResolutionMode_FreeEdges</a></li>
+					<li><a href="#420000">MfResolutionMode_ListAgainstList</a></li>
+					<li><a href="#430000">MfResolutionMode_ListAgainstCurrent</a></li>
+					<li><a href="#440000">MfResolutionMode_GeneratedEdges</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What Is an Intersection Edge?</h2>
+<p>An Intersection Edge is a distinctive kind of BRep feature. A BRep feature generally 
+stores a reference to a topological cell. This reference is a stable description 
+that enables you to retrieve the referenced cells. In the case of an Intersection 
+Edge, the BRep feature stores a description of the way to compute the intersection. 
+It is a procedural feature.</p>
+<p>The Intersection Edge is based on two elements:</p>
+<ol>
+	<li>One or two lists of features to operate.</li>
+	<li>A resolution mode, which defines how the two lists must be operated.</li>
+</ol>
+<p>According to the resolution mode, the computation between the two lists results 
+in a set of edges, named Intersection Edge. This set is not necessarily a set of 
+continuous edges, neither manifold, nor connex.</p>
+<p>This article describes the two ways to <a href="#200000">Creating an Intersection 
+Edge</a>.</p>
+<p>It then details the <a href="#300000">Featurization Parameters</a>, common to 
+both creation methods.</p>
+<p>The last part of the article explains what are the <a href="#400000">Resolution 
+Modes</a>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>How to Create an Intersection Edge?</h2>
+<p>There are two ways to create an Intersection Edge:</p>
+<ol>
+	<li><a href="#210000">Creating an Empty Intersection Edge</a> and then giving 
+		the input elements.</li>
+	<li><a href="#220000">Featurizing a Selecting Edge</a>.</li>
+</ol>
+<p>In both cases, the result is an Intersection Edge, a feature implementing the
+<em><strong>CATIMmiUseMfBRep</strong></em> and <em><strong>CATIMmiUseBRep</strong></em> 
+interfaces as any BRep feature, but also the <em><strong>CATIMfIntersectionEdge</strong></em> 
+interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Creating an Empty Intersection Edge</h3>
+<p>You should use the <code><strong>CreateMfIntersectionEdge</strong></code> method 
+of the <em><strong>CATIMmiBRepFactory</strong></em> interface, implemented by the 
+Specification Container, <code>CATPrtCont</code>. Refer to the technical article &quot;From 
+the PLM Representation to the 3D Shape&quot; [<a href="#References">4</a>] for information 
+on the Specification Container.</p>
+<pre class="code">virtual HRESULT CreateMfIntersectionEdge(const CATIMmiUseBRepAccess_var iSelectingObject,
+                                         const CATMfFeaturizeMode iMode,
+                                         const CATBaseUnknown_var &amp;iSupport,
+                                         CATIMmiUseMfBRep_var &amp;oBRepFtr) = 0;</pre>
+<p>The first argument, <code>iSelectingObject</code>, is the optional initial edge. 
+It is useful in the case of <a href="#440000">MfResolutionMode_GeneratedEdges</a> 
+resolution mode only.</p>
+<p>The second argument, <code>iMode</code>, enables you to specify the featurization 
+parameters. This is described in <a href="#300000">Featurization 
+Parameters</a>.</p>
+<p>The <code>iSupport</code> argument can be used to explicitly specify the BRep 
+support.</p>
+<p>This method creates an &quot;empty&quot; Intersection Edge that you complete 
+using the <em><strong>CATIMfIntersectionEdge</strong></em> interface. You can set:</p>
+<ul>
+	<li>The first operand list : <code><strong>SetFirstOperands</strong></code>.</li>
+	<li>The second operand list<code> (</code>if necessary, it depends on the resolution 
+		mode): <code><strong>SetSecondOperands</strong></code>.</li>
+	<li>The resolution mode: <code><strong>SetIntersectionResolveMode</strong></code>.</li>
+</ul>
+<p>There is another method, <code>SetTangentPropagationMode</code>, but it is only 
+useful for the <a href="#320000">Continuity in Tangency Featurization</a> 
+mode.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>Featurizing a Selecting Edge</h3>
+<p>You should use the <code><strong>Featurize</strong></code> method of the <em>
+<strong>CATIMmiUseFeaturize</strong></em> interface on a Relimited Edge selection 
+object (that is to say a BRep Access object implementing <em><strong>CATIMmiUseREdge</strong></em>). 
+You must use one of the <code>Featurize</code> methods that has <code>CATMfFeaturizeMode</code> 
+as input argument, since specific parameter values need to be specified. These values 
+are described in <a href="#300000">Featurization Parameters</a>.</p>
+<pre class="code">virtual HRESULT Featurize(CATIMmiUseMfBRep_var &amp;oBRepFeature, 
+                          const CATMfFeaturizeMode iMode, 
+                          const CATBaseUnknown_var &amp;iSupport = NULL_var) = 0;
+
+virtual HRESULT Featurize(CATIMmiUseMfBRep_var &amp;oBRepFeature,
+                          const CATMfFeaturizeMode iMode,
+                          CATMmrLimitationType iType = CATMmrDefaultLimitationType) = 0;</pre>
+<p>This methodology is strictly equivalent to using <code>CreateMfIntersectionEdge</code> 
+with the <code>iSelectingObject</code> parameter valuated. The resolution mode in 
+this case is <a href="#440000">MfResolutionMode_GeneratedEdges</a>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Featurization Parameters</h2>
+<p>The featurization mode is valuated thanks to the <strong>CATMfFeaturizeMode</strong> 
+argument. This argument can be a combination of featurization parameters. Refer 
+to the technical article &quot;Generic Naming Overview&quot; [<a href="#References">1</a>] 
+for general explanations on the featurization parameters.</p>
+<p>To create an intersection edge, there are three specific parameters:</p>
+<ol>
+	<li><code>MfFeaturizeIntersection</code> for a <a href="#310000">Standard Featurization</a>.</li>
+	<li><code>MfFeaturizeC1Intersection</code> for a <a href="#320000">Continuity 
+		in Tangency Featurization</a>.</li>
+	<li><code>MfFeaturizeC1Intersection|MfFeaturizeSubElement</code> for a
+		<a href="#330000">No Propagate Featurization</a>.</li>
+</ol>
+<p>The final Featurization mode could be for example:</p>
+<ul>
+	<li><code>MfFeaturizeIntersection|MfInitialFeatureSupport</code></li>
+	<li><code>MfFeaturizeC1Intersection|MfFeaturizeSubElement</code>|MfSelectingFeatureSupport</li>
+</ul>
+<p>But you should not use <code>MfFeaturizeSubElement</code> with <code>MfFeaturizeIntersection.</code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="310000"></a>Standard Featurization</h3>
+<p>The <code>CATMfFeaturizeMode</code> is : <code><strong>MfFeaturizeIntersection</strong></code>.</p>
+<p>It is the first and simplest mode. With this mode, the initial edge argument 
+is useless.</p>
+<p>In this case, the type of the created intersection edge is <code><strong>Type_TgtIntersEdge</strong></code>. 
+It is the type returned by the <code><strong>GetIntersectionEdgeType</strong></code> 
+method of the <em><strong>CATIMfIntersectionEdge</strong></em> interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="320000"></a>Continuity in Tangency Featurization</h3>
+<p>The <code>CATMfFeaturizeMode</code> is: <code><strong>MfFeaturizeC1Intersection</strong></code> 
+.</p>
+<p>It is an advanced mode to only get a set of edges that are continuous in tangency 
+(C1). This featurization mode requires:</p>
+<ul>
+	<li>An initial edge.</li>
+	<li>The resolution mode must be <code><strong>MfResolutionMode_GeneratedEdges</strong>.</code></li>
+</ul>
+<p>The edges are computed by a propagation from the initial edge as long as there 
+is a continuity in tangency. The way this computation is done may be specified using 
+the <code><strong>SetTangentPropagationMode</strong></code> method of the <em>
+<strong>CATIMfIntersectionEdge</strong></em> interface with the following options:</p>
+<ul>
+	<li><code><strong>MfTangentPropagationMode_Standard</strong></code>
+		<p>The propagation is similar to the one made by the &quot;Extract Operator&quot; 
+		(GSD app) in tangency mode. See <a href="#Fig6">Fig.6</a>.</p>
+	</li>
+	<li><code><strong>MfTangentPropagationMode_Fillet</strong></code>
+		<p>The propagation is similar to the one computing edges for filleting in 
+		tangency mode. See <a href="#Fig7">Fig.7</a>.</p>
+	</li>
+</ul>
+<p>Normally an intersection edge is a &quot;<code><strong>Type_TgtIntersEdge</strong></code>&quot; 
+feature. But in the C1 case, since it is computed from an initial edge, it could 
+happen that the result is less procedural than a &quot;true&quot; intersection edge. 
+It is the case if the selecting object, the initial edge, is not generated by a 
+feature itself. In this case the intersection edge is a &quot;<code><strong>Type_TgtEdge</strong></code>&quot; 
+feature.</p>
+<p><strong>Note</strong>: <code><strong>Type_TgtIntersEdge</strong></code> and
+<code><strong>Type_TgtEdge</strong></code> are the intersection edge types returned 
+by the <code><strong>GetIntersectionEdgeType</strong></code> method of the <em>
+<strong>CATIMfIntersectionEdge</strong></em> interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="330000"></a>No Propagate Featurization</h3>
+<p>The CATMfFeaturizeMode is <strong>MfFeaturizeC1Intersection|MfFeaturizeSubElement</strong></p>
+<p>It is another advanced featurization mode. It enables you to have an intersection 
+edge similar to an edge, (&quot;<code><strong>Type_TgtEdge</strong></code>&quot; 
+feature), but containing the information of the generating feature (the one in the 
+list).</p>
+<p>This kind of intersection edge is a &quot;<code><strong>Type_NotPropagEdge</strong></code>&quot; 
+feature.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Resolution Modes</h2>
+<p>There are four resolution modes:</p>
+<ol>
+	<li><a href="#410000">MfResolutionMode_FreeEdges</a>.</li>
+	<li><a href="#420000">MfResolutionMode_ListAgainstList</a>.</li>
+	<li><a href="#430000">MfResolutionMode_ListAgainstCurrent</a>.</li>
+	<li><a href="#440000">MfResolutionMode_GeneratedEdges</a>.</li>
+</ol>
+<p>For each mode is explained the requirement in terms of options and necessary 
+input information, and the algorithm to compute the edges. Each mode is illustrated 
+by an example.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="410000"></a>MfResolutionMode_FreeEdges</h3>
+<p><strong>Requirement</strong>:</p>
+<ul>
+	<li>Only one list of input (the second is ignored), and this first list must 
+		contain just one feature.</li>
+	<li>The featurization mode is <code><strong>MfFeaturizeIntersection</strong></code></li>
+</ul>
+<p><strong>Algorithm</strong>: Retrieve edges whose adjacent faces are issued from 
+the input feature.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig.1 MfResolutionMode_FreeEdges</caption>
+	<tr>
+		<td>
+		<img alt="MfResolutionMode_FreeEdges" height="395" src="images/IntersectionEdge/CAAMmr_01_Pad2FreeEdges.png" width="536"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains
+<code>Pad.2</code>.</p>
+<p>You can see that all these edges are adjacent to faces which are &quot;blue&quot;, 
+so are issued from pad.2. The edges which are adjacent to a blue and green faces, 
+or blue and yellow faces are not inside the result.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="420000"></a>MfResolutionMode_ListAgainstList</h3>
+<p><strong>Requirement</strong>:</p>
+<ul>
+	<li>Two lists of features to operate.</li>
+	<li>The featurization mode is <code><strong>MfFeaturizeIntersection</strong></code>.</li>
+</ul>
+<p><strong>Algorithm</strong>: Retrieve edges for which one adjacent face is issued 
+from a feature of the first list and one adjacent face is issued from a feature 
+of the second list.</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2 MfResolutionMode_ListAgainstList</caption>
+	<tr>
+		<td>
+		<img alt="MfResolutionMode_ListAgainstList" height="452" src="images/IntersectionEdge/CAAMmr_02_Pad1Pad3AgainstPad2.png" width="612"/><p>
+		</p>
+		</td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains
+<code>Pad.1</code> and <code>Pad.3</code> and the second <code>Pad.2</code></p>
+<p>You can see that all these edges are adjacent to a blue face (<code>Pad.2</code>) 
+and either a yellow face (<code>Pad.3</code> ) or a green face (<code>Pad.1).</code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="430000"></a>MfResolutionMode_ListAgainstCurrent</h3>
+<p><strong>Requirement</strong>:</p>
+<ul>
+	<li>Only one list of input (the second is ignored).</li>
+	<li>The featurization mode is <code><strong>MfFeaturizeIntersection</strong></code>.</li>
+</ul>
+<p><strong>Algorithm</strong>: Retrieve edges for which one adjacent face is issued 
+from a feature of the first list and one adjacent face is issued from the current 
+context.</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3 MfResolutionMode_ListAgainstCurrent</caption>
+	<tr>
+		<td>
+		<img alt="MfResolutionMode_ListAgainstCurrent" height="452" src="images/IntersectionEdge/CAAMmr_03_Pad1AgainstCurrent.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains
+<code>Pad.1</code> and the current feature is <code>Pad.2</code></p>
+<p>You can see that all these edges are adjacent to a blue face (<code>Pad.2</code>) 
+and to a green face (<code>Pad.1).</code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="440000"></a>MfResolutionMode_GeneratedEdges</h3>
+<p><strong>Requirement</strong>:</p>
+<ul>
+	<li>Only one list of input (the second is ignored), and this list must contain 
+		just one feature.</li>
+	<li>The featurization mode can be any of the three options: <code><strong>MfFeaturizeIntersection</strong></code>,
+		<code><strong>MfFeaturizeC1IntersectionStandard</strong></code>, or
+		<code><strong>MfFeaturizeC1Intersection|MfFeaturizeSubElement</strong></code>.</li>
+	<li>One initial edge (only for the C1 or NoPropagate).</li>
+</ul>
+<p><strong>Algorithm</strong>: It depends on the featurization mode:</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>MfFeaturizeIntersection</h4>
+<table>
+	<caption><a name="Fig4"></a>Fig.4 GeneratedEdges &amp; MfFeaturizeIntersection</caption>
+	<tr>
+		<td>
+		<img alt="GeneratedEdges &amp; MfFeaturizeIntersection" height="468" src="images/IntersectionEdge/CAAMmr_04_Trim1GeneratedEdges.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains 
+the trim feature (result of a trim between blue and green features).</p>
+<p>The intersection edge is the set of edges generated by the trim operation.</p>
+<table>
+	<caption><a name="Fig5"></a>Fig.5 GeneratedEdges &amp; MfFeaturizeIntersection &amp; 
+	Fillet</caption>
+	<tr>
+		<td>
+		<img alt="GeneratedEdges &amp; MfFeaturizeIntersection &amp; Fillet" height="542" src="images/IntersectionEdge/CAAMmr_05_Trim1GeneratedEdges_FilletCreatedAfter.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains 
+the trim feature (result of a trim between blue and green features). A fillet was 
+created after the trim.</p>
+<p>The intersection edge is the set of edges generated by the trim operation. The 
+edge between yellow and green faces was generated by the fillet and not by the trim, 
+therefore it doesn't belong to the intersection edge.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>MfFeaturizeC1Intersection</h4>
+<p>In this case an initial edge is mandatory. Its definition is explained in the
+<a href="#200000">How to Create an Intersection Edge?</a> 
+section .</p>
+<p>In the first example, we have used the <strong>standard</strong> propagation 
+to compute the edges &quot;continuous in tangency&quot; (= C1). See
+<a href="#320000">Continuity in Tangency Featurization</a>.</p>
+<table>
+	<caption><a name="Fig6"></a>Fig.6 GeneratedEdges &amp; MfFeaturizeC1Intersection &amp; 
+	Standard Propagation</caption>
+	<tr>
+		<td>
+		<img alt="GeneratedEdges &amp; MfFeaturizeC1Intersection &amp; Standard Propagation" height="501" src="images/IntersectionEdge/CAAMmr_06_Trim1C1PropagStdAsExtract.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains 
+the trim feature (result of a trim between blue and green features), and the initial 
+edge is the one indicated on the picture.</p>
+<p>You can see on that:</p>
+<ul>
+	<li>All these edges are continuous in tangency: from the initial edge we have 
+		searched for edges while there is a C1 continuity.</li>
+	<li>The initial edge is important, since the intersection edge contains edges 
+		which are not adjacent to a face.</li>
+</ul>
+<p>In the second example, we have used the <strong>Fillet</strong> propagation to 
+compute the edges &quot;continuous in tangency&quot; (= C1). See
+<a href="#320000">Continuity in Tangency Featurization</a>.</p>
+<table>
+	<caption><a name="Fig7"></a>Fig.7 GeneratedEdges &amp; MfFeaturizeC1Intersection &amp; 
+	Fillet Propagation</caption>
+	<tr>
+		<td>
+		<img alt="GeneratedEdges &amp; MfFeaturizeC1Intersection &amp; Fillet Propagation" height="501" src="images/IntersectionEdge/CAAMmr_07_Trim1C1PropagAsFillet.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains 
+the trim feature (result of a trim between blue and green features), and the initial 
+edge is the one indicated on the picture.</p>
+<p>You can see that all these edges are continuous in tangency: from the initial 
+edges, we have searched for edges while there is a C1 continuity.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>MfFeaturizeC1Intersection|MfFeaturizeSubElement</h4>
+<table>
+	<caption><a name="Fig8"></a>Fig.8 GeneratedEdges &amp; NoPropagate Mode</caption>
+	<tr>
+		<td>
+		<img alt="GeneratedEdges &amp; NoPropagate Mode" height="501" src="images/IntersectionEdge/CAAMmr_08_Trim1NotPropagation.png" width="612"/></td>
+	</tr>
+</table>
+<p>The red edges are the edges of the intersection edge. The first list contains 
+the trim feature (result of a trim between blue and green features), and the initial 
+edge is the one indicated on the picture.</p>
+<p>The result is the same as a standard selection of an edge.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article you have learnt:</p>
+<ul>
+	<li>How to create an intersection edge either using the <em><strong>CATIMmiUseFeaturize</strong></em> 
+		or the <em><strong>CATIMmiBRepFactory</strong></em> interface.</li>
+	<li>How to use the <em><strong>CATIMfIntersectionEdge</strong></em> interface, 
+		implemented by the intersection edge.</li>
+	<li>To understand the different resolution modes and featurization modes through 
+		examples.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrTaGenericNaming.htm">Generic Naming Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaBRepFeatureGlossary.htm">BRep Features</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrTaBRepAccessGlossary.htm">BRep Access Objects</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrTa3DShape.htm">From the PLM Representation to the 3D 
+		Shape</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Apr 2010]</td>
+		<td>Document updated for V6 novelties</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

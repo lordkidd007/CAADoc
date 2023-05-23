@@ -1,0 +1,150 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>xPDM Plug-in</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>MultiCAD Convertors: xPDM Plug-in</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article&nbsp;</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+		<p>This article describes how to declare and plug your convertor in xPDM 
+		for APP format to V6.</p>
+	</td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Step-by-Step</h2>
+<p>There are three logical steps to plug a converter in xPDM:</p>
+<ol>
+	<li>Declaration in a .capa file</li>
+	<li>Declaration of the component in its dictionary</li>
+	<li>Declaration of the Late Type in the implementation</li>
+</ol>
+<p><strong>Warning</strong>: In xPDMMode, Assembly CAD data (product structure) are not supported.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3>Declaration in the .capa file</h3>
+<pre class="code">From[prt,PROE_Dummy] On[File] WithParameters[BatchMode,xPDMMode,GeometryType=TessAndExact,FileType=BINARY,DefaultConverter,DefaultExtension]</pre>
+<p>Example of the .capa file for the usage PROE_Dummy, where PROE is the <strong>
+APPFormat</strong> and Dummy the <strong>ConverterID</strong>. This usage is 
+associated with following ProE extension: part (.prt).</p>
+<p>The definition of the new format thru a usage associated to one or several 
+extensions is made in a .capa file. Each line defines a couple of extension, 
+APPFormat and ConverterID. Several lines are required in case of several 
+extension(s), APPFormat(s) associated to your ConverterID.</p>
+<p>The CAA .capa file is declared here: InstallRootFolder\win_b64\code\ImportRegistry\<b>FormatConvertorImporter</b>.capa </p>
+<p>This .capa file must be completed with the lines corresponding to your CAA 
+convertor(s). </p>
+<p>In order to avoid any conflict with other CAA installation, the identifier of 
+your converter (named &#8216;usage&#8217;, and associated to the CAD extension) must be 
+unique, and should correspond to &#8220;APPFormat_ConverterID&#8221;</p>
+<p>Semantic of the .capa file:</p>
+<pre class="code"><b>From</b>[Extension, Usage] <strong>On</strong>[File] <b>WithParameters</b>[param1,param2, paramName3=paramValue3...]</pre>
+<p>Where:<br>
+<b>Extension</b>: extension of the external format (ex for CAD format : .prt, .prt.*, 
+.jt &#8230;)<br>
+<b>Usage</b>: The usage is the concatenation of &#8220;APPFormat&quot;_&quot;ConverterID&#8221;. The 
+usage is unique for a given extension. (ex for CAD format: NX_CAACustomer1, 
+Creo_CAACustomer2, JT_CAACustomer1 &#8230;) <br>
+<b>On[File]</b>: argument requested for PLM Access Import. <br>
+<b>WithParameters</b>[param1,param2,paramName3=paramValue3,...] : list of 
+parameters used during the conversion. <br>
+- <b>BatchMode</b>: the conversion can be used in Batch mode <br>
+- <b>xPDMMode</b>: the conversion can be used in xPDM mode <br>
+- <b>GeometryType</b>: Name of the parameter with following value: (Only used in 
+xPDM mode)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+Default value is: <strong>TessAndExact</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>TessOnly</b>: value of GeometryType. The converter or the format only 
+supports tessellation geometry.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>ExactOnly</b>: value of GeometryType. The converter or the format only 
+supports exact geometry. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>TessAndExact</b>: value of GeometryType. The converter or the format supports 
+both tessellated &amp; exact geometry.<br>
+- <b>FileType</b>: Name of the parameter with following value: (Only used in 
+xPDM mode)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+Default value is: <strong>BINARY</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>TXT</b>: value of FileType. The format of the file is text (ascii). <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>BINARY</b>: value of FileType. The format of the file is binary. <br>
+- <b>DefaultConverter</b>: In the context of xPDM mode, defines the default 
+converter to use for one format. This parameter is managed by the administrator.<br>
+- <b>DefaultExtension</b>: In the context of xPDM mode, defines the default 
+extension to use for one format. This parameter is managed by the administrator.<br>
+</p>
+
+<script type="text/javascript">insertCopyright();</script>
+
+<h3> Declaration of the component in its dictionary </h3>
+<p> Declare the component in its dictionary for the &quot;CATInstantiateComponent&quot; 
+Factory (This task is required for any V6 Collaboration use case). </p>
+<p> The dictionary (.dico) declares the APP Format Reader in the V6 runtime 
+environment. </p>
+<p> It enables the Format Conversion Services Factory to load dynamically the 
+Reader. </p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAV6Convertordico.jpg" width="804" height="217"></td>
+	</tr>
+</table>
+<pre class="code">CAAProEInputDocument	   	CATIExchangeInputDocument 		libCAAfromPROE
+XCAD_PROE_Dummy_InputDocument 	CATICreateInstance 	 	libCAAfromPROE </pre>
+<p> Example of MyXCAD_CAAVI dictionary file</p>
+<h3>Declaration of the late type in the implementation </h3>
+<pre class="code">#include "CATICreateInstance.h"
+CATImplementClass( APPFormatInputDocumentCreationFactory, CodeExtension, CATBaseUnknown, XCAD_APPFormat_ConverterID_Input&nbsp;</pre>
+<p>The CAA Implementation of the Input Document declares the above Late Type.&nbsp;</p>
+<h2><a name="In short"></a>In Short</h2><p>All the above steps are mandatory in 
+order to include our own Convertor Services in V6.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Jan 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

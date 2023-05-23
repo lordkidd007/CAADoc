@@ -1,0 +1,538 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" lang="en"><head>
+<meta http-equiv="Content-Language" content="en-us"/>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252"/>
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Scenario representation</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tbody><tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Migrating from ELFINI Linear Elastic 
+		Domains APIs to the Simulation Domain APIs</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</tbody></table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tbody><tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains how to import or upgrade a material definition 
+		with ELFINI Linear Elastic domain data into the current release by 
+		creating a simulation domain and its material options.
+		The ELFINI Linear Elastic domain has been deprecated in the R2015x 
+		release.</p>
+		</td>
+	</tr>
+</tbody></table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>Background</h2>
+<p><span>When you import or upgrade a material definition with ELFINI Linear 
+Elastic Domain data into the current release, some of those data are transferred 
+into equivalent material characteristics in the Simulation domain.</span> </p>
+<p>The
+<span class="glossterm" id="ELFINI-linear-elastic-domain" onmouseout="hideTerm()" onmouseover="showTerm('ELFINI-linear-elastic-domain.xml')">
+ELFINI Linear Elastic Domain</span> enabled you to model isotropic and 
+orthotropic
+<span class="glossterm" id="material" onmouseout="hideTerm()" onmouseover="showTerm('material.xml')">
+material</span> behaviors in V5 and in releases of the
+<span xmlns="http://www.w3.org/1999/xhtml"><span xmlns="" class="tm-3D">3D</span>EXPERIENCE 
+platform</span> prior to R2015x. When you import model data or simulation data 
+from V5 or upgrade data from a <span xmlns="http://www.w3.org/1999/xhtml">
+<span xmlns="" class="tm-3D">3D</span>EXPERIENCE platform</span> release prior 
+to R2015x, the <span xmlns="http://www.w3.org/1999/xhtml">
+<span xmlns="" class="tm-3D">3D</span>EXPERIENCE platform</span> copies the 
+physical properties defined in selected material behaviors from the ELFINI 
+Linear Elastic Domain and creates equivalent values in a Simulation domain in a 
+new material definition. This translation is supported for only a subset of 
+material behaviors in the ELFINI Linear Elastic Domain: material characteristics 
+in the Isotropic, Orthotropic 2D, and Orthotropic 3D behaviors are transferred 
+during import, while those in the Fiber and Honeycomb behaviors are not. </p>
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2>The Upgrade Process</h2>
+<p>There are four logical steps in the upgrade process: </p>
+<ol>
+	<li><a href="#Step1">Creating the domain</a></li>
+	<li><a href="#Step2">Getting the domain from the material</a></li>
+	<li><a href="#Step3">Creating different types of material options</a> </li>
+	<li><a href="#Step4">Setting and getting values of the material option </a></li>	
+</ol>
+<p>We will now discuss each of those sections in detail.</p>
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the domain</h3>
+<p>To create the domain, run these commands: </p>
+<pre class="code">
+CATIMaterialDomain::AddApplicativeSpec(CATUnicodeString&amp; iSpecType);
+</pre>
+
+<p><b>Elfini domain:</b></p>
+
+<pre class="code">
+iSpecType = CATFeaIsotropicMaterial
+</pre>
+
+<p><b>Simulation domain:</b></p>
+
+<pre class="code">
+iSpecType = SMAMaterialDomain
+</pre>
+
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Getting the domain from the material</h3>
+<p>The next step of this use case involves the copying of domain information 
+from the material.</p>
+<pre class="code">
+CATIMaterialDomain::GetApplicativeSpec(CATUnicodeString&amp; iType, CATIMaterialDomainContent *&amp; opiCont);
+</pre>
+
+<p><b>Elfini domain:</b></p>
+
+<pre class="code">
+iType = CATFeaIsotropicMaterial
+</pre>
+
+<p><b>Simulation domain:</b></p>
+
+<pre class="code">
+iType = SMAMaterialDomain
+</pre>
+
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Creating different types of material options</h3>
+<p>The next step of this use case involves the creation of different types of 
+material options in the target Simulation domain. These material options can 
+include Isotropic, Orthotropic 2D/3D, etc. </p>
+
+<p><b>Elfini domain:</b></p>
+
+<pre class="code">
+CATIMaterialDomainContent * piCont;
+piCont-&gt;GetApplicativeSpec(“CATFeaIsotropicMaterial”, piCont);
+
+<span class="comment">//For isotropic</span>
+CATIFeaMechanicalMaterial_var spFeaMechanicalMaterial(piCont);
+spFeaMechanicalMaterial-&gt;SetType(“CATFeaIsotropicMaterial”); 
+
+<span class="comment">//For orthotropic 2D</span>
+spFeaMechanicalMaterial-&gt;SetType(“CATFeaOrthotropic2DMaterial”);
+</pre>
+
+<p><b>Simulation domain:</b></p>
+
+<pre class="code">
+CATIMaterialDomainContent * piCont;
+piCont-&gt;GetApplicativeSpec(“SMAMaterialDomain”, piCont);
+
+SMAIMatMaterialDomain _var spSimulationDomain(piCont);
+spSimulationDomain -&gt;CreateMaterialOption(“SMAMatElasticity”, spMatOption );
+
+<span class="comment">//For isotropic</span>
+SMAIMatElastic_var spElastic(spMatOption);
+spElastic-&gt;SetElasticType(SMAIMatElastic::Isotropic);
+
+<span class="comment">//For orthotropic 2D</span>
+spElastic-&gt;SetElasticType(SMAIMatElastic::Orthotropic);
+</pre>
+
+<p>For more information on interfaces SMAIMatMaterialDomain and 
+SMAIMatElastic, please refer to this 
+<a href="../CAAMatDoc/CAASMAMpaMaterials.htm">
+link</a>.</p>
+
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Setting and getting values of the material option</h3>
+<p>You can run the following commands to retrieve material parameters from the 
+source ELFINI Linear Elastic domain and set these values to their equivalent 
+material parameters in the Simulation domain. </p>
+
+<p><b>Elfini domain:</b></p>
+
+<pre class="code">
+CATIFeaMechanicalMaterial::GetParameters( CATListOfCATString &amp; oTypes, CATListOfDouble &amp; oParams);
+CATIFeaMechanicalMaterial::SetParameter(const CATString iParamType, const double iParamValue);
+</pre>
+
+<p><b>Simulation domain:</b></p>
+
+<pre class="code">
+SMAIMatElastic::GetMaterialTable(SMAIMatMaterialTable_var &amp; oMaterialTable);
+SMAIMatElastic::GetMaterialTable(SMAIMatMaterialTable_var &amp; oMaterialTable);
+
+SMAIMatMaterialTable::GetCellData(const int iRow, const int iColumn, double &amp; oValue);
+SMAIMatMaterialTable::SetCellData(const int iRow, const int iColumn, const double &amp; iValue);
+</pre>
+
+<p>Note: In the Simulation domain, material models support temperature 
+dependency, so you can set and get data in the form of a table. <br />
+<br />
+The ELFINI Linear Elastic domain does not support temperature dependency, so in 
+the Get and Set methods above, the value of iRow will always be 1. </p>
+<p>For more information on iColumn refer to the documentation of the 
+SMAIMatElastic interface. </p>
+<script type="text/javascript">insertLinkToTop();</script><table>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FEMRepMgr"></a></h2>
+
+<h2>Mappings</h2>
+<p>This section describes how material properties in the ELFINI Linear Elastic domain are mapped to the simulation domain as part of this process. </p>
+
+<h3><a name="Mappings_Isotropic"></a>Isotropic behaviors</h3>
+<p>Material characteristics in an Isotropic behavior in the ELFINI Linear Elastic domain are mapped to the Elastic, Density, Plastic, and Expansion options in the Simulation domain. </p>
+
+
+<table xmlns="" summary="" frame="void" rules="all" border="1" cellpadding="4" cellspacing="0">
+	<thead xmlns="http://www.w3.org/1999/xhtml" align="left">
+		<tr>
+			<th class="cellrowborder" id="d10019e75" valign="top" width="NaN">
+			Physical characteristic in Elfini </th>
+			<th class="cellrowborder" id="d10019e80" valign="top" width="NaN">
+			Behavior and setting in Simulation domain</th>
+		</tr>
+	</thead>
+	<tbody xmlns="http://www.w3.org/1999/xhtml">
+		<tr>
+			<td class="cellrowborder" headers="d10019e75 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Young's modulus</span> </td>
+			<td class="cellrowborder" headers="d10019e80 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Isotropic</span>: <span xmlns="" class="uicontrol">Young's Modulus</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e75 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Poisson's ratio</span> </td>
+			<td class="cellrowborder" headers="d10019e80 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Isotropic</span>: <span xmlns="" class="uicontrol">Poisson's Ratio</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e75 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> </td>
+			<td class="cellrowborder" headers="d10019e80 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> options:
+			<span xmlns="" class="uicontrol">Density</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e75 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Yield strength</span> </td>
+			<td class="cellrowborder" headers="d10019e80 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Plastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Isotropic 
+			Plasticity</span>: <span xmlns="" class="uicontrol">Shear Strength</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e75 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Coefficient of thermal expansion</span>
+			</td>
+			<td class="cellrowborder" headers="d10019e80 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Expansion</span> options:
+			<span xmlns="" class="uicontrol">Alpha</span></td>
+		</tr>
+	</tbody>
+</table>
+
+<h3><a name="Mappings_Orthotropic2D"></a>Orthotropic 2D behaviors</h3>
+<p><span>Material characteristics in an Orthotropic 3D behavior in the ELFINI 
+Linear Elastic domain are mapped to the Elastic, Density, Fail Stress, and Fail 
+Strain options in the Simulation domain. </span></p>
+<table xmlns="" summary="" frame="void" rules="all" border="1" cellpadding="4" cellspacing="0">
+	<thead xmlns="http://www.w3.org/1999/xhtml" align="left">
+		<tr>
+			<th class="cellrowborder" id="d10019e204" valign="top" width="NaN">
+			Physical characteristic in ELFINI domain </th>
+			<th class="cellrowborder" id="d10019e209" valign="top" width="NaN">
+			Behavior and setting in Simulation domain</th>
+		</tr>
+	</thead>
+	<tbody xmlns="http://www.w3.org/1999/xhtml">
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Young Modulus</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Lamina</span>:
+			<span xmlns="" class="uicontrol">E1</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Young Modulus</span>
+			</td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Lamina</span>:
+			<span xmlns="" class="uicontrol">E2</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Poisson Ratio in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">Nu12</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Lamina</span>:
+			<span xmlns="" class="uicontrol">G12</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in XZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Lamina</span>:
+			<span xmlns="" class="uicontrol">G13</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in YZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Lamina</span>:
+			<span xmlns="" class="uicontrol">G23</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> </td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> options:
+			<span xmlns="" class="uicontrol">Density</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Tensile Stress</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Fiber (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Compressive Stress</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Fiber (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Tensile Stress</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Transverse Fiber (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Compressive Stress</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Transverse Fiber (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Tensile Strain</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Strain</span> options:
+			<span xmlns="" class="uicontrol">Strain Fiber (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Compressive Strain</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Strain</span> options:
+			<span xmlns="" class="uicontrol">Strain Fiber (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Tensile Strain</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Strain</span> options:
+			<span xmlns="" class="uicontrol">Strain Transverse (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Compressive Strain</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Strain</span> options:
+			<span xmlns="" class="uicontrol">Strain Transverse (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e204 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Stress Limit in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e209 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Shear Strength</span></td>
+		</tr>
+	</tbody>
+</table>
+
+<h3><a name="Mappings_Orthotropic2D0"></a>Orthotropic 3D behaviors</h3>
+<p><span>Material characteristics in an Orthotropic 3D behavior in the ELFINI 
+Linear Elastic domain are mapped to the Elastic, Density, and Fail Stress 
+options in the Simulation domain. </span></p>
+<table xmlns="" summary="" frame="void" rules="all" border="1" cellpadding="4" cellspacing="0">
+	<thead xmlns="http://www.w3.org/1999/xhtml" align="left">
+		<tr>
+			<th class="cellrowborder" id="d10019e465" valign="top" width="NaN">
+			Physical characteristic in ELFINI domain </th>
+			<th class="cellrowborder" id="d10019e470" valign="top" width="NaN">
+			Behavior and setting in Simulation domain</th>
+		</tr>
+	</thead>
+	<tbody xmlns="http://www.w3.org/1999/xhtml">
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Young Modulus</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">E1</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Young Modulus</span>
+			</td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">E2</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Normal Young Modulus</span> </td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">E3</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Poisson Ratio in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">Nu12</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Poisson Ratio in XZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">Nu13</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Poisson Ratio in YZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">Nu23</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">G12</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in XZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">G13</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Modulus in YZ Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Elastic</span> options:
+			<span xmlns="" class="uicontrol">Type</span>=<span xmlns="" class="uicontrol">Engineering 
+			Constants</span>: <span xmlns="" class="uicontrol">G23</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> </td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Density</span> options:
+			<span xmlns="" class="uicontrol">Density</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Tensile Stress</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Fiber (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Longitudinal Compressive Stress</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Fiber (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Tensile Stress</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Transverse (T)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Transverse Compressive Stress</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Stress Transverse (C)</span></td>
+		</tr>
+		<tr>
+			<td class="cellrowborder" headers="d10019e465 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Shear Stress Limit in XY Plane</span></td>
+			<td class="cellrowborder" headers="d10019e470 " valign="top" width="NaN">
+			<span xmlns="" class="uicontrol">Fail Stress</span> options:
+			<span xmlns="" class="uicontrol">Shear Strength</span></td>
+		</tr>
+	</tbody>
+</table>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p class="copyright"><strong>3D</strong>EXPERIENCE R2015x © 2014 Dassault Systèmes.<br/>
+<a href="https://dsxdev-online.dsy.ds/doconline/online/CAADocQuickRefs/CAADocSpecialNotices.htm">Legal Notices</a></p>
+
+
+</body></html>

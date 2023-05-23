@@ -1,0 +1,429 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Features and Basic Protocols</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Features and Basic Protocols</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h2><a name="Abstract"></a>Abstract</h2>
+      <p>This article is an overview of the <strong>basic protocols</strong> and their underlying 
+		interfaces that can be implemented for a new feature <strong>defined 
+		&quot;from scratch&quot;.</strong> 
+		For some of them, you will find reference to articles describing them 
+		delver. </p>
+		<p>For new feature deriving from Dassault Syst&#232;mes features, refer to 
+		articles available in the corresponding modeler's documentation, or for 
+		feature extension read this one [<a href="#References">1</a>].</p>
+      <ul>
+        <li><a href="#FeatMod">Feature Modeler Protocols</a></li>
+        <ul>
+        <li><a href="#Update">Update</a></li>
+        <li><a href="#Delete">Delete</a></li>
+        <li><a href="#Feature Naming">Feature Naming</a></li>
+		<li><a href="#Undo/Redo">Undo/Redo</a></li>
+        </ul>
+        <li><a href="#Cut/Copy/Paste">Cut/Copy/Paste Protocol</a></li>
+        <li><a href="#Others">Other Protocols</a></li>
+          <ul>
+            <li><a href="#Common Services Protocol">Common Services Protocol </a> </li>
+			<li><a href="#Editing">Editing</a></li>
+         		<li><a href="#Geometrical Visualization">Geometrical Visualization</a></li>
+			      <li><a href="#Publication of Knowledge Parameters">Knowledge Protocols</a></li>
+            <li><a href="#Specification Tree Visualization and Navigation">Specification Tree Visualization and Navigation</a></li>
+          </ul>
+		<li><a href="#In Short">In Short</a>
+		<li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="FeatMod"></a>Feature Modeler Protocols</h2>
+<p>In this section you will find the protocols managed by Feature modeler. </p>
+	<h3><a name="Update"></a>Update</h3>
+	<p>The <code>Build</code> method of the <em>CATIFmFeatureBehaviorCustomization </em>interface allows the re-calculation of a feature's
+  results as part of the general update process whose execution is triggered by
+  the <code>Update</code> method of <em>CATFmFeatureFacade </em>class or <em>DataCommonProtocolServices </em>
+	class as explained in the referenced article [<a href="#References">2</a>]. </p>
+ <script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Delete"></a>Delete</h3>
+<p>All features can be deleted. If you are owner of the catalog defining the StartUp's feature, you can 
+always use the<code> DeleteSelf</code> method of <em>CATFmFeatureFacade</em>
+class [<a href="#References">3</a>]. Moreover you can expose the deletion for the people using your feature by 
+implementing the <a href="#Common Services Protocol">Common Services protocol</a> 
+- see below in this article.</p>
+<p>Beside how to invoke the deletion, you may need to customize the default 
+deletion behavior [<a href="#References">4</a>]. For this purpose you have the <code>BeforeRemove</code> method of the <em>CATIFmFeatureBehaviorCustomization </em>
+interface. </p>
+ <script type="text/javascript">insertLinkToTop();</script>
+	<h3><a name="Feature Naming"></a>Feature Naming</h3>
+	<p>The CATIAlias is an interface to get, without credentials, the external name to 
+	a 
+	feature, and to set a new external name. </p>
+<p>There is no default implementation for the feature created from scratch. You can refer to the article entitled &quot;Understanding Feature 
+	Naming&quot; for details about the StartUp and Feature names [<a href="#References">6</a>]. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Undo/Redo"></a>Undo/Redo</h3>
+<p>The Undo/Redo protocol is managed for feature data, it means that all feature 
+data are automatically changed when an Undo or Redo operations is requested by 
+the end user. But the visualization and the specification tree must be updated 
+by yourself. </p>
+ <script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="Cut/Copy/Paste"></a>Cut/Copy/Paste Protocols</h2>
+<p>These protocols, named CCP hereafter, are natively implemented on all 
+feature, the default behavior is described by referenced the technical article [<a href="#References">7</a>]. 
+You may need to customize the default behavior, so for that you may need to 
+implement&nbsp; some methods of the <em>CATIFmFeatureBehaviorCustomization </em>
+interface. [<a href="#References">8</a>]</p>
+<p>If by default, the CCP protocols are implemented, by default their access is 
+not exposed. Let's us explained that.</p>
+<p>By code, only the CopyAndPaste protocol is available. There is the 
+	methods of the<em> </em>DataCommonProtocolCCPServices class. Nevertheless, 
+	the use of this class is controlled by the implementation of the
+	<a href="#Common Services Protocol">Common Services protocol</a>.&nbsp; </p>
+	<p>Interactively, in order to have access to CCP commands, they must be selectable in the Edit or contextual menus. These 
+	commands are filtered by the <em>CATICSOFilter</em> interface. This means that, depending on the context (workshop, to be precise), this interface may already have been implemented by the UIActive object and some operations may have been disabled. By default, if the 
+	<em>CATICSOFilter</em> interface has not been implemented on the UIActive object, all operations are enabled. In a Product context, the CCP operations have been disabled on non-Product features. This means that the new feature must itself implement the
+	<em>CATICSOFilter</em> interface in order to enable CCP operations. In a 3D Shape, since the
+	<em>CATICSOFilter</em> interface has not been implemented, you should not 
+	have to consider this interface. Moreover, still interactively, you may have 
+	to consider the <em>CATICCPable</em> interface. This interface is not by 
+	default implemented on a feature. If you implement it you can prevent the 
+	copy and/or the deletion of your feature. This interface is only used by the 
+	interactive commands. </p>
+ 
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+<h2><a name="Others"></a>Other Protocols</h2>
+<p>Here are described the protocols external to Feature modeler and CPP. </p>
+<h3><a name="Common Services Protocol"></a>Common Services Protocol</h3>
+<p>The operations (i.e. services) Delete, Update and Copy/Paste can be invoked 
+on any kind objects whenever they implement the <em>CATIUseEntity</em> 
+interface, and the service has been declared exposed. Feature modeler gives you 
+the capability to implement, by a very simple way, the <em>CATIUseEntity</em> 
+interface and to declare what are the available services. Indeed, the StartUp 
+behavior is defined in its feature catalog, by a declarative way. [<a href="#References">9</a>]</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Editing"></a>Editing</h3>
+  <p>Editing a feature occurs through a dialog box that is displayed upon either 
+	double-clicking on the feature or using the right button of the mouse on the 
+	feature to display its contextual menu, then selecting the &quot;Define&quot; command 
+	in the sub-menu section. The dialog box contains all of the modifiable 
+	attribute values currently valid for the selected feature. This editing 
+	capability is managed by the <i>CATIEdit</i> interface. When the <i>CATIEdit</i>
+  interface is implemented on a feature, it is also possible to further expand 
+	the contextual sub-menu with new commands by implementing the <i>
+	CATIContextualSubMenu</i>
+  interface. See the &quot;Editing Objects&quot; use case found with the ApplicationFrame 
+	framework documentation.</p>
+	<script type="text/javascript">insertLinkToTop();</script>
+   <h3><a name="Geometrical Visualization"></a>Geometrical Visualization</h3> 
+  <p>A feature's geometrical visualization is managed by any C++ interface
+  deriving from <i>CATIVisu</i>: <i>CATI3DGeoVisu</i>, <i>CATI2DGeoVisu</i>,
+  etc. You must at least implement one visualization interface to display the
+  newly features. Note, that it is possible to implement several interfaces
+  deriving from <i>CATIVisu</i> for the same StartUp [<a href="#References">10</a>].</p>
+	<p>A feature's graphical properties are managed by the <i>CATIVisProperties</i>
+  interface. You should implement it to associate graphical properties to the
+  features [<a href="#References">11</a>].</p>
+	<p>The <i>CATIModelEvents</i> interface manages sending event notifications in
+  the case where the visualization of the feature has been modified and needs to
+  be refreshed. The implementation of this interface is not mandatory, but
+  strongly recommended, because it is essentially used for performance reasons
+  in order to force the visualization of only the part of the geometry that has
+  been modified instead of forcing a re-visualization of the entire geometry. </p>
+<p >Nevertheless the implementation of <i>CATIModelEvents</i> can 
+be useless. Lets us describe the scenario:</p>
+<ul>
+	<li>
+	<p >Instantiation of your feature</p>
+	</li>
+	<li>
+	<p >you connect your new instance to its&nbsp; &quot;visu&quot; parent, 
+	using CATIModelEvents::ConnectTo on the feature used as &quot;visu&quot; parent.</p>
+	</li>
+</ul>
+<p >When your feature will be modified, you could update its 
+visualization, but you should only send a notification to its&nbsp; &quot;visu&quot; 
+parent. If your own feature implements <em>CATIModelEvents</em>, you could send 
+the notification for itself. So in both cases, implementing of not <em>
+CATIModelEvents </em>on your feature, leads to the same result, but updating the 
+visualization of the &quot;visu&quot; parent can be time consuming.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+	 	<h3><a name="Publication of Knowledge Parameters"></a>Knowledge 
+		Protocols</h3>
+	<p>All features can be integrated to knowledge protocols as explained in the 
+	referenced article [<a href="#References">12</a>].&nbsp; </p>
+<p>The first protocol is F(x). In order to publish the knowledge parameters of 
+your feature, see &quot;Understanding Literal attributes&quot; article [<a href="#References">13</a>], 
+as to enable everyone to add/remove user parameters on your feature, you have to 
+implement the <i>CATIParmPublisher</i> interface. </p>
+<p>The second protocol is to integrate your feature to the knowledge dictionary. 
+By this way, your StartUp will be a knowledge type, and so you will take benefit 
+of the knowledge language (EKL). The involved interfaces are <em>CATIAddLibrary</em> 
+(to declare your StartUp as a knowledge type), and <em>CATIExposeObject </em>&nbsp;(to 
+declare what are the exposed attributes, and how they are exposed). For example 
+a color can be internally defined with a single attribute expressed as an 
+integer, and externally exposed through three values (Red, Green, Blue). </p>
+<script type="text/javascript">insertLinkToTop();</script>
+	<h3><a name="Specification Tree Visualization and Navigation"></a>
+	Specification Tree Visualization and Navigation</h3>
+	<p>Visualizing a feature 
+	in the specification tree and enabling further navigation of the feature 
+	itself is managed by the <i>CATINavigateObject</i> interface. Its methods 
+	return the name of the feature and a list of its children. When a feature is 
+	added to the specification tree under an existing node, that parent node 
+	must be capable of listing it as its child. The feature itself must also be 
+	capable of listing any of the features it may be pointing to. This interface 
+	is not natively implemented on the feature created from scratch. You have to 
+	implement it to support this behavior.</p>
+<p>The <i>CATINavigModify</i> interface allows a specific icon to be specified 
+	for a given feature. </p>
+<p>You can use the methods of <i>CATIRedrawEvent</i>
+  	to force a refresh of the specification tree whenever a modification has 
+	been made. This interface is natively implemented for any feature.</p>
+<p>See the ObjectModelerBase use case entitled &quot;The Object 
+	Navigator&quot; [<a href="#References">14</a>] for a detailed example of the 
+	navigation process.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="In Short"></a>In Short</h2>
+<p>This section summarizes in table form the interfaces to taken into account 
+when a new feature is defined &quot;from scratch&quot;, i.e., neither deriving from any 
+existing Dassault Systemes feature, nor a feature extension. All the interfaces 
+listed are not natively implemented on the feature created from scratch. Their 
+implementation, as described by the last column, can be mandatory or possible.</p>
+
+<table class="border1">
+<col align="left" span="2">
+<col align="center" span="1">
+  <tr>
+    <th>Behavior</th>
+    <th>Interface</th>
+    <th>CAA Implementation<br>(Mandatory/Possible)</th>
+  </tr>
+  <tr>
+    <td><a href="#Cut/Copy/Paste">Cut/Copy/Paste</a></td>
+    <td>
+      <p><em>CATIUseEntity</em><p><em>CATICCPable</em><p><i>CATICSOFilter</i><p> <em>CATIFmFeatureBehaviorCustomization </em>
+	</td>
+    <td>Mandatory
+      <p>Mandatory
+      </p>
+      <p>Possible (1)</p>
+	<p>Mandatory
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td rowspan="2"><a href="#Delete">Delete</a></td>
+    <td><em>CATIUseEntity</em></td>
+    <td>Mandatory
+      </td>
+  </tr>
+  <tr>
+    <td> <em>CATIFmFeatureBehaviorCustomization </em>
+    </td>
+    <td>Mandatory
+      </td>
+  </tr>
+  <tr>
+    <td><a href="#Editing">Editing</a></td>
+    <td><i>CATIEdit</i>
+      <p><i>CATIContextualSubMenu</i></p>
+    </td>
+    <td>Mandatory
+      <p>Mandatory</p>
+    </td>
+  </tr>
+  <tr>
+    <td><a href="#Geometrical Visualization">Geometrical
+      Visualization</a></td>
+    <td><i>CATI3DGeoVisu</i>
+      <p><i>CATIVisProperties</i>
+      <p><i>CATIModelEvents</i></td>
+    <td>Mandatory
+      <p>Mandatory</p>
+      <p>Possible (2)</td>
+  </tr>
+  <tr>
+    <td><a href="#Feature Naming">Feature Naming</a></td>
+    <td><i>CATIAlias</i></td>
+    <td> Mandatory</td>
+  </tr>
+  <tr>
+    <td rowspan="3"><a href="#Publication of Knowledge Parameters">Knowledge Integration</a></td>
+    <td><i>CATIParmPublisher</i></td>
+    <td>Mandatory</td>
+  </tr>
+   <tr>
+    <td><em>CATIAddLibrary</em></td>
+    <td>Mandatory</td>
+  </tr>
+ <tr>
+    <td><em>CATIExposeObject</em></td>
+    <td>Mandatory</td>
+  </tr>
+
+  <tr>
+    <td><a href="#Specification Tree Visualization and Navigation">Specification
+      Tree Visualization and Navigation</a></td>
+    <td><i>CATINavigateObject</i>
+      <p><i>CATINavigModify</i></td>
+    <td>Mandatory
+      <p>Mandatory</p>
+    </td>
+  </tr>
+  <tr>
+    <td><a href="#Update">Update</a></td>
+    <td> <em>CATIFmFeatureBehaviorCustomization </em>
+	</td>
+    <td>Mandatory</td>
+  </tr>
+</table>
+<ul>
+   
+  <li><b>Mandatory</b>: This means that the implementation of the interface is 
+	mandatory in order for the feature to access this behavior</li>
+  <li><b>Possible </b>: 
+	<ul>
+		<li>1 : in Product Structure context. </li>
+		<li>2 : it can be useless for your feature, see
+		<a href="#Geometrical Visualization">Geometry Visualization</a> section</li>
+	</ul>
+	</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+<col valign="top" span="1">
+<tr>
+    <td>[1]</td>
+    <td><a href="CAAFmExtTaFeatureExtension.htm">
+Understanding Feature Extension</a></td>
+  </tr>
+
+<tr>
+    <td>[2]</td>
+    <td><a href="CAAFmExtTaUpdateOverview.htm">Understanding the Update Protocol</a></td>
+  </tr>
+
+<tr>
+    <td>[3]</td>
+    <td><a href="CAAFmExtTaFeatureLifeCycle.htm">Understanding Feature Life Cycle</a></td>
+  </tr>
+
+<tr>
+    <td>[4]</td>
+    <td><a href="CAAFmExtTaCustoDelete.htm">Customizing the Delete Protocol</a></td>
+  </tr>
+
+<tr>
+    <td>[5]</td>
+    <td><a href="CAAFmExtTaCustoNaming.htm">Customizing Feature Naming</a></td>
+  </tr>
+
+  <tr>
+    <td>[6]</td>
+    <td><a href="CAAFmExtTaNamingFeatures.htm">Understanding the Feature Naming</a></td>
+  </tr>
+  <tr>
+    <td>[7]</td>
+    <td><a href="CAAFmExtTaCCPPrinciple.htm">Cut, Copy, and Paste Protocols</a></td>
+  </tr>
+  <tr>
+    <td>[8]</td>
+    <td><a href="CAAFmExtTaCCPCustomization.htm">Customizing the Cut,Copy,Paste Protocols</a></td>
+  </tr>
+  <tr>
+    <td>[9]</td>
+    <td >
+		<a href="CAAFmExtTaCommonProtocol.htm">Common Protocol Integration</a></td>
+  </tr>
+  <tr>
+    <td>[10]</td> 
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAVisVisualization/CAAVisUcSampleVisManager.htm')">
+Using the Visualization Manager</a></td>
+  </tr>
+  <tr>
+    <td>[11]</td> 
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAVisVisualization/CAAVisTaGraphicProperties.htm')">
+Graphical Properties</a></td>
+  </tr>
+<tr>
+    <td>[12]</td>
+    <td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAKniKnowAdvisorExt/CAAKniObjectUserViewArticle.htm')">
+Integrating the Knowledge Language</a></td>
+  </tr>
+
+<tr>
+    <td>[13]</td>
+    <td><a href="CAAFmExtTaUnderstandingKnowledge.htm">Attribute As Knowledge 
+	Parameter</a></td>
+  </tr>
+<tr>
+    <td>[14]</td>
+    <td><a href="../CAAOmbModelingProtocol/CAAOmbUcGeoNavigate.htm">
+The Object Navigator</a></td>
+  </tr>
+  
+
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+<col valign="top" span="1">
+  <tr>
+    <td>Version: <b>1</b> [Jan 2002]</td>
+    <td>Document created</td>
+  </tr>
+  <tr>
+    <td>Version: <b>2</b> [Jun 2003]</td>
+    <td>Document updated</td>
+  </tr>
+  <tr>
+    <td>Version: <b>3</b> [Jun 2010]</td>
+    <td>Document updated</td>
+  </tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

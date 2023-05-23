@@ -1,0 +1,282 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>About Service Url and Platform Instance</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>About Service Url and Platform Instance</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article is about platform instances and service url. After the definitions, you will learn how to retrieve them. </p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="3DEXP"></a>3DEXPERIENCE platform Services</h2>
+<p>The <b>3D</b>EXPERIENCE platform is made of services like:</p>
+<ul>
+<li>3DDashboard</li>
+<li>3DSwym</li>
+<li>3DSpace</li>
+<li>3DCompass</li>
+<li>3DPlay</li>
+<li>3DSearch</li>
+<li>6WTags</li>
+<li>3DMessaging</li>
+</ul>
+<p>Each one having its service url in its own domain.</p>
+<p>Some of these services expose APIs as you can see in the REST Web Services section of the CAA Encyclopaedia. 
+You need the url of those services to consume their web services. The last section of this article fully
+ details the APIs available to retrieve these url and how to use them.</p>
+<p>But first let's expose some other information about the <b>3D</b>EXPERIENCE platform. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Platform"></a>Platform Instance and Tenant</h2>
+<p>For some services, as 3DSwym or 3DSpace, <b>tenants</b> [<a href="#References">1</a>] are created to isolate the customer's data. When a
+ "tenant" is created, a tenant is created for each service tenant based (one for 3DSwym, and one for 3DSpace).</p>
+ <table>
+ <caption><a name="Fig.1">Fig.1</a>Tenant</caption>
+	<tr>
+		<td>
+		<img alt="tenant" height="75%" width="75%" src="images/CAAWebAppsPlatformTenant.png"/></td>
+	</tr>
+</table>
+<p>In the example just above, the <b>3D</b>EXPERIENCE platform has three tenants. There are three tenants for 3DSwym and 3DSpace (so three url to get each of them), while no change for others services.</p>
+<p>While the <b>3D</b>EXPERIENCE platform is made of all services will all their tenants, a <b>platform</b>
+instance is the complete set of services for one tenant. The picture just below represents what  each platform instance includes:</p>  
+<table>
+<caption><a name="Fig.2">Fig.2</a> Platform Instance</caption>
+	<tr>
+		<td>
+		<img alt="platform" height="50%" width="50%" src="images/CAAWebAppsPlatformSet.png"/></td>
+	</tr>
+</table>
+<p>There are three tenants, so three platform instances. For each one you have a 3DSpace, 3DSwym, 3DPassport, 6WTags, ..., server access.</p>
+<p>A <b>platform</b> instance is an isolated environment for the end-user, where he/she has access to all services of the 
+<b>3D</b>EXPERIENCE platform. In a green-dotted balloon you have access to each service. The <b>service url</b> for the non-tenant specific services is 
+the same whatever the platform instance, while for the others the url is depending on the platform instance.</p>
+<p>A platform instance has an <b>identifier</b>, and a <b>display name</b>. Just below an example:</p>
+<pre class="code">
+"platformId ": " R1132100081598",
+"displayName": " Solidworks US-W",
+</pre>
+<p>A tenant is user dependant, in other words, for a tenant, all end-users, or a part of them, can be granted to access it or not.</p> 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="WidgetApp"></a>Platform Instance and Widget App</h2>
+<p>Your Widget App can rely on a server which is platform instance dependant. So you will have to know the platform instance identifier 
+to retrieve the appropriate service url. There are two cases to consider:</p>
+<ul>
+<li>The widget is <b>launched from the Compass </b> [<a href="#References">5</a>]
+<p>In this context, when the widget is integrated into the Compass by the platform's administrator, a platform instance is requested. The end-user 
+will have the possibility to change the default value before instantiating the widget into a dashboard. </p>
+<p>Your code can retrieve the current
+platform instance thanks to this call. </p>
+<pre class="code">
+... 
+widget.getValue('<b>x3dPlatformId</b>');
+...
+</pre>
+<p>Nevertheless, there is always the solution to propose to the end-user the list of platform instances in a user preference 
+[<a href="#References">2</a>]</p>
+<li>The widget is <b>launched from "Run you App" </b>
+<p>This case is normally incompatible with the need, since in this context the widget being not 'trusted', you cannot upload 
+<b>3D</b>EXPERIENCE service resources [<a href="#References">2</a>].</p>
+</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="API"></a>Platform Instance and Service Url Retrieval</h2>
+<p>This section presents the APIs to retrieve the platform instances and their respective service url. </p>
+<h3><a name="Platform"></a>Service Url from Platform Instance</h3>
+
+<p>The <i>getPlatformServices</i> API retrieves for a given platform instance (from its identifier) its display name and the url for services  exposing Web services.   </p>
+<table>
+     <caption><a name="Fig.3">Fig.3</a> Information for one Platform Instance</caption>
+	<tr>
+		<td>
+		<img alt="platform" height="50%" width="50%" src="images/CAAWebAppsgetPlatformServices.png"/></td>
+	</tr>
+</table>
+<p>If we use the same kind of schema as <a href="#Fig.2">Fig.2</a>, Fig.3 presents what  <i>getPlatformServices</i> function
+ could return in term of
+ service url. It could return a url for each 
+service of the <b>3D</b>EXPERIENCE platform. So a url for 3DSpace, 3DSwym, 3DPlay, and so on. But in fact, it 
+only returns the url of the services exposing web services. The list - release dependant - is available in the API documentation.</p> 
+<p>Here is an example of result when a platform instance identifier (here <code>R1132100081733</code>) is specified as input:</p>
+<pre class="code">
+ {    "platformId": "R1132100081733",
+       "displayName": " R1132100081733-US-West",
+       "3DSwym": "https://R1132100081733-eu1-417nbl0718-3dswym.3dexperience.3ds.com",
+       "3DPassport": "https://iam.ppd.3ds.com"
+ }
+</pre>
+<p>The same API can be used to retrieve the same kind of information but for all platforms instances of the <b>3D</b>EXPERIENCE platform. So, if the input platform identifier is not specified,
+ <i>getPlatformServices</i> returns an array. Each element of this array contains: </p>
+<ul>
+<li>The platform identifier A</li>
+<li>The platform display name for A</li>
+<li>The url for the service X for the platform identifier A</li>
+<li>The url for the service Y for the platform identifier A</li>
+<li>The url ...</li>
+</ul> 
+<p>Here an example of result when no platform instance is specified as input</p>
+<pre class="code">
+ [{    "platformId": "R1132100081733",
+       "displayName": " R1132100081733-US-West",
+       "3DSwym": "https://R1132100081733-eu1-417nbl0718-3dswym.3dexperience.3ds.com",
+       "3DPassport": "https://iam.ppd.3ds.com"
+        },
+{     "platformId ": " R1132100081598",
+       "displayName": " Solidworks US-W",
+       "3DSwym ": https://R1132100081598-eu1-417nbl0718-3dswym.3dexperience.3ds.com,
+       "3DPassport": "https://iam.ppd.3ds.com"
+}]
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Service"></a>All Url for a Service</h3>
+<p>The <i>getServiceUrl</i> API retrieves urls  for a given service. There are two possibilities.</p>
+
+<ul>
+<li> Without specifying a platform identifier, you get as many url as there are platform instances. 
+<pre class="code">[{
+ 'platformId': 'SamplePlatform0',
+ 'url': 'https://<b>SamplePlatform0</b>-3dswym.3dexperience.3ds.com'
+ },
+ {
+ 'platformId': 'SamplePlatform1',
+ 'url': 'https://<b>SamplePlatform1</b>-3dswym.3dexperience.3ds.com'
+ }]
+</pre>
+<p>For a mono-tenant service, the output data structure is the same as for a multi-tenant, the url are just the same for each platform identifier.</p>
+<pre class="code">[{
+ 'platformId': 'SamplePlatform0',
+ 'url': 'https://iam.ppd.3ds.com'
+ },
+ {
+ 'platformId': 'SamplePlatform1',
+ 'url': https://iam.ppd.3ds.com'
+ }]
+</li>
+<li>For a given platform instance, you get the url of the service for it. 
+<pre class="code"> 'url': 'https://SamplePlatform0-3dswym.3dexperience.3ds.com'
+</pre>
+</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Use"></a>API Use Constraints</h3>
+<p>Before using these APIs, you must be aware of that:</p>
+<ul>
+<li>The information disclosed by these two functions comes from a  <b>back-end</b> service, so the results cannot be synchronous. This means 
+the answers are provided as argument of a callback function
+you provide as input of the two functions. An example of this usage is given in the last section of this chapter.</li>
+<li>Each call does not trigger a back-end call. For performance reason, the data coming for the back-end are <b>stored, and kept during 60mn</b>. 
+Two calls, whatever the function, <i>getServiceUrl</i> or <i>getPlatformServices</i>, 
+performed in less than 60mn will return the same result. A refresh (F5) of the 3DDashboard page triggers a new back-end call.</li>
+<li>The APIs return the information for the <b>connected end-user</b>. So for two users, the list of platform instances can vary.</li>
+<li>During a session, the same end-user can be granted or ungranted for a platform, so answers can be different during the lifetime of the widget.</li>
+<li>These APIs only return valid information when the call is made in a <b>trusted</b> environment [<a href="#References">2</a>].</li> 
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="AMD"></a>i3DXCompassServices AMD Module</h3>
+<p>There are functions exported by the 
+<a href="#" onclick="CAAlink('JS', 'i3DXCompassUI', 'i3DXCompassServices', 'i3DXCompassServices'); return false;">DS/i3DXCompassServices/i3DXCompassServices</a> AMD module  [<a href="#References">3</a>]. </p>
+ <p>Extract of the use case [<a href="#References">4</a>] </p>
+<pre class="code">
+<b>require(['DS/i3DXCompassServices/i3DXCompassServices'],</b>
+     function (i3DXCompassServices) {
+         'use strict';
+
+         var MyWidget = {
+
+             onLoad: function () {
+                 ...
+                 <b>i3DXCompassServices.getPlatformServices</b>({
+                     <b>onComplete</b>: function (data) {
+                         //data is the response of the call. 
+                     }
+                 });
+             }
+         };
+         widget.addEvent('onLoad', MyWidget.onLoad);	
+     }
+</pre>
+<p>The use case [<a href="#References">4</a>] describes how to handle the <i>getPlatformServices</i> response, i.e. the <code>data</code> value.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="FormatURL"></a>Service Url Format</h3>
+<p>The url returned by the previous API is:</p>
+<pre class="code">
+https://&lt;service authority&gt;/
+</pre>
+<p>Symply add the path of the web service following this url to build the complete path:</p>
+<pre class="code">
+https://&lt;service authority&gt;/<b>api/user/getcurrent</b>
+</pre>
+<p>Just above an example for 3DSwym Web service path.<p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl('http://en.wikipedia.org/wiki/Multitenancy');return false;">Multi-tenancy</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="../CAAWebAppsJS/CAAWebAppsTaWidgetWriting.htm">Widget Development Principles</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="../CAAWebAppsJSGuides/CAAWebAppsTaAMDConcepts.htm">AMD Concepts</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAWebAppsUcRetrievingUrl.htm">Retrieving Service Url</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="../CAAWebAppsJS/CAAWebAppsTaWidgetIntegration.htm">Widget 3D Dashboard Integration</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [August 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

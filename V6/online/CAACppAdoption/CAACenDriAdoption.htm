@@ -1,0 +1,251 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Drafting Changes</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Drafting Changes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article lists the modifications, and their migration path in the 
+		Drafting domain. </p>
+		<ul>
+			<li><a href="#Introduction">What Has Changed?</a></li>
+			<li><a href="#Drawing">Creating a Drawing</a></li>
+			<li><a href="#Root">Retrieving the Drawing Root</a></li>
+			<li><a href="#CATIDftViewMakeUp">Replacing CATIDftViewMakeUp</a></li>
+			<li><a href="#CATIDrwDressUp">Replacing CATIDrwDressUp</a></li>
+			<li><a href="#CATIDrwDressUp">Replacing CATIDrwbreakElem and 
+			CATIDrwBreakElemfactory</a></li>
+			<li><a href="#CATIDrwCreateDraftingStructure">Replacing CATIDrwCreateDraftingStructure</a></li>
+			<li><a href="#CATIGenerSpec">Replacing CATIGenerSpec</a></li>
+			<li><a href="#CATIDrwXXX">Replacing CATIDrwXXX</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>What Has Changed?</h2>
+<p>The modifications in the Drafting APIs, or in APIs applied to Drafting objects, 
+are related to:</p>
+<ul>
+	<li>File persistency removal.<p>Drawing data stored in a CATDrawing document 
+	is now included in a PLM representation reference [<a href="#References">5</a>], 
+	a PLM Core type saved in the PLM database. This implies that you can no longer 
+	use the <em>CATDocument</em> object, along with the
+	<a href="#Root">CATIDftDocumentServices</a>,
+	<a href="#Drawing">CATIDrwImportDocument</a>, and
+	<a href="#Root">CATIEditor</a> interfaces onto the 
+	CATDrawing files.</p>
+	</li>
+	<li>Product model transformation.
+	<p>The <em>CATIProduct</em> interface is no more exposed. Drafting APIs managing 
+	Generative Drafting Views are impacted. The <em>CATIPLOInfo</em> interface is 
+	now used to manage the links to the 3D geometry necessary to the view creation.</p>
+	</li>
+	<li>Drafting API clean up.<p>Up to now, several drafting features were exposed 
+	across some duplicate interfaces. For example <em>CATIDrawing</em> and <em>CATIDftDrawing</em> 
+	for the Drawing root, <em>CATIDftSheet</em> and <em>CATISheet</em> for the Sheet 
+	feature, etc. To simplify the Drafting APIs, in case of duplicate interfaces, 
+	only the <em>CATIDftxxx</em> are kept. Moreover, useless Drafting features, 
+	such as ViewMakeUp, DrwdressUp, or DrwBreakElem are no longer exposed.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Drawing"></a>Creating a Drawing</h2>
+<p>The Drawing is created as a Drawing document with V5, and as a Drawing representation 
+reference with V6.</p>
+<ul>
+	<li>With V5, the <code>New</code> method of the class <em>CATDocumentServices</em> 
+	creates a new Drawing document.
+	<pre class="code">...
+CATDocument* pDoc = NULL;
+rc = CATDocumentServices::<strong>New</strong>(&quot;Drawing&quot;, pDoc);
+...</pre>
+	<p>Then a drawing standard must be imported to complete the creation.</p>
+	</li>
+	<li>With V6, the class <em>CATDftDrawingPLMServices</em> can creates a Drawing representation reference:
+	<ul>
+		<li><strong>CreateDrawingRepReference</strong>:<pre class="code">...
+CATUnicodeString <strong>myStd</strong>        = &quot;ISO&quot;;
+CATUnicodeString <strong>mySheetStyle </strong>= &quot;A3 ISO&quot;;
+<strong>CATIPsiRepresentationReference </strong>* piDrawingRepRef = NULL ;
+
+rc = <strong>CATDftDrawingPLMServices</strong>::<strong>CreateDrawingRepReference</strong>(&amp;piDrawingRepRef, myStd, mySheetStyle);
+...</pre>
+		<p>&nbsp;the environment and the mandatory attributes are not passed as 
+		parameters of the <code>CreateDrawingRepReference</code> 
+		method, but are extracted and/or deduced thanks to the Business Logic.
+		The use case &quot;Creating a Distance Dimension on Interactive Geometry&quot; 
+		shows you how to create a Drawing Representation [<a href="#References">1</a>].
+		</p>
+		</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Root"></a>Retrieving the Drawing Root</h2>
+<p>The Drawing root is the first Drawing feature accessible from the Drawing representation 
+reference [<a href="#References">2</a>].</p>
+<ul>
+	<li>With V5
+	<pre class="code">...
+<strong>CATDocument             </strong>* pDoc = ...;
+CATIDftDrawing          * piDftDrawingRoot = NULL;
+CATIDftDocumentServices * piDftDocServices = NULL;
+CATISpecObject_var spSpecObj = NULL_var;
+if (SUCCEEDED(pDoc-&gt;QueryInterface(IID_CATIDftDocumentServices, (void **)&amp;piDftDocServices)))
+{
+   piDftDocServices-&gt;<strong>GetDrawing</strong>(IID_CATIDftDrawing, (void **)&amp;piDftDrawingRoot);
+...</pre>
+	<p>The Drawing root of a Drawing document is handled using the <em>CATIDftDrawing</em> 
+	interface. A pointer to <em>CATIDftDrawing</em> can be retrieved from the Drawing 
+	document thanks to the <code>GetDrawing</code> method of the <em>CATIDftDocumentServices</em> 
+	interface.</p>
+	</li>
+	<li>With V6
+	<ul>
+		<li><strong>Batch context</strong>: The Drawing root is accessible from 
+		the Drawing representation reference.<pre class="code">...
+<strong>CATIPsiRepresentationReference</strong> * piDrawingRepRef = ...;
+CATIDftDrawing                 * piDftDrawingRoot = NULL;
+rc = CATDftDrawingPLMServices::<strong>GetDrawingRoot</strong>(piDrawingRepRef, &amp;piDftDrawingRoot);
+...</pre>
+		<p>The Drawing document is replaced with a Drawing representation reference. 
+		The Drawing root of a Drawing representation reference is still handled 
+		using the <em>CATIDftDrawing</em> interface, a pointer to which can be retrieved 
+		from the Drawing representation reference, handled using a CATIPsiRepresentationReference 
+		interface pointer, thanks to the <code>GetDrawingRoot</code> method of the 
+		service class <em>CATDftPLMDrawingServices</em>.</p>
+		</li>
+		<li><strong>Interactive Context</strong>: The Drawing root is accessible 
+		from the current editor.
+		<pre class="code">...
+CATPathElement pathElement = (CATFrmEditor::GetCurrentEditor())-&gt;GetUIActiveObject();
+{
+  pathElement.InitToLeafElement();
+  CATBaseUnknown * pBU = pathElement.NextFatherElement();
+  CATIDftDrawing * piDftDrawingRoot = NULL;
+  if (pBU &amp;&amp; SUCCEEDED(pBU-&gt;QueryInterface(IID_CATIDftDrawing, (void**) &amp;piDftDrawingRoot)))
+  {
+  ...</pre>
+		</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIDftViewMakeUp"></a>Replacing CATIDftViewMakeUp</h2>
+<p>The ViewMakeUp feature is no longer exposed. APIs defined in the
+<em>CATIDftViewMakeUp</em> interface are redefined in <em>CATIDftview</em>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIDrwDressUp"></a>Replacing CATIDrwDressUp</h2>
+<p>This DrwDressUp feature is no longer exposed. APIs defined in <em>CATIDrwDressUp</em> 
+are redefined in <em>CATIDftView</em> interface. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIDrwBreakElem"></a>Replacing CATIDrwBreakElem and CATIDrwBreakElemFactory</h2>
+<p>This DrwbreakElem feature is no longer exposed. The method <code>CreateAreaFill</code> 
+is in
+<a href="#" onclick="javascript:CAAlink('CPP', 'DraftingUseItf', 'interface', 'CATIDftBaseDressUpFactory'); return false;">
+<em>CATIDftBaseDressUpFactory</em></a> and the <em>CATIDrwBreakElem</em> interface 
+becomes of no use and is removed from V6. The use case &quot;Creating a Hatching Pattern 
+on 2D Geometry&quot; [<a href="#References">3</a>] shows you how to create an area fill.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIDrwCreateDraftingStructure"></a>Replacing CATIDrwCreateDraftingStructure</h2>
+<p>This interface is of no use for the Drafting exposure and is removed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIGenerSpec"></a>Replacing CATIGenerSpec</h2>
+<p>This interface is replaced with <em>
+<a href="#" onclick="javascript:CAAlink('CPP', 'DraftingUseItf', 'interface', 'CATIDftGenerSpec'); return false;">
+CATIDftGenerSpec</a></em> and <em>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATDraftingGenUseItf', 'interface', 'CATIDftGenViewModification'); return false;">
+CATIDftGenViewModification</a></em>. The use case &quot;Creating a Generative View from 
+3D Data&quot; shows you how to create a Generative Drafting View [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATIDrwXXX"></a>Replacing CATIDrwXXX</h2>
+<p>The CAA Drafting exposure is simplified by removing a lot of duplicate interfaces:
+<em>CATIDrwXXX</em> vs <em>CATIDftXXX</em>. <em>CATIDftXXX</em> are kept in public. 
+All missing APIs specific to <em>CATIDrwXXX</em> are added to <em>CATIDftXXX</em>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Most important API modifications are due to the <em>CATDocument</em> removal, 
+and to the Product Model transformations. Inside the Drawing Representation Reference, 
+except the <em>code clean up modifications</em>, all others APIs are still valid.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADriDrafting/CAADriUcCreateDim.htm');return false;">
+		Creating a Distance Dimension on Interactive Geometry </a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADriDrafting/CAADriUcStructure.htm');return false;">
+		Creating a New Drawing Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADriDrafting/CAADriUcCreatePattern.htm');return false;">
+		Creating a Hatching Pattern on 2D Geometry</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADriDrafting/CAADriUcCreateGenView.htm');return false;">
+		Creating a Generative View from 3D Data</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>PLM Representation Reference</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

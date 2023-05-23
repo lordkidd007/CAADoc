@@ -1,0 +1,159 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>CAA Convertors Architecture</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>MultiCAD Convertors: File based Import in CATIA V6</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article describes the MultiCAD Convertors architecture for the 
+		File based Import. 
+      &nbsp; 
+      </td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Introduction</h2>
+<p>The infrastructure provided for conversion of any external application Geometry data or Product 
+Structure data or both to V6 compatible is called as Format Conversion Services.</p>
+<p>These Format Conversion services exposes APIs which when implemented, helps 
+us view the Geometry and Product structure data in V6. </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Architecture of Format Conversion Services</h2>
+<p> The Format Conversion Services helps us to convert the Geometry Data present in a 
+file. This file can be from any external application, mostly any external CAD 
+application. We will henceforth refer to it as xCAD File.</p>
+<p> We will see the Architecture of MultiCAD Convertors File based Import scenario</p>
+<p> The picture shown below illustrates MultiCAD Convertor Import Architecture. The Format 
+Conversion Services Import architecture does not depend on whether the xCAD 
+files are stored in a PDM or not.</p>
+<table>
+	<caption>Fig. 1. MultiCAD Convertor IMPORT architecture</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAV6ConArchiImage.jpg" width="1036" height="499"></td>
+	</tr>
+</table>
+<p> As you can see in the picture above, the RED color blocks have to be 
+developed by the CAA developer and it is called as V6 App Format Reader. The 
+green block is the V6 Writer provided by DS. This Writer is nothing but the 
+Translator classes which fetches all the required data from the V6 Reader and 
+passes to CATIA. At last CATIA displays the Geometry shapes as per the 
+information passed to it.</p>
+<p> <strong>V6 Writer:</strong> It is provided by DS Format Conversion Services. 
+The writer is composed of a set of translator components which use the CAA 
+interfaces to query the Document , browse its contents, and extract the relevant 
+information to be converted to V6.</p>
+<p> <strong>V6 Reader:</strong> Reader is a component having the Implementations 
+of different Interfaces. The set of interfaces implemented by the Reader 
+determines the functionalities of Convertor e.g. Product Structure or 
+Tessellation or Exact Geometry or all. </p>
+<p> V6 Writer is composed of Translator components which uses CAA APIs and send 
+query calls to Document. These calls are answered by the V6 Reader by passing 
+the relevant information extracted (using XML parsers) from the xCAD file.</p>
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Basic Scenario for File based Import</h2>
+<p> The Basic Scenario for the File based Import in CATIA V6 will demonstrate 
+following points:</p>
+<p> 1. Select the xCAD file to be imported to V6<br>
+2. Reading the xCAD file. In case of XML format file, we need to implement DOM 
+or SAX parsers to read the data.<br>
+3. Passing the relevant data from file to the Format Convertor APIs<br>
+4. Conversion of the data into V6 data for Navigation, Review (depending upon 
+the set of interfaces implemented i.e. for ProductStructure, Tessellated 
+Geometry or both)</p>
+<h3> Pre-requisites</h3>
+<p> The information present inside the xCAD file should be in XML format (since 
+we have demonstrated the use-cases with XML format files). The file can be of 
+any extension.</p>
+<h3> Implementation details</h3>
+
+<p> The APIS are CAA Interfaces, whose Name is CATIExchange+&quot;Function&quot;, Function 
+being related to the Domain / Intellectual Property covered by the API. The APIs exposed by these Format Conversion Services Interfaces are all 
+Get() APIs e.g. GetName(), GetRootProducts(), GetRepresentation()...etc. They 
+retrieve the Contents of the Document regarding the Functional Domain or 
+Intellectual Property they cover. The Main job to do as a CAA developer is to 
+implement the V6 Reader. Implementing V6 App Reader means we are passing the 
+relevant information to these Get() APIs. This relevant information can be 
+retrieved using XML Parsers (namely DOM and SAX parsers) from the corresponding xCAD 
+file. These APIs are then internally called by <em>V6 Writer</em>, and the data is processed to 
+give us the correct and complete visualization of the data in V6 tabs.</p>
+<p> So if Geometry data is passed, we can see the corresponding Tessellated 
+Geometry in V6 for <em>Design Review</em> or if we pass Product Structure data, 
+we can see the Product Structure in V6 for <em>Navigation</em> or we can see 
+both if information of both are passed. For details about the Interfaces set and 
+their appropriate implementation, please refer to article []</p>
+<h3> Remark</h3>
+<p> Depending on the capabilities of the format, and the expected capabilities 
+of the translator, only a part of them may be implemented. For instance: some 
+formats do not embed any tessellated representation; on the contrary, some 
+formats only embed a tessellation representation of the geometry. Some other 
+format do not represent Product Structures or Assemblies.</p>
+<p> To demonstrate these capabilities we have designed the use-cases which 
+showcase the Product Structure conversion and Geometry Conversion separately.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="In short"></a>In Short</h2>
+<p>Format Conversion Services provides us the infrastructure to visualize the 
+xCAD Application data by implementing the Format Convertor exposed APIs. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+    
+       <td >[1]</td>
+       <td >(Ref. article)</td>
+     </tr>  
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Oct 2013]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

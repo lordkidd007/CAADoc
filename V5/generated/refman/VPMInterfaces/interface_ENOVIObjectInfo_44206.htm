@@ -1,0 +1,97 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>VPMInterfaces Interface ENOVIObjectInfo</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../VPMInterfaces.htm">This Framework</a>  <a href="interface_ENOVIObjectEvent_51240.htm">Previous</a>  <a href="interface_ENOVIObjectServiceCode_95898.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>VPMInterfaces Interface ENOVIObjectInfo</h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">System.IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">System.IDispatch</a>
+    |
+    +---<a href="../System/class_CATBaseUnknown_40786.htm">System.CATBaseUnknown</a>
+      |
+      +---ENOVIObjectInfo
+ </pre>
+<p><b>Usage: an implementation of this interface is supplied and you must use it as is. You should not reimplement it.</b></p>
+<hr>
+<p>
+ interface <b>ENOVIObjectInfo</b>
+</p>
+<p>
+<b><i> Interface to manage Object Info.</i></b><br>
+</p>
+<hr>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#IsAKindOf(CATUnicodeString&amp;)"><b>IsAKindOf</b></a>(CATUnicodeString&amp;)
+<dd>  
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="IsAKindOf"></a><a name="IsAKindOf(CATUnicodeString&amp;)"></a> <dt> o <b>IsAKindOf</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>IsAKindOf</b>(<td> const <a href="../System/class_CATUnicodeString_52958.htm">CATUnicodeString&amp;</a> <td><tt>iType</tt>)= 0   </table></dt>
+<dl>
+  <dd>
+ 
+<dl>
+  <dt> <b>Deprecated:</b> 
+  <dd>  V5R14
+
+ This method allows you to test the inheritance of an object type against the 'iType' input
+ parameter. For instance if you call 'object_info->IsAKindOf("ENOVIA_VPMItemInstance")' and
+ 'object_info' is an ENOVIObjectInfo for a customized ItemInstance type, it will return true.
+
+ Note that using this method is deprecated, as it masks the method CATBaseUnknown::IsAKindOf(const char*)
+ (because of C++ names visibility, the compiler always chooses ENOVIObjectInfo::IsAKindOf(const CATUnicodeString&)
+ over CATBaseUnknown::IsAKindOf(const char*) ), and those 2 methods are very different behaviour:
+  - CATBaseUnknown::IsAKindOf(const char*) tests the type of the ObjectInfo object itself (i.e. it will
+      return false when called with the "ENOVIA_VPMItemInstance" string in the example above, but
+      it will return true for "INFO_ENOVIA_ItemInstance" ),
+  - ENOVIObjectInfo::IsAKindOf(const CATUnicodeString&) tests the type of the class of objects represented
+      by the ObjectInfo (thus returning true for "ENOVIA_ItemInstance" and false for "INFO_ENOVIA_ItemInstance"
+      in the previous example).
+
+ Because those 2 methods have very different behaviour (and given that migrating to using exclusively
+ CATBaseUnknown::IsAKindOf is easy), this method will be suppressed in a future release: you are advised
+ to invoke CATBaseUnknown::IsAKindOf explicitly (it is not possible to rely on the compiler for this since
+ C++ explicitly precludes it in this case!) as in the following code snippet:
+
+                    ENOVIObjectInfo *object_info = ...
+                    HRESULT rc = object_info->GetImpl()->CATBaseUnknown::IsAKindOf("INFO_ENOVIA_VPMItemInstance");
+
+ which should replace code like:
+
+                    object_info->IsAKindOf("ENOVIA_VPMItemInstance");
+
+ A side benefit will be that a CATUnicodeString will not be implicitly constructed anymore when calling
+ IsAKindOf with a literal C string.
+
+ Also note that another difference between CATBaseUnknown::IsAKindOf and ENOVIObjectInfo::IsAKindOf is the
+ possible return values:
+            - CATBaseUnknown::IsAKindOf return S_OK or S_FALSE (works like a boolean value).
+            - while ENOVIObjectInfo::IsAKindOf returns a failure (works like an ordinary HRESULT) to mean 'false'.
+
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>ENOVIObjectInfo.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>GUIDVPMInterfaces</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

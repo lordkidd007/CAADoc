@@ -1,0 +1,520 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding Applicative Container</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Applicative Container</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A feature is already instantiated inside a container. When this persistent 
+		structure is created by the modeler&#39;s engine, it is called &quot;container&quot;, 
+		when it is created by an application, DS or CAA, it is named &quot;applicative 
+		container&quot;. The goal of this article is to give you all necessary information 
+		to choose the right container when instantiating your CAA feature, how to 
+		create an applicative container, and manage a container, applicative or 
+		not.</p>
+		<ul>
+			<li><a href="#Preliminary">Preliminary</a>
+			<ul>
+				<li><a href="#Container Definition">Container Definition</a></li>
+				<li><a href="#Container Loading">Container Loading</a></li>
+				<li><a href="#Container Choice for Instantiation Purpose">Container 
+				Choice for Instantiation Purpose</a></li>
+			</ul>
+			</li>
+			<li><a href="#Managing Containers">Managing Containers</a><ul>
+				<li><a href="#Applicative Container Creation">Applicative Container 
+				Creation</a></li>
+				<li><a href="#Technological Representation">Technological Representation 
+				&amp; Container</a></li>
+				<li><a href="#Container Access">Container Access</a></li>
+				<li><a href="#Feature Container Introspection">Feature Container 
+				Introspection</a></li>
+			</ul>
+			</li>
+			<li><a href="#Standard DS Behavior Integration">Standard DS Behavior 
+			Integration</a></li>
+			<li><a href="#CATInit Implementation">Applicative Container Loading 
+			and Activation</a><ul>
+				<li><a href="#The Init Method Contents">Init Method Contents</a></li>
+				<li><a href="#The GetRootContainer Method Contents">GetRootContainer 
+				Method Contents</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Preliminary"></a>Preliminary</h2>
+<p>This chapter contains useful information about the containers.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Container Definition"></a>Container Definition</h3>
+<p>A container is a structure within a stream such as described by this picture:</p>
+<table border="0" id="table1">
+	<caption><a name="Fig.1">Fig.1</a> Streams &amp; Containers</caption>
+	<tr>
+		<td>
+		<img alt="Streams &amp; Containers" src="images/CAAOsmApplicativeContainer_container.gif"></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p><strong>PLM Representation Reference</strong> [<a href="#References">1</a>] is 
+stored inside the underlying database (the vault server). This specific PLM Object 
+aggregates a structure stored in the store server (named file server too). This 
+structure, not accessible, contains streams, whose only the one named &quot;<strong>main 
+stream</strong>&quot; contains <strong>containers</strong>. The other streams, called 
+the secondary streams, are not accessible by CAA, and therefore are not the subject 
+of this article. A main stream is for example a 3D Shape, a Drawing, a word document, 
+a txt file , etc...</p>
+<p>A container is a structure to save any object implementing a protocol (not exposed) 
+ensuring the persistency. Usually containers contain <strong>features</strong>.
+<code>CATPrtCont</code>, the Mechanical container, contains mechanical features, 
+but <code>CGMGeom</code> the Geometrical container, contains geometrical objects 
+which are not features.</p>
+<p>On [<a href="#Fig.1">Fig.1</a>] you can see that there are two kinds of containers:</p>
+<ul>
+	<li><strong>C</strong><strong>ontainers (or modeler containers)</strong></li>
+</ul>
+<blockquote>
+	<p>There are containers managed by the Modeler, usually the stream&#39;s responsible.
+	</p>
+	<ul>
+		<li>3DShape[<a href="#References">1</a>]: three modeler containers : CATPrtCont, 
+		CGMGeom, CATMFBRP</li>
+		<li>Drawing : one container</li>
+		<li>See your Modeler documentation for other cases.</li>
+	</ul>
+</blockquote>
+<ul>
+	<li><strong>Applicative Containers</strong></li>
+</ul>
+<blockquote>
+	<p>Applicative Containers are containers which are not managed by the modeler 
+	responsible of the stream. These containers are created by the applications 
+	using the modeler. These applications can be DS or CAA. An example of DS applicative 
+	containers is the electrical container.</p>
+	<p>Being CAA partners, or CAA clients you might create your own applicative 
+	container too. But it could only be a container to store features. In the next 
+	sections you will have all the necessary information to create, use and manage 
+	correctly your own applicative feature container.</p>
+</blockquote>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Container Loading"></a>Container Loading</h3>
+<p>When a PLM Representation is loaded in session, according to its loading mode, 
+the main steam can be there or not. But if the loading mode is &quot;Edit&quot;, all features 
+containers are loaded. You can safely use the feature modeler APIs.</p>
+<p>Two IMPORTANT information</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: <br>
+		<ul>
+			<li>Accessing or creating a container is only possible if the PLM Representation 
+			Reference is in Edit Mode</li>
+			<li>All Feature modeler API modifying the Data model require that ALL 
+			feature containers of the stream are loaded.</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Container Choice for Instantiation Purpose"></a>Container Choice for 
+Instantiation Purpose</h3>
+<p>You have just finished designing [<a href="#References">2</a>] your new CAA feature, 
+now the question is where I will store the features created from my new StartUps.</p>
+<p>We recommend to respect the following rules:</p>
+<ul>
+	<li>Your CAA StartUp, directly or indirectly, <strong>derives</strong> from 
+	a <strong>DS StartUp</strong>, the instantiations must be done inside a
+	<strong>DS container</strong>, the one managing these kinds of features,</li>
+	<li>Your CAA feature is a <strong>feature extension</strong> [<a href="#References">3</a>], 
+	the instantiations must be done inside an <strong>applicative</strong>
+	<strong>container</strong> managed by your application,</li>
+	<li>Otherwise, the instantiations must be done inside an <strong>applicative</strong>
+	<strong>container</strong> too.</li>
+</ul>
+<p>If you are in the second and third situation, the article applies fully. In the 
+first case, only the <a href="#Access by Name">Container Access</a> and
+<a href="#Container Introspection">Container Introspection</a> sections of the next 
+chapter are interesting.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Managing Containers"></a>Managing Containers</h2>
+<p>This section deals with the elementary functions: creating , retrieving and introspecting 
+a container.</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: Before getting into 
+		details, you should be aware that all the operations (creation/retrieval/scanning) 
+		are only possible if the main stream [<a href="#Fig.1">Fig.1</a>] is loaded 
+		in session. In other words the PLM Representation Reference [<a href="#Fig.1">Fig.1</a>] 
+		must be in <strong>edit</strong> mode. You have all information about the 
+		PLM loading mode in the PLM Representation Reference article [<a href="#References">4</a>].</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Applicative Container Creation"></a>Applicative Container Creation</h3>
+<p>The way to create an applicative container in an existing PLM Product Representation 
+Reference is using the <em>CATFmContainerServices</em> class. This class contains 
+the following <code>CreateApplicativeContainer</code> method:</p>
+<pre class="code">HRESULT <strong>CreateApplicativeContainer</strong>(const CATFmCredentials &amp; iAccreditations,
+CATBaseUnknown * iContext, 
+const CATUnicodeString &amp; iContainerType, 
+const CATUnicodeString &amp; iContainerName, 
+CATFmContainerFacade &amp; oContainerFacade) = 0</pre>
+<p align="left">let&#39;s have a look to each argument:</p>
+<table border="1" id="table2">
+	<tr>
+		<th>Argument</th>
+		<th>Meaning</th>
+	</tr>
+	<tr>
+		<td>iAccreditations</td>
+		<td>This credential [<a href="#References">5</a>] is required to retrieve 
+		the ParnerId (defined by the <code>RegisterAsApplicationBasedOn</code> method 
+		of <em>CATFmCredentials</em> class). This identifier will be used for licensing 
+		test.</td>
+	</tr>
+	<tr>
+		<td>iContext</td>
+		<td>
+		<p>It can be</p>
+		<ul>
+			<li>a PLM Representation Reference pointer : the new container will 
+			be created in its main stream</li>
+			<li>a Container: the new container will be created in the same stream 
+			containing the inpuy container</li>
+			<li>a Feature : the new container will be created in the same stream 
+			containing the feature (containing the container&#39;s of the feature)</li>
+		</ul>
+		</td>
+	</tr>
+	<tr>
+		<td>iContainerType</td>
+		<td>It represents the late type of the container. You will implement interfaces 
+		on this late type, like <em><a href="#CATInit Implementation">CATInit</a>,
+		</em>but also factories to create the elements for the container. If you 
+		do not want specify a late type, use the &quot;<code>CATFeatCont</code>&quot; string 
+		instead.</td>
+	</tr>
+	<tr>
+		<td>iContainerName</td>
+		<td>It represents the name of the container. This string cannot be empty. 
+		Two containers of same type can co-exist in the same stream, but their name 
+		must be different. The name will be used to retrieve a container, see the
+		<a href="#Access by Name">next</a> section.</td>
+	</tr>
+	<tr>
+		<td>oContainerFacade</td>
+		<td>A facade on the newly created container. The credential associated with 
+		this facade are not used and modified by the create method. The accreditation 
+		for the returned facade must be compatible with the further usage of the 
+		facade.</td>
+	</tr>
+</table>
+<p>Usually you create an applicative container like this:</p>
+<pre class="code">
+...
+CATFmCredentials MyAccreditation;
+CATUnicodeString PartnerId=&quot;....&quot;; 
+MyAccreditation.<strong>RegisterAsApplicationBasedOn</strong>(CATFmFeatureModelerID,PartnerId)
+...
+CATBaseUnknown *pIRepRef  = .... ;
+CATFmContainerFacade MyNewContainerAsFacade ;
+<em>CATFmContainerServices::</em><strong>CreateApplicativeContainer</strong>( MyAccreditation, pIRepRef, &quot;MyContainerType&quot;,&quot;MyContainerType&quot;, MyNewContainerAsFacade );                 
+...
+</pre>
+<p>if you need a smart pointer <a name="Access by Name"></a>on the new container:</p>
+<pre class="code">
+...
+CATBaseUnknown_var MyContainerAsSp = MyNewContainerAsFacade.<strong>GetContainer</strong>();        
+...
+</pre>
+<p>if you need an interface pointer <a name="Access by Name0"></a>on the new container:</p>
+<pre class="code">
+...
+MyInterface * pInterfaceOnMyContainer = NULL ;  
+MyNewContainerAsFacade.<strong>QueryInterfaceOnContainer(IID_MyInterface</strong>,(void **) &amp; pInterfaceOnMyContainer ) ;       
+...
+</pre>
+<p>But if you want to use the container for instantiation purpose, think to add 
+the right credential [<a href="#References">5</a>] before the <code>CreateApplicativeContainer</code> 
+call</p>
+<pre class="code">
+...
+CATBaseUnknown *pIRepRef  = .... ;
+CATFmCredentials mycredential ....
+CATFmContainerFacade MyNewContainerAsFacade(mycredential) ;
+CATFmContainerServices<em>::</em><strong>CreateApplicativeContainer</strong>( mycredential, pIRepRef, &quot;MyContainerType&quot;,&quot;MyContainerType&quot;, MyNewContainerAsFacade );                 
+...
+</pre>
+<p>The use case Working with Applicative Container [<a href="#References">6</a>] 
+is an illustration of the creation.</p>
+<p><strong>Note</strong>: Just above, it is a theorical example, Usually, you will 
+use the same credential all along your application, so you will use the same credential 
+for all your facades.</p>
+<p><strong>Container and Feature Extension</strong></p>
+<p>The feature extensions are always stored in an applicative container that you 
+declare when you define the extension [<a href="#References">3</a>]. This build-time 
+declaration enables you to by-pass the container creation. When you use the method 
+to add an extension on a base feature (<code>AddExtension</code> of <em>CATFmFeatureFacade</em>), 
+Feature modeler manages the container creation. If the stream already contains the 
+required container, it will not create it, otherwise the creation is automatically 
+done. So <code>CreateApplicativeContainer</code> is not necessary for extensions, 
+nevertheless you can use it. In this case the links between the argument of
+<code>CreateApplicativeContainer</code> and OSM declaration:</p>
+<table class="code" id="table17">
+	<tr>
+		<td>
+		<pre>metadata metadata_identifier {
+      <strong>ContType</strong> <span lang="fr"> </span>=<span lang="fr"> </span>&quot;ContainerType&quot;
+      <strong>Container</strong> =<span lang="fr"> </span>&quot;ContainerName&quot;
+      <strong>Extends</strong> <span lang="fr">  </span>=<span lang="fr"> </span>[ &quot;StartUp1&quot;,...]
+      <strong>IsLocal</strong> <span lang="fr">  </span>= true | false
+}</pre>
+		</td>
+	</tr>
+</table>
+<p>where:</p>
+<ul>
+	<li>iContainerType = the string used for &quot;ContType&quot; value<span lang="fr">.</span></li>
+	<li>iContainerName = the string used for &quot;Container&quot; value<span lang="fr">.</span></li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Technological Representation"></a>Technological Representation &amp; Container</h3>
+<p>A PLM Product Technological Representation cannot be created without an initial 
+applicative container. So the APIs to create such a PLM Object have in addition 
+to the required arguments to create this PLM Object, the same arguments as to create 
+an applicative container for an existing PLM Representation Reference. Just the 
+context is useless.</p>
+<p>In these two following methods, the first creating a stand alone PLM Technological 
+Representation, while the second one is creating and instantiating it, you can see 
+that you retrieve the same information to create a applicative container for an 
+existing PLM Representation Reference. The credential, the container type, and its 
+name.</p>
+<pre class="code">
+ ...
+ CATIPrdExtRepresentationReferenceFactory::CreateTechnologicalRepReference(CATIAdpEnvironment* ipEnv, CATListValCATICkeParm_var &amp; iPrdRepAttributesValues,
+  <strong>const CATFmCredentials &amp; iAccreditations, const CATUnicodeString &amp; iContainerType, const CATUnicodeString &amp; iContainerName</strong>,
+   CATIPsiRepresentationReference *&amp; opRepReference) = 0; 
+</pre>
+<pre class="code">
+ ...
+ CATIPrdExtAggregatedRepresentations::AddTechnologicalRepresentation(CATIAdpEnvironment* ipEnv, CATListValCATICkeParm_var &amp; iPrdRepAttributesValues,
+  <strong>const CATFmCredentials &amp; iAccreditations, const CATUnicodeString &amp; iContainerType, const CATUnicodeString &amp; iContainerName</strong>,
+   CATIPsiRepresentationReference *&amp; opRepReference) = 0; 
+</pre>
+<p>These two interfaces are part of the ProductStructureExtItf framework.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Container Access"></a>Container Access</h3>
+<p>A container, applicative or not, can be retrieved from a PLM Representation Reference 
+using its name thanks the <code>RetrieveApplicativeContainer</code> method of the
+<em>CATIPLMNavRepReference</em> interface (CATPLMComponentInterfaces framework)</p>
+<pre class="code">HRESULT <strong>RetrieveApplicativeContainer</strong>( const CATUnicodeString&amp; iContainerName, 
+ const IID&amp;  iInterfaceId, 
+ void**  oApplicativeContainer) = 0   
+</pre>
+<p>The interface must be provided by the application or the modeler responsible 
+of the container; There is no generic APIs to handle a container.<a name="Container Introspection"></a></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Feature Container Introspection"></a>Feature Container Introspection</h3>
+<p>A feature container can be scanned by using the <em>CATFmContainerFacade</em> 
+class. Usually it will be only available for CAA applicative containers, since DS 
+doesn&#39;t provide the credential to scan their container. If necessary, specific CAA 
+APIs will be exposed by DS.</p>
+<p>Just below we have used the <code>ScanRootFeatures</code> method to retrieve 
+the features without parent. You can also use <code>ScanFeatures</code> to retrieve 
+the aggregated and none aggregated features.</p>
+<pre class="code"><em>CATFmContainerFacade</em> MyContainerFacade(MyCredentials);
+CATFmFeatureIterator Iterator ;
+MyContainerFacade.<strong>ScanRootFeatures</strong>(Iterator);
+</pre>
+<p>But according to your credentials you can get more and less features. It is fully 
+explained in the &quot;Credentials for Container Façade&quot; chapter of the &quot;Understanding 
+Credentials&quot; article [<a href="#References">5</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Standard DS Behavior Integration"></a>Standard DS Behavior Integration</h2>
+<p>By creating you own applicative container you benefit from all Feature modeler 
+capabilities: persistency, introspection, sometimes
+<a href="#CATInit Implementation">automatic loading</a>, and other facilities. But 
+the modeler responsible of the stream [<a href="#Fig.1">Fig.1</a>] does not know 
+the contents of your applicative containers, so it cannot <em>expose</em> the data 
+as you would certainly like. So for some DS behaviors, mostly interactive ones, 
+which require the knowledge of the applicative container contents, the modeler delegates 
+to a special object the container introspection. This special object is a
+<strong>Manager of Providers</strong>. Each applicative container, which want to 
+be invoked for a DS behavior, must be previously declared to this manager.</p>
+<p>These possibilities are valid for Product Modeler [<a href="#References">7</a>] 
+and Mechanical Modeler [<a href="#References">8</a>]. In the referenced articles 
+you will found what are the supported behaviors and how to deal with the provider&#39;s 
+manager.</p>
+<p>For other modelers, have a look to their CAA documentation.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="CATInit Implementation"></a>Applicative Container Loading and Activation</h2>
+<p>To be usable, an applicative container must be first either<strong> loaded</strong> 
+in session, or just <strong>created</strong> , and then to be <strong>activated</strong>. 
+The activation consists in to &quot;giving the hand&quot; to the container in order to operate 
+some actions of initialization. Let us expose the different cases.</p>
+<p><strong>Creation &amp; Activation</strong></p>
+<p>When an applicative container is created, explicitly (<em>CATFmContainerServices::</em>CreateApplicativContainer) 
+or implicitly (CATFmFeaturefacade::<code>AddExtension)</code> [<a href="#References">3</a>], 
+it is activated too.</p>
+<p><strong>Loading &amp; Activation</strong></p>
+<p>DS manages its own containers, so when a PLM Representation Reference is loaded 
+(or switched) in Edit mode [<a href="#References">4</a>], its useful containers 
+are loaded and activated. But what append to the CAA applicative containers including 
+in the steam of a PLM Representation Reference?</p>
+<p>For your CAA applicative containers:</p>
+<ul>
+	<li>All applicative containers containing <strong>feature extension</strong>
+	[<a href="#References">3</a>] are always loaded and activated</li>
+	<li>Otherwise ( i.e the applicative containers
+	which do not contain at least one feature 
+	extension), it is depending on the modeler:
+	<ul>
+		<li>For <strong>Product</strong> all applicative containers are loaded and 
+		activated.</li>
+	</ul>
+	<ul>
+		<li>Otherwise : refer to the CAA documentation of your domain.</li>
+	</ul>
+	</li>
+</ul>
+<p><strong>Activation Principle</strong></p>
+<p>The activation is done through the <a href="#CATInit Implementation">Init</a> 
+method of the <em>CATInit</em> interface. This interface is implemented on the late 
+type of your applicative container, the second argument of the
+<a href="#Applicative Container Creation">creation</a> method. This activation is 
+done for each instance of applicative container. Consider this example:</p>
+<table border="0" id="table3">
+	<caption>Fig.2 Activation</caption>
+	<tr>
+		<td>
+		<img alt="Activation" src="images/CAAOsmApplicativeContainer_activation.gif"></td>
+	</tr>
+</table>
+<p>The two streams contain each one an instance of the applicative container whose 
+the late type is &quot;Appl. Container 2&quot;. Within Stream A, the container contains 2 
+features, and within Stream B 3 others features. When the activation of those containers 
+will be requested, the <a href="#CATInit Implementation">Init</a> method of the
+<em>CATInit</em> interface will be called for each one.</p>
+<p>Let us explain what the activation consists in, and according to your application, 
+you could decide or not to implement the <em>CATInit</em> interface.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="The Init Method Contents"></a>The Init Method Contents</h3>
+<p>The contents of this method generally contains these two steps, and in this order:
+</p>
+<ul>
+	<li>Declare the necessary providers (see
+	<a href="#Standard DS Behavior Integration">Standard DS Behavior Integration</a> 
+	section)</li>
+	<li>Connect each feature of the container to the &quot;event&quot; model tree using
+	<em>CATIModelEvents</em></li>
+</ul>
+<p>You have several examples in the referenced Product [<a href="#References">9</a>] 
+and Mechanical Modeler [<a href="#References">10</a>] use cases.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="The GetRootContainer Method Contents"></a>The GetRootContainer Method 
+Contents</h3>
+<p>It depends on your applicative container contents. If the container contains 
+a feature which is unique, and represents a root, this method can return it, otherwise 
+the implementation can return NULL.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this article, we have described what is an application container, how it&#39;s 
+created, introspected and activated.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAOsmTaOverview.htm">PLM Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAOsmTaModelingStartUps.htm">Modeling Feature StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAFmExtTcFeatureExtensionsToc.htm">Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaSelectiveLoading.htm')">
+		Understanding Representation Loading Mode</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAFmExtTaUnderstandingCredentials.htm">Understanding Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAFmExtUcAppliCont.htm">Working with Applicative Container</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstTaProviders.htm')">
+		Understanding Applicative Container Integration</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMmrTaProvidersInMechPart.htm')">
+		Working with Providers</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstUcINFInitCont.htm')">
+		Initializing the Applicative Container at Runtime</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMmrMecModExt/CAAMmrUcExtendingCombinedCurveSamplesOverview.htm')">
+		Extending a Mechanical Feature using Extension Feature and Providers</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <strong>1</strong> [Oct 2007]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

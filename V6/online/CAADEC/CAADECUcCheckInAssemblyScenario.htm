@@ -1,0 +1,340 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Checkin To ENOVIA V6 Assembly Scenario</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+
+<style type="text/css">
+.style3 {
+	border-style: solid;
+	border-width: 4px;
+}
+.style4 {
+	font-family: "Courier New", Courier;
+	font-size: 9pt;
+	color: #976970;
+}
+</style>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Checkin To 3DEXPERIENCE Platform Assembly Scenario</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>The Use Case illustrates the steps involved for an Integration to 
+		check-in files Assembly scenario into 3DEXPERIENCE Platform. An overview of the integrations of client 
+		applications with 3DEXPERIENCE Platform using the X-CAD is detailed in the technical article [<a href="#References">1</a>]. 
+		<p>In addtion this article illustrates XML building for CAA Integration 
+		with structure building.<ul>
+		<li><a href="#The checkIn command">The checkIn Command</a></li>
+		<li><a href="#checkinEx request XML">checkinEx Request 
+		XML</a></li>
+		<li><a href="#Assembly scenario with CAA Integration">Assembly scenario 
+		with CAA Integration </a></li>
+		<li><a href="#error handling">Error Handling in CheckinEx</a></li>
+		<li><a href="#References">References</a></li>
+		</ul>
+	</td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="The checkIn command"></a>The checkIn Command</h3>
+<p>CheckinEx command is same command used for the chkin of case 1 scenario 
+(Standalone object). But here we are checking in assembly structure so that we 
+need to introduce new nodes in addition mention structure definition. </p>
+<p>Note : Please note that in response to this command IEF client will send 
+Response xml. For answers user have to read this xml and process (Parse) for 
+further use. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="checkinEx request XML"></a>CheckinEx Request XML</h3>
+<p>The checkinEx request XML must contain the object name, type (cadtype), filename and 
+dirname for each cad object to be checked in. The table below lists the attributes in this request and their behavior on 
+request.</p>
+
+<table id="table13" class="style3">
+	<tr>
+		<th><strong>Node</strong></th>
+		<th><strong>Attribute Name</strong></th>
+		<th><strong>Description</strong></th>
+	</tr>
+	<tr>
+		<th>command</th>
+		<th>cse*</th>
+		<td>CSE Application name
+MUST attribute. Use consistent name throughout the session. One can append the CSE version along with the application name.
+ </td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>ver*</th>
+		<td>X-CAD version that the current CSE was built with and is compatible with.<br>
+		IEF version. 
+This is mandatory. This represents the version of the MCAD Harness that the current CAD Specific Extension was built with and is compatible with. If there is a mismatch in the first two digits of this version, the Integration will redirect to installation page.</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>cname*</th>
+		<td>should be checkInEx (Mandatory)</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>csever*</th>
+		<td>CSE (Client Side Extension) version.CSE version. <br>
+		This is mandatory. This represents the version of CAD Specific Extension 
+		of X-CAD Integration. The user will get redirected to installation page 
+		incase there is a version mismatch between this value and the one mapped 
+		in the ief.properties.</td>
+	</tr>
+	<tr>
+		<td ></td>
+		<th >createversion*</th>
+		<td >this attribute must be set to true, to create a new version</td>
+	</tr>
+	
+	<tr>
+		<th>relationship</th>
+		<th>rid</th>
+		<td>Relationship id</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>topnode</th>
+		<td>type of dependency. This will have values "<strong>dpt</strong>" OR "<strong>dpe</strong>". 
+		<br>
+		"dpt" implies the topnode cadobject is dependent on the related node (&#8220;TO&#8221; end ) cadobject and vice versa.</td>
+	</tr>
+	
+	<tr>
+		<td>&nbsp;</td>
+		<th>cadrelationship</th>
+		<td>specifies the details of relationships used in the request. The 
+		corresponding Matrix type mapping should be available in GCO. Otherwise 
+		the relationship will not be made 3DEXPERIENCE Platform.</td>
+	</tr>
+	
+	
+		<tr>
+		<td>&nbsp;</td>
+		<th>relativeXform</th>
+		<td>Used for positioning matrix (Non mandatory)</td>
+	</tr>
+	<tr>
+		<th>cadobject</th>
+		<th>name*</th>
+		<td>Unique identifier of the cadobject. This will become the &#8220;Name&#8221; of 
+		the business object in 3DEXPERIENCE Platform.</td>
+	</tr>
+	
+	
+	<tr>
+		<td>&nbsp;</td>
+		<th>type*</th>
+		<td>this attribute specifies the CAD type of the file (mandatory), Type 
+		of the CAD Object as referred by the CSE</td>
+	</tr>
+	<tr>
+		<td style="height: 13px"></td>
+		<th style="height: 13px">cadid*</th>
+		<td style="height: 13px">Cad id, unique identifier for the cadobject in 
+		the session<br>
+		This will be used by the CSEs to identify cadobject in the session. This 
+		attribute is a must in checkin and should be unique for the cadobject. 
+		This cadid will be used in the structure section of checkin packet. This 
+		will be the same for shared cadobjects</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>dirname*</th>
+		<td>Directory name where the file exists (mandatory)</td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<th>filename*</th>
+		<td>File names or the list of file names to be checked in (mandatory. 
+		Name of the file that exists in the local disk.</td>
+	</tr>
+	
+	
+
+	<tr>
+		<th>structure /cadobject</th>
+		<th>cadid*</th>
+		<td>cad object id </td>
+	</tr>
+	
+	<tr>
+		<th>structure/relationship&nbsp;&nbsp;&nbsp; </th>
+		<th>rid</th>
+		<td>relationship id</td>
+	</tr>
+	</table>
+<p>* Attributes same as used in checkinEx XML of component (Basic Scenario).</p>
+<h3>Path for xml generated by MyX-CAD</h3>
+
+<p>
+XML generated by MyX-CAD application could be found at following location. 
+(where xxx is user name and its local folder on client windows machine)</p>
+<p><code>C:\Users\XXX\AppData\Local\Temp\Request_Command\Checkin_Request.xml</code></p>
+<p><code>where:-&nbsp; XXX - user name windows login, please refer your own 
+login user name in place of </code>X<span class="style4">XX</span></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Assembly scenario with CAA Integration"></a>Assembly scenario with 
+CAA Integration :</h3>
+<p>Here we want to checkin Assembly structure to the 3DEXPERIENCE Platform server as shown 
+in below [<a href="#Fig.1">Fig.1</a>].&nbsp; 
+Basic steps and settings explained in the description articles [] [].</p>
+<p>This assembly structure we provided in the 
+<code>CAAVIXCADIntegration.edu\InputData\AssemblyScenario\Data_Asm_Structure  </code>folder 
+in form of files.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 Assembly Structure</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADECTaDescriptionSchema_image3.jpg" width="787" height="346"></td>
+	</tr>
+</table>
+
+<h4>Building XML </h4>
+<p>For building checkinEx xml there are 4 major parts</p>
+<ul>
+	<li>Command - it is same as other commands</li>
+	<li>relationships - Here main task identifying relations and assigning 
+	numbers (rid) for each relation, for given example we will do it as sample<ul>
+		<li>Relation between - xApp_Asm1 - xApp_Cmp1 = rid 11</li>
+		<li>Relation between - xApp_Asm1 - xApp_Asm2 = rid 22</li>
+		<li>Relation between - xApp_Asm1 - xApp_Asm3 = rid 33<ul>
+			<li>Relation between - xApp_Asm3 - xApp_Cmp3 = rid 44</li>
+		</ul>
+		</li>
+	</ul>
+	</li>
+	<li>Cadobjects - Identifying cadobject and numbering them (cadid )without 
+	duplication<ul>
+		<li>&nbsp;xApp_Asm1 = cadid 0</li>
+		<li>xApp_Cmp1 = cidid 1</li>
+		<li>xApp_Asm2 = cidid 2</li>
+		<li>xApp_Asm3 = cidid 3</li>
+		<li>xApp_Cmp3 = cidid 4</li>
+	</ul>
+	</li>
+	<li>Structures - building structure with the help of cid and rid</li>
+</ul>
+<p>Structure can be build with cid and rid values as below for given input model 
+as shown in [<a href="#Fig.1">Fig.1</a>]</p>
+	<pre> &lt;structure&gt;
+    &lt;active&gt;
+       &lt;cadobject cadid = &quot;0&quot; firstentry = &quot;true&quot;&gt;
+            &lt;cadobject cadid = &quot;1&quot; firstentry = &quot;true&quot;&gt;&lt;relationship rid = &quot;11&quot;/&gt;&lt;/cadobject&gt;
+            &lt;cadobject cadid = &quot;2&quot; firstentry = &quot;true&quot;&gt;&lt;relationship rid = &quot;22&quot;/&gt;&lt;/cadobject&gt;
+            &lt;cadobject cadid = &quot;3&quot; firstentry = &quot;true&quot;&gt;&lt;relationship rid = &quot;33&quot;/&gt;
+                  &lt;cadobject cadid = &quot;4&quot; firstentry = &quot;true&quot;&gt;&lt;relationship rid = &quot;44&quot;/&gt;&lt;/cadobject&gt;
+            &lt;/cadobject&gt;
+       &lt;/cadobject&gt;
+    &lt;/active&gt;
+&lt;/structure&gt;</pre>
+<p>As above tags we could see that <strong>cadid</strong><strong> - 0 and 1</strong> 
+has relationship <strong>rid 11.</strong> In similer manner we could build it 
+for rest objects.</p>
+<p>please note that definitions for cidid 
+and rid need to do before this entry in xml, please refer sample xmls.</p>
+<h4>Sample XML request response for CAA integration</h4>
+<p><code>CAAVIXCADIntegration.edu\InputData\Request\AssemblyScenario\ForCAAData_checkinEx_Request0.xml</code></p>
+<p>In the respnce of that we get following file</p>
+<p><code>CAAVIXCADIntegration.edu\InputData\Response\AssemblyScenario\ForCAAData_checkinEx_Response0.xml</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="error handling"></a>Error handling in CheckinEx:</h3>
+<p>Few error codes in checkinEx send additional information along with the 
+message. The additional information is present in &#8220;<strong>errorinfo</strong>&#8221; 
+node below the &#8220;info&#8221; nodes of the response. The error will be thrown for the 
+first object to fail. A sample xml is provided at the 
+<code>CAAVIXCADIntegration.edu\InputData\Response\AssemblyScenario\checkinExFailureResponseWithAdditonalErrorInformation.xml</code><br>
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+
+<h2><a name="References"></a>References   </h2>  
+    <table>
+     <tr>
+    
+       <td >[1]</td>
+
+
+
+       <td ><a href="CAADECTaDesignerCentralIntegrationOverview.htm">Integrating Client Applications with 
+		X-CAD - An Overview</a></td>
+
+
+
+     </tr>
+     
+     <tr>
+    
+       <td >[2]</td>
+
+
+
+       <td ><a href="CAADECTaBasicScrDescription.htm">Description</a> (Basic)</td>
+
+
+
+     </tr>
+     
+     <tr>
+    
+       <td >[3]</td>
+
+
+
+       <td ><a href="CAADECTaAssemblyScenarioDescription.htm">Description</a> 
+		(Assembly)</td>
+
+
+
+     </tr>
+     
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History <table>
+  <tr>
+    <td valign="top"><strong>Version</strong>: [Feb 2012]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

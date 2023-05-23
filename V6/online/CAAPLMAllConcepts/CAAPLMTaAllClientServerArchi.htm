@@ -1,0 +1,353 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<!-- saved from url=(0014)about:internet -->
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>PLM Client/Server Architecture Overview</title>
+<style>
+<!--
+ li.MsoNormal
+	{mso-style-parent:"";
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	margin-left:0in; margin-right:0in; margin-top:0in}
+-->
+</style>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Client/Server Architecture Overview</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article introduces the client/server principles, and explains where and how 
+		to access the data which will 
+		be created to manage the Product life cycle. </p>
+		<ul>
+			<li><a href="#Introduction">Introduction</a></li>
+			<li><a href="#ENOVIA VPLM Server">ENOVIA V6 Server</a><ul>
+			<li><a href="#PLM Dictionary">PLM Dictionary</a></li>
+			<li><a href="#Vault Database">Vault, the Database</a></li>
+			<li><a href="#Store File Server">Store, the File Server</a></li>
+		</ul>
+			</li>
+			<li><a href="#PLM Client View">PLM Client View</a><ul>
+				<li><a href="#PLM Session Creation">PLM Session Creation</a></li>
+				<li><a href="#PLM Security Context">Secured PLM Connection</a></li>
+				<li><a href="#PLM Server Access">PLM Server Access</a></li>
+			</ul></li>
+					<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>Fundamentally, PLM is based on the following two concepts:</p>
+<ul>
+	<li><b>An unique data model</b> : it is will be fully detailed by the next 
+	articles, and in particular with the first one Understanding PLM Modelers [<a href="#References">1</a>]. 
+	Reading this last one is not mandatory, can be useful to have some notion 
+	about&nbsp; PLM Modeler.</li>
+	<li><b>Enable collaborative work</b> : the objective is that the same data 
+	can be shared by everybody at any moment. It is possible thanks to the 
+	client/server architecture. </li>
+</ul>
+<table >
+	<caption align="center">Fig.1 Client/server Architecture Schema</caption>
+	<tr>
+		<td>
+		<img src="images/CAAPLMAllClientServerArchi_Intro.gif"></td>
+	</tr>
+</table>
+<p>You can see that this architecture enables customers to share the same 
+data&nbsp; inside the same site, and through different sites. When the enterprise is multi-site or when an enterprise works with multiple suppliers, distributed data processes 
+can be supported. 
+The article &quot;Data Exchange Overview&quot; [<a href="#References">2</a>] introduces the different way to exchange data.</p>
+<p>This article presents the DS Client/Server architecture. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ENOVIA VPLM Server"></a>ENOVIA V6 Server</h2>
+<p>The picture below presents the ENOVIA V6 server.</p>
+<table >
+	<caption align="center">Fig.2 ENOVIA VPLM Server</caption>
+	<tr>
+		<td>
+		<map name="FPMap0">
+		<area href="#PLM Dictionary" shape="rect" coords="26, 203, 140, 232">
+		<area href="#Vault Database" shape="rect" coords="223, 198, 314, 236">
+		<area href="#Store File Server" shape="rect" coords="405, 200, 492, 239">
+		</map>
+		<img border="0" src="images/CAAPLMAllClientServerArchi_ENOVIA.gif" usemap="#FPMap0"></td>
+	</tr>
+</table>
+<p>The PLM Server is based on three parts: (blue cylinders are part of the PLM Server).</p>
+<ul>
+	<li> <b>Vault</b> lies on an Oracle, DB2 or MS SQL Server Database. Its data are defined by the dictionary metadata</li>
+	<li> <b>PLM Dictionary </b>contains metadata required by the PLM Server to 
+	structure the Vault database. </li>
+	<li><b>Store</b> is a file server containing binary files pointed by the data contained in the Vault  </li>
+</ul>
+<p>All these three structures, vault, PLM dictionary and store are detailed now.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Dictionary"></a>PLM Dictionary</h3>
+<p>PLM server cannot access to the vault without 
+having information about the data structure. This information is given by the PLM Dictionary. </p>
+<p>The PLM Dictionary is a build time information initialized during the 
+installation of the server. It contains the description of all the types (PLM 
+Classes) of PLM entities along with their attributes and relations.&nbsp; The 
+PLM Classes are grouped together into modelers (.metadata files).</p>
+<table>
+	<caption align="center">Fig.3 PLM Dictionary</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllClientServerArchi_Dico.gif"></td>
+	</tr>
+</table>
+<p>To simplify each metadata 
+file describes a PLM Modeler. (Refer to the specific article &quot;Understanding PLM Dictionary" 
+[<a href="#References">3</a>] for more details). The metadata contains a set of 
+entities, named PLM Class, describing each one an element of the PLM Modeler. Some PLM 
+Classes are concrete, they could be instantiated in the database, or abstract 
+otherwise.</p>
+<p>A PLM Class has PLM Attributes and PLM Relations [<a href="#References">3</a>]. 
+PLM Attributes, which are simple attributes, as string, int , or boolean, see 
+the exact list in the referenced article [<a href="#References">6</a>], will be 
+used for database queries.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Vault Database"></a>Vault, the Database&nbsp; </h3>
+<p>The Vault is the database containing entities, called PLM Objects, created 
+from concrete PLM Classes defined in the PLM Dictionary. </p>
+<table >
+	<caption align="center"><a name="Fig.4">Fig.4</a> Vault Database</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllClientServerArchi_Vault.gif"></td>
+	</tr>
+</table>
+<p>On [<a href="#Fig.4">Fig.4</a>] you can see for example two instances (<code>PLM 
+Object 1.1</code> and <code>PLM object 1.2) </code>of the same prototype (i.e. PLM Class) <code>PLM Class 1</code> .</p>
+<p>A PLM object is an instance of a PLM Class; therefore it benefits from its PLM Attributes 
+and PLM Relations.&nbsp; The PLM Attributes will be valuated during the 
+instantiation or later. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Store File Server"></a>Store, the File Server</h3>
+<p>PLM Attributes are fine to describe small, simple queriable information such 
+as strings or integer values, but larger information set also have to be 
+associated to PLM entities. Just below two examples.&nbsp; </p>
+<ul>
+	<li >
+	<b>Geometry</b>, defined 
+	by features&nbsp;[<a href="#References">6</a>]. </li>
+</ul>
+<blockquote>
+	<table >
+		<caption align="center"><a name="Fig.5">Fig.5</a> Wheel Geometry</caption>
+		<tr>
+			<td>
+			<img border="0" src="images/CAAPLMAllClientServerArchi_Geometry.gif"></td>
+		</tr>
+	</table>
+	<p > 
+	 On [<a href="#Fig.5">Fig.5</a>] 
+	 a 3D geometry represented in a 3D viewer,  </p>
+</blockquote>
+<ul  >
+	<li >
+	 <b>Computed results</b> or data stored as Word, Xls, or text files. </li>
+</ul>
+<p > 
+To release these kind of associations, some PLM object could point files within 
+a file server, named 
+store. There are binary files also named <b>stream</b>.  </p>
+<table>
+	<caption align="center">Fig.6 Stream</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllClientServerArchi_Store.gif"></td>
+	</tr>
+</table>
+<p> To finish 
+three 
+remarks:</p>
+<ul>
+	<li> PLM 
+	Representation Reference can point on a stream,</li>
+	<li>A file
+	 cannot be opened without loading in session the PLM 
+	Representation Reference itself (vault attributes), </li>
+	<li>  A PLM 
+	object can point several streams, but only one called the &quot;main&quot; stream. The other ones, 
+	named secondary streams, are generated and only used, internally.  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="PLM Client View"></a>PLM Client View</h2>
+<p>In the previous chapter, we have described the ENOVIA V6 Server, now we 
+should introduce the client point of view. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Session Creation"></a>PLM Session Creation</h3>
+<p>Interactively when you launch an application (CATIA or another one), a PLM 
+session is created associated to the PLM server connection. In the same way, in any batch application requiring 
+to access the database, 
+a PLM session must be created.&nbsp; </p>
+<p>At the end, the PLM Session is deleted, and disconnected from the PLM Server. </p>
+<p>A CAA use case explains the API to use to create an delete a PLM Session&nbsp;[<a href="#References">4</a>]. </p>
+<p><b>Warning</b>:</p>
+<ul>
+  <li>A session can be connected to only one provider (i.e server or repository), 
+  and only a Enovia V6 server connection is possible. In the 
+connection API ( <code>SetPLMSessionParameter</code> method of <i>CATPLMSessionServices</i>), 
+the only one possible value for the repository is <b>PLM1</b>.</li>
+</ul>
+<blockquote>
+  <table class="code" id="table11" width="519">
+    <tr>
+      <td>
+      <pre>CATPLMSessionServices::SetPLMSessionParameter("Repository", "<b>PLM1</b>");</pre>
+      </td>
+    </tr>
+  </table>
+</blockquote>
+<ul>
+  <li>CAA API are only supported inside an <b>authoring</b> session: CATIA, 
+  DELMIA, ENOVIA. CAA is not supported in 3D Live context. </li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Security Context"></a>A Secured Connection</h3>
+<p>As any connection to a server, the end user must enter its name, its 
+password. To enforce the security, we have added other information, that we 
+named the PLM Security Context:</p>
+<ul>
+	<li>a role,</li>
+	<li>a organization,</li>
+	<li>a project,</li>
+</ul>
+<p>According to these information some PLM objects in database are perhaps not 
+accessible for him/her when he/she is connected with these parameters.</p>
+<p>Example: Imagine a shipbuilding company. Some people works on the 
+hull, and other ones on the engines. You will assign the &quot;hull&quot; project&nbsp; to the first team, and the &quot;engine&quot; project for the second one. 
+It means that someone of the first team could no access to the data (PLM objects) 
+in relationship with the &quot;engine&quot; project. This project structure 
+allows us to impose access restriction to the 'engine&quot; data by the &quot;hull&quot; team 
+and reversely.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Server Access"></a>PLM Server Access</h3>
+<p>The following picture shows the complete client/server architecture. </p>
+<table border="0" id="table9">
+	<caption><a name="Fig.7">Fig.7</a> PLM Server Access</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllClientServerArchi_ServerAccess.gif" width="569" height="400"></td>
+	</tr>
+</table>
+<p>&nbsp;[<a href="#Fig.7">Fig.7</a>] shows that&nbsp;all <b>server accesses are done 
+through an unique layer</b>. This unique layer is based on a set of operations :</p>
+<ul>
+	<li><b>Crud</b> operations , which stands for Create Update Delete </li>
+	<li><b>QEOPS</b> operations,&nbsp; which stands Query Expand OPen Save,</li>
+	<li><b>PLM Management</b> operations, which groups together versioning, 
+	lock, change maturity ( lifecycle operations)</li>
+</ul>
+<p>Other client operations (rename, replace, change attribute values) are 
+described to the server through this minimal set of operations.</p>
+<p>Other thing, all QEOPS and PLM Management operations take into account the 
+<a href="#PLM Security Context">PLM Security 
+context</a>. The operation can fail if the connected people modify or create a PLM 
+Object for which he/she has no access right.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The client / server architecture is based on:</p>
+<ul>
+	<li>an ENOVIA V6 Server. 
+	<p>Data, called PLM Object, are created within a database named Vault. The PLM Object 
+	templates are defined within the PLM Dictionary. The PLM server cannot create a PLM Object, access a PLM object without 
+consulting the PLM Dictionary. The PLM Representation Reference, a specific PLM 
+	Object, can point on a stream which is stored in the Store , the file server.</p>
+	</li>
+	<li>a PLM Session </li>
+	<p>It is a secured connection to the PLM server and which proposes to access 
+	to the PLM server only by a reduce set of operations: Crud, QEOPS and PLM 
+	Management operations.</p>
+</ul>
+ 	
+ 
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table>
+	<tr>
+		<td valign="top">[1]</td>
+		<td><a href="CAAPLMTaAllCorePrinciples.htm">Understanding PLM Modelers</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[2]</td>
+		<td><a href="CAAPLMTaAllDataExchange.htm">Data Exchange Overview</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[3]</td>
+		<td><a href="CAAPLMTaAllPLMDictionary.htm">Understanding PLM Dictionary</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcBasicBatch.htm')">
+Creating a Basic PLM Batch</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[6]</td>
+		<td>
+		<a href="CAAPLMTaAllAttributes.htm">Understanding PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td valign="top">[7]</td>
+		<td>  
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">Creating Component</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td valign="top">Version: <b>1</b> [Jan 2008]</td>
+		<td valign="top">Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

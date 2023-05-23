@@ -1,0 +1,381 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_clean</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp;</p>
+<table width="100%">
+  <tr>
+    <td valign="TOP">
+      <h1>RADE</h1>
+    </td>
+    <td valign="TOP">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td align="RIGHT" valign="TOP" rowspan="2">
+      <h3><a name="Top"></a>adl_clean</h3>
+      <p><i>Cleaning databases and file server</i></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>The <b>adl_clean</b> command cleans objects in databases and in file
+      servers.
+      <ul>
+        <li><b><a href="#Synopsis">Synopsis</a></b></li>
+        <li><b><a href="#Usage">Usage</a></b></li>
+        <li><b><a href="#Options">Options</a></b></li>
+        <li><b><a href="#Examples">Examples</a></b></li>
+        <li><b><a href="#References">References</a></b></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Synopsis"></a>Synopsis</h3>
+<p><b>adl_clean</b> <b>-del_ws</b> [<b>-db|-database</b> database...] {<b>-for_more_than</b>
+del_time_span}|{<b>-before</b> del_date} [<b>-during</b> time_span]|[<b>-until</b>
+last_date] [<b>-nb_in_group</b> nb_elts] <b>-nb_to_commit</b> nb_rows [<b>-h</b>|<b>-help</b>|<b>-?</b>]
+(1)<br>
+<b>adl_clean</b> <b>-del_soft_obj_in_ws_tree</b> [<b>-db</b>|<b>-database</b>
+database...] [<b>-tree</b> ws_tree_name...] {<b>-for_more_than </b>del_time_span}|{<b>-before</b>
+del_date} [<b>-during </b>time_span]|[<b>-until </b>last_date] <b>-nb_in_group </b>nb_elts
+<b>-nb_to_commit </b>nb_rows (2)<br>
+<b>adl_clean</b> <b>-finish_group </b>[<b>-db</b>|<b>-database </b>database...]
+[<b>-during </b>time_span]|[<b>-until </b>last_date] <b>-nb_to_commit </b>nb_rows
+(3)<br>
+<b>adl_clean</b> <b>-file_cont_in_db </b>[<b>-db</b>|<b>-database </b>database...]
+[<b>-during </b>time_span]|[<b>-until </b>last_date] <b>-nb_in_group </b>nb_elts
+[<b>-during </b>time_span]|[<b>-until </b>last_date] (4)<br>
+<b>adl_clean</b> <b>-file_cont_in_srvr </b>[<b>-cs</b>|<b>-contents_server </b>contents_server]
+[<b>-during </b>time_span]|[<b>-until </b>last_date] (5)</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Usage"></a>Usage</h3>
+<p>This command cleans all the databases or all contents server of the site, or
+the ones that have been specified.</p>
+<p><a name="Usage"></a>(1) Clean the deleted workspaces.</p>
+<p>The workspaces that have been deleted for more than a time span or before a
+date are cleaned.</p>
+<p><a name="Usage"></a>(2) Clean the data associated with the software objects
+seen as deleted in the workspace trees.</p>
+<p>The data associated with the software objects seen as deleted are cleaned.
+Neither the software objects nor their modifications are cleaned themselves.<br>
+The software objects that are considered are those which have been deleted for
+more than a time span or before a date.<br>
+The analysis of the software objects is limited by the number nb_elts, and then
+the effective cleaning begins. The cleaning is performed software object by
+software object (with exceptions).<br>
+The SCM commands support no inconcistency in all that is associated with the
+software objects. So no job can be started in a workspace tree while a software<br>
+object's effective cleaning is running with it.<br>
+If an effective cleaning is interrupted, it'll have to be terminated before the
+workspace tree will be unlocked.</p>
+<p><a name="Usage"></a>(3) Finish the cleaning of the previous group.</p>
+<p>If any, the previous group cleaning finishes.<br>
+Because of database storage consideration, the cleaning can't be performed with
+one transaction:<br>
+- the objects to be cleaned are grouped nb_elts by nb_elts<br>
+- the cleaning of a database table is committed every nb_rows rows</p>
+<p><a name="Usage"></a>(4) Clean file contents in database.</p>
+<p>File contents in database are cleaned.<br>
+The deleted workspaces cleaner have to be run before.</p>
+<p><a name="Usage"></a>(5) Clean file contents in contents server.</p>
+<p>Warning : this cleaning step cleans nothing in database. Only contents server
+is involved.<br>
+File contents that are not referenced anymore by elements of the cleaning step
+(4) are cleaned.<br>
+The file contents in database cleaner have to be run before.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Options"></a>Options</h3>
+<p>adl_clean accepts the following options: &nbsp;</p>
+<table>
+  <tr>
+    <td valign="TOP" width="20%"><tt><font face="Courier New">-h|-help|-?</font></tt></td>
+    <td>Help of the command</td>
+  </tr>
+  <tr>
+    <td><font face="Courier New">-db|-database database...</font></td>
+    <td>Clean all databases or the specified databases.</td>
+  </tr>
+  <tr>
+    <td><font face="Courier New">-cs|-contents_server contents_server</font></td>
+    <td>Clean all contents server or the specified contents server.</td>
+  </tr>
+  <tr>
+    <td><font face="Courier New">-del_ws</font></td>
+    <td>Clean the deleted workspaces.</td>
+  </tr>
+  <tr>
+    <td><font face="Courier New">-for_more_than del_time_span</font></td>
+    <td>Clean the objects deleted for more than the specified time span, with
+      the format [YYYY/MM/]DD[-hh[:mm[:ss]]] or hh:mm[:ss] (if you specify an
+      integer, it's a number of days).</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-before del_date</font></td>
+    <td>Clean the objects deleted before the specified date, with the format
+      YYYY/MM/DD-hh:mm:ss where time is optional (00:00:00 by default).</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-during time_span</font></td>
+    <td>A database table cleaning can begin during time_span, with the format
+      [YYYY/MM/]DD[-hh[:mm[:ss]]] or hh:mm[:ss] (if you specify an integer, it's
+      a number of days).</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-until last_date</font></td>
+    <td>A database table cleaning can begin until last_date, with the format
+      YYYY/MM/DD-hh:mm:ss where time is optional (00:00:00 by default).</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-nb_in_group nb_elts</font></td>
+    <td>Number of objects to be cleaned together (group).</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-nb_to_commit nb_rows</font></td>
+    <td>Number of rows to commit together.</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-del_soft_obj_in_ws_tree</font></td>
+    <td>Clean the data associated with the software objects seen as deleted in
+      the workspace trees.</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-tree ws_tree_name...</font></td>
+    <td>Clean only the specified workspace trees</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-finish_group</font></td>
+    <td>Finish the cleaning of the previous group.</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-file_cont_in_db</font></td>
+    <td>Clean file contents in database.</td>
+  </tr>
+  <tr>
+    <td valign="TOP" width="20%"><font face="Courier New">-file_cont_in_srvr</font></td>
+    <td>Clean file contents in contents server.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Examples"></a>Examples</h3>
+<dl>
+  <p><b>Clean</b> deleted workspaces for more than 20 days on database ADL2.
+  This process will end at 11:30 pm on October 20th. In database, commit is done
+  by group of 100 elements :</p>
+  <table class="code">
+    <tr>
+      <td>
+        <dl>
+          <p><b>adl_clean</b> -del_ws -db ADL2 -for_more_than 20 -until
+          2003/10/20-23:30:00 -nb_to_commit 100</p>
+          <p>2003/10/17-23:06:05: Cleaning the deleted workspaces in the
+          database ADL2.<br>
+          <br>
+          &nbsp;&gt; 2003/10/17-23:06:05: Begin of the group.<br>
+          &nbsp;&gt; 2003/10/17-23:06:05: Inserting Id for the table
+          adl.workspace.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:05: 5 Id to clean have been
+          inserted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Checking the table
+          adl.workspace_revision.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Inserting Id for the table
+          adl.config_branch.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 3 Id to clean have been
+          inserted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.attached_component.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 2 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.checked_out_elem.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table adl.cfg_rev_in_ws.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 4 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.config_revision.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 4 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.inv_cfg_rev_group.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.perhaps_changed_so.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 1 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.so_chg_evt_grp_cr.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 4 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.so_chg_fgt_info.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.so_chg_grp_cfg_rev.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 4 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table adl.config_branch.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 3 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 3 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.deleted_ws_group.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table adl.history_event.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 3 workspaces for history have
+          been inserted and 0 ones have been updated..<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.last_ws_refresh.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 8 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.perhaps_attached.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 2 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.promotion_request.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table adl.publication.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 3 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:06: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:06: Cleaning the table
+          adl.refreshed_ws_group.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 30 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: Cleaning the table adl.so_chg_merge.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 0 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: Cleaning the table
+          adl.workspace_counter.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 9 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: Cleaning the table
+          adl.workspace_revision.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 4 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 0 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: Cleaning the table adl.workspace.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 5 rows have been deleted.<br>
+          &nbsp;&nbsp;&nbsp; 2003/10/17-23:06:08: 5 Id to clean have been
+          deleted.<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: End of the group.<br>
+          &nbsp;<br>
+          &nbsp;&gt; 2003/10/17-23:06:08: Begin of the group.<br>
+          &nbsp;&nbsp; ...<br>
+          &nbsp;</p>
+        </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Clean</b> file contents in database ADL2. The size of group is 200.</p>
+  <table class="code">
+    <tr>
+      <td>
+        <dl>
+          <p><b>adl_clean</b> -file_cont_in_db -db ADL2 -nb_in_group 200</p>
+          <p>&gt; 2003/10/17-23:06:40: Cleaning the table file_cont_in_srvr.<br>
+          &nbsp;&nbsp; 2003/10/17-23:06:40: 200 Id to clean have been deleted.</p>
+          <p>&gt; 2003/10/17-23:06:41: Cleaning the table file_cont_in_srvr.<br>
+          &nbsp;&nbsp; 2003/10/17-23:06:41: 200 Id to clean have been deleted.</p>
+          <p>&gt; 2003/10/17-23:06:42: Cleaning the table file_cont_in_srvr.<br>
+          &nbsp;&nbsp; 2003/10/17-23:06:42: 200 Id to clean have been deleted.</p>
+          <p>&gt; 2003/10/17-23:06:43: Cleaning the table file_cont_in_srvr.<br>
+          &nbsp;&nbsp; 2003/10/17-23:06:43: 26 Id to clean have been deleted.<br>
+          &nbsp;</p>
+        </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Clean</b> file contents in all contents server.</p>
+  <table class="code">
+    <tr>
+      <td>
+        <dl>
+          <p><b>adl_clean</b> -file_cont_in_srvr</p>
+          <p>&nbsp;2003/10/17-23:07:32 : Cleaning the file contents in file
+          server andretidsy:25039.<br>
+          <br>
+          &nbsp;&nbsp; 2003/10/17-23:07:33: 8 Id to clean have been deleted.<br>
+          &nbsp;<br>
+          &nbsp;2003/10/17-23:07:33 : End of the cleaning the file contents in
+          file server andretidsy:25039.<br>
+          &nbsp;</p>
+        </dl>
+      </td>
+    </tr>
+  </table>
+</dl>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="100%">
+  <tr>
+    <td valign="TOP">Version: <b>1</b> [October 2003]</td>
+    <td valign="TOP">Document created</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

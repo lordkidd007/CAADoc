@@ -1,0 +1,334 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Validating XML Documents with SAX</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Validating XML Documents with SAX</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to configure an XML parser for schema validation 
+		by preloading an XML schema.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAXMLSAXSchema Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAXMLSAXSchema Do</a></li>
+					<li><a href="#How">How to Launch CAAXMLSAXSchema</a></li>
+					<li><a href="#Where">Where to Find the CAAXMLSAXSchema Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case shows how to create a SAX2 XML reader to parse XML files. It shows 
+how the reader can be configured for <strong>schema validation</strong> by preloading 
+an existing XML schema file. It shows you how to write an <strong>error handlers</strong> 
+to trap validation errors and how to register such handlers with the parser.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAXMLSAXSchema Use Case</h2>
+<p>The CAAXMLSAXSchema Use Case is a use case of the CAAXMLParser.edu framework 
+that illustrates XMLParserItf framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAXMLSAXSchema Do</h3>
+<p>This use case validates XML files against an XML schema. It reads the target 
+namespace and the location of the schema from the command line. It also reads the 
+path of the XML files to validate from the command line. For each of the files to 
+parse, it prints a message in the console indicating whether the file is valid or 
+not.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAXMLSAXSchema</h3>
+<p>To launch CAAXMLSAXSchema, you will need to set up the build time environment, 
+then compile CAAXMLSAXSchema along with its prerequisites, set up the run time environment, 
+and then execute the use case [<a href="#References">1</a>].</p>
+<p>The use case should be launched as follows from the command line:</p>
+<pre>CAAXMLSAXSchema &lt;targetnamespace&gt; &lt;schemapath&gt; &lt;filepath1&gt; ... &lt;filepath2&gt;</pre>
+<p>where:</p>
+<dl>
+	<dt>&lt;targetnamespace&gt;</dt>
+	<dd>is target namespace of the schema used for validation</dd>
+	<dt>&lt;schemapath&gt;</dt>
+	<dd>is the path of the XSD file containing the schema</dd>
+	<dt>&lt;filepath1&gt;</dt>
+	<dd>is the path of the first XML file to validate</dd>
+	<dt>&lt;filepathN&gt;</dt>
+	<dd>is the path of the N-th XML file to validate</dd>
+</dl>
+<p>Three sample XML files and a sample XSD schema are provided with the use case. 
+To use them, launch the following command from the command line:</p>
+<p><code>CAAXMLSAXSchema urn:com:dassault_systemes:automotive InstallRoot\OS\resources\xml\CAAXMLSAXSchema\automotive.xsd 
+InstallRoot\OS\resources\xml\CAAXMLSAXSchema\car1.xml InstallRoot\OS\resources\xml\CAAXMLSAXSchema\car2.xml 
+InstallRoot\OS\resources\xml\CAAXMLSAXSchema\car3.xml</code></p>
+<p>where <code>InstallRoot</code> is the directory in which you have installed the 
+run time part or the product line and <code>OS</code> is the directory containing 
+the installed code [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAXMLSAXSchema Code</h3>
+<p>The CAAXMLSAXSchema use case is made of several classes located in the CAAXMLSAXSchema.m 
+module of the CAAXMLParser.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAXMLParser.edu\CAAXMLSAXSchema.m\</code></p>
+<p>where <code>InstallRoot</code>Folder[<a href="#References">1</a>] is the directory 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To create a SAX reader, preload the XML schema schema, create and register event 
+handlers with this parser, and parse a file, there are seven main steps:</p>
+<table>
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+	</tr>
+	<tr>
+		<td><a href="#Step1">1</a></td>
+		<td>Implement an Error Handler component</td>
+	</tr>
+	<tr>
+		<td><a href="#Step2">2</a></td>
+		<td>Create a SAX Component</td>
+	</tr>
+	<tr>
+		<td><a href="#Step3">3</a></td>
+		<td>Create a SAX Parser</td>
+	</tr>
+	<tr>
+		<td><a href="#Step4">4</a></td>
+		<td>Preload the XML schema</td>
+	</tr>
+	<tr>
+		<td><a href="#Step5">5</a></td>
+		<td>Create a Error Handler Component and Register It With the Parser</td>
+	</tr>
+	<tr>
+		<td><a href="#Step6">6</a></td>
+		<td>Parse the XML File</td>
+	</tr>
+	<tr>
+		<td><a href="#Step7">7</a></td>
+		<td>Manage Errors</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Implement an Error Handler Component</h3>
+<p>The SAX API uses an event-oriented API to process XML documents. The XML SAX 
+parser reads XML documents sequentially and invokes callback functions to indicate 
+the XML construct it comes across. Each invocation is called a SAX event. The SAX 
+API defines interfaces, which specify the signature of the SAX callback functions 
+and group them per theme. The <code>CATISAXErrorHandler</code> interface defines 
+the <code>Error</code> and <code>FatalError</code> functions. The <code>FatalError</code> 
+function is invoked by the parser when it detects that the XML file being parsed 
+is not well-formed. The <code>Error</code> function is invoked by the parser when 
+it detects that the XML file being parsed is invalid. Other SAX interfaces (<code>CATISAXDTDHandler</code>,
+<code>CATISAXErrorHandler</code>, <code>CATISAXContentHandler</code>) define additional 
+events. To make the work easier for the developer, the SAX API provides a <code>
+CATSAXDefaultHandler</code> component, which already provides an empty implementation 
+of all the SAX interfaces.</p>
+<p>
+<img alt="saxdefaulthandler.png (2631 bytes)" height="206" src="images/saxdefaulthandler.png" width="283"/>.</p>
+<p>Therefore, to write a SAX error handler, all you need to do is to create a new 
+component which inherits from <code>CATSAXDefaultHandler</code> and override the 
+methods to answer to the events, which are relevant to your application. The following 
+code declares and defines a <code>CAAXMLSAXSchemaErrHandler</code> component which 
+inherits from <code>CATSAXDefaultHandler</code> and re-implements <code>CATISAXErrorHandler</code>.</p>
+<pre class="code">// CAAXMLSAXSchemaErrHandler.h
+#include &quot;CATSAXDefaultHandler.h&quot;
+class CAAXMLSAXSchemaErrHandler : <strong>public CATSAXDefaultHandler</strong> {
+    <strong>CATDeclareClass;</strong>
+    public:
+        ...
+        // Override part of the default implementation of the
+        // CATISAXErrorHandler interface.
+        virtual HRESULT <strong>Error</strong>( 
+            CATSAXParseException* iException);
+        virtual HRESULT <strong>FatalError</strong>( 
+            CATSAXParseException* iException);
+        ...
+};</pre>
+<pre class="code">// CAAXMLSAXSchemaErrHandler.cpp
+#include &quot;CAAXMLSAXSchemaErrHandler.h&quot;
+
+// Declare the class as a component derived from CATSAXDefaultHandler
+<strong>CATImplementClass( CAAXMLSAXSchemaErrHandler, Implementation, CATSAXDefaultHandler, CATnull );</strong>
+
+// Implement the CATISAXErrorHandler interface
+<strong>#include &quot;TIE_CATISAXErrorHandler.h&quot;
+TIE_CATISAXErrorHandler(CAAXMLSAXSchemaErrHandler);</strong></pre>
+<p>The next step is to provide an implementation for each of the SAX events you 
+want to catch. The following code shows how the <code>Error</code> event callback 
+function is implemented.</p>
+<pre class="code">// CAAXMLSAXSchemaErrHandler.cpp
+HRESULT CAAXMLSAXSchemaErrHandler::Error ( 
+	CATSAXParseException* iException) {
+	return E_FAIL;
+}</pre>
+<p>To abort the parsing and cause the <code>CATISAXXMLReader::Parser</code> to report 
+an error, one simply returns <code>E_FAIL</code>. To ignore the error and continue 
+the parsing, one simply returns <code>S_OK</code>. Note that only validation errors 
+can be ignored. Errors caused by a malformed document will cause the <code>CATISAXErrorHandler::FatalError</code> 
+method to be called. This method should always return <code>E_FAIL</code> because 
+the parser cannot recover from the error if the XML file is malformed. Returning 
+other values will still cause the parser to abort and return an error.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Create a SAX Component</h3>
+<pre class="code">...
+// CAAXMLSAXSchemaMain.cpp
+CATIXMLSAX2Factory_var factory;
+HRESULT hr = <strong>::CreateCATIXMLSAX2Factory</strong>(factory);
+...</pre>
+<p>To work with SAX, you need to instantiate the SAX component. The SAX component 
+can be created by calling the <code>CreateCATIXMLSAX2Factory</code> global function. 
+This function returns a handler on the <code>CATIXMLSAX2Factory</code> interface, 
+which is the main interface for the SAX component. Using this interface you will 
+be able to create SAX2 parsers and to create input source to feed XML to the parser.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Create a SAX Parser</h3>
+<pre class="code">CATISAXXMLReader_var reader;
+hr = reader-&gt;<strong>CreateXMLReader</strong>(reader);
+...</pre>
+<p>To create a SAX2 parser, one simply invokes the <code>CreateXMLReader</code> 
+on the <code>CATIXMLSAX2Factory</code> object.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Preload the XML schema</h3>
+<pre class="code"><strong>CATIXMLSchemaLoader_var</strong> schemaLoader = reader(reader);
+...</pre>
+<p>Before preloading the XML schema, get the <code>CATIXMLSchemaLoader</code> handle 
+of the SAX parser component. This is managed transparently through smart pointers.</p>
+<pre class="code">CATISAXInputSource_var source;
+hr = factory-&gt;<strong>CreateInputSourceFromFile</strong>(schemaPath, &quot;xsd-schema&quot;, source);
+...
+hr = schemaLoader-&gt;<strong>PreloadSchema</strong>(schemaURI, source);
+(reader);
+...</pre>
+<p>To preload the schema, create an input source from the file which contains the 
+schema and load it into the parser by calling the <strong>CATIXMLSchemaLoader::PreloadSchema</strong> 
+method. Note that you need to specify the target namespace of the schema for the 
+schema validation to work.</p>
+<pre class="code">hr = reader-&gt;SetFeature(<strong>CATSAXXMLReaderOptions::ValidationFeature</strong>, TRUE);
+...
+hr = reader-&gt;SetFeature(<strong>CATSAXXMLReaderOptions::NamespacesFeature</strong>, TRUE);
+...</pre>
+<p>Activate the <code>CATSAXXMLReaderOptions::ValidationFeature</code> feature to 
+make the parser validating. The <code>CATSAXXMLReaderOptions::NamespacesFeature</code> 
+feature needs to be activated also because XML schemas require namespace support.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Create a Error Handler Component and Register It With the 
+Parser</h3>
+<p>The SAX2 parser created in the previous section is not yet usable as it does 
+not yet know any other objects to which it can send the events it generates. The 
+SAX2 parser can accept up to six event handlers (one for each event interface), 
+as shown in the diagram below.</p>
+<p>
+<img alt="saxparser.png (3346 bytes)" height="232" src="images/saxparser.png" width="337"/></p>
+<pre class="code">...
+CAAXMLSAXSchemaErrHandler *errHandlerImpl = new CAAXMLSAXSchemaErrHandler();
+CATISAXErrorHandler_var errHandler = errHandlerImpl;
+errHandlerImpl-&gt;Release();
+errHandlerImpl = NULL;</pre>
+<p>To instantiate the error handler you have defined in the previous section, simply 
+do a <code>new</code> of the main implementation class, then get interface handles 
+of the right type on the component.</p>
+<pre class="code">...
+hr = parser-&gt;<strong>SetErrorHandler</strong>(errHandler);
+...</pre>
+<p>To register your error handler, call the <code>SetErrorHandler</code> method 
+of the <code>CATISAXXMLReader</code> interface. Passing <code>NULL_var</code> to 
+this method unregisters the previously registered handlers.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Parse the XML File</h3>
+<pre class="code">hr = reader-&gt;<strong>Parse</strong>(filePath);</pre>
+<p>To parse the XML file, call the <code>Parse</code> method of the <code>CATISAXXMLReader</code> 
+interface. Pass the path of the file to read as a parameter. The method will read 
+the file from top to bottom and generate the corresponding events, calling your 
+event handlers for all the events you want to manage.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Manage Errors</h3>
+<p>The XMLParserItf framework uses the <code>HRESULT</code> / <code>CATError</code> 
+mechanism to manage errors. Make sure to use the <code>CATError::CATGetLastError</code> 
+to obtain all the available error diagnostics when using XMLParserItf. More information 
+about error management is available here <a href="#Ref2">[2]</a> and
+<a href="#Ref4">[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows you how to parse XML documents using the SAX API and schema 
+validation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td><a name="Ref1"></a>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref2"></a>[2]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidErrors.htm">
+		Managing Errors Using HRESULT</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref3"></a>[3]</td>
+		<td><a href="CAAXmlTaOverview.htm">Using XML</a></td>
+	</tr>
+	<tr>
+		<td><a name="Ref4"></a>[4]</td>
+		<td><a href="CAAXmlTaTipsAndTricks.htm">XML Tips and Tricks</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2005]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

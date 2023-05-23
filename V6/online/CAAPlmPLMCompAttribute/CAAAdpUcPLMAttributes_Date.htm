@@ -1,0 +1,1092 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Handling PLM Attributes Of Type Date</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+<style>
+<!--
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Handling PLM Attributes Of Type Date</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This Use case illustrates the methodology to handle a PLM Attribute of 
+      type &quot;<b>Date</b>&quot; 
+      <ul>
+        <li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+        <li><a href="#Where">The CAAAdpPLMAttributes_Date Use Case</a>
+          <ul>
+            <li><a href="#What">What does the CAAAdpPLMAttributes_Date do</a></li>
+            <li><a href="#How">How to launch CAAAdpPLMAttributes_Date</a></li>
+            <li><a href="#Where">Where to find the CAAAdpPLMAttributes_Date 
+              code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+
+<p>This use case teaches us how to handle&nbsp; PLM attribute of &quot;Date&quot; type. </p>
+
+<ul>
+  <li>Valuating a Date Type attribute associated with a PLM Component with calls 
+  to<ul>
+    <li><code>CATCkeObjectAttrWriteServices</code>::<code>SetValueWithTime </code>
+    which takes as input, an attribute value of a <i>CATTime</i> type<ul>
+    <li>Here we also learn how to create <i>a CATTime</i> type from user input 
+    in the Day-Month-Year Hour-Minute-Second format</li>
+  </ul>
+    </li>
+    <li><code>CATCkeObjectAttrWriteServices</code>::<code>SetValue </code>which 
+    can take a Date type attribute value in the form of&nbsp; a <i>CATIValue_var</i> 
+    type<ul>
+    <li>In the process&nbsp; we learn how to create a <i>CATIValue_var</i> type 
+    from a CATTime type with a call to <code>CATICkeParmFactory</code>:: <code>
+    CreateDate</code></li>
+  </ul>
+    </li>
+  </ul>
+  </li>
+  <li>Retrieving a Date Type Attribute associated with a PLM Component with 
+  calls to<ul>
+    <li><code>CATCkeObjectAttrReadServices</code>::<code>GetValueAsTime </code>
+    which returns a Date type attribute of a PLM Component, as a <i>CATTime</i> 
+    type<ul>
+    <li><code>CATTime</code>::<code>ConvertToString</code> converts the <i>
+    CATTime</i> in to <i>CATUnicodeString</i> for display purpose.</li>
+  </ul>
+    </li>
+    <li><code>CATCkeObjectAttrReadServices</code>::<code>GetValue </code>which 
+    returns a Date type attribute of a PLM Component, as a <i>CATIValue_var</i> 
+    type <ul>
+    <li>In the process we learn, the methodology to retrieve a <i>CATTime</i> 
+    type from a <i>CATIValue_var</i> type, through a call to <code>CATIValue</code>::<code>GetInteger</code></li>
+  </ul>
+    </li>
+  </ul>
+  </li>
+  <li>In addition to this we will learn how to Unset an attribute associated with a 
+  PLM Component with a call to <code>CATIValue</code>::<code>Unset</code> and to 
+  confirm it</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="UseCase"></a>The CAAAdpPLMAttributes_Date Use Case</h2>
+<p> <code>CAAAdpPLMAttributes_Date</code> is a use case of the <code>CAAPLMClientAdapter.edu</code>
+framework that
+illustrates the <code>CATPLMIntegrationAccess</code>  framework capabilities.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAAAdpPLMAttributes_Date Do</h3>
+
+<p>This Use Case (UC) illustrates how to handle PLM Attributes of &quot;Date&quot; type. 
+The main points of how to handle &quot;Date&quot; type attribute are as follows</p>
+
+<ul>
+  <li>Load input PLM Component of type PLM Reference or PLM Representation 
+  Reference (Rep Ref) based on an input identification set attribute-value pairs</li>
+  <li>Then we retrieve knowledge type associated with input PLM Component and 
+  list all the Read-Write attribute.</li>
+  <li>After that we parse through list and confirm  V_ApplicabilityDate is one of 
+  the attribute of Knowledge type. Which confirms V_ApplicabilityDate is 
+  read-Write type.  
+  </li>
+  <li>Valuates V_ApplicabilityDate in two different ways<ul>
+  <li>With a call to <code>CATCkeObjectAttrWriteServices</code>::<code>SetValueWithTime</code>
+    which takes as input the date attribute value as a <i>CATTime</i> type</li>
+  <li>With a call to <code>CATCkeObjectAttrWriteServices</code>::<code>SetValue </code>
+  which takes as input the date attribute value as a <i>CATIValue_var</i> type</li>
+</ul>
+
+  </li>
+  <li>It confirms if the V_ApplicabilityDate value is indeed set to the new 
+  value. For this it retrieves the V_ApplicabilityDate attribute in two 
+  different ways<ul>
+  <li>With a call to <code>CATCkeObjectAttrReadServices</code>::<code>GetValueAsTime</code>
+    which returns date attribute value as a <i>CATTime</i> type</li>
+  <li>With a call to <code>CATCkeObjectAttrReadServices</code>::<code>GetValue</code>
+    which returns date attribute value as a <i>CATIValue_var </i>type</li>
+</ul>
+
+  </li>
+  <li>Finally we unset the V_ApplicabilityDate attribute value for the input PLM 
+  Component</li>
+  <li>It then confirms that the V_ApplicabilityDate attribute value for the 
+  input PLM Component is indeed unset</li>
+</ul>
+
+<p>The  V_ApplicabilityDate is output in the format as depicted below</p>
+
+
+
+<table class="code" height="38" style="border-collapse: collapse" bordercolor="#111111" cellpadding="0" cellspacing="0">
+  <tr>
+    <td height="34" > 08 August 2008 02:01:01.</td> 
+  </tr>
+</table>
+
+
+
+<h3><a name="How"></a>How to Launch CAAAdpPLMAttributes_Date</a> </h3>
+
+<p>To launch <code>CAAAdpPLMAttributes_Date</code> , you will need to set up the build time
+environment, then compile <code>CAAAdpPLMAttributes_Date</code> along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">2</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p><code> <a>mkrun -c &quot;</a><i>CAAAdpPLMAttributes_Date</i></code><i>
+</i><a><code><i>Repository Server User Password SecurityCtx PLMType IDAttributeName1 
+IDValue1 [IDAttributeName2 IDValue2...] 
+[-Y YearValue] [-M MonthValue] [-D DayValue ] [-H HourValue ] [-Mi MinuteValue] 
+[-S SecondValue]</i>&quot;</code></a> </p>
+<p>where:</p>
+
+<table class="border1"  id="table13" height="309" >
+  <tr>
+    <th><b>Repository</b></th>
+     <td><script type="text/javascript">insertRepository();</script></td>
+  </tr>
+  <tr>
+     <th><b>Server</b></th>
+    <td >The name and port of the server as <i>name</i>:<i>port_number[/RootURI]</i></td>
+  </tr>
+  <tr>
+    <th ><b>User</b></th>
+    <td  >The user name</td>
+  </tr>
+  <tr>
+    <th ><b>Password</b></th>
+    <td >The user password to authenticate the user</td>
+  </tr>
+  <tr>
+
+    <th ><b>SecurityCtx</b></th>
+    <td >a string representing the security context (Role.Organization.Project).
+      Choose role as Designer&nbsp; ( as the use case modifies the PLM Data) </td>
+  </tr>
+	   	<tr>
+	<th  > <b>PLMType</b></th>
+	<td  > A string representing PLMType</td>
+    </tr>
+  <th> IDAttributeName1*</th>
+	<td>PLM  Identification Attribute Name for querying PLM Component</td>
+    </tr>
+    <th> IDValue1*</th>
+	<td>Value of PLM  Identification Attribute for querying PLM Component</td>
+    </tr>
+	
+  <tr>
+    <th > -Y   YearValue</th>
+    <td >The Year to be set**</td>
+  </tr>
+  <tr>
+    <th > -M   MonthValue</th>
+    <td >The Month to be set**</td>
+  </tr>
+  <tr>
+    <th > -D   DayValue	</th>
+    <td >The Day to be set**</td>
+  </tr>
+  <tr>
+    <th > -H   HourValue</th>
+    <td >The Hour to be set**</td>
+  </tr>
+  <tr>
+    <th > -Mi  MinuteValue</th>
+    <td >The Minute to be set**</td>
+  </tr>
+  <tr>
+    <th > -S   SecondValue</th>
+    <td >The Second to be set**</td>
+  </tr>
+ 
+	
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+
+<p>*&nbsp; The list of Identification attribute names and values could be N 
+pairs.</p>
+
+<p>** optional since a default value is set in the code</p>
+
+<p>The input&nbsp;data is retrieved by importing <code><a>CAAAdpQueryPLMComponent_CAR_MODEL_1</a></code><a><code><b>.</b></code></a><code>3dxml</code>
+file for  Root product from the <a><code>CAAPLMClientAdapter.edu</code></a> 
+fwk.</p>
+<table id="table15">
+    <tr>
+      <td><code>InstallRootDirectory\CAAPLMClientAdapter.edu\InputData\</code></td>
+    </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">2</a>] is the directory where the CAA CD-ROM
+is installed.</p>
+<p>This 3D xml file contains a PRODUCT PLM Reference, whose the PLM 
+Identification Attributes 
+ 
+are valuated such as follows:</p>
+<ul>
+  <li>PLM_ExternalID = CAR_MODEL_1</li>
+  <li>V_version =&nbsp; ---</li>
+</ul>
+<p align="left"><b>Attention</b>:  Please refer to the document [<a href="#References">2</a>]
+for how to import and reimport such a 3D XML file in your PLM repository.&nbsp;Any 
+Product model, of user choice can be given as input to this use case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Where"></a>Where to Find the CAAAdpPLMAttributes_Date Code</h3>
+<p>The <code>CAAAdpPLMAttributes_Date</code> use case is located in the <code>CAAAdpPLMAttributes</code><a><code>.m</code></a> module of the
+<a><code>CAAPLMClientAdapter.edu</code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\</code><code>CAAPLMClientAdapter</code>.<code>edu</code><code>\CAAAdpPLMAttributes_Date.m\</code></td>
+  </tr>
+</table>
+<p>where <code><a>InstallRootDirectory</a></code>  [<a href="#References">2</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code>CAAAdpPLMAttributes_Date</code> :</p>
+<ol>
+  <li><a href="#Prolog">Prolog</a></li>
+  <li><a href="#Loading PLM Component in Session">Loading PLM Component in 
+  Session</a></li>
+  <li>
+	<a href="#List Read-Write attributes retrieved KnowledgeType of input PLM Component">List Read-Write attributes of input PLM Component</a></li>
+	<li>
+	<a href="#Confirm V_ApplicabilityDate attribute is a Read-Write for retrieved Knowledge Type">Confirm V_ApplicabilityDate attribute is a Read-Write for input PLM 
+Component</a></li>
+	<li><a href="#Retrieve V_ApplicabilityDate Attribute Value">Retrieve V_ApplicabilityDate Attribute Value 
+  using GetValueAsTime</a></li>
+	<li>
+	<a href="#Valuate V_ApplicabilityDate with Input time using SetValueWithTime">Valuate V_ApplicabilityDate with 
+  current local time using SetValueWithTime</a></li>
+	<li><a href="#Check V_ApplicabilityDate value is same as Input date">Retrieve V_ApplicabilityDate 
+attribute 
+with GetValueWithTime</a></li>
+	<li><a href="#Unset V_ApplicabilityDate value">Unset V_ApplicabilityDate attribute value
+	</a></li>
+	<li><a href="#Confirm V_ApplicabilityDate is indeed Unset">Confirm 
+  V_ApplicabilityDate attribute is indeed Unset </a></li>
+	<li><a href="#Confirm V_ApplicabilityDate is indeed Unset">Valuate V_ApplicabilityDate with Input time using SetValue
+	</a></li>
+	<li><a href="#Retrieve V_ApplicabilityDate Attribute Value using GetValue">Retrieve V_ApplicabilityDate Attribute Value 
+  using GetValue</a></li>
+	<li><a href="#Retrieve V_ApplicabilityDate Attribute Value using GetValue">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code>CAAAdpPLMAttributes_Date</code> use case begins by creating a session
+and connecting to the input Repository.&nbsp; This,
+being the most fundamental prerequisite for all batch use cases, it is the first
+step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with the Designer Role
+(since we are modifying PLM data). There are other parameters as well,
+details of which can be found in the&nbsp; &quot;<b>Creating a Basic PLM Batch</b>&quot;
+use case article [<a href="#References">3</a>].
+This article primarily deals with Opening and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3>
+<a name="Loading PLM Component in Session"></a>Loading PLM Component in Session </h3>
+
+
+
+<p>
+To begin with, the steps executed are:</p>
+
+
+
+<ul>
+  <li>We build an IdentificationSet object with the input Attribute-Value sets</li>
+  <li>&nbsp;<i>CATIAdpPLMIdentificator</i>* on the Identificator in the database of 
+  the input PLM Component is retrieved ( opiIDComp)</li>
+</ul>
+
+<p>
+These steps are executed through a global routine 
+<code>CAARetrieveIDofUniquePLMObject</code> referenced in the Use Case [<a href="#References">5</a>]. 
+With the Identificator retrieved, we proceed towards loading the input PLM 
+Component in session as implemented by the code extract below.</p>
+
+
+
+<pre class="code">
+...
+   CATOmbLifeCycleRootsBag Bag;
+   CATAdpOpenParameters params(CATAdpExpandParameters::<strong>OneLevelNavigation</strong>);
+   <strong>CATAdpOpener</strong> opener(Bag,params);
+
+   CATICkeObject  *piCkeObjectOnInputComp = NULL;  
+   hr = opener.<strong>CompleteAndOpen</strong>(<strong> </strong>opiIDComp,IID_CATICkeObject,(void**) &amp;piCkeObjectOnInputComp);		
+...</pre> 
+  
+
+
+
+<p>These steps involving loading a PLM Component in session are further detailed 
+in the UC [<a href="#References">4</a>]</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h3>
+<a name="List Read-Write attributes retrieved KnowledgeType of input PLM Component">
+</a>List Read-Write attributes of input PLM Component </h3>
+
+
+
+<p>We list all the <b>Read-Write</b> attributes of all kind (Mandatory, Identification, 
+Optional) for the Knowledge Type of the input PLM Component</p>
+
+
+
+<pre class="code" >
+...
+ hr = <strong>CATCkePLMNavPublicServices</strong>::ListAttributesFromObject(CATCkePLMTypeAttrServices::All,
+					             piCkeObjectOnInputComp,
+						    ListOfReadWriteAttrInfos,TRUE); 
+...														
+</pre>
+
+
+
+<p>Call to <code>CATCkePLMNavPublicServices</code>::<code>ListAttributesFromObject</code> 
+takes the arguments as follows</p>
+
+
+<ul>
+  <li><code>CATCkePLMTypeAttrServices</code>::<code>All</code>, this represents all type of attributes Mandatory, Identification, 
+  Optional are listed</li>
+  <li><code>piCkeObjectOnInputComp</code>,the CATICkeObject smart pointer on the PLM Component.</li>
+  <li><code>ListOfReadWriteAttrInfos</code>, <code>a CATListValCATAttributeInfos </code>type, 
+  represents the output list which contains the read-write attribute infos</li>
+  <li><code>TRUE</code>, bool type, which represents only <b>Read-Write</b> type attributes 
+  are listed</li>
+</ul>
+
+
+<p>This API further described in the UC [<a href="#References">1</a>] .</p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3>
+<a name="Confirm V_ApplicabilityDate attribute is a Read-Write for retrieved Knowledge Type">
+</a>Confirm V_ApplicabilityDate attribute is a Read-Write for input PLM 
+Component</h3>
+
+
+
+<p>We simply parse through the list of Read-Write attributes and confirm that 
+V_ApplicabilityDate exists in it.</p>
+
+
+
+<pre class="code" >
+...
+     CATUnicodeString <b>iUAttrName(&quot;V_ApplicabilityDate&quot;)</b>;
+     int iSizeList = ListOfReadWriteAttrInfos.Size();
+     int i = 1 ;
+     CATBoolean bInputAttrExistsAsWritable = FALSE;
+     while ( (i&lt;=iSizeList) &amp;&amp; (FALSE == bInputAttrExistsAsWritable) )
+     {
+          CATAttributeInfos AttrInfo = ListOfReadWriteAttrInfos[i];
+          CATUnicodeString attrName = <b>AttrInfo.Name</b>();
+          if <b>(iUAttrName==attrName)</b>
+          {
+               bInputAttrExistsAsWritable = TRUE;
+               break;
+          }
+          i++ ; 
+     }
+...</pre> 
+
+
+
+<p><code> iUAttrName, a </code>
+<i>CATUnicodeString</i><code> </code>type, stores the V_ApplicabilityDate 
+attribute name.<code> </code></p>
+
+
+
+<p><code>ListOfReadWriteAttrInfos</code>, a <i>CATListValCATAttributeInfos</i> type, 
+which contains 
+list of&nbsp; <i>CATAttributeInfos</i>&nbsp; </p>
+
+
+
+<p><code>AttrInfo</code>, a <i>CATAttributeInfos</i> type, it represents a each element in the list 
+of <code>ListOfReadWriteAttrInfos</code></p>
+
+
+
+<p><code>attrName</code>, a
+<i>CATUnicodeString</i><code> </code>type, stores the attribute name retrieved 
+by call to <code>AttrInfo</code>:<code>Name</code></p>
+
+
+
+<p>Lastly, we ensure that&nbsp; V_ApplicabilityDate (<code>iUAttrName</code>) is 
+one of the elements in the list (<code>attrName</code>)</p>
+
+
+
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Retrieve V_ApplicabilityDate Attribute Value"></a>Retrieve V_ApplicabilityDate Attribute Value 
+using GetValueAsTime</h3>
+
+
+
+<p>We simply retrieve the <code>V_ApplicabilityDate</code> value for the input component. 
+The retrieval fails if value is not set. It 
+is important to note that the value is retrieved as a <i>CATTime</i> type, a type 
+exclusively dedicated for handling Time values.</p>
+
+
+
+<pre class="code">
+...
+    CATUnicodeString iUAttrName(&quot;<b>V_ApplicabilityDate</b>&quot;);
+    CATTime CurrentValueTime;
+   </pre>
+<pre class="code">
+...
+    hr = <b>CATCkeObjectAttrReadServices::GetValueAsTime</b>(<b>piCkeObjectOnInputComp</b>,
+                                                 iUAttrName,<b>CurrentValueTime</b>);
+    if ( <strong>hr == S_FALSE </strong>) cout &lt;&lt;  "no date" &lt;&lt;endl;                                     
+...</pre>
+
+
+<p>Call 
+to <code>CATCkeObjectAttrReadServices</code>::<code>GetValueAsTime</code> takes 
+arguments of this are as follows</p>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject </i>type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>CurrentValueTime</code>, <i>a CATTime</i> type, current value [Output]</li>
+</ul>
+
+
+
+<p>if there is no date, the <code>GetValueAsTime</code> method returns <code>
+S_FALSE</code> .&nbsp; ( if you use the provided data, you must have this 
+result).</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h3>
+<a name="Valuate V_ApplicabilityDate with Input time using SetValueWithTime">
+</a>Valuate V_ApplicabilityDate with current local time using SetValueWithTime</h3>
+
+
+
+<p>We simply valuate the <code>V_ApplicabilityDate</code> value for the input component. Here 
+please note that we are valuating&nbsp; <code>V_ApplicabilityDate</code> attribute by giving 
+<i>CATTime type</i> as an input.</p>
+
+
+
+<pre class="code" >
+ ...   
+    CATTime InputTimeForSetValueWithTime = <b>CATTime</b>::<b>GetCurrentLocalTime</b>();
+		
+    hr = <b>CATCkeObjectAttrWriteServices::SetValueWithTime</b>(piCkeObjectOnInputComp,
+                                                         iUAttrName,
+                                             <b>InputTimeForSetValueWithTime</b>);
+...
+</pre>
+
+
+
+<p>In this step we retrieve local current time in <i>CATTime</i> type format by call 
+to <code>CATTime</code>::<code>GetCurrentLocalTime.</code></p>
+
+
+
+<p>Next we call to 
+<code>CATCkeObjectAttrWriteServices</code>::<code>SetValueWithTime</code> which 
+takes argument for this are as follows</p>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject</i> type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>InputTimeForSetValueWithTime</code>,&nbsp; <i>a CATTime</i> type, current 
+  local time value in date format</li>
+</ul>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Check V_ApplicabilityDate value is same as Input date"></a>Retrieve V_ApplicabilityDate 
+attribute 
+with GetValueWithTime </h3>
+
+
+
+<pre class="code">
+ ...
+ <strong>CATTime</strong> CurrentValueTimeAfterValuationUsingGetValueAsTime;
+
+    hr = C<strong>ATCkeObjectAttrReadServices::GetValueAsTime</strong>(piCkeObjectOnInputComp,
+                                                      iUAttrName,CurrentValueTimeAfterValuationUsingGetValueAsTime);
+
+    if (InputTimeForSetValueWithTime==CurrentValueTimeAfterValuationUsingGetValueAsTime)
+    {
+         CATUnicodeString strCurrentTimeAfterValuationUsingGetValueAsTime = CurrentValueTimeAfterValuationUsingGetValueAsTime.
+         <strong>ConvertToString</strong>(&quot;%d %B %Y %H:%M:%S.&quot;);
+...    </pre> 
+
+<p>Call 
+to <code>CATCkeObjectAttrReadServices</code>::<code>GetValueAsTime</code> takes 
+arguments same explained in the pervious section [<a href="#Retrieve V_ApplicabilityDate Attribute Value">#</a>]. 
+please note that </p>
+
+
+
+<p><code>CurrentValueTimeAfterValuationUsingGetValueAsTime</code>, a <i>CATTime</i> 
+type , retrieved </p>
+
+
+
+<p>Then we confirm set value (<code>InputTimeForSetValueWithTime</code>) is same 
+as get value (<code>CurrentValueTimeAfterValuationUsingGetValueAsTime</code>) </p>
+
+
+
+<p>Then we display the V_ApplicabilityDate value, a <i>CATTime</i> type in user 
+defined format. This is done with a call to <code>CATTime</code>::<code>ConvertToString</code> 
+which takes as an input </p>
+
+
+
+<ul>
+  <li>&quot; %d %B %Y %H:%M:%S.<i>&quot;, </i>a string representing the user defined 
+  format </li>
+</ul>
+
+
+
+<p>This call returns<i> </i><code>
+CurrentValueTimeAfterValuationUsingGetValueAsTime</code><i>, a CATUnicodeString </i>
+type, which represents the retrieved time in the above user defined format . 
+Further this time output in console thanks to call .&nbsp;&nbsp; </p>
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Unset V_ApplicabilityDate value"></a>Unset V_ApplicabilityDate 
+attribute value </h3>
+
+
+
+<p>Unset <code>V_ApplicabilityDate</code>&nbsp; attribute value for input PLM 
+Component. The steps involved are as below</p>
+
+
+
+<ul>
+  <li>Retrieve <code>V_ApplicabilityDate</code> value as a <i>CATIValue_var</i> 
+  type</li>
+  <li>Unset the retrieved <i>CATIValue_var</i> type</li>
+  <li>Reset the <code>V_ApplicabilityDate</code> attribute value for input PLM 
+  Component with the newly retrieved <i>CATIValue_var</i> type object.</li>
+</ul>
+
+
+
+<pre class="code">
+  ...
+    CATIValue_var spValueOnAttribute ;
+
+    hr = <b>CATCkeObjectAttrReadServices::GetValue</b>(piCkeObjectOnInputComp,
+                                                iUAttrName,
+                                              <b>spValueOnAttribute</b>);
+...    
+     <b>spValueOnAttribute-&gt;Unset</b>();
+     hr = <b>CATCkeObjectAttrWriteServices::SetValue</b>(piCkeObjectOnInputComp,
+                                         iUAttrName,<b>spValueOnAttribute</b>);
+
+...</pre> 
+
+
+
+<ul>
+  <li>Retrieve <code>V_ApplicabilityDate</code> value as a <i>CATIValue_var</i> 
+  type.<p>Call to <code>CATCkeObjectAttrReadServices</code>::<code>GetValue</code> 
+  which takes the following arguments</p>
+  </li>
+</ul>
+<blockquote>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject</i>&nbsp; type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>spValueOnAttribute</code>, <i>a CATIValue</i>_var type on  V_ApplicabilityDate attribute 
+  value for input PLM Component [Output]</li>
+</ul>
+
+
+
+</blockquote>
+<ul>
+  <li>Next a call <code>to CATIValue</code>::<code>Unset</code> which simply 
+  unsets the calling object, <i>CATIValue_var</i> type (<code>spValueOnAttribute</code>).</li>
+  <li>Reset the <code>V_ApplicabilityDate</code> attribute value for input PLM 
+  Component with the newly retrieved <i>CATIValue_var</i> type object.  
+  <p>Call to&nbsp; CATCkeObjectAttrWriteServices::SetValue which takes 
+following arguments </li>
+</ul>
+<blockquote>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject</i>&nbsp; type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>spValueOnAttribute</code>, <i>a CATIValue</i>_var type, on V_ApplicabilityDate 
+  attribute retrieved in the previous step.</li>
+</ul>
+
+
+
+</blockquote>
+<p>Please note (<code>spValueOnAttribute</code>) has been unset in the previous 
+step. So effectively, this <code>SetValue</code> call, unset the V_ApplicabilityDate 
+attribute value on 
+the input PLM Component.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Confirm V_ApplicabilityDate is indeed Unset"></a>Confirm V_ApplicabilityDate 
+attribute is indeed 
+Unset </h3>
+
+
+
+<p>This confirm that an V_ApplicabilityDate attribute value is indeed unset 
+simply involves</p>
+
+
+
+<ul>
+  <li>Retrieve <i>CATIValue_var</i> type on  V_ApplicabilityDate attribute of the input PLM Component </li>
+  <li>Confirm<i> CATIValue_var</i> type retrieved is unset&nbsp;&nbsp;&nbsp;&nbsp; </li>
+</ul>
+
+
+
+<pre class="code">
+...
+   CATIValue_var spValueOnAttributeAfterUnset ;
+   hr = <b>CATCkeObjectAttrReadServices::GetValue</b>(<strong>piCkeObjectOnInputComp</strong>,
+                                        iUAttrName,<b>spValueOnAttributeAfterUnset</b>);
+
+...
+    CATBoolean bIsValueSet = TRUE;
+    bIsValueSet = <b>spValueOnAttributeAfterUnset-&gt;GetIsSet</b>();
+...</pre>
+
+<p>Call to <code>CATCkeObjectAttrReadServices</code>::<code>GetValue</code> 
+refer to the previous step for argument except the <i>CATIType_var</i> type retrieved 
+here is <code>spValueOnAttributeAfterUnset</code> </p>
+
+
+
+<ul>
+  <li><code>spValueOnAttributeAfterUnset</code>, <i>a CATIValue</i>_var type, on V_ApplicabilityDate 
+  attribute</li>
+</ul>
+<p>Next call to <code>CATIValue</code>::<code>GetIsSet</code>, which returns </p>
+
+
+
+<ul>
+  <li><code>bIsValueSet</code>, a Boolean type, valuated to FALSE, since value has been 
+  unset.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3>&nbsp;<a name="Valuate using SetValue"></a>Valuate V_ApplicabilityDate 
+attribute with Input time using SetValue</h3>
+
+
+<p>In a previous step (<a href="#Valuate V_ApplicabilityDate with Input time using SetValueWithTime">#</a>) which also sets this attribute for the PLM Component, 
+but through a call to <code>CATCkeObjectAttrWriteServices</code>::<code>SetValueWithTime</code>, which takes a
+<i>CATTime</i> type as an input. In this step 
+we yet again, set the V_ApplicabilityDate attribute value for the PLM Component, 
+but through a different call namely. <code>CATCkeObjectAttrWriteServices</code>::<code>SetValue</code>, which takes a
+<i>CATIValue_var</i> type, on 
+the Attribute for valuation (V_ApplicabilityDate) as an input. </p>
+
+
+
+<p>The steps involved are:</p>
+
+
+
+<ul>
+  <li>Use case takes input for the time in Day-Month-Year Hour-Minute-Second&nbsp; 
+  format from the user</li>
+  <li>It builds a <i>CATTime</i> type object with these input as the code below 
+  depicts</li>
+</ul>
+
+
+
+<blockquote>
+
+
+
+<table class="code" style="border-collapse: collapse" bordercolor="#111111" cellpadding="0" cellspacing="0">
+  <tr>
+    <td > <pre>...
+    int Month = 1 , Day = 1, Year = 2008, Hour = 1, Min = 0 , Sec = 0;
+...    
+    const CATUnicodeString TimeValue(iArgv[AttrIndex+1]);
+
+    const char* inputfile = iArgv[AttrIndex] ;
+    if (<b>(0==strcmp(&quot;-Y&quot;,inputfile))</b> &amp;&amp; (bYear == FALSE)) 
+    {
+        <b>TimeValue.ConvertToNum(&amp;Year); </b>
+...
+        
+  <b> CATTime InputTime(Year,Month,Day,Hour,Min,Sec ); </b>  
+...
+</pre> </td> 
+  </tr>
+</table>
+
+
+
+<p>The default value for Time component have been provided. </p>
+
+
+
+<p>The value input by the user for each of the Time component is the initialized 
+to TimeValue, as <i>CATUnicodeString</i>&nbsp; type. </p>
+
+
+
+<p>Next for each time component (Year, Day, etc..) an integer value is retrieved 
+form TimeValue, a <i>CATUnicodeString</i> type by a call to <code>CATUnicodeString</code>::<code>ConvertToNum</code> 
+. </p>
+
+
+
+<p>Lastly a CATTime object is valuated with each of these time component (int 
+type) as input.</p>
+
+
+
+</blockquote>
+
+
+
+<ul>
+  <li>It then builds a <i>CATIValue_var</i> type object with <i>CATTime</i> retrieved 
+  above</li>
+</ul>
+
+
+
+<blockquote>
+
+
+
+<table class="code" style="border-collapse: collapse" bordercolor="#111111" cellpadding="0" cellspacing="0">
+  <tr>
+    <td > <pre>...
+    CATICkeParmFactory_var spParmFactory = CATCkeGlobalFunctions::GetVolatileFactory();
+<b>    CATICkeParm_var spParmValue = spParmFactory-&gt;CreateDate(&quot;V_ApplicabilityDate&quot;,</b></pre> <pre>                                                            <b>InputTime);</b>
+<b>    CATIValue_var spValueOnAttributeForSet = spParmValue ;
+</b>
+    hr = C<b>ATCkeObjectAttrWriteServices::SetValue</b>(piCkeObjectOnInputComp,
+                                                 iUAttrName,
+                                                 <b>spValueOnAttributeForSet</b>);
+</pre> <pre>... </pre> </td> 
+  </tr>
+</table>
+
+
+
+<p>This is a two step process</p>
+
+
+
+<ul>
+  <li>The V_ApplicabilityDate attribute value is available as a <i>CATTime</i> 
+  type (<code>InputTime</code>), A call to <code>CATICkeParmFactory</code>::<code>CreateDate</code>. 
+  It takes two arguments namely.<ul>
+    <li>&quot;<code>V_ApplicabilityDate</code>&quot;, a <i>CATUnicodeString</i> type, 
+    representing the Attribute name</li>
+    <li><code>InputTime</code>&nbsp; a <i>CATTime</i> type, retrieved above</li>
+  </ul>
+
+
+
+<p>This call returns,</p>
+
+
+
+<ul>
+  <li><code>spParmValue</code>,<i> a CATICkeParm</i>* type on the V_ApplicabilityDate 
+  attribute </li>
+</ul>
+
+
+
+  </li>
+  <li>A call to QueryInteface on <code>spParmValue</code>&nbsp; returns,<ul>
+  <li><code>spValueOnAttributeForSet</code>, a <i>CATIValue_var</i> type on V_ApplicabilityDate 
+  attribute*</li>
+</ul>
+
+
+
+  <p>* Please note this is an implicit call to QI, through the (=) assignment 
+  operator for a smart pointer.</li>
+</ul>
+
+
+
+<p>Lastly we have a call to <code>CATCkeObjectAttrWriteServices</code>::<code>SetValue</code> 
+, which takes the arguments</p>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject</i>&nbsp; type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>spValueOnAttributeForSet</code> , <i>a CATIValue</i>_var type on the V_ApplicabilityDate&nbsp; 
+  attribute retrieved in the previous step.</li>
+</ul>
+
+
+
+
+
+
+</blockquote>
+
+
+
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Retrieve V_ApplicabilityDate Attribute Value using GetValue"></a>Retrieve V_ApplicabilityDate Attribute Value 
+using GetValue</h3>
+<p>Finally we retrieve V_ApplicabilityDate attribute value of input PLM 
+Component using <code>CATCkeObjectAttrReadServices</code>::<code>GetValue</code>. In 
+this following steps are involved</p>
+
+
+
+<ul>
+  <li>Retrieve V_ApplicabilityDate&nbsp; attribute value as a <i>CATIValue_var</i> 
+  type</li>
+  <li>Retrieve as Integer equivalent to the <i>CATIValue_var</i> type object</li>
+  <li>Then build <i>CATTime</i> type object, thanks to <i>CATTime</i> 
+  constructor which takes an integer input</li>
+</ul>
+
+
+
+<pre class="code">
+  ... 
+      CATIValue_var spValueOnAttributeAfterSet ;
+      hr = C<b>ATCkeObjectAttrReadServices::GetValue</b>(piCkeObjectOnInputComp,
+                                                 iUAttrName,<b>spValueOnAttributeAfterSet</b>);
+
+...
+      int iRetrievedTime;
+      hr = <b>spValueOnAttributeAfterSet-&gt;AsInteger(iRetrievedTime)</b>;
+...
+      CATTime CurrentValueTimeAfterValuationUsingSetValue(<b>iRetrievedTime</b>);
+      if (<b>InputTimeForSetValue==CurrentValueTimeAfterValuationUsingSetValue</b>)
+      {
+           CATUnicodeString strCurrentTimeCurrentValueTimeAfterValuationUsingSetValue =    CurrentValueTimeAfterValuationUsingSetValue.
+          ConvertToString(&quot;%d %B %Y %H:%M:%S.&quot;);
+ ... </pre> 
+
+<p>Call to <code>CATCkeObjectAttrReadServices</code>::<code>GetValue</code> returns  V_ApplicabilityDate value in 
+<i>CATIValue</i>_var type.&nbsp; The arguments for this are as follows</p>
+
+
+
+<ul>
+  <li><code>piCkeObjectOnInputComp</code>, <i>a CATICkeObject</i>&nbsp; type on the input PLM Component to use case.</li>
+  <li><code>iUAttrName</code>, a <i>CATUnicodeString </i>&nbsp;type, which 
+  stores the Attribute name (<code>V_ApplicabilityDate</code> 
+  )</li>
+  <li><code>spValueOnAttributeAfterSet</code>, <i>a CATIValue</i>_var type on the 
+   
+  V_ApplicabilityDate [Output]</li>
+</ul>
+
+
+
+<p>Call to <code>CATIValue</code>::<code>AsInteger</code> returns 
+value as integer (<code>iRetrievedTime</code>).&nbsp; </p>
+<p>With retrieved integer value we create <i>CATTime</i> thanks to constructor 
+which takes int as an input. </p>
+
+
+<p>Then we compare 
+retrieve <i>CATTime</i> type value (<code>CurrentValueTimeAfterValuationUsingSetValue</code>) 
+with input <i>CATTime</i> type value (<code>InputTimeForSetValue</code>) to 
+confirm the value is set.</p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code>CAAAdpPLMAttributes_Date</code> use case ends by simply closing the PLM
+session. Since all PS use cases&nbsp; necessarily conclude by closing the PLM
+session, we have a dedicated article on this topic viz.&nbsp; &quot;<b>Creating a
+Basic PLM Batch</b>&quot; [<a href="#References">3</a>].&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="InShort"></a>In Short</h2>
+
+<p>This use case illustrates how to handle the PLM Attributes of type &quot;Date&quot;. 
+Here mainly we see how to valuate PLM attribute whose type is Date (<code>V_ApplicabilityDate</code>&nbsp; 
+in this case) by using following methods </p>
+
+<ul>
+    <li><code>CATCkeObjectAttrWriteServices</code>::<code>SetValueWithTime, </code>which takes as input, an attribute value of a <i>CATTime</i> type</li>
+    <li><code>CATCkeObjectAttrWriteServices</code>::<code>SetValue, </code>which 
+    can take a Date type attribute value in the form of&nbsp; a <i>CATIValue_var</i> 
+    type</li>
+  </ul>
+
+<p>Moreover we will see how to retrieve value of date type PLM Attribute.</p>
+
+<ul>
+  <li><code>CATCkeObjectAttrReadServices</code>::<code>GetValueAsTime, </code>
+    which returns a Date type attribute of a PLM Component, as a <i>CATTime</i> 
+    type</li>
+  <li><code>CATCkeObjectAttrReadServices</code>::<code>GetValue, </code>
+    which returns date attribute value as a <i>CATIValue_var </i>type</li>
+</ul>
+  <p>In addition to this we learns the process to Unset the PLM Attribute value </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="References"></a>References</h2>
+<table>
+    <tr>
+    <td valign="top">[1]</td>
+    <td>
+       <a href="CAAAdpUcPLMComponentAttributesAccess.htm">Accessing PLM Attributes of PLM Component</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[2]</td>
+    <td>
+       <a href="../CAADocUseCases/CAADocRunSample.htm">
+       Building and Launching a CAA Use Case</a> </td>
+    </tr>
+    <tr>
+    <td valign="top">[3]</td>
+    <td>
+    <a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">Creating a Basic PLM Batch</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[4]</td>
+    <td>
+       <a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">Querying, Expanding and Opening PLM Components</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[5]</td>
+    <td>
+       <a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm">Querying PLM Components</a></td>
+    </tr>
+   
+</table>
+  
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong>     [Jul 2008]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>2</strong>     [Nov 2010]</td>
+    <td valign="top">Document updated to introduce CATCkePLMNavPublicServices</td>
+  </tr>
+
+<script type="text/javascript">insertLinkToTop();</script>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

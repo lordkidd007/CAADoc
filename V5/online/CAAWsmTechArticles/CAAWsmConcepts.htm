@@ -1,0 +1,609 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Concepts</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Concepts</h3>
+      <p><em>Main concepts supported by SCM commands</em></td>
+  </tr>
+  <tr>
+    <td class="tech" colspan="2">Technical Article</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article is intended for people getting started with the CAA Source
+      Code Manager and willing to learn the main concepts managed by the system.
+      After reading this paper, the user will be able to understand the
+      scenarios described in the &quot;Use cases&quot; section [<a href="#References">1</a>]
+      and to use SCM commands [<a href="#References">2</a>].
+      <ul>
+        <li><b><a href="#Workspaces">Workspaces</a></b></li>
+        <li><b><a href="#Images">Images</a></b></li>
+        <li><b><a href="#Multiplatforms">Multiplatform Workspaces</a></b></li>
+        <li><b><a href="#Trees">Workspace Trees</a></b>
+          <ul>
+            <li><a href="#The root workspace">The Root Workspace</a></li>
+            <li><a href="#Multi-trees">Multi-tree Workspaces</a></li>
+            <li><a href="#The project">The Project Workspace</a></li>
+            <li><a href="#The development">The Development Workspace</a></li>
+          </ul>
+        </li>
+        <li><b><a href="#The development process">The Development Process</a></b></li>
+        <li><b><a href="#Site">Site</a></b></li>
+        <li><b><a href="#Modifications">Modifications</a></b></li>
+        <li><b><a href="#Merges">Merges</a></b></li>
+        <li><b><a href="#Transactions">Transactions</a></b></li>
+        <li><a href="#InShort"><b>In Short</b></a></li>
+        <li><a href="#References"><b>References</b></a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Workspaces"></a>Workspaces</h3>
+<p>The workspace is the place where the user is working on. As a space designed
+for CAA V5 developments, the workspace contains CAA components (frameworks,
+modules) along with their files. Any work performed inside a workspace is
+completely isolated from outer changes. Conversely, any development is delivered
+only at user needs.</p>
+<p>Each workspace is dedicated to one user and any user may have several
+workspaces. A workspace has two representations within the SCM system: one
+inside a central repository and another one on the user file system.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 1: the Logical View of a Workspace</caption>
+        <tr>
+          <td><img src="images/ComponentInWs2.gif" width="360" height="210"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">This figure shows a workspace object containing three
+      frameworks having different modules.</td>
+  </tr>
+</table>
+<p>A workspace is identified by a unique name given at creation time and that
+can be used afterwards for choosing the current working workspace.</p>
+<p>Inside the SCM repository, workspaces can be seen as configurations, that is
+to say objects composed of components (themselves composed of files) and having
+different states all along their lives. Each of these states is known as
+revision or version of workspace. SCM manages workspaces as a whole. The data
+flow between workspaces involves on all components seen in the workspaces. In
+addition, data flows operate inside the SCM repository and what users see is the
+projection of the result of these flows on their file systems.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Images"></a>Images</h3>
+<p>Images are the concrete representation of workspaces on users' hosts and file
+systems. Images are associated with workspaces and are identified by a name
+(optional) and a root directory. A first image can be created at the same time a
+new workspace is created and multiple images can be created or deleted all along
+the workspace's life.</p>
+<p>Inside an image (so somewhere under the image root directory), the user works
+on files using his/her usual tools and editors and interact with SCM databases
+using SCM commands. The file tree whose root directory is the image root
+directory is not directly managed by SCM. For instance, new files can be created
+and edited without interaction with the SCM system and they can be declared to
+SCM only before delivering them. In a same way, modifying a file already
+declared to SCM means to execute a &quot;check-out&quot; command in order to
+register the action of modification and then there is no more interaction with
+SCM during the file editing.</p>
+<p>The figure 2 shows the two representations of a workspace:
+<ul>
+  <li>the left side is the database view with a workspace containing frameworks
+    having modules</li>
+  <li>the right side shows the content of one image of this workspace, that is a
+    file tree where frameworks and modules are directories.</li>
+  <li>the file tree contains various files and directories: source files are
+    managed by SCM while programs and code objects are generated by other tools.</li>
+</ul>
+<table>
+  <caption>Fig 2: the Workspace Image</caption>
+  <tr>
+    <td><img src="images/FileTree2.gif" width="600" height="300"></td>
+  </tr>
+</table>
+<p>A workspace can have from 0 to n images. The most usual way of working with
+images is to have two images: one on Windows platform and the other one on
+Unix platform. Therefore it is easy to develop on one platform and test the same
+development on the other one. When only one image exists on one platform for a
+given workspace, it is not needed to name it (default names being WINDOWS and
+UNIX). Otherwise, when more than one image exist on one platform, they must be
+named by the user and their names must be given when selecting the current
+working image (along with the current working workspace).</p>
+<p>SCM allows users to modify different files in different images of the same
+workspace at the same time. However, it is not allowed to modify the same file
+in two images of the same workspace. This restriction has been set to limit the
+number of merges that can occur in a workspace. Remember that images are just
+projections of one workspace, so they share the same objects, not copies of
+them.</p>
+<p>If different developments should be done on the same components at the same
+time, the usual process should be to create two different workspaces for the
+different developments (there is no limitation on the number of workspaces per
+user).</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Multiplatforms"></a>Multiplatform Workspaces</h3>
+<p>As explained above, any workspace can have several images on different hosts.
+For instance, if one application must be developed on Windows, AIX and SunOS,
+workspaces involved in this development can have two images:
+<ul>
+  <li>one on Windows operating system</li>
+  <li>one on AIX/SunOS operating systems</li>
+</ul>
+<p>It is not needed to create one image on an AIX machine and another one on a
+SunOS machine because, thanks to NFS, the same file tree (image) can be used for
+compiling and testing programs. Note that other CAA V5 tools can operate on the
+same file tree from various Unix operating systems.<br>
+</p>
+<p>The figure 3 shows multiple images of two workspaces:</p>
+<table>
+  <caption>Fig 3: Multiplaform Workspaces</caption>
+  <tr>
+    <td><img src="images/Images.gif" width="600" height="300"></td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Trees"></a>Workspace Trees</h3>
+<p>Workspaces are created in a top-down fashion and by the way are organized in
+trees.</p>
+<p>The tree purpose is to gather all workspaces involved in a common development
+project and also to control how data are exchanged between workspaces.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 4: the Workspace Tree</caption>
+        <tr>
+          <td><img src="images/ComponentInWsTree.gif" width="270" height="360"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">A tree is specified:
+      <ul>
+        <li>by a name<br>
+          Useful for users when listing workspaces belonging to a given tree.</li>
+        <li>an associated database.<br>
+          The repository of all configuration data.<br>
+          an associated file server.<br>
+          A repository dedicated to source files management.</li>
+      </ul>
+      <p>A tree contains workspaces created from the root workspace to leaf
+      workspaces.</p>
+      <p>Data exchanges are controlled within a tree:
+      <ul>
+        <li>a workspace can deliver its modifications only to the upper
+          workspace</li>
+        <li>a workspace can get components only from its upper workspace</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p>When getting started with SCM, people must think of how they will work
+together:
+<ul>
+  <li>how many products must be developed?</li>
+  <li>how many teams are involved in each product?</li>
+  <li>how various developments should be integrated?</li>
+</ul>
+<p>Being able to answer to these questions, people know how many trees are
+needed and how workspaces must be organized:
+<ul>
+  <li>components composing a product can be managed in a single tree</li>
+  <li>products sharing no components can be managed in different trees</li>
+  <li>teams involved in the development of a common product will create their
+    workspaces in the same tree</li>
+  <li>developers' workspaces will be leaves of trees while upper workspaces will
+    be dedicated to integration.</li>
+</ul>
+<p><b>Notes</b>:
+<ul>
+  <li>Once created, a workspace cannot be moved in another place in the
+    workspace tree</li>
+  <li>A workspace can be created at any time under an existing workspace.</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="The root workspace"></a>The Root Workspace</h4>
+<p>The root workspace is the first workspace created in a new tree. As the
+purpose of a tree is to gather all developments of a given product, the root
+workspace has a special meaning:</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 5: the Root Workspace</caption>
+        <tr>
+          <td><img src="images/WsTree1.gif" width="150" height="180"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">
+      <ul>
+        <li>It contains the best state of the product developed in it</li>
+        <li>It is the place for the ultimate integration of components.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="The project"></a>The Project Workspace</h4>
+<p>Except for the root workspace, all workspaces are created linked to an
+existing workspace: the existing workspace is called the parent workspace and
+the new workspace is called the child workspace.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 6: the Project Workspace</caption>
+        <tr>
+          <td><img src="images/WsTree2.gif" width="150" height="180"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">A project workspace is a workspace having at least one child
+      workspace.
+      <p>All workspaces in a tree are project workspaces but leaf workspaces.</td>
+  </tr>
+</table>
+<p>Activities taking place in a project workspace are integration activities:
+developments which have been performed &quot;above&quot; or &quot;below&quot; a
+project workspace are integrated, possibly merged, tested and finally available
+for others workspaces.</p>
+<p>Another role is to get components or modifications from the parent workspace
+to make them available for child workspaces. As a matter of fact, any user
+willing to work on a component which is already managed by a workspace must
+obtain a copy of this component from his parent workspace. Only data which are
+managed in a workspace can be seen by child workspaces, so it's up to the
+project manager to attach the needed components in his/her workspace.</p>
+<p>The process is the same whatever the types of managed data are (source files,
+documentation, tests, resources).</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="The development"></a>The Development Workspace</h4>
+<p>The development workspace is the place where components are created and
+modified.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 7: the Development Workspace</caption>
+        <tr>
+          <td><img src="images/WsTree3.gif" width="150" height="180"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">A development workspace has no child workspace.
+      <p>A development workspace becomes a project workspace as soon as a first
+      child workspace is created. However a project workspace doesn't become a
+      development workspace if all its child workspaces are destroyed.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Multi-trees"></a>Multi-tree Workspaces</h4>
+<p>The previous sections have explained how workspaces are organized in trees
+and that workspaces involved in a same product development must be managed in a
+common tree. However, a large product can be composed of well identified parts
+that can be developed in different departments with different people
+(infrastructure, GUI, etc). People involved in the development of each kind of
+components need to get copies of these components but do not need to copy other
+components. In such a case we can have several trees gathering the different
+kinds of components, this reduces the set of components per tree. However it is
+needed to control component deliveries, to integrate them (put all of them in a
+same place and test the whole application). This is the purpose of the
+multi-tree workspace.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 8: Multi-tree Workspaces</caption>
+        <tr>
+          <td><img src="images/MultiTreeWs1.gif" width="450" height="180"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">A multi-tree workspace is a workspace existing in more than
+      one tree:
+      <ul>
+        <li>it has its own location in each tree</li>
+        <li>it may have different parent and child workspace(s) in each tree</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p>The figure 8 shows three trees and two multi-tree workspaces: the
+&quot;Int2&quot; workspace is defined in two trees and its purpose it to
+integrate components delivered by &quot;Dev1&quot;, &quot;Dev2&quot;,
+&quot;Dev3&quot; and &quot;Dev4&quot; workspaces. The &quot;Int1&quot; workspace
+is defined in three trees and its purpose is to integrate components coming from
+&quot;Int2&quot; and &quot;Int3&quot; workspaces.</p>
+<p>It is easy to turn off/on the multi-tree characteristic:
+<ul>
+  <li>a new workspace can be created in several trees at the same time</li>
+  <li>a workspace existing in a given tree can be defined in other trees</li>
+  <li>a workspace can be &quot;removed&quot; from some trees at any time (under
+    the condition it does not have any child workspace, otherwise the dataflow
+    would be broken!)</li>
+</ul>
+<p>Here are some characteristics of a multi-tree workspace:
+<ul>
+  <li>it has the same name in all trees, in other words, in two workspaces in
+    two trees have the same name, they are the same multi-tree workspace</li>
+  <li>it has the same images in all trees; all components being projected in the
+    same place, this ease the compilation and tests of applications.</li>
+  <li>all SCM dataflow commands operate on the whole workspace (so in all
+    trees), by the way collects or deliveries of developments are performed in a
+    single operation.</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="The development process"></a>The Development Process</h3>
+<p>The development process is the way people are working together by sharing and
+delivering components.</p>
+<p>Data exchanges are controlled by SCM through workspaces:
+<ul>
+  <li>Workspaces provide an isolated place for working on without being
+    disturbed by outer changes</li>
+  <li>People decide when their development are delivered or available for other
+    people</li>
+  <li>Data are delivered from a workspace to its parent workspace</li>
+  <li>New changes of components are taken from the parent workspace</li>
+</ul>
+<p>SCM provides commands for managing the delivery of changes at a workspace
+level, the user does not need to compute the set of changes to be delivered, SCM
+does it for him/her by registering all actions performed during the development.</p>
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <table>
+        <caption>Fig 9: the Development Process</caption>
+        <tr>
+          <td><img border="0" src="images/ComponentInWsTree3.gif" width="270" height="360"></td>
+        </tr>
+      </table>
+    </td>
+    <td width="50%">The process is based upon four main operations:
+      <ul>
+        <li>the promotion: it is the delivery of developments from a workspace
+          to its parent workspace</li>
+        <li>the collect: it is the action of getting in a workspace what has
+          been delivered by child workspaces</li>
+        <li>the publication: it consists in making available to other workspaces
+          what was in the workspace. Child workspaces can get available changes
+          with the synchronization.</li>
+        <li>the synchronization: it is the action of getting in a workspace the
+          last state of the component managed in this workspace from the parent
+          workspace.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Site"></a>Site</h3>
+<p>The site is a naming space where some objects have unique name. Within a
+site:
+<ul>
+  <li>A tree has an unique name</li>
+  <li>A workspace has an unique name</li>
+</ul>
+<p>Except for companies having multiple distant sites (over a WAN), there is
+only one site managed by SCM.<br>
+The whole site is controlled by a monitor whose purpose is to manage connections
+between user commands and SCM servers:
+<ul>
+  <li>several servers and repositories can be set up for large companies</li>
+  <li>different trees can be managed on different servers and in different
+    repositories, SCM commands ask for connections to the different servers for
+    treating multi-tree workspaces.</li>
+</ul>
+<p>There is no user command for dealing with sites.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Modifications"></a>Modifications</h3>
+<p>Modifications or changes are terms used in SCM for speaking about fine
+modifications initially performed inside one workspace and propagated to the
+other ones afterwards. There are different kinds of modifications and they can
+applied on directories or files.</p>
+<p>File modifications that are handled by SCM are:
+<ul>
+  <li>Creation: a new file is created</li>
+  <li>Deletion: an existing file is deleted</li>
+  <li>Edition: the file content is modified</li>
+  <li>Move and/or renaming: the path to the file is changed</li>
+  <li>Change of execution mode: this is an Unix feature, a file must have
+    special rights to be executed</li>
+</ul>
+<p>Directory modifications that are handled by SCM are:
+<ul>
+  <li>Creation: a new directory is created</li>
+  <li>Deletion: an existing directory is deleted</li>
+  <li>Move and/or renaming: the path to the directory is changed</li>
+</ul>
+<p>SCM is able to manage those modifications independently for each other. It
+means that messages displayed by dataflow commands may show different
+modifications for one object (file or directory) and that concurrent
+modifications are handled properly.</p>
+<p>For instance, if one workspace changes the content of one file while another
+one changes its location (and possibly its name), if these two workspaces
+deliver their changes and they are collected at the same time, the result for
+the file will be with the new content at the new location (possibly under the
+new name).</p>
+<p>The previous situation is not a conflicting situation. Sometimes the same
+kind of modification is applied on the same object in different workspaces and
+they have to be collected at the same time: SCM provides two ways to handle such
+a situation, this is explained in the &quot;<a href="#Merges">Merges</a>&quot;
+section.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Merges"></a>Merges</h3>
+<p>A merge is a situation where two conflicting modifications must be applied on
+the same object at the same time.<br>
+For instance:
+<ul>
+  <li>a file content has been modified by two workspaces and they are collected
+    at the same time</li>
+  <li>the same file has been renamed to two different names by two workspaces
+    and they are collected at the same time.</li>
+</ul>
+<p>The default process supported by SCM is to forbid a merging case at collect
+time. To prevent this case, any promotion to a workspace is analyzed by SCM to
+know if the change set contains at least one modification already promoted by
+another workspace, if it happens, the promotion is canceled, giving to the user
+the conflicting file(s) and modification(s). This user must wait for the other
+promotion to be collected and published and then he/she can synchronize his/her
+workspace to get the conflicting modification. This synchronization will lead to
+a merge between the local modification and the other one.</p>
+<p>The default process is to let developers solve merges because they should
+have a better knowledge on file content than the user who is responsible of an
+integration workspace.</p>
+<p>There are two kinds of modifications for which SCM needs the user help and
+for which a merging tool is provided:
+<ul>
+  <li>modification of file content: the two conflicting versions of the file are
+    sent to graphical and interactive tool (The SCM Merger) which shows the
+    content of the two versions and allows the user to select one version for
+    each part being modified in the two versions.</li>
+  <li>move/renaming of file: the paths to the different target locations are
+    displayed and SCM prompts the user for entering the right path.</li>
+</ul>
+<p>Due to the inconsistency caused by having two different modifications on the
+same object at the same place (the workspace), the only action that an user can
+perform when a merge occurs is to solve this merge.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Transactions"></a>Transactions</h3>
+<p>Any SCM command is executed under transaction control, that means that
+<ul>
+  <li>if a command succeeds, everything is done</li>
+  <li>if a command fails, all modifications are cancelled</li>
+</ul>
+<p>The transaction mechanism is provided by commands operating on files as well
+as workspace commands.</p>
+<p>Some commands group several transactions, in this case they can be
+interrupted while executing: the current active transaction will be cancelled
+but not the previous ones. In any case, sub-transactions correspond to SCM
+commands and therefore they can be executed afterwards.</p>
+<p>For instance:
+<ul>
+  <li>the command creating a workspace calls the command for creating an image.
+    If the command is interrupted during the creation of the image, the
+    workspace will still exist and the command for creating an image can be
+    launched afterwards.</li>
+  <li>the command synchronizing a workspace calls the command for refreshing the
+    current image. Here again the synchronization command can be interrupted
+    while refreshing the image. In this case, the workspace's status will be
+    &quot;synchronized&quot; but the image's status will be &quot;not
+    refreshed&quot;. The refresh command can be run to refresh the current image
+    against the workspace content.</li>
+</ul>
+<p>The following example shows the traces of the adl_mk_ws command. The
+&quot;Command successful&quot; messages indicate the end of a (sub)transaction.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>$ adl_mk_root_ws SampleRoot1 -tree SampleTree1 -dir /u/lego/WS/SampleRoot1 -tck V5R5
+Creating the root workspace &quot;SampleRoot1&quot; in the workspace tree &quot;SampleTree1&quot;.
+<strong>Command successful.</strong>
+
+Creating the image &quot;UNIX&quot; in the workspace &quot;SampleRoot1&quot;.
+<strong>Command successful.</strong>
+$</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+<p>Users work in workspaces providing an isolated space for developing
+components. The user view of a workspace is the image which is the projection of
+files from this workspace. SCM registers user actions by the mean of
+modifications. Workspaces are organized in trees and data are exchanged
+according to the workspace hierarchy. Any action on SCM object is performed
+under transaction control.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmBase/CAAWsmHome.htm#UseCases">Use cases</a></td>
+  </tr>
+  <tr>
+    <td valign="top">[2]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm">SCM
+      User Commands</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="1020">
+  <tr>
+    <td valign="top" width="293">Version: <strong>2</strong> [Jul 2003]</td>
+    <td valign="top" width="723">Document update.Review The Development Process</td>
+  </tr>
+  <tr>
+    <td valign="top" width="293">Version: <strong>1</strong> [Mar 2000]</td>
+    <td valign="top" width="723">Document creation</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2" width="1018">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

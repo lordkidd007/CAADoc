@@ -1,0 +1,845 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Managing Non-Shared (Mono-Instantiable) PLM Product Representation Reference
+</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing Non-Shared (Mono-Instantiable) PLM Product 
+		Representation Reference</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the <code>CAAPstManageMonoInstPLMRepRef</code> 
+		Use Case.It creates a Non-Shared (Mono-Instantiable) PLM Product Representation 
+		Reference (Rep Ref) and instantiates it beneath a Root Product Reference. 
+		It also illustrates the methodology to handle Instances (Deletion, Creation, 
+		Navigation) of two types of Rep Ref (Mono and Multi-Instantiable) thanks 
+		to the <em>CATIPLMRepInstances</em> and <em>CATIPrdAggregatedRepresentations</em> 
+		implementation on a Product Reference.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstManageMonoInstPLMRepRef Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAPstManageMonoInstPLMRepRef 
+						Do</a></li>
+					<li><a href="#How">How to Launch CAAPstManageMonoInstPLMRepRef</a></li>
+					<li><a href="#Where">Where to Find the CAAPstManageMonoInstPLMRepRef Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case fundamentally teaches:</p>
+<ul>
+	<li>Services exposed by a <em>CATIPrdAggregatedRepresentations</em> implementation 
+		on a PRODUCT Reference to:
+		<ul>
+			<li>Instantiate a Mono-Instantiable Rep Ref under Root (<code>CATIPrdAggregatedRepresentations::Add3DShape</code> call).</li>
+			<li>Delete a Mono-Instantiable Rep Inst under Root (<code>CATIPrdAggregatedRepresentations::RemoveRepresentation</code> 
+				call).</li>
+			<li>Navigate and seek details of the Mono-Instantiable Rep Refs/Instances 
+				under Root (<code>CATIPrdAggregatedRepresentations::Iterator</code>).</li>
+		</ul>
+	</li>
+	<li>Services exposed by a <em>CATIPLMRepInstances</em> implementation on a PRODUCT 
+		Reference to:
+		<ul>
+			<li>Instantiate any type of Rep Ref (Mono/Multi-Instantiable) under 
+				Root (<code>CATIPILMRepInstances::AddRepInstance</code> 
+				call).</li>
+			<li>Delete an Instance of any type of Rep Ref under Root (<code>CATIPLMRepInstances::RemoveInstance</code> 
+				call).</li>
+			<li>Navigate through Instances of all types of Rep Refs under Root (<code>CATIPLMRepInstances::Iterator</code>)
+			<ul>
+				<li>Seek the Rep Refs associated with these Rep Instances (<code>CATIPLMNavRepInstance::GetRepReferenceInstanceOf</code>).</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<li>Service exposed by a <em>CATIPLMNavRepReference</em> implementation on any 
+		type of Rep Ref to check if it is Mono-Instantiable (<code>CATIPLMNavRepReference::IsOnceInstantiable</code> 
+		call).</li>
+	<li>Service exposed by <em>CATAdpQueryServices</em> for retrieving all Rep Refs 
+		associated with input PLM Reference (<code>CATAdpQueryServices::GetRepresentationsFromReference</code>).</li>
+</ul>
+<p>Other important learning thanks to the scenario implemented by this Use Case 
+(UC) are:</p>
+<ul>
+	<li>Mono-Instantiable Rep References has only a single instance. An attempt 
+		at more than one instantiation fails.</li>
+	<li>Mono-Instantiable Rep References can be instantiated only once during its 
+		lifetime.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstManageMonoInstPLMRepRef Use Case</h2>
+<p>CAAPstManageMonoInstPLMRepRef is a use case of the CAAProductStructure.edu 
+framework that illustrates the ProductStructureInterfaces framework
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPstManageMonoInstPLMRepRef Do</h3>
+<p>The UC execution carries us through the following steps:</p>
+<ul>
+	<li>To begin with it loads the input Product in session, thanks to the Identification 
+		Set attribute-value pairs input for UC execution. The input Product is as 
+		depicted in [<a href="#Fig1">Fig.1</a>] below.</li>
+	<li>Lists the Instances of all Rep Ref types (Mono and Multi-Instantiable) beneath 
+		the input Root. (<em>CATIPLMRepInstances</em> call) It then seeks the Rep 
+		Ref associated with each Rep Instance and the Rep Ref type (Mono or Multi 
+		Instantiable).</li>
+	<li>List all rep refs associated with root (only one level below). This list 
+		is same as above step.</li>
+	<li>Lists the Mono-Instantiable Rep Ref beneath Root (<em>CATIPrdAggregatedRepresentations</em> 
+		call).</li>
+	<li>Displays the count of Mono Rep Instances under Root.</li>
+	<li>Instantiates a Mono-Instantiable Rep Ref beneath Root.</li>
+	<li>Yet again, displays the count of Mono Rep Instances under Root, which is 
+		now incremented by one.</li>
+	<li>Makes an attempt to reInstantiate this new Rep Ref under Root but fails 
+		(As the name indicates, the Rep Ref is Mono-Instantiable, implying only 
+		a single Instance exists).</li>
+	<li>Retrieves the count of the PLM Components.</li>
+	<li>Deletes the newly created Rep Instance under Root (<em>CATIPLMRepInstances</em> 
+		call).</li>
+	<li>Deletes an existing Mono Rep Instance under Root (<em>CATIPrdAggregatedRepresentations</em> 
+		call).</li>
+	<li>Retrieves the count of Mono Rep Instances under Root, which is now decremented 
+		by two.</li>
+	<li>Yet again, it retrieves the count of the PLM Components which is now decremented 
+		by two too.</li>
+</ul>
+<p>The input model for the UC as in [<a href="#Fig1">Fig.1</a>].</p>
+<p>It consists of a Root Product Reference with four Rep Instances beneath it.</p>
+<ul>
+	<li>MonoRepInst1.1 and MonoRepInst2.1 are instances of a Mono-Instantiable Rep 
+		Ref.</li>
+	<li>RepInst3.1 and RepInst4.1 are instances of a Multi-Instantiable Rep Ref 
+		(The arrow at the tree nodes indicates an instance of a Multi-Instantiable 
+		Rep Ref).</li>
+</ul>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Initial Product Model</caption>
+	<tr>
+		<td>
+		<img alt="Initial Product Model" height="135" src="images/CAAPstManageMonoInstPLMRepRef_Fig1.gif" width="378"/></td>
+	</tr>
+</table>
+<p>The UC execution results is an Instantiation of a new Mono-Instantiable Rep 
+Ref under Root, as depicted in [<a href="#Fig2">Fig. 2</a>] below. (<strong>NewMonoRepInst</strong>)</p>
+<table>
+	<caption><a name="Fig2"></a>Fig. 2: New Mono-Instantiable Rep Ref under Root</caption>
+	<tr>
+		<td>
+		<img alt="New Mono-Instantiable Rep Ref under Root" height="169" src="images/CAAPstManageMonoInstPLMRepRef_Fig2.gif" width="402"/></td>
+	</tr>
+</table>
+<p>But the above is an intermediate result, since the UC proceeds to delete the 
+new Rep Instance as well as existing Rep Inst. Thus at the end of the UC execution 
+the model looks as depicted in [<a href="#Fig3">Fig. 3</a>] below. It has only three 
+Rep Instances beneath Root namely.</p>
+<ul>
+	<li>MonoRepInst2.1, an instance of a Mono-Instantiable Rep Ref</li>
+	<li>RepInst3.1 and RepInst4.1
+	</li>
+</ul>
+	<table>
+		<caption><a name="Fig3"></a>Fig. 3: Final Model</caption>
+		<tr>
+			<td>
+			<img alt="Final Model" height="121" src="images/CAAPstManageMonoInstPLMRepRef_Fig3.gif" width="405"/></td>
+		</tr>
+		</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPstManageMonoInstPLMRepRef</h3>
+<p>To launch CAAPstManageMonoInstPLMRepRef, you will need to set up 
+the build time environment, then compile CAAPstManageMonoInstPLMRepRef 
+along with its prerequisites, set up the run time environment, and then execute 
+the use case [<a href="#References">1</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code>mkrun -c &quot;CAAPstManageMonoInstPLMRepRef Repository Server User Password SecurityCtx PLMType PLM_ExternalID 
+PLM_ExternalID_Value V_version V_version_Value1 ...&quot;</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as ServerName:ServerPort/rootURI</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose role as administrator (since we are modifying PLM data)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String Representing PLM Type</td>
+	</tr>
+	<tr>
+		<th>PLM_ExternalID</th>
+		<td>ID Set Attribute 1 for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>PLM_ID_Value</th>
+		<td>ID Set Attribute 1 Value for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>V_version</th>
+		<td>ID Set Attribute 2 for the input PLM Component</td>
+	</tr>
+	<tr>
+		<th>V_version_Value</th>
+		<td>ID Set Attribute 2 Value for the input PLM Component</td>
+	</tr>
+</table>
+<p>The input model for Root Reference is retrieved by importing the CAAPstManageMonoInstPLMRepRef.3dxml 
+file from the CAAProductStructure.edu fwk.</p>
+<p><code>InstallRootFolder\CAAProductStructure.edu\InputData\CAAPstManageMonoInstPLMRepRef.3dxml</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>The CAAPstManageMonoInstPLMRepRef.3dxml contains a PLM PRODUCT 
+Reference with the following attributes:</p>
+<ul>
+	<li><strong>PLM_ExternalID_value</strong>: <code>CAAPstManageMonoInstPLMRepRef_Root</code></li>
+	<li><strong>V_version_value</strong>: ---</li>
+</ul>
+<p>An end user could use his own data but it should necessarily be PRODUCT 
+data. Moreover, the illustration above (the mkrun execution attribute arguments) 
+is for an input data whose PLM Type is a PRODUCT custo whose
+IdentifierSet attributes include PLM_ExternalID 
+and V_version. User has the liberty to use an input data of 
+any PLM Type but essentially belonging to a PRODUCT custo.</p>
+<p>The article [<a href="#References">1</a>] details the steps involved to import 
+and reimport a 3DXML into your PLM Repository.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstManageMonoInstPLMRepRef Code</h3>
+<p>The CAAPstManageMonoInstPLMRepRef use case is located in the
+CAAPstManageMonoInstPLMRepRef.m module of 
+the CAAProductStructure.edu framework:</p>
+<p><code>InstallRootFolder\CAAProductStructure.edu\CAAPstManageMonoInstPLMRepRef.m</code></p>
+<p>It also refers to global service routine namely, <code>CAAAdpRetrieveIdentificatorFromAttributeSet</code> 
+and <code>CAAAdpRetrieveAdpTypeFromClassType</code> which occur at the following 
+location:</p>
+<p><code>InstallRootFolder\CAAPLMClientAdapter.edu\CAAAdpUtilities.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code>CAAPstManageMonoInstPLMRepRef</code> :</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step1">Loading the Input Product in Session and Inserting It in BAG</a></li>
+	<li><a href="#Step2">Listing All Instances of Mono and Multi Rep Refs beneath Root</a></li>
+	<li><a href="#Step3">Displaying all Rep Refs Instantiated Directly below Root</a></li>
+	<li><a href="#Step4">Listing All Mono Rep Refs beneath Root</a></li>
+	<li><a href="#Step5">Displaying the Count of Mono Rep Instances under Root to Begin With</a></li>
+	<li><a href="#Step6">Instantiating the Mono-Instantiable PLM Rep Ref under Root</a></li>
+	<li><a href="#Step7">Displaying the Count of Mono Rep Instances under Root after the Mono Rep Ref Instantiation</a></li>
+	<li><a href="#Step8">Illustrating the Failure to Reinstantiate the Mono-Instantiable Rep Ref</a></li>
+	<li><a href="#Step9">Displaying the Count of PLM Components</a></li>
+	<li><a href="#Step10">Deleting Mono Instantiable Rep under Root</a></li>
+	<li><a href="#Step11">Displaying the Count of Mono Rep Instances under Root after Rep Inst Deletion</a></li>
+	<li><a href="#Step12">Displaying the Total Count of PLM Components in Session after Rep Inst Deletion</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code>CAAPstManageMonoInstPLMRepRef</code> use case begins by creating a 
+session and connecting to the input Repository. This, being the most fundamental 
+prerequisite for all batch use cases, it is the first step in their execution. In 
+this case, we create a session and connect to Repository with the Administrator 
+Role (since we are modifying PLM data in database). There are other parameters as 
+well, details of which can be found in the &quot;Connecting to V6 Server&quot; 
+use case article [<a href="#References">2</a>]. This article primarily deals with 
+Opening and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Loading the Input Product in Session and Inserting It in BAG</h3>
+<p>To begin with, the steps executed are:</p>
+<ul>
+	<li>We build an Attribute Set object with the input Attribute-Value sets.</li>
+	<li>Finally a <em>CATIAdpPLMIdentificator</em>* on the Identificator of the input 
+		PLM Component in the database is retrieved (<code>poIdentOnPLMComp</code>) 
+		[<a href="#References">4</a>].</li>
+</ul>
+<p>These steps are executed through a global routine <strong>CAARetrieveIDofUniquePLMObject</strong> 
+referenced in the Use Case [<a href="#References">8</a>]. With the Identificator 
+retrieved, we proceed towards loading the input PLM Component in session as depicted 
+by the code extract below.</p>
+<pre class="code"><strong>CATAdpOpener AdpOpener(Bag)</strong>;
+hr = <strong>AdpOpener.CompleteAndOpen</strong>(<strong>opiIDComp</strong>,IID_CATIPrdAggregatedRepresentations,(void**)&amp;piPLMRepsOnRoot);</pre>
+<p>A call to <code>CompleteAndOpen()</code> method of the <code>CATAdpSaver</code> 
+class [<a href="#References">3</a>] loads the input PLM Component in session returned 
+as a <em>CATIPrdAggregatedRepresentations</em>* type namely. <code>piPLMRepsOnRoot</code>.
+The component is loaded in an authoring mode since the current Use Case 
+(UC) involves access to and management of the PLM Rep Instances aggregated beneath 
+the Root Reference.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Listing All Instances of Mono and Multi Rep Refs beneath Root</h3>
+<p>This section fundamentally illustrates the way to handle <strong>ALL</strong> Rep Instances 
+aggregated beneath a Product Reference, thanks to the services exposed by the CATIPLMRepInstances 
+implementation on a Product Reference. By <strong>ALL</strong> Rep Instances, we imply those 
+instantiated from a Mono and Multi Instantiable Rep Ref.</p>
+<p>The code extract below illustrates the methodology to navigate through each Rep 
+Instance aggregated beneath a Root Product Reference, seek its associated Rep Reference 
+and its details.</p>
+<pre class="code">...
+  CATListPtrCATIPLMNavRepReference listOfMonoInstRepRefs;
+  CATIPLMRepInstances* piRepInstsOnRoot = NULL;
+  hr = <strong>piPLMRepsOnRoot-&gt;QueryInterface</strong>(IID_CATIPLMRepInstances,(void**)&amp;<strong>piRepInstsOnRoot</strong>);
+...
+  CATIPrdIterator* piPrdIteratorOnAllRepInsts = NULL;
+  hr = <strong>piRepInstsOnRoot-&gt;Iterator</strong>(<strong>piPrdIteratorOnAllRepInsts</strong>);
+...
+  CATBaseUnknown* pElement = NULL;
+  while (SUCCEEDED(piPrdIteratorOnAllRepInsts-&gt;<strong>Next</strong>(<strong>pElement</strong>)))
+  {
+    ...
+    CATIPLMNavRepInstance* piNavRepInstOnRepInst = NULL;
+    hr = <strong>pElement-&gt;QueryInterface</strong>(IID_CATIPLMNavRepInstance,(void**)&amp;<strong>piNavRepInstOnRepInst</strong>);
+    ...
+    CATIPLMNavRepReference* piNavRepRefOnRepRef = NULL;
+    hr = <strong>piNavRepInstOnRepInst-&gt;GetRepReferenceInstanceOf</strong>(<strong>piNavRepRefOnRepRef</strong>);
+    CATIAlias* piAliasRepRef = NULL;
+    ...
+    hr = <strong>piNavRepRefOnRepRef-&gt;QueryInterface</strong>(IID_CATIAlias,(void**)&amp;<strong>piAliasRepRef</strong>);
+    ...
+    CATUnicodeString RepRefAlias = piAliasRepRef-&gt;GetAlias();
+    ...  
+    <strong>hr = piNavRepRefOnRepRef-&gt;IsOnceInstantiable();</strong>
+    if (<strong>S_OK == hr</strong>)
+    {
+      <strong>listOfMonoInstRepRefs.Append(piNavRepRefOnRepRef)</strong>;
+      ...</pre>
+<p>The steps involved are:</p>
+<ul>
+	<li>Seek <code>piRepInstsOnRoot</code>, a <em>CATIPLMRepInstances</em>* type on 
+		Root, thanks to a <code>QueryInterface</code> call on <code>piPLMRepsOnRoot</code>, 
+		retrieved in the previous step.</li>
+	<li>A call to <code>CATIPLMRepInstances::Iterator</code> on
+		<code>piRepInstsOnRoot</code> returns <code>piPrdIteratorOnAllRepInsts</code>, 
+		a <em>CATIPrdIterator</em>* type on an object which enables us to navigate 
+		through the Rep Instances beneath Root.</li>
+	<li>A call to <code>CATIPrdIterator::Next</code> on <code>piPrdIteratorOnAllRepInsts</code> 
+		returns <code>pElement</code>, a <em>CATBaseUnknown</em>* type on a Rep Instance 
+		beneath Root.</li>
+	<li>seek <code>piNavRepInstOnRepInst</code>, a <em>CATIPLMNavRepInstance</em>* 
+		type on a Rep Instance beneath Root, retrieved thanks to a <code>QueryInterface</code> 
+		call on <code>pElement</code>.</li>
+	<li>A call to <code>CATIPLMNavRepInstance::GetRepReferenceInstanceOf</code> 
+		on <code>piNavRepInstOnRepInst</code> returns <code>piNavRepRefOnRepRef</code>, 
+		a <em>CATIPLMNavRepReference</em>* type on the Rep Ref associated to the above 
+		Rep Inst.</li>
+	<li>seek <code>piAliasRepRef</code>, a <em>CATIAlias</em>* type on the Rep Ref, 
+		retrieved thanks to a <code>QueryInterface</code> call on <code>piNavRepRefOnRepRef</code>. 
+		The Alias enables us to display the Mono-Instantiable Rep Ref alias.</li>
+	<li>A call to <code>CATIPLMNavRepReference::IsOnceInstantiable</code> 
+		on <code>piNavRepRefOnRepRef</code> returns <code>S_OK</code>, for a Mono-Instantiable 
+		Rep Ref. Else for Multi-Instantiable, it returns FALSE.</li>
+	<li>populate <code>listOfMonInstRepRefs</code>, a list of <em>CATIPLMNavRepReference</em>* 
+		type, with all Mono-Instantiable Rep Refs instantiated beneath Root.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Displaying All Rep Refs Instantiated Directly below Root</h3>
+<p>Here we are retrieving list of ALL Rep Refs those instantiated directly below 
+root using <em>CATAdpQueryServices</em> . Then we are displaying RepRef Name.</p>
+<pre class="code">...
+  CATLISTP(CATIAdpPLMIdentificator) ListOfRepresentations;
+  hr = <strong>CATAdpQueryServices::GetRepresentationsFromReference(piPLMRepsOnRoot ,
+							ListOfRepresentations)</strong>;
+  ...		
+  for(int i = 1 ; i&lt;=ListOfRepresentations.Size() ; i++)
+  {
+    CATIAdpPLMIdentificator * iIdentifier = <strong>ListOfRepresentations[i]</strong> ;
+
+    CATAdpIdentificationSet oIdentifyingSet;
+    hr = <strong>CATAdpQueryServices::GetIdentificationSet</strong>(iIdentifier,oIdentifyingSet);
+    ...
+    int current=0;
+    CATString AttributeName;
+    CATUnicodeString AttrValue;
+    CATString PLMExtID("PLM_ExternalID");
+    while (S_OK == (oIdentifyingSet.NextAttribute(current,AttributeName,AttrValue)))
+    {
+      ...	
+    }
+  }
+...</pre>
+<p>A call to <code>CATAdpQueryServices::GetRepresentationsFromReference</code> 
+returns list of all Rep Refs, the arguments are as follows:</p>
+<ul>
+	<li><code>piPLMRepsOnRoot</code>, a <em>CATIPrdAggregatedRepresentations</em>* 
+		type, on loaded root PLM Component in session.</li>
+	<li><code>ListOfRepresentations</code>, a <em>CATLISTP(CATIAdpPLMIdentificator)</em> 
+		type, a list of all associated Rep Refs, each element of list is of <em>CATIAdpPLMIdentificator</em> 
+		* type [output].</li>
+</ul>
+<p>Then we parse through the list and display Rep Ref Name.</p>
+<p>A call to <code>CATAdpQueryServices</code>::GetIden<code>t</code>ificationSet 
+returns identification attribute set [<a href="#References">8</a>], the arguments 
+are as follows:</p>
+<ul>
+	<li><code>iIdentifier</code>, a CATIAdpPLMIdentificator* type, on retrieved 
+		Rep Ref.</li>
+	<li><code>oIdentifyingSet</code>, a CATAdpIdentificationSet type, set of Identification 
+		attribute-value for each element in the above list.</li>
+</ul>
+<p>Next we parse through list of Attribute-value set and display Name of Rep ref</p>
+<p>A call to <code>CATAdpIdentificationSet::NextAttribute</code> takes 
+following parameters:</p>
+<ul>
+	<li><code>current</code>, a int type, Its counter for Attribute number</li>
+	<li><code>AttributeName</code>, a <em>CATString</em> type, name of the Attribute 
+		[output].</li>
+	<li><code>AttrValue</code>, a <em>CATUnicodeString</em> type, Value of the attribute 
+		[output].</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Listing All Mono Rep Refs beneath Root</h3>
+<p>This section also deals with handling the Rep Instances beneath a Root Product 
+Reference. But it differs from the previous section, since the services exposed 
+by the <em>CATIPLMRepresentation</em> on a Product Reference handle only the Instances 
+of a Mono-Instantiable Rep Ref, beneath Root.</p>
+<p>The code extract below illustrates the methodology to navigate through each Mono 
+Rep Ref instantiated beneath a Root Product Reference, and then seek its details.</p>
+<pre class="code">...
+  CATIPrdIterator_var oIteratorOnMonoRepInsts;
+  <strong>piPLMRepsOnRoot-&gt;Iterator</strong>(oIteratorOnMonoRepInsts);
+  ...
+  while (SUCCEEDED(<strong>oIteratorOnMonoRepInsts-&gt;Next</strong>(<strong>pElement</strong>)))
+  {
+    ...
+    CATIPLMNavRepReference* piNavRepRefOnMonoInstRepRef = NULL;
+    hr = <strong>pElement-&gt;QueryInterface</strong>(IID_CATIPLMNavRepReference,(void**)&amp;<strong>piNavRepRefOnMonoInstRepRef</strong>);
+    ...
+    hr = <strong>piNavRepRefOnMonoInstRepRef-&gt;IsOnceInstantiable()</strong>;
+    if (<strong>S_OK == hr</strong>)
+      cout &lt;&lt; &quot; Mono-Instantiable&quot; &lt;&lt; endl;
+    ...
+    CATIAlias* piAliasMonoRepRef = NULL;
+    hr = <strong>pElement-&gt;QueryInterface</strong>(IID_CATIAlias,(void**)&amp;<strong>piAliasMonoRepRef</strong>);
+    ...
+    CATUnicodeString MonoRepRefAlias = piAliasMonoRepRef-&gt;GetAlias();
+...</pre>
+<p>The steps involved are:</p>
+<ul>
+	<li><code>piPLMRepsOnRoot</code>, a <em>CATIPLMRepresentation</em>* 
+		type on the Root Reference, retrieved in <a href="#Step2">Listing All Instances of Mono and Multi Rep Refs beneath Root#</a>.</li>
+	<li>A call to <code>CATIPrdAggregatedRepresentations</code>:<code>Iterator</code> 
+		on <code>piPLMRepsOnRoot</code> returns <code>oIteratorOnMonoRepInsts</code>, 
+		a <em>CATIPrdIterator</em>* type on an object which enables us to navigate 
+		through all Mono Rep Instances beneath Root.</li>
+	<li>A call to <code>CATIPrdIterator::Next</code> returns <code>
+		pElement</code>, a <em>CATBaseUnknown</em>* type on a Mono-Instantiable Rep 
+		Ref beneath Root.</li>
+	<li>seek <code>piNavRepRefOnMonoInstRepRef</code>, a <em>CATIPLMNavRepReference</em>* 
+		type on this Mono Instantiable Rep Ref, retrieved thanks to a <code>QueryInterface</code> 
+		call on <code>pElement</code>.</li>
+	<li>A call to <code>CATIPLMNavReference::IsOnceInstantiable</code> 
+		on <code>piNavRepRefOnMonoInstRepRef</code> returns <code>S_OK</code>, for 
+		a Mono-Instantiable Rep Ref. Else for Multi-Instantiable, it returns FALSE.</li>
+	<li>seek <code>piAliasMonoRepRef</code>, a <em>CATIAlias</em>* type on the Rep 
+		Ref, retrieved thanks to a <code>QueryInterface</code> call on <code>piNavRepRefOnMonoInstRepRef</code>. 
+		The Alias enables us to display the Mono-Instantiable Rep Ref alias.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Displaying the Count of Mono Rep Instances under Root to Begin With</h3>
+<p>To begin with, we display the count of Mono Rep Instances under the input PLM 
+Component. This count is significant since as in the steps ahead we instantiate 
+a Mono-Instantiable Rep Ref under Root and this count then increments by one.</p>
+<pre class="code">...
+  int PrevCount = 0;
+  hr = <strong>piPLMRepsOnRoot-&gt;Count</strong>(<strong>PrevCount</strong>);
+...</pre>
+<p>A call to <code>CATIPLMRepresentation::Count</code>
+which returns <code>PrevCount</code>, an int type, representing the count 
+of Instances of Mono-Instantiable Rep Refs, beneath Root.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Instantiating the Mono-Instantiable PLM Rep Ref under Root</h3>
+<p>Here we instantiate a Mono-Instantiable PLM Rep Ref under the Root Reference 
+(input PLM Component). The methodology (process) of creating a Mono-Instantiable 
+PLM Rep Ref and instantiating it under a Root Reference are detailed in the UC [<a href="#References">8</a>]. 
+The code extract below, is a call to <code>CATIPrdAggregatedRepresentations::Add3DShape</code>
+to create and instantiate a Mono-Instantiable PLM Rep Ref under Root. Please 
+note that this API limits the creation to a 3D Shape.</p>
+<pre class="code">...
+  CATIType_var spRepType;
+  CATCkePLMNavPublicServices::RetrieveKnowledgeType(&quot;3DShape&quot;, spRepType);
+  CATListValCATICkeParm_var iUselessList;
+  CATIPsiRepresentationReference* piPsiRepRefOnMonoInstRepRef = NULL;
+  hr = <strong>piPLMRepsOnRoot-&gt;Add3DShape</strong>(<strong>spRepType</strong>, iUselessList, <strong>piPsiRepRefOnMonoInstRepRef</strong>, <strong>piEnv</strong>);
+...</pre>
+<p>We next have a call to <code>CATIPrdAggregatedRepresentations::Add3DShape</code>
+on <code>piPLMRepsOnRoot</code> which takes the following arguments:</p>
+<ul>
+	<li><code>spRepType</code>, a smart pointer to <em>CATIType</em>, retrieved 
+		thanks to the <code>CATCkePLMNavPublicServices::RetrieveKnowledgeType</code> 
+		static method. A representation reference handled using a <em>CATIPsiRepresentationReference</em> 
+		pointer is of the 3DShape PLM type, or from a derived type, if any.</li>
+	<li><code>iUselessList</code>, a <em>CATListValCATICkeParm_var</em> type, this 
+		list of PLM attributes must be empty since the PLM attributes of the newly 
+		created object are valuated by the method.</li>
+	<li><code>piPsiRepRefOnMonoInstRepRef</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type, on the newly created Mono-Instantiable Rep Ref.</li>
+	<li><code>piEnv</code>, a <em>CATIAdpEnvironment</em>* type, on the environment 
+		input by the user.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Displaying the Count of Mono Rep Instances under Root after the Mono Rep Ref Instantiation</h3>
+<p>In <a href="#Step5">Displaying the Count of Mono Rep Instances under Root to Begin With</a>,
+we retrieved the count of Mono Rep Insts under Root. A similar count is retrieved 
+now, but its significance now is that it represents the count of Mono Rep Insts 
+under Root, after the Mono Rep Ref instantiation above.</p>
+<pre class="code">...
+  int iInitialCountOfMonoRepInstsAfterMonoInst = 0;
+  hr = <strong>piPLMRepsOnRoot-&gt;Count</strong>(<strong>iInitialCountOfMonoRepInstsAfterMonoInst</strong>);
+...</pre>
+<p>A call to <code>CATIPLMRepresentation::Count</code>
+which returns <code>iInitialCountOfMonoRepInstsAfterMonoInst</code>, an int type, 
+representing the count of Instances of Mono-Instantiable Rep Refs, beneath Root. 
+Please note that if the Mono Rep Ref instantiation earlier returned SUCCESS, this 
+count is incremented by one (<code>iInitialCountOfMonoRepInstsAfterMonoInst = PrevCount 
++ 1)</code>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step8"></a>Illustrating the Failure to Reinstantiate the Mono-Instantiable Rep Ref</h3>
+<p>An instance of a Mono-Instantiable Rep Ref now exists under Root. As the name 
+indicates, since the PLM Rep Ref is Mono-Instantiable and since an instance of it 
+already exists, any attempt to reinstantiate this Rep Ref under Root, is bound to 
+fail. The code extract below illustrates precisely this condition.</p>
+<pre class="code">...
+  CATUnicodeString iRepInstName(&quot;InstName&quot;);
+  CATBaseUnknown* opRepInst = NULL;
+  CATIPLMRepInstances* piRepInstsOnRoot = NULL;
+  hr = <strong>piPLMRepsOnRoot</strong>-&gt;QueryInterface(<strong>IID_CATIPLMRepInstances</strong>,(void**)&amp;<strong>piRepInstsOnRoot</strong>);
+  if (SUCCEEDED(hr))
+  {
+    hr = <strong>piRepInstsOnRoot</strong>-&gt;<strong>AddRepInstance</strong>(iRepInstName,<strong>piPsiRepRefOnMonoInstRepRef</strong>,opRepInst);
+    if ((S_OK==hr) || (NULL != opRepInst))
+      return 1;
+    ...</pre>
+<p>A <em>CATIPLMRepInstances*</em> on Root is retrieved (<code>piRepInstsOnRoot</code>) 
+through a <code>QueryInterface</code> call on a <em>CATIPrdAggregatedRepresentations*</em> 
+on Root retrieved earlier (<code>piPLMRepsOnRoot</code>).</p>
+<p>A call to <code>CATIPLMRepInstances::AddRepInstance</code> instantiates 
+an input PLM Rep Ref under Root. Its arguments are:</p>
+<ul>
+	<li><code>iRepInstName</code>, a <em>CATUnicodeString</em> type, 
+		for the Rep Inst name.</li>
+	<li><code>piPsiRepRefOnMonoInstRepRef</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type on the newly created Mono-Instantiable Rep Ref, retrieved earlier.</li>
+	<li><code>opRepInst</code>, a <em>CATBaseUnknown</em>* type on the 
+		newly created PLM Rep Instance.</li>
+</ul>
+<p>The check after this call effectively ensures that the UC returns FAILURE, if 
+this reInstantiation SUCCEEDS.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step9"></a>Displaying the Count of PLM Components</h3>
+<p>We retrieve the count of PLM Components. Please note PLM Components essentially 
+include only PLM Refs and PLM Rep Refs. The significance of retrieving this count, 
+is better understood at a later stage [#], when this count is yet again retrieved, 
+after we delete two Mono Rep Instances under Root, in the step ahead.</p>
+<pre class="code">...
+  CATLISTV(CATIPLMComponent_var) oListOfPLMCompsInSessionInitial;
+  hr = <strong>CATPLMComponentInterfacesServices</strong>::<strong>GetPLMComponentsInSession</strong>(oListOfPLMCompsInSessionInitial);
+...
+  <strong>int iInitialCountOfPLMCompsInSession = oListOfPLMCompsInSessionInitial.Size();</strong>
+...</pre>
+<p>The call to <code>CATPLMComponentInterfacesServices::GetPLMComponentsInSession</code>
+[<a href="#References">5</a>] returns the list of PLM Components.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step10"></a>Deleting Mono Instantiable Rep under Root</h3>
+<p>We proceed to delete the newly created Instance of a Mono-Instantiable PLM Rep 
+Ref under Root, which is possible with either of the following two calls:</p>
+<ul>
+	<li><code>CATIPLMRepInstances::RemoveRepInstance</code>, on the 
+		other hand, takes the Rep Instance, as an input and deletes it.</li>
+	<li><code>CATIPrdAggregatedRepresentations::RemoveRepresentation</code>, 
+		which simply takes the Mono-Instantiable Rep Ref, as an input, and deletes 
+		its Instance, which happens to be the only Instance of this Rep Ref, since 
+		as the name indicates, it is Mono-Instantiable.</li>
+</ul>
+<p>We illustrate both these methods, in the code extracts below.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step101"></a>Deleting the Representation Instance</h4>
+<p>Please note that the services exposed by the <em>CATIPLMRepInstance</em> 
+are applicable for all kinds of Rep Instances namely. <strong>Mono-Instantiable</strong> and
+<strong>Multi-Instantiable</strong>. The call to <code>CATIPLMRepInstances::RemoveRepInstance</code> 
+takes a Rep Instance as an input. We delete the newly created Mono Rep Instance 
+under Root, in this step.</p>
+<p>You'll note in an earlier step [#], the call to <code>CATIPLMRepresentation::Add3DShape
+</code>which created a new Mono Rep Instance under Root, actually returned a
+<em>CATIPsiRepresentationReference</em>* on the newly created Mono-Instantiable 
+Rep Ref (<code>piPsiRepRefOnMonoInstRepRef</code>), and not the newly created Mono 
+Rep Instance. Hence, to begin with we retrieve we retrieve the Mono Rep Instance 
+associated with this new Mono Instantiable Rep Ref.</p>
+<p>This step simply involves querying the newly created Mono-Instantiable PLM Rep 
+Ref for its associated list of Rep Instances. Now since it is mono-Instantiable, 
+obviously the list returned would have a single Rep Instance in it, the one that 
+we intend to delete. Then this Rep Instance is deleted.</p>
+<pre class="code">...
+  CATIPLMNavRepReference* piNavRepRefOnMonoInstRepRef = NULL;
+  CATListPtrCATIPLMNavRepInstance ioRepInstancesList;
+
+  hr = <strong>piPsiRepRefOnMonoInstRepRef</strong>-&gt;<strong>QueryInterface</strong>(IID_CATIPLMNavRepReference,
+                                     (void**)&amp;<strong>piNavRepRefOnMonoInstRepRef</strong>);
+  if (SUCCEEDED(hr))
+  {
+    hr = <strong>piNavRepRefOnMonoInstRepRef</strong>-&gt;<strong>ListInstances</strong>(<strong>ioRepInstancesList</strong>);
+    if (FAILED(hr) || (0 == ioRepInstancesList.Size()))
+      return 1;
+  } else
+    return 1;
+
+  <strong>CATIPLMNavRepInstance* piPLMNavRepInstOnMonoRepInst = ioRepInstancesList[1];</strong>
+  CATIPrdRepInstance* piPrdRepInstOnMonoRepInst = NULL;
+  if (NULL != piPLMNavRepInstOnMonoRepInst)
+    hr = <strong>piPLMNavRepInstOnMonoRepInst</strong>-&gt;<strong>QueryInterface</strong>(IID_CATIPrdRepInstance,
+                             (void**)&amp;<strong>piPrdRepInstOnMonoRepInst</strong>);
+
+	hr = <strong>piRepInstsOnRoot-&gt;RemoveRepInstance</strong>(piPrdRepInstOnMonoRepInst);
+...</pre>
+<p>In an earlier step, where we created the Mono-Instantiable Rep Ref, it was retrieved 
+as a <em>CATIPsiRepresentationReference</em>* type (<code>piPsiRepRefOnMonoInstRepRef</code>).</p>
+<p>We next seek a <em>CATIPLMNavRepReference</em>* type on this Rep Ref 
+(<code>piNavRepRefOnMonoInstRepRef</code>), thanks to a <code>QueryInterface</code> 
+on <code>piPsiRepRefOnMonoInstRepRef.</code>.</p>
+<p>A call to <code>CATIPLMNavRepReference::ListInstances</code> on
+<code>piNavRepRefOnMonoInstRepRef</code> returns:</p>
+<ul>
+	<li><code>ioRepInstancesList</code>, a <em>CATListPtrCATIPLMNavRepInstance</em> 
+		type, a list of all associated Rep Instances, each being a <em>CATIPLMNavRepInstance</em>* 
+		type. This list size is One, since the PLM Rep Ref is Mono-Instantiable.</li>
+</ul>
+<p>The only element in this list is retrieved as <code>piPLMNavRepInstOnMonoRepInst</code>, 
+a <em>CATIPLMNavRepInstance</em>* type.</p>
+<p>The last call is to retrieve a <em>CATIPrdRepInstance</em>* type on 
+this Rep Inst, (an input for the Delete operation in the step ahead) thanks to
+<code>QueryInterface</code> call on <code>piPLMNavRepInstOnMonoRepInst.</code></p>
+<p>A call to <code>CATIPLMRepInstances::RemoveRepInstance</code> 
+takes:</p>
+<ul>
+	<li><code>piPrdRepInstOnMonoRepInst</code>, a <em>CATIPrdRepInstance</em>* 
+		type, on the Mono Rep Inst for deletion.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step102"></a>Deleting the Representation Reference</h4>
+<p>This step is again an illustration of an alternative method to delete a Mono 
+Rep Instance under Root, except that it occurs with a call to a <em>CATIPrdAggregatedRepresentations</em>, 
+which exposes services exclusively dedicated for operations on a <strong>Mono-Instantiable</strong> 
+Rep Ref.</p>
+<p>So in an earlier step [#], we retrieved a list of all Mono-Instantiable Rep Refs 
+under the input Root. We'll select one of these for our current delete operation. 
+It is important to note that the Rep Refs in this list are those that already exist 
+under Root, in the input model, and hence not the same as the Rep Inst we deleted 
+in the previous step [#]. In the previous step, we deleted the newly created Rep 
+Inst, which came to existence in an earlier step [#]</p>
+<pre class="code">...
+  <strong>CATIPLMNavRepReference* piNavRepRefOnRepRefForDeletion = listOfMonoInstRepRefs[1];</strong>
+  CATIPsiRepresentationReference* piPsiRepRefOnRepRefForDeletion = NULL;
+  if (NULL != piNavRepRefOnRepRefForDeletion)
+    hr = <strong>piNavRepRefOnRepRefForDeletion-&gt;QueryInterface</strong>(<strong>IID_CATIPsiRepresentationReference</strong>,
+                                             (void**)&amp;<strong>piPsiRepRefOnRepRefForDeletion</strong>);
+  ...
+  hr = <strong>piPLMRepsOnRoot-&gt;RemoveRepresentation</strong>(piPsiRepRefOnRepRefForDeletion);</pre>
+<ul>
+	<li><code>listOfMonoInstRepRefs</code>, a list of <em>CATIPLMNavRepReference</em>* 
+		type, which holds Mono-Instantiable Rep Refs under Root, as already existing 
+		in the input model.</li>
+	<li><code>piNavRepRefOnRepRefForDeletion</code>, a <em>CATIPLMNavRepReference</em>* 
+		type on the Rep Ref for deletion</li>
+	<li><code>piPsiRepRefOnRepRefForDeletion</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type on the Rep Ref for deletion, retrieved through a <code>QueryInterface</code> 
+		call on <code>piNavRepRefOnRepRefForDeletion</code>.</li>
+</ul>
+<p>Finally a call to <code>CATIPLMRepresentation::RemoveRepresentation</code> 
+deletes the PLM Rep Ref which is input namely.</p>
+<ul>
+	<li><code>piPsiRepRefOnRepRefForDeletion</code>, a <em>CATIPsiRepresentationReference</em>* 
+		type on the Rep Ref for deletion.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step11"></a>Displaying the Count of Mono Rep Instances under Root after Rep Inst Deletion</h3>
+<p>We yet again retrieve the count of Mono Rep Insts under Root. The significance 
+of this count is that it is the count of the Mono Rep Insts under Root, after two 
+Rep Insts below Root, were deleted in the previous step [#]. Quite obviously, the 
+count is decremented by two when compared with the previous count [#]</p>
+<pre class="code">...
+	int iFinalCountOfMonoRepInsts = 0;
+<strong>	hr = piPLMRepsOnRoot-&gt;Count(iFinalCountOfMonoRepInsts);</strong>
+	if (<strong>iInitialCountOfMonoRepInstsAfterMonoInst == iFinalCountOfMonoRepInsts+2</strong>)
+		cout &lt;&lt; &quot; The total count of Mono Rep Insts under Root is less by two, as expected&quot; &lt;&lt; endl;
+	else
+		return 1;
+...	</pre>
+<p>A call to <code>CATIPLMRepresentation::Count</code>
+returns <code>iFinalCountOfMonoRepInsts</code>, an int type, representing 
+the count of Instances of Mono-Instantiable Rep Refs, beneath Root. Please note 
+that if the previous step which involves a delete of Mono Rep Instances returned 
+SUCCESS [#], this count decrements by two (<code>iInitialCountOfMonoRepInstsAfterMonoInst 
+= iFinalCountOfMonoRepInsts + 2)</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step12"></a>Displaying the Total Count of PLM Components in Session after Rep Inst Deletion</h3>
+<p>Like for the instance, since we have deleted instances of mono-instantiable PLM 
+Rep ref, their deletion implies the deletion of their respective PLM Rep ref. We 
+can show that be counting the count of element in Session: there is a difference 
+by 2 between after and before the deletion.</p>
+<pre class="code">...
+  CATLISTV(CATIPLMComponent_var) oListOfPLMCompsInSession;
+  <strong>hr = CATPLMComponentInterfacesServices::GetPLMComponentsInSession(oListOfPLMCompsInSession);</strong>
+  ...
+  int iFinalCountOfPLMCompsInSession = oListOfPLMCompsInSession.Size();
+
+  if (<strong>iInitialCountOfPLMCompsInSession == iFinalCountOfPLMCompsInSession +2</strong>)
+    ...
+  else 
+    return 1;
+...</pre>
+<p>The call to <code>CATPLMComponentInterfacesServices::GetPLMComponentsInSession</code>
+[<a href="#References">5</a>] returns the list of PLM Components. Next we retrieve 
+this list size, which represents the total count of the PLM Components (<code>iFinalCountOfPLMCompsInSession</code>).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The CAAPstManageMonoInstPLMRepRef use case ends by simply closing 
+the PLM session. Since all CAA Batch Use Cases necessarily conclude by closing the 
+PLM session, we have a dedicated article on this topic namely. &quot;Connecting 
+to V6 Server&quot; [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The UC fundamentally illustrates the handling Instances of two types of Rep Refs 
+namely. Mono and Multi-Instantiable, beneath a Root Product Reference. A CATIPrdAggregatedRepresentations 
+implementation on a Product Reference exclusively handles the creation/deletion/navigation 
+for a Mono-Instantiable Rep Ref/Inst. While a CATIPLMRepInstances implementation 
+on a Product Reference, in general handles all types of Rep Ref/Insts.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting  to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		Understanding PLM Component Identificator</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAOmbUcListPLMComponent.htm" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbUcListPLMComponent.htm')">
+		Listing PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAPlmPLMCompAttribute/CAAAdpUcPLMComponentAttributesAccess.htm">
+		Accessing PLM Attributes of PLM Component</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm">
+		Understanding PLM Component Life Cycle</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm">
+		Querying PLM Components</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table>
+	<tr>
+		<td>Version: <strong>1</strong> [Jul 2008]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2010]</td>
+		<td>Document updated due to new API for creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

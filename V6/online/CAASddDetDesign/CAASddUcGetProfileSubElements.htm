@@ -1,0 +1,313 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Getting SDD Profile Sub-Elements</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Getting SDD Profile Sub-Elements</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the CATStrUseItf use case. This use case 
+		explains how to get SDD profile sub elements.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#BeforeStarting">Before Starting</a>
+  			<ul>
+  				<li><a href="#FaceIdentification">Face Identification</a></li>
+  				<li><a href="#EdgeIdentification">Edge Identification</a></li>
+  			</ul>
+			</li>
+			<li><a href="#UseCase">The CAASddGetProfileSubElements Use Case</a>
+  			<ul>
+  				<li><a href="#What">What Does CAASddGetProfileSubElements Do</a></li>
+  				<li><a href="#How">How to Launch CAASddGetProfileSubElements</a></li>
+  				<li><a href="#Where">Where to Find the CAASddGetProfileSubElements 
+					Code</a></li>
+  			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#history">History</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>In this use case, you will learn how to extract sub-elements (edges and faces) of a physical profile.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="BeforeStarting"></a>Before Starting</h2>
+<h3><a name="FaceIdentification"></a>Face Identification</h3>
+<p>A physical profile is built using a section that is positioned at the start of its trace and swept along
+the trace. Thus we can map each edge of the section sketch to one face of the physical profile.</p>
+<p><img alt="Section - Profile Mapping" src="images/CAASddSectionProfileMapping.png"/></p>
+<p>As a consequence, each face of the physical profile logically inherits the naming of its corresponding
+edge in the section.</p>
+<p>As a reminder, edges are identified in the sketch of the section by a numerical identifier that appears
+between brackets in the edge name.</p>
+<p><img alt="Section Keys" src="images/CAASddSectionKeys.png"/></p>
+<p>In this image, the highlighted edge is given the identifier "22".</p>
+<p>Mapping between the numerical identifier and its identification string is defined in
+<code>CATStrSectionNamingKeys.CATNls</code>.</p>
+<pre class="code">
+CATStrKeyForSection.Key1  = "Start";
+CATStrKeyForSection.Key2  = "End";
+CATStrKeyForSection.Key3  = "MoldedFlange1";
+CATStrKeyForSection.Key4  = "Flange1Toe+";
+CATStrKeyForSection.Key5  = "Flange1Toe-";
+CATStrKeyForSection.Key6  = "Flange1ToeInner+";
+CATStrKeyForSection.Key7  = "Flange1ToeInner-";
+CATStrKeyForSection.Key8  = "Flange1Inner+";
+CATStrKeyForSection.Key9  = "Flange1Inner-";
+CATStrKeyForSection.Key10 = "WebFlange1Root+";
+CATStrKeyForSection.Key11 = "WebFlange1Root-";
+CATStrKeyForSection.Key12 = "WebInner+";
+CATStrKeyForSection.Key13 = "WebInner-";
+CATStrKeyForSection.Key14 = "WebFlange2Root+";
+CATStrKeyForSection.Key15 = "WebFlange2Root-";
+CATStrKeyForSection.Key16 = "Flange2Inner+";
+CATStrKeyForSection.Key17 = "Flange2Inner-";
+CATStrKeyForSection.Key18 = "Flange2Toe+";
+CATStrKeyForSection.Key19 = "Flange2Toe-";
+CATStrKeyForSection.Key20 = "Flange2ToeInner+";
+CATStrKeyForSection.Key21 = "Flange2ToeInner-";
+CATStrKeyForSection.Key22 = "MoldedFlange2";
+CATStrKeyForSection.Key23 = "Outer";
+CATStrKeyForSection.Key24 = "Inner";
+CATStrKeyForSection.Key25 = "WebInner";
+</pre>
+<p>It shows that the identification string of edge 22 is "MoldedFlange2". It is the identification string that
+is used as input of the methods <code>GetFaces</code> and <code>GetEdges</code> used below.</p>
+<p>Keys 1 and 2 are special keys to identify the start and end faces of the profile. Thus they never appear
+in any section sketch.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="EdgeIdentification"></a>Edge Identification</h3>
+<p>By extension, any edge of a physical profile can be defined by the two faces that shares it. It is the reason
+why <code>GetEdges</code> allows two inputs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAASddGetProfileSubElements Use Case</h2>
+<p>CAASddGetProfileSubElements.m is a use case of the CAAStructureDetDesignDoc.edu framework 
+that illustrates the CATIA SDD Interfaces framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAASddGetProfileSubElements Do</h3>
+<p>The goal of CAASddGetProfileSubElements use case is to show how to get profile sub elements.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAASddGetProfileSubElements</h3>
+<p>Please refer to <a href="CAASddGeneralities.htm">Structure Design Use Cases Overview</a>.</p>
+<p>The executable name is <code>CAASddGetProfileSubElements</code>.</p>
+<pre class="code"><em>mkrun -c &quot; CAASddGetProfileSubElements Repository Server User Password SecutityCtx Environment PLM_ExternalID&quot;</em></pre>
+
+<p>* The input model is retrieved by importing the following files:</p>
+<pre class="code">
+InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\InputData\CAASddCGR.3dxml
+InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\InputData\CAASddSR.3dxml
+InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\InputData\CAASddSteel_A42.3dxml
+InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\InputData\CAASddWT18x179_5.3dxml
+InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\InputData\CAASddGetProfileSubElements.3dxml</pre>
+
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+
+<p>The last 3D XML file contains the root Product&nbsp; Reference with the
+following attributes:</p>
+
+<ul>
+  <li><a><code><strong>PLM_ExternalID</strong></code></a>:
+    <code>SddProduct</code></li>
+  <li><a><code><strong>Version</strong></code></a>:
+    ---</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAASddGetProfileSubElements Code</h3>
+<p>The CAASddGetProfileSubElements sample is made of a single class named CAASddGetProfileSubElements 
+located in the CAASddGetProfileSubElements.m module of the CAAStructureDetDesign.edu 
+framework: <code>InstallRootFolder\CAADoc\CAAStructureDetDesign.edu\CAASddGetProfileSubElements.m\</code>
+where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>This sample deals with the following classes:</p>
+<table class="fill">
+	<tr>
+		<td><em>CATPLMSessionServices</em></td>
+		<td>Class to create and delete a batch session.</td>
+	</tr>
+	<tr>
+		<td><em>PLMPSISessionHelpers</em></td>
+		<td>Class managing session data for the creation of PLM entities.</td>
+	</tr>
+	<tr>
+		<td><em>CATAdpDictionaryServices</em></td>
+		<td>Class to provide all basic functions to browse and navigate on PLM dictionaries.</td>
+	</tr>
+	<tr>
+		<td><em>CATAdpQueryServices</em></td>
+		<td>Class to manage queries on PLM component in database.</td>
+	</tr>
+	<tr>
+		<td><em>CATAdpOpenSaveServices</em></td>
+		<td>Class to manage Open and Save in session.</td>
+	</tr>
+	<tr>
+		<td><em>CATISddUseProductStiffener</em></td>
+		<td>Class to retrieve the Product Stiffener.</td>
+	</tr>
+		<tr>
+		<td><em>CATISddUseStiffener</em></td>
+		<td>Class to retrieve the SddStiffener.</td>
+	</tr>
+	<tr>
+		<td><em>CATISddUseProfileSubElementMngt</em></td>
+		<td>Interface dedicated to get profile sub elements.</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>We will now first comment the environment and it&#8217;s components creation 
+by looking at the code of the Main. There are 11 logical steps in Main:</p>
+<table class="fill">
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td><a href="#Step1">Opening the Model</a></td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td><a href="#Step2">Retrieving the Physical Stiffener Feature</a></td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td><a href="#Step3">Getting the Profile's Sub-Elements</a></td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td><a href="#Step4">Disconnecting and Deleting the Session</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Opening the Model</h3>
+<p>This step is detailed in steps 1 to 7 in the
+<a href="CAASddGeneralities.htm">Structure Design Use Cases Overview</a> page.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the Physical Stiffener Feature</h3>
+<pre class="code">...
+ hr = GetProductStiffener(pIPLMProduct, spSddProductStiffener, pPart);
+ if((NULL_var == spSddProductStiffener) || (NULL == pPart)) 
+ {  
+  retCode  =  13;  
+  goto  EscapeWay;  
+ }
+ hr = spSddProductStiffener-&gt;GetStiffener(spSddStiffener);
+ if(NULL_var == spSddStiffener)  
+ {  
+  retCode  =  14;  
+  goto  EscapeWay;  
+ }
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Getting the Profile's Sub-Elements</h3>
+<pre class="code">...
+ hr = TestCATISddUseProfileSubElementMngt(spSddStiffener);
+ if (FAILED(hr))
+ {
+  retCode = 15;
+  goto EscapeWay;
+ }
+...</pre>
+<pre class="code">...
+ // - Get CATISddUseProfileSubElementMngt interface
+ CATISddUseProfileSubElementMngt_var spSddProfileSubElementMngt;
+ spSddProfileSubElementMngt = ispSddStiffener;
+ if(NULL_var == spSddProfileSubElementMngt)  
+   return hr;
+ cout &lt;&lt; "CATISddUseProfileSubElementMngt retrieved successfully" &lt;&lt;endl;
+
+ // - Get Faces
+ CATListPtrCATCell oListOfFaces;
+ CATUnicodeString iName = "WebInner+";
+ hr = spSddProfileSubElementMngt-&gt;<strong>GetFaces</strong>(oListOfFaces, iName);
+ if(!SUCCEEDED(hr))  
+   return hr;
+ cout &lt;&lt; "Profile faces retrieved successfully" &lt;&lt; endl;
+
+ // - Get Edges 
+CATListPtrCATCell  oListOfEdges;
+ CATUnicodeString iNameFace_1 = "Start";
+ CATUnicodeString iNameFace_2 = "WebInner-";
+ hr = spSddProfileSubElementMngt-&gt;<strong>GetEdges</strong>(oListOfEdges, iNameFace_1, iNameFace_2);
+ if(!SUCCEEDED(hr))  
+   return hr;
+ cout &lt;&lt; "Profile edges retrieved successfully" &lt;&lt; endl;
+...</pre>
+<p><code>GetFaces</code>: This method is used to retrieve any set of faces corresponding to profile face name. If the name is
+blank, all faces are retrieved</p>
+<p><code>GetEdges</code>: This method is used to retrieve the edges corresponding to the intersection of two adjacent faces.
+If both names are blank, all edges are retrieved. If only one name is valuated, then all the boundary edges of the face having
+that name are retrieved.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Disconnecting and Deleting the Session</h3>
+<p>Refer to the last step in the <a href="CAASddGeneralities.htm">Structure Design Use Cases Overview</a> page.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has demonstrated the way to get SDD profile sub elements.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="history"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sep 2013]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

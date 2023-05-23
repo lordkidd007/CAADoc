@@ -1,0 +1,887 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+	<meta http-equiv="Content-Language" content="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+	<meta name="ProgId" content="FrontPage.Editor.Document">
+	<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+	<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+	<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+	<title>Launching xPDM Transfer</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+			<h1><a name="Top"></a>Launching xPDM Transfer</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+			<h2>Abstract</h2>
+			
+			<p>This article gives you information on the basic concepts behind 
+			launching xPDM Transfer in Export or Import mode.</p>
+			
+			<p>xPDM Transfer is based on a <strong>PLM Batch</strong> 
+			which can be configured and launched from CAA C++ code [<a href="#References">1</a>].</p>
+		
+			<p>The purpose of this article is to give more details (with list of specific parameters) and CAA 
+			code flow (with source extracts) for preparing and launching the batch used for xPDM Transfer in Export or Import mode.</p>
+			
+			<ul>
+				<li><a href="#Glossary">Glossary</a></li>
+				<li><a href="#About">About PLM Batch</a></li>
+				<li><a href="#Parameters">xPDM Transfer Batch Parameters</a></li>
+				<li><a href="#CodeFlow">CAA Code Flow for xPDM Transfer in Export and Import mode</a></li>
+				<li><a href="#References">References</a></li>
+			</ul>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<hr/>
+			<span class="run-in">Before you begin:</span> 
+			<ul>
+				<li>Note that according to your installation, some links in the <a href="#References">References</a> section may not work.</li>
+			</ul>
+		</td>
+	</tr>
+	
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Glossary"></a>Glossary</h2>
+<dl>
+
+	<dt>Event Bus</dt>
+	<dd><p>ENOVIA provides an Event Bus which role is to catch 
+	any V6 events (such as promote lifecycle state, new part version) and propagates 
+	them to any system that would have subscribed to these events. 
+	V6 Event Bus publishes a set of services to enable applications to process 
+	theses events and also to propagate their own events. 
+	(for instance validates that attribute values on new part versions comply with enterprise rules).</p></dd>
+
+	<dt>Queue</dt>
+	<dd><p>A queue is a FIFO data structure that contains events. Most of the time a queue 
+	contains the event dedicated to a specific user.</p></dd>
+	
+	<dt>Site</dt>
+	<dd><p>A logical component representing each gateway/adapter/system trio in the DS orchestration.</p></dd>
+	
+    <dt>XPDMXML</dt>
+    <dd><p>The xml file type that describes PLM Meta data.</p></dd>
+    
+    <dt>XPDMXML External identifier</dt>
+   	<dd><p>The PLM objects exchanged in the XPDMXML file have a stable identifier published by the External attribute of the xml 
+   	&lt;UniqueID&gt; element. These XPDMXML External identifiers are managed in PLM Mapping Tables.</p>
+   	</dd>
+   	
+   	<dt>PLM Mapping Context</dt>
+   	<dd><p>This is the string given to the PLM Mapping Table Manager to tag all the PLM Mapping Table elements created by this Manager. 
+   	So, the PLM Mapping Context Name is associated to every components transferred by a PLM Mapping Table Manager.</p>
+   	</dd>
+   	
+   	<dt>PLM Mapping Table</dt>
+   	<dd><p>Associated to a PLM Mapping Context name, a PLM Mapping Table enables, during transaction, to gather data into a defined set, isolate 
+   	or desynchronize them from data related to another PLM Mapping Context name.</p>
+   	<p>For example, if an XPDM element is imported in a given PLM Mapping Context name, its XPDMXML External identifier will be stored 
+   	for this PLM Mapping Context name. An XPDM export of this element with same PLM Mapping Context name will restore the same  
+   	XPDMXML External identifier.</p>
+   	</dd>
+	
+</dl>
+        
+<script type="text/javascript">insertLinkToTopTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="About"></a>About PLM Batch</h2>
+
+<p>A <code><strong>PLM Batch</strong></code> is a Batch built on an architecture, 
+referred to as the Batch Infrastructure [<a href="#References">2</a>]. 
+&quot;<strong>PLM</strong>&quot; prefixed before Batch implies that it is exclusively dedicated for querying 
+PLM Components from and saving them to a PLM database.</p>
+		
+<p>A <code><strong>PLM Batch</strong></code> is typically run with a
+<code><strong>BatchMonitor</strong></code> tool, invoked from a
+<code><strong>session</strong></code> through <code><strong>Tools Utility</strong></code> or from a command 
+line, using <code><strong>CATBatchStarter</strong></code> or <code><strong>CATUtil</strong></code>.
+
+<p>An alternative way to launch the <code><strong>PLM Batch</strong></code> outside 
+the official BatchMonitor environment involves generating an input Parameters XML 
+file and launching the batch.</p>
+
+<p>The steps to launch the batch are as detailed in the Use Case &quot;<strong>Launching a CAA Batch</strong>&quot; 
+[<a href="#References">3</a>] while the rest is specific to the <code><strong>PLM 
+Batch</strong></code> environment. </p>
+
+<p>The article [<a href="#References">1</a>] details the set of CAA Services exposed by the <code><strong>CATPLMBatch</strong></code> 
+class, to set the parameters for the <code><strong>PLM Batch</strong></code> execution 
+by generating an input <strong>Parameters XML</strong> file. These parameters include for example the batch name, 
+a set of PLM Component <code><strong>Identificators</strong></code> and the file which has the Licensing information 
+to authorize our batch run.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Parameters"></a>xPDM Transfer Batch Parameters</h2>
+
+<p>As described in the article [<a href="#References">1</a>], <code><strong>PLM Batch</strong></code> requires a 
+<strong>Parameters XML</strong> file as input for the <code><strong>PLM Batch</strong></code> execution.</p>
+
+<p>Here are the list of specific parameters required for xPDM transfer Batch according different modes:</p>
+
+<h3>Export without event bus connectivity:</h3>
+
+<table class="fill">
+<colgroup span="4" align="left"></colgroup>
+	<tr>
+		<th>Parameter Name</th>
+		<th>What Is It</th>
+		<th>Possible Values</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td><strong>ProcessingType</strong></td>
+		<td>Type of operation to process</td>
+		<td>Must be set to 'Export'</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>EventBusConnectivity</strong></td>
+		<td>Allows deactivating event-bus connectivity during process operations. At the end of the export, batch returns.</td>
+		<td>Must be set to 'FALSE'</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>MetaDataFile</strong></td>
+		<td>Absolute path of the output XPDMXML file</td>
+		<td>User defined</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>SiteID</strong> </td>
+		<td>String identifying <code><strong>PLM Mapping Context</strong></code> for the target site</td>
+		<td>Predefined</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>CompletionType</strong></td>
+		<td>Predefined loading of objects that make up the structure of the selected object to be exported.</td>
+		<td>Predefined</td>
+		<td>Optional. Default value is 'XPDM'. If set, must fit with a <code><strong>Completion</strong></code> 
+		type known by the ENOVIA server.</td>
+	</tr>
+	<tr>
+		<td><strong>FileFormat3D</strong></td>
+		<td>Format to export 3D geometry</td>
+		<td>Installation dependent</td>
+		<td>Example of value is CATIAV5-6R2013.</td>
+	</tr>
+	<tr>
+		<td><strong>GeometryType3D</strong></td>
+		<td>Option for exporting 3D geometry</td>
+		<td>'Exact', 'Tessellated', 'AsSpecification'</td>
+		<td>
+			<p>'Exact' option: transfers the authoring data (exact geometry). While transferring, the extract 
+			geometry is converted to the specific CAD format selected in <strong>FileFormat3D</strong> parameter.</p>
+			<p>'Tessellated' option: transfers the visualization data.</p>
+			<p>'AsSpecifications' option: exports all 3D Shapes with their specifications. Note: This option is only 
+			available if the CATIAV5-6R2013 format is given for the <strong>FileFormat3D</strong> parameter.
+			</p>
+		</td>
+	</tr>
+	<tr>
+		<td><strong>FileFormat2D</strong></td>
+		<td>Format to export the drawings</td>
+		<td>Installation dependent</td>
+		<td>Example of value is CATIAV5-6R2013.</td>
+	</tr>
+	<tr>
+		<td><strong>WithFiles</strong></td>
+		<td>If 'Yes', export product structures with the physical documents (only modified if 'IfModified' is given) such as CATPart, CGR, 
+		and Drawing, attached to representations</td>
+		<td>'Yes', 'No', 'IfModified'</td>
+		<td>Default value is 'Yes'. If 'No', <strong>FileFormat2D</strong> and <strong>FileFormat3D</strong> parameters are not taken into 
+		account. Parameter is not taken into account if <strong>FilterXPDMOwnedObjects</strong> is 'True'.</td>
+	</tr>
+	<tr>
+		<td><strong>FilterXPDMOwnedObjects</strong></td>
+		<td>If 'False', Exports complete information of the X-PDM owned objects present in product structure.</td>
+		<td>'True', 'False'</td>
+		<td>Default value is 'False'. <strong>WithFiles</strong> parameter is not taken into account if 
+		<strong>FilterXPDMOwnedObjects</strong> is 'True'.</td>
+	</tr>
+	<tr>
+		<td><strong>CustomizedParameters</strong></td>
+		<td>Allows user to add custom parameter for post-processing (see [<a href="#References">7</a>])</td>
+		<td>User Defined. Contains a String describing a list of name / value parameters. Each name and value will be separated by 
+		the &quot;=&quot; character. Each couple name/value will be separated by two pipes characters &quot;||&quot;.</td>
+		<td>Optional</td>
+	</tr>
+</table>
+
+<h3>Export with event bus connectivity:</h3>
+
+<table class="fill">
+<colgroup span="4" align="left"></colgroup>
+	<tr>
+		<th>Parameter Name</th>
+		<th>What Is It</th>
+		<th>Possible Values</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td><strong>ProcessingType</strong></td>
+		<td>Type of operation to process</td>
+		<td>Must be set to 'Export'</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>EventBusConnectivity</strong></td>
+		<td>Allows activating event-bus connectivity during process operations. At the end of the export, 
+		the generated data are uploaded to the event-bus file server and an event is sent.</td>
+		<td>Empty or set to 'TRUE'</td>
+		<td>Optional. Default value is 'TRUE'</td>
+	</tr>
+	<tr>
+		<td><strong>QueueName</strong></td>
+		<td>Name of the queue that will be filled with the sent event.</td>
+		<td>User defined</td>
+		<td>Optional. If not set, name of the connected user will be used instead.</td>
+	</tr>
+	<tr>
+		<td><strong>MetaDataFile</strong></td>
+		<td>Absolute path of the output XPDMXML file.</td>
+		<td>User defined</td>
+		<td>Optional. Note: if not set, file is created in a temporary folder before being uploaded to the file server.</td>
+	</tr>
+	<tr>
+		<td><strong>SiteID</strong> </td>
+		<td>String identifying target site declared on the event-bus for sending event. Must also fit with 
+		<code><strong>PLM Mapping Context</strong></code> name.</td>
+		<td>Predefined</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>CompletionType</strong></td>
+		<td>Predefined loading of objects that make up the structure of the selected object to be exported.</td>
+		<td>Predefined</td>
+		<td>Optional. Default value is 'XPDM'. If set, must fit with a <code><strong>Completion</strong></code> 
+		type known by the ENOVIA server.</td>
+	</tr>
+	<tr>
+		<td><strong>FileFormat3D</strong></td>
+		<td>Format to export 3D geometry</td>
+		<td>Installation dependent</td>
+		<td>Example of value is CATIAV5-6R2013.</td>
+	</tr>
+	<tr>
+		<td><strong>GeometryType3D</strong></td>
+		<td>Option for exporting 3D geometry</td>
+		<td>'Exact', 'Tessellated', 'AsSpecification'</td>
+		<td>
+			<p>'Exact' option: transfers the authoring data (exact geometry). While transferring, the extract 
+			geometry is converted to the specific CAD format selected in <strong>FileFormat3D</strong> parameter.</p>
+			<p>'Tessellated' option: transfers the visualization data.</p>
+			<p>'AsSpecifications' option: exports all 3D Shapes with their specifications. Note: This option is only 
+			available if the CATIAV5-6R2013 format is given for the <strong>FileFormat3D</strong> parameter.
+			</p>
+		</td>
+	</tr>
+	<tr>
+		<td><strong>FileFormat2D</strong></td>
+		<td>Format to export the drawings</td>
+		<td>Installation dependent</td>
+		<td>Example of value is CATIAV5-6R2013.</td>
+	</tr>
+	<tr>
+		<td><strong>WithFiles</strong></td>
+		<td>If 'Yes', export product structures with the physical documents (only modified if 'IfModified' is given) such as CATPart, CGR, 
+		and Drawing, attached to representations</td>
+		<td>'Yes', 'No', 'IfModified'</td>
+		<td>Default value is 'Yes'. If 'No', <strong>FileFormat2D</strong> and <strong>FileFormat3D</strong> parameters are not taken into 
+		account. Parameter is not taken into account if <strong>FilterXPDMOwnedObjects</strong> is 'True'.</td>
+	</tr>
+	<tr>
+		<td><strong>FilterXPDMOwnedObjects</strong></td>
+		<td>If 'False', Exports complete information of the X-PDM owned objects present in product structure.</td>
+		<td>'True', 'False'</td>
+		<td>Default value is 'False'. <strong>WithFiles</strong> parameter is not taken into account if 
+		<strong>FilterXPDMOwnedObjects</strong> is 'True'.</td>
+	</tr>
+	<tr>
+		<td><strong>CustomizedParameters</strong></td>
+		<td>Allows user to add custom parameter to the event sent. Used also for post-processing (see [<a href="#References">7</a>])</td>
+		<td>User Defined. Contains a String describing a list of name / value parameters. Each name and value will be separated by 
+		the &quot;=&quot; character. Each couple name/value will be separated by two pipes characters &quot;||&quot;.</td>
+		<td>Optional</td>
+	</tr>
+</table>
+
+<h3>Import:</h3>
+
+<table class="fill">
+<colgroup span="4" align="left"></colgroup>
+	<tr>
+		<th>Parameter Name</th>
+		<th>What Is It</th>
+		<th>Possible Values</th>
+		<th>Comment</th>
+	</tr>
+	<tr>
+		<td><strong>ProcessingType</strong></td>
+		<td>Type of operation to process</td>
+		<td>Must be set to 'Import'</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>MetaDataFile</strong></td>
+		<td>Absolute path of the input XPDMXML</td>
+		<td>User defined</td>
+		<td>Mandatory. The file must exist on disk</td>
+	</tr>
+	<tr>
+		<td><strong>SiteID</strong> </td>
+		<td>String identifying <code><strong>PLM Mapping Context</strong></code> for the source site.</td>
+		<td>Predefined</td>
+		<td>Mandatory</td>
+	</tr>
+	<tr>
+		<td><strong>CustomizedParameters</strong></td>
+		<td>Allows user to add custom parameter for post-processing (see [<a href="#References">7</a>])</td>
+		<td>User Defined. Contains a String describing a list of name / value parameters. Each name and value will be separated by 
+		the &quot;=&quot; character. Each couple name/value will be separated by two pipes characters &quot;||&quot;.</td>
+		<td>Optional</td>
+	</tr>
+</table>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CodeFlow"></a>CAA Code Flow for xPDM Transfer in Export and Import mode</h2>
+
+<p>The articles [<a href="#References">1</a>], [<a href="#References">3</a>] and [<a href="#References">4</a>] describes the process 
+and APIs for preparing and launching a <code><strong>PLM Batch</strong></code>.</p>
+
+<p>Applying this process and using the APIs, following are CAA code extracts for the main steps of xPDM Transfer in Export or Import mode:</p>
+
+<ol>
+	<li><a href="#SetAndCreateSession">Set Connection Parameters and Create a PLM Session</a></li>
+	<li><a href="#InstantiatingCATPLMBatch">Instantiating a CATPLMBatch Class with the PLM Batch name</a></li>
+	<li><a href="#QueryAndSetPLMComponent">Query and Set PLM Component (only for Export mode)</a></li>
+	<li><a href="#SettingApplicativeParameters">Setting Applicative Parameters</a></li>
+	<li><a href="#GeneratingParametersXMLFile">Generating Parameters XML File</a></li>
+	<li><a href="#LaunchAndMonitorBatch">Launch and Monitor PLM Batch</a></li>
+</ol>
+
+<p> These steps are sum up in the figure below: </p>
+<table>
+	<caption><a name="Fig.1"></a>Fig.1: CAA Code Flow for xPDM Transfer</caption>
+	<tr>
+		<td><img alt="CAA Code Flow for xPDM Transfer" src="images/CAAXpgCAACodeFlow.png" width="750" height="550"/></td>
+	</tr>
+</table>
+
+<h3><a name="SetAndCreateSession"></a>Set Connection Parameters and Create a PLM Session</h3>
+
+<p>Before PLM operations can be carried out, every batch is required to create a PLM session and connect to a repository 
+(see use case [<a href="#References">4</a>]).</p>
+
+<p>Before the PLM session could be created, we need to specify the connection parameters 
+with <code><strong>CATPLMSessionServices::SetPLMSessionParameter</strong></code> (see C++ API Reference [<a href="#References">8</a>]).</p>
+
+<p>First the Repository:</p>
+
+<pre class="code">
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>Repository</b>&quot;, repository);
+	...
+</pre>
+
+<p>Then the server:</p>
+
+<pre class="code">
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>Server</b>&quot;, server);
+	...
+</pre>
+
+<p>or </p>
+
+<pre class="code">
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>ServerName</b>&quot;, server_host);
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>ServerPort</b>&quot;, server_port);
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>ServerRootURI</b>&quot;, server_rootURI);
+	...
+</pre>
+
+<p>and finally the User identification (UserID), its Password (UserPasswd) and the security Context:</p>
+
+<pre class="code">
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>UserID</b>&quot;, user);
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>UserPasswd</b>&quot;, password);
+	...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>SecurityCtx</b>&quot;, SecurityCtx);
+	...
+</pre>
+
+<p>Notes: Before calling the initialization, you can call <code><strong>SetPLMSessionParameter</strong></code> in the 
+order you want, and several times.</p>
+
+<p>Now that all connection parameters are set, we can proceed to create the PLM 
+session and connect to the repository.</p>
+
+<p>Creating the PLM session is simply done by calling <b>CATPLMSessionServices::InitPLMSession</b>.</p>
+
+<pre class="code">
+	...
+	hr = CATPLMSessionServices::<b>InitPLMSession</b>();
+	...
+</pre>
+
+<p>As there can only be one session for the runnnig program, the need for a pointer 
+on the session is irrelevant.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="InstantiatingCATPLMBatch"></a>Instantiating a CATPLMBatch Class with the PLM Batch name</h3>
+
+<p>Providing the PLM Batch name (the one used for xPDM Transfer), we basically instantiate a 
+<code><strong>CATPLMBatch</strong></code> class (see C++ API Reference [<a href="#References">9</a>]) as following:</p>
+
+<pre class="code">
+	CATUnicodeString BatchName(&quot;<b>XPGClientBatch</b>&quot;); 
+	...
+	<b>CATPLMBatch</b>* pPLMBatch = new <b>CATPLMBatch</b>(BatchName.ConvertToChar());
+</pre>
+
+<p>The <code><strong>CATPLMBatch</strong></code> is a CAA exposed class providing 
+services to generate an input <strong>Parameters XML</strong> file for <code>
+<strong>PLM Batch</strong></code> processing. This XML has the list of input data 
+for batch processing, written into it in a format conforming to the <strong>Batch 
+Infrastructure</strong> standards [<a href="#References">2</a>].</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="QueryAndSetPLMComponent"></a>Query and Set PLM Component (only for Export mode)</h3>
+
+<p>The <code><strong>CATPLMBatch</strong></code> class provides a service to set 
+a list of PLM Components as an input for processing a <code><strong>PLM Batch</strong></code>.</p>
+
+<p><b>For xPDM Transfer, only one PLM Component must be provided in the list</b>.</p>
+
+<p>The <code><strong>SetSelectedObjects</strong></code> call sets this data to the
+<code><strong>CATPLMBatch</strong></code> instance, as illustrated by the code extract 
+below:</p>
+
+<pre class="code">
+	<b>CATListPtrCATIAdpPLMIdentificator</b> oListofPLMComponents ; 
+	...
+	hr = pPLMBatch-&gt;<b>SetSelectedObjects</b>(oListofPLMComponents);
+</pre>
+
+<p>It takes a list of Identifiers of type <code><strong>CATIAdpPLMIdentificator</strong></code> (see C++
+ API Reference [<a href="#References">10</a>]) as an input, retrieved by querying the database for PLM 
+ Components with the type and the attribute-value sets, specified as input by the user. Steps involved in that 
+query are well-explained in the Use Case &quot;<strong>Querying PLM Components by Attributes</strong>&quot; 
+[<a href="#References">5</a>]. The article &quot;<strong>PLM Component Identifier</strong>&quot; 
+[<a href="#References">6</a>] details the concept of a <code><strong>PLM Identifier</strong></code>.</p>
+
+<p>Here is an example of the APIs to use:</p>
+
+<p>First we retrieve in the <b>Knowledge</b> dictionary of types, the <code><strong>CATIType</strong></code> from 
+the type name specified by the user with <code><strong>CATGlobalFunctions</strong></code> and 
+<code><strong>CATITypeDictionary</strong></code> APIs 
+(see C++ API Reference [<a href="#References">11</a>] and [<a href="#References">12</a>]):</p>
+
+<pre class="code">
+	...
+  	const char* strPLMType = iArgv[1];
+  	CATIType_var spCATType;
+  	...
+  	CATITypeDictionary_var typeDico = <b>CATGlobalFunctions::GetTypeDictionary()</b>;
+  	...
+  	<b>typeDico->FindType</b>(strPLMType,spCATType);
+  	...
+</pre>
+
+<p>Then we create a list of attribute-value pairs (<code><strong>CATAdpAttributeSet</strong></code>) for query.</p>
+
+<p>The <code><strong>CATAdpAttributeSet</strong></code> (see C++ API Reference [<a href="#References">13</a>]) 
+is the other criteria for the query we run on the database. User inputs the attribute-value sets to precisely define
+the criteria for the search in the database:</p>
+
+<pre class="code">
+	...
+	<b>CATAdpAttributeSet</b> lAttributeSet;
+	
+	CATUnicodeString lObjName(*(iArgv+2)),lObjVersion(*(iArgv+3));
+	
+	<b>lAttributeSet.AddAttribute</b>("PLM_ExternalID", lObjName);
+	<b>lAttributeSet.AddAttribute</b>("V_version", lObjVersion);
+	...
+</pre>
+
+<p>We launch a search in the database to retrieve PLM Objects with <code><strong>CATAdpPLMQueryServices</strong></code> 
+(see C++ API Reference [<a href="#References">14</a>]):</p>
+
+<pre class="code">
+	...
+  	<b>CATListPtrCATAdpQueryResult</b> oQueryResults;
+	<b>CATAdpPLMQueryServices::GetElementsFromAttributes</b>(spCATType, iAttributeSet, oQueryResults);
+	...
+</pre>
+
+<p>The return of this query is a list of <code><strong>CATAdpQueryResult</strong></code>
+(see C++ API Reference [<a href="#References">15</a>])
+objects. These objects contain information of the PLM Objects.</p>
+
+<p>Now we can get the Identifier <code><strong>CATIAdpPLMIdentificator</strong></code> object from 
+the <code><b>CATAdpQueryResult</b></code> object:</p>
+
+<pre class="code">
+	...
+	CATAdpQueryResult *result = oQueryResults[1];
+	CATIAdpPLMIdentificator *oPLMId = NULL;
+	
+	if(result)
+		hr = result-&gt;GetIdentifier(oPLMId);
+	...
+</pre>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="SettingApplicativeParameters"></a>Setting Applicative Parameters</h3>
+
+<p>The <code><strong>SetApplicativeParameters</strong></code> 
+method of the <code><strong>CATPLMBatch</strong></code> class allows to set parameters as following:</p>
+
+<pre class="code">
+	...
+	<b>CATUnicodeString</b> oNodeName("ProcessingType"),oNodeValue("Export");
+	<b>CATListOfCATUnicodeString</b> optionValueList ;
+	optionValueList.Append(oNodeValue);
+	hr = <b>pPLMBatch-&gt;SetApplicativeParameters</b>(oNodeName.ConvertToChar(), optionValueList);
+	...
+</pre>
+
+Refer to the section <a href="#Parameters">xPDM Transfer Batch Parameters</a> to know the list of parameters to set for corresponding mode.
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="GeneratingParametersXMLFile"></a>Generating Parameters XML File</h3>
+
+<p>The <code><strong>CATPLMBatch</strong></code>::<code><strong>FillXMLFile</strong></code> 
+call finally generates an input Parameters XML file.</p>
+
+<pre class="code">
+	...
+	CATUnicodeString lLicenseFileName ;
+	lLicenseFileName = iArgv[13] ;
+	CATUnicodeString lParamXmlFileName ;
+	lParamXmlFileName = iArgv[15] ;
+	hr = <b>pPLMBatch-&gt;FillXmlFile</b>(lLicenseFileName,lParamXmlFileName);
+	...
+</pre>
+
+<p>The <code><strong>FillXMLFile</strong></code> call takes the following arguments:</p>
+
+<ul>
+	<li><code><strong>lLicenseFileName</strong></code>, a <code><strong>CATUnicodeString</strong></code> 
+	representing the complete License File name (including absolute path) of the 
+	file which has the licensing information, to authorize the run of the PLM Batch (see [<a href="#References">1</a>]
+	for more details about the content of this file).
+	</li>
+	
+	<li><code><strong>lParamXmlFileName</strong></code>, a <code><strong>CATUnicodeString</strong></code> 
+	which defines the complete filename (including absolute path) of the output
+	<code><strong>Parameters XML</strong></code> file.
+	</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="LaunchAndMonitorBatch"></a>Launch And Monitor Batch</h3>
+
+<p>First, we need to retrieve the CATBatClientMonitorCAA Interface (see C++ API Reference [<a href="#References">16</a>]):</p>
+
+<pre class="code">
+	...
+  	<b>CATBatClientMonitorCAA</b>* cliMonitor = <b>CATBatClientMonitorCAA::GetTheClientMonitorCAA</b>();
+  	...
+ </pre>
+  
+<p>The method <code><strong>GetTheClientMonitorCAA</strong></code> returns a pointer to the interface
+<code><strong>CATBatClientMonitorCAA</strong></code>.</p>
+
+<p>Then we initialize the CATBatClientMonitorCAA:</p>
+
+<pre class="code">
+	...
+  	HRESULT hr = <b>cliMonitor-&gt;InitializeV5Monitoring</b>();
+	...
+</pre>
+
+<p>The method <code><strong>InitializeV5Monitoring</strong></code> initializes the ability of 
+monitoring batches.</p>
+
+<p>We can optionally initialize a specific object of type <code><strong>CATBatchEventWatcher</strong></code> 
+to register callbacks on batch events.</p>
+
+<p>One event that we can wait for is the <code><strong>CATBatchEndNotif</strong></code> (end of the batch execution). When the 
+batch replay is finished, the main can check the result of the batch.</p>
+
+<p>For that, we initialize a <code><strong>CATBatchEventWatcher</strong></code> object with an integer (which will be used as an 
+exit condition for the wait) as following:</p>
+
+<pre class="code">
+	...
+	int cond_for_exit = 0;
+  	<b>CATBatchEventWatcher</b> lEventWatcher(&amp;cond_for_exit);
+	...
+</pre>
+
+<p>In the constructor of the <code><strong>CATBatchEventWatcher</strong></code> class, we declare the call back 
+on event <code><strong>CATBatchEndNotif</strong></code> with the <code><strong>AddCallback</strong></code> method 
+and we define the corresponding action (<code><strong>OnBatchEnd()</strong></code> method):</p>
+
+<pre class="code">
+	...
+	<b>CATBatchEventWatcher::CATBatchEventWatcher</b>(int* cond) : _cond(cond), _rc(99)
+	{
+		CATBaseUnknown* pub = GetBatchPublisherCAA();
+		memset(_uuid, '\0', SIZE_T_ID);
+		
+		::AddCallback(this, pub, <b>CATBatchEndNotifCAA</b>::ClassName(),(CATSubscriberMethod)&amp;CATBatchEventWatcher::<b>OnBatchEnd</b>, NULL);
+	}
+    ...
+</pre>
+
+<p>In the <code><strong>OnBatchEnd()</strong></code> method, we compare the uuid of the batch which has just ended with
+the expected uuid (set once the batch has started; see below). If the check succeeds, we update the integer corresponding 
+to the exit condition:</p> 
+
+<pre class="code">
+	...
+	void  <b>CATBatchEventWatcher::OnBatchEnd</b>(CATCallbackEvent iEvt, void *iAlarme,
+                             CATNotification  *iNotif, CATSubscriberData iDonnees,
+                             CATCallback       iIdCbk)
+	{
+		CATBatchNotif* batch_notif = (CATBatchNotif*)iNotif;
+		
+		if (!batch_notif)	return;
+		
+		char* uuid = batch_notif-&gt;GetBatchUUID();
+    
+   		// Compare uuid with _uuid
+   		if (!strncmp(uuid, _uuid, SIZE_T_ID))
+   		{
+   			<b>*_cond = 1;</b>
+   		}
+	}
+	...
+</pre>
+
+<p>Coming back to the main CAA code, we start the batch:</p>
+
+<pre class="code">
+	...
+  	char oUuid[SIZE_T_ID];
+
+  	hr = <b>cliMonitor-&gt;StartV5Batch</b>(lParamXmlFileName, oUuid); 
+
+  	lEventWatcher.<b>SetUUID</b>(oUuid);
+	...
+</pre>
+
+<p><code><strong>SetUUID</strong></code> is called after we start the batch because we need 
+to know the batch identifier, oUuid, which is an output argument retrieved by a call 
+to the <code><strong>StartV5Batch</strong></code> method. It is a unique identifier that identifies 
+the running batch. It is used as an input argument to get information about the batch execution.</p>
+
+<p>In this example, it is used in the <code><strong>SetUUID</strong></code> method 
+to tell the CATBatchEventWatcher which CATBatchEventNotif it must expect:</p>
+
+<pre class="code">
+	...
+	void <b>CATBatchEventWatcher::SetUUID</b>(char* uuid)
+	{
+	  	if (uuid)
+	  	{
+	  		strncpy(_uuid, uuid, SIZE_T_ID);
+	  	}
+	}
+	...
+</pre>
+
+<p>We then wait for the end of the batch using the exit condition variable passed to the 
+<code><strong>CATBatchEventWatcher</strong></code> object:</p>
+
+<pre class="code">
+	...
+	hr = cliMonitor-&gt;<b>WaitOnMessage</b>(<b>cond_for_exit</b>);
+	...
+</pre>
+
+<p>At the end of the batch replay, a notification is received by the <code><strong>CATBatchEventWatcher</strong></code>
+(the callback was initialized in the previous step). The UUID is used to check which 
+batch is ending (avoids confusion if there are several batches running at the 
+same time).</p>
+
+<p>The exit condition is activated and we can for example check the result of the batch.</p>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	
+	<tbody>
+	<tr>
+		<td valign="top">[1] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADlcPLMBatch/CAADlcTaPLMBatchPrinciples.htm'); return false;">
+			Launching PLM Batch outside the Batch Monitor Environment</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[2] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAABatUseCases/CAABatBatchSample.htm'); return false;">
+			Creating a Batch</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[3] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAABatUseCases/CAABatBatchLauncherSample.htm'); return false;">
+			Launching a CAA Batch</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[4] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcBasicBatch.htm'); return false;">
+			Connecting to V6 Server</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[5] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm'); return false;">
+			Querying PLM Components by Attributes</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[6] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm'); return false;">
+			Understanding PLM Component Identificator</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[7] </td>
+		<td>
+			<a href="CAAESTaPostProcessTransfer.htm">
+			Post-processing xPDM Transfer</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[8] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','CATPLMComponentInterfaces','class','CATPLMSessionServices'); return false;">
+			C++ API Reference for CATPLMSessionServices</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[9] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','PLMBatchDataAccessInterfaces','class','CATPLMBatch'); return false;">
+			C++ API Reference for CATPLMBatch</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[10] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIdentificationAccess','interface','CATIAdpPLMIdentificator'); return false;">
+			C++ API Reference for CATIAdpPLMIdentificator</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[11] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','KnowledgeInterfaces','class','CATGlobalFunctions'); return false;">
+			C++ API Reference for CATGlobalFunctions</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[12] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','KnowledgeInterfaces','interface','CATITypeDictionary'); return false;">
+			C++ API Reference for CATITypeDictionary</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[13] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationAccess','class','CATAdpAttributeSet'); return false;">
+			C++ API Reference for CATAdpAttributeSet</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[14] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationUse','class','CATAdpPLMQueryServices'); return false;">
+			C++ API Reference for CATAdpPLMQueryServices</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[15] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','CATPLMIntegrationAccess','class','CATAdpQueryResult'); return false;">
+			C++ API Reference for CATAdpQueryResult</a>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">[16] </td>
+		<td>
+			<a href="#" onclick="javascript:CAAlink('CPP','BatchInfrastructure','interface','CATBatClientMonitorCAA'); return false;">
+			C++ API Reference for CATBatClientMonitorCAA</a>
+		</td>
+	</tr>
+ 	
+	</tbody>
+
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2013]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,220 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Accessing Tolerances</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>Inspection Process Definition</h1>
+    </td>
+    <td valign="top">
+      <h2>Inspection</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>Accessing Tolerances</h3>
+      <em>Accessing tolerance related information</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article discusses the CAADNBInsTolCmd use case. This use case
+      explains how to access the TTRSList and get the component list.
+      <ul>
+        <li><strong><a href="#Learn">What You Will Learn With This Use Case</a></strong></li>
+        <li><strong><a href="#UseCase">The CAADNBInsTolCmd Use Case</a></strong>
+          <ul>
+            <li><a href="#What">What Does CAADNBInsTolCmd Do</a>
+            <li><a href="#How">How to Launch CAADNBInsTolCmd</a></li>
+            <li><a href="#Where">Where to Find the CAADNBInsTolCmd Code</a>
+          </ul>
+        <li><strong><a href="#Step">Step-by-Step</a></strong></li>
+        <li><strong><a href="#InShort">In Short</a></strong></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="Learn"></a>What You Will Learn With This Use Case</h3>
+<p>This use case is intended to help you get the details regarding accessing the
+tolerance related parameters.You can also know more about tolerance information
+like extracting tolerance values in the Tolerance modeler<font face="Arial,Helvetica">
+</font>where further details would be given.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="UseCase"></a>The CAADNBInsTolerance Use Case</h3>
+<p>CAADNBInsTolCmd is a use case of the CAADNBInsTolerance.m module in the
+CAADNBInspectInterfaces.edu framework that illustrates CAADNBInspectInterfaces
+framework capabilities.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="What"></a>What Does CAADNBInsTolCmd Do</h4>
+<p>The use case allows the user to get the TTRSList and to get the component
+list .</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="How"></a>How to Launch CAADNBInsTolCmd</h4>
+<p>To launch CAADNBInsTolCmd, you will need to set up the build time
+environment, then compile CAADNBInsTolCmd along with its prerequisites, set up
+the run time environment [<a href="#References">1</a>], open the Process
+document, load the Geometry, define a feature associated to the geometry and
+then execute the command.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Where"></a>Where to Find the CAADNBInsTolCmd Code</h4>
+<p>The CAADNBInsTolCmd use case is located in the CAADNBInsTolerance.m module of
+the CAADNBInspectInterfaces.edu framework:</p>
+<table>
+  <tr>
+    <td>Windows</td>
+    <td><code>InstallRootDirectory\CAADNBInspectInterfaces.edu\CAADNBInsTolerance.m\</code></td>
+  </tr>
+  <tr>
+    <td>Unix</td>
+    <td><code>InstallRootDirectory/CAADNBInspectInterfaces.edu/CAADNBInsTolerance.m/</code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code> is the directory where the CAA CD-ROM
+is installed.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h3><a name="Step"></a>Step-by-Step</h3>
+<p>Following are the&nbsp; logical steps in CAADNBInsTolCmd:
+<ol>
+  <li><a href="#Prolog">Prolog</a>
+  <li><a href="#PickFeature">PickFeature</a>
+  <li><a href="#Epilog">Epilog</a></li>
+</ol>
+<p>We will now comment each of these sections by looking at the code.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Prolog"></a>Prolog</h4>
+<p>The use case is executed after a Geometry is loaded and a feature is defined
+which is associated to the geometry. It allows the user to get the TTRSList and
+the component list .</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="PickFeature"></a>PickFeature</h4>
+<table class="code">
+  <tr>
+    <td>
+      <pre>//=============================================================================
+// PickFeature : When the Feature is picked this method is called and
+//               this method gets TTRSList , then the ComponentList
+//=============================================================================
+CATBoolean
+CAADNBInsTolCmd::PickFeature( void *data )
+{
+  HRESULT rc=E_FAIL;
+  CATBaseUnknown *cbu=NULL;
+  cbu = _ProcessAgent-&gt;GetElementValue();
+  if( NULL == cbu )
+    return(FALSE);  
+  
+  // Get a Handler to the DNBIInsFtrPosition Interface
+  DNBIInsFtrPosition *fp=NULL;
+  rc=cbu-&gt;QueryInterface(IID_DNBIInsFtrPosition,(void **)&amp;fp);
+  cbu-&gt;Release();
+  cbu=NULL;
+  if(FAILED(rc)||NULL==fp)
+    return(FALSE);
+  
+  // Get the List of TTRS
+  CATListValCATBaseUnknown_var ListOfTTRS;
+  rc = fp-&gt;GetTTRSList(ListOfTTRS);
+  
+  // realease the Handler
+  fp-&gt;Release();
+  fp=NULL;
+  
+  if( ListOfTTRS.Size() == 1 )
+  {
+    // Get the First Element from the TTRS list
+    CATITTRS_var pTTRS( ListOfTTRS[1] );
+    if( NULL_var == pTTRS )
+      return(FALSE);
+    
+    // Get the component list
+    CATLISTV(CATBaseUnknown_var) ComponentList;
+    rc = pTTRS -&gt; GetComponents (ComponentList);
+  }
+  
+  return TRUE;
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>When the feature is picked this method retrieves the TTRS list and the
+component list.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+<h4><a name="Epilog"></a>Epilog</h4>
+<p>The use case finishes retrieving the TTRS List and the Component list.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="InShort"></a>In Short</h3>
+<p>This use case has demonstrated the way to get the TTRS list and the component
+list for a feature related to a geometry.</p>
+<p>The use case :</p>
+<ul>
+  <li>Allows a user to select the feature</li>
+  <li>Retrieves the TTRS list and the component list.</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td>[1]</td>
+    <td><a href="../CAADocUseCases/CAADocRunSample.htm">Building
+      and Launching a CAA V5 Use Case</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table border="0" width="100%">
+  <tr>
+    <td colspan="2"><a name="History"><strong><em>History</em></strong></a></td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Mar 2002]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+    <td valign="top" colspan="2">
+      <p align="right">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>The Prerequisites on Windows</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>The Prerequisites on Windows</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>An inherent mechanism on Windows imposes that the shared libraries (dll) 
+		declare explicitly what they import and what they export.</p>
+		<ul>
+			<li><a href="#100000">How to Define Prerequisites between Frameworks</a></li>
+			<li><a href="#200000">Generic Solution through mkmk</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>How to Define Prerequisites between Frameworks</h2>
+<p>When a framework exports services, it must explicitly declare them. If you omit 
+that, the other frameworks cannot import the exported services.</p>
+<p>The following figure explains what is mandatory to declare for using services 
+from a DLL in a prerequisite framework.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Prerequisites" src="images/CAABtlFileTree05.png" width="204" height="326"/>
+		</td>
+		<td>Framework1 exports services through Visu.h header file. myObject.cpp 
+		of Framework2 needs services from Framework1.
+		<ol>
+			<li>Visu.h must be in the PublicInterfaces folder of Framework1 to be 
+			exported.</li>
+			<li>myObject.h include Visu.h to use its services in myObject.cpp:<pre>#include Visu.h</pre>
+			</li>
+			<li>Framework2 declares Framework1 as a prerequisite in its IdentityCard.h 
+			file to enable myObject.h to access Visu.h at build time:
+			<pre>&lt;prerequisite name="Framework1" access ="Public" /&gt;</pre>
+			</li>
+		</ol>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Generic Solution through mkmk</h2>
+<p>Given this architecture, a generic mechanism has been set to discharge the developer 
+to deal with these export-import issues.</p>
+<p>Here is the declarative section that should be added to every header file which 
+belongs to a PublicInterfaces folder.</p>
+<pre class="code">#ifdef _WINDOWS_SOURCE
+#ifdef __mod1
+#define ExportedBymod1 __declspec(dllexport)
+#else
+#define ExportedBymod1 __declspec(dllimport)
+#endif
+#else
+#define ExportedBymod1
+#endif
+
+#ifndef visu_H
+#define visu_H
+
+class ExportedBymod1 visu
+[ &#8230; declarations of all services of the class &#8230;]
+
+#endif visu_H</pre>
+<p>The syntax is important. Note:</p>
+<ul>
+	<li>The double underscore in <code>__declspec</code>.</li>
+	<li>The only one variable value is the name of the module <code>ExportedBymod1</code>, 
+	the other instructions must be kept.</li>
+</ul>
+<p>At compile time, when it is operated on Windows, mkmk defines /D option _WINDOWS_SOURCE. 
+It does not do so on Unix.</p>
+<p>Furthermore, when mkmk processes the module owner of the header, it defines variable 
+__&lt;modulename&gt;.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

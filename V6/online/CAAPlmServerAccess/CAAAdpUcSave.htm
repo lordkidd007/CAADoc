@@ -1,0 +1,630 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Saving PLM Components</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+		
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Saving PLM Components</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>This article shows the advanced features of the save mechanism.</p>
+      <ul>
+        <li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+        <li><a href="#UseCase">The CAAAdpSave Use Case</a>
+          <ul>
+            <li><a href="#What">What Does CAAAdpSave Do</a></li>
+            <li><a href="#How">How to Launch CAAAdpSave</a></li>
+            <li><a href="#Where">Where to Find the CAAAdpSave Code</a></li>
+          </ul>
+        <li><a href="#Step">Step-by-Step</a></li>
+        <li><a href="#InShort">In Short</a></li>
+        <li><a href="#References">References</a></li>
+      </ul>
+      </td>
+</table>
+<!---------------------------------comment------------------------------------->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>By default, the <code>Save</code> method of the <em>CATAdpSaver</em> class saves all PLM components that 
+are modified during the session. In this article we will show the advanced 
+behaviour when this method is called with a list of selected components as 
+input:</p>
+<ul>
+	<li>saving a given a component will propagate the save to other components 
+	in order to ensure data integrity</li>
+	<li>the save can be carried out on any subset of modified components</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="UseCase"></a>The CAAAdpSave Use Case</h2>
+<p>CAAAdpSave is a use case of the CAAPLMClientAdapter.edu framework that
+illustrates the CATPLMComponentInterfaces, PLMSessionInterfaces and CATPLMIntegrationUse framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAAAdpSave Do</h3>
+<p>Let's consider this PLM Reference structure:</p>
+<table>
+	<caption><a name="Fig1">Fig.1</a> - An Example of a PLM Reference Structure</caption>
+	<tr>
+		<td>&nbsp;</td>
+		<td>
+<img border="0" src="images/Save02.jpg" width="557" height="184"></td>
+	</tr>
+</table>
+<p align="center">
+&nbsp;</p>
+<p align="left">The goal of CAAAdpSave is to modify all the 
+components in such a structure, by changing an attribute value. While doing so, it also collects a list of components 
+that are <i>selected for save</i>, i.e. input to <code>Save</code> method of the
+<em>CATAdpSaver</em> class.<code> </code>This is to show that 
+the list of <i>selected</i> components will propagate the save to a larger 
+subset of components (and possibly not the ones you would expect), thus 
+guaranteeing data integrity.</p>
+<p align="left">The components to be <i>saved </i>is selected using two input 
+criteria:</p>
+<ul>
+	<li>
+	<p align="left">the structure depth, starting from 0</li>
+	<li>
+	<p align="left">the component type (Reference, Instance)</li>
+</ul>
+<p align="left">Examples of criteria and resulting selection:</p>
+<table border="1" id="table13">
+	<tr>
+		<td><b>Depth</b></td>
+		<td><b>Instance/Reference</b></td>
+		<td><b>Selected Components</b></td>
+	</tr>
+	<tr>
+		<td>0</td>
+		<td>Reference</td>
+		<td>Reference 1</td>
+	</tr>
+	<tr>
+		<td>0</td>
+		<td>Instance</td>
+		<td>none</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td>Reference</td>
+		<td>Reference 2, Reference 3</td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td>Instance</td>
+		<td>Instance 4.1</td>
+	</tr>
+</table>
+<p align="left">As a side note, a PLM Reference structure is not displayed 
+exactly as in <a href="#Fig1">Fig.1</a>. You should be more familiar with&nbsp; structures 
+as displayed in <a href="#Fig2">Fig.2</a>, where only the occurrences are 
+displayed.</p>
+<table>
+	<caption><a name="Fig2">Fig.2</a> - Example of PLM Reference Structure as displayed</caption>
+	<tr>
+		<td>
+<img border="0" src="images/Save01.jpg" width="414" height="210"></td>
+	</tr>
+</table>
+
+<p>Here is an example of output:</p>
+<table class="code" id="table9">
+  <caption><a name="Fig3">Fig.3</a> - Example of output corresponding to 
+the structure of <a href="#Fig2">Fig.2</a></caption>
+  <tr>
+    <td>
+      <pre>CAAAdpSave started
+  Opened CAAAdpSaveRoot1---
+
+  The component structure:
+  &lt;CAAAdpSaveRoot1&gt;
+    &lt;CAAAdpSaveProduct1.1&gt;
+      &lt;CAAAdpSaveProduct1&gt; <b>selected for save</b>
+        &lt;CAAAdpSaveProduct2.1&gt;
+          &lt;CAAAdpSaveProduct2&gt;
+        &lt;CAAAdpSaveProduct2.2&gt;
+          &lt;CAAAdpSaveProduct2&gt;
+    &lt;CAAAdpSaveProduct1.2&gt;
+      &lt;CAAAdpSaveProduct1&gt; <b>selected for save</b>
+        &lt;CAAAdpSaveProduct2.1&gt;
+          &lt;CAAAdpSaveProduct2&gt;
+        &lt;CAAAdpSaveProduct2.2&gt;
+          &lt;CAAAdpSaveProduct2&gt;
+
+  Saving 2 components
+CAAAdpSave ended</pre>
+    </td>
+  </tr>
+</table>
+<p>You can see that the whole PLM structure is printed out with each component 
+PLM_ExternalID attribute enclosed in angular brackets. (&lt;CAAAdpSaveRoot1&gt;). 
+The indentation reflects the depth level of the structure as depicted by
+<a href="#Fig1">Fig.1</a>. Components that get selected for Save are indicated by the <b>selected for 
+saved</b> keyword. The result is shown in <a href="#Fig4">Fig.4</a>:</p>
+<table class="code" id="table23">
+  <caption><a name="Fig4">Fig.4</a> - Components saved as the result of
+<a href="#Fig3">Fig.3</a></caption>
+  <tr>
+    <td>
+      <pre>  &lt;CAAAdpSaveRoot1&gt;
+    &lt;CAAAdpSaveProduct1.1&gt;
+      <b>&lt;CAAAdpSaveProduct1&gt;</b>
+        <b>&lt;CAAAdpSaveProduct2.1&gt;</b>
+          <b>&lt;CAAAdpSaveProduct2&gt;
+        &lt;CAAAdpSaveProduct2.2&gt;
+          &lt;CAAAdpSaveProduct2&gt;</b>
+    &lt;CAAAdpSaveProduct3.1&gt;
+      <b>&lt;CAAAdpSaveProduct3&gt;
+        &lt;CAAAdpSaveProduct4.1&gt;
+          &lt;CAAAdpSaveProduct4&gt;
+        &lt;CAAAdpSaveProduct4.2&gt;
+          &lt;CAAAdpSaveProduct4&gt;</b></pre>
+    </td>
+  </tr>
+</table>
+<p align="left">Here's another example of input that will result in having the 
+same components saved as <a href="#Fig4">Fig.4</a>:</p>
+<table class="code" id="table24">
+  <caption>Fig.5 - Example of selection that will 
+give&nbsp; <a href="#Fig3">Fig.4</a> as result</caption>
+  <tr>
+    <td>
+      <pre>  &lt;CAAAdpSaveRoot1&gt;
+    &lt;CAAAdpSaveProduct1.1&gt;
+      &lt;CAAAdpSaveProduct1&gt;
+        &lt;CAAAdpSaveProduct2.1&gt; <b>selected for save</b>
+          &lt;CAAAdpSaveProduct2&gt;
+        &lt;CAAAdpSaveProduct2.2&gt; <b>selected for save</b>
+          &lt;CAAAdpSaveProduct2&gt;
+    &lt;CAAAdpSaveProduct3.1&gt;
+      &lt;CAAAdpSaveProduct3&gt;
+        &lt;CAAAdpSaveProduct4.2&gt; <b>selected for save</b>
+          &lt;CAAAdpSaveProduct4&gt;
+        &lt;CAAAdpSaveProduct4.1&gt; <b>selected for save</b>
+          &lt;CAAAdpSaveProduct4&gt;</pre>
+    </td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h3><a name="How"></a>How to Launch CAAAdpSave</h3>
+<p>To launch CAAAdpSave , you will need to set up the build time environment,
+then compile CAAAdpSave along with its prerequisites, set up the run time
+environment and then execute the use case [<a href="#References">1</a>].</p>
+<table class="code" id="table3">
+  <tr>
+    <td style="border-style: dashed; border-width: 1px">
+      <pre>mkrun -c<i> &quot;</i>CAAAdpSave<i> Repository</i> <i>Server User</i> <i>Password</i> <i>SecurityCtx PLMType PLM_ExternalID V_version 0..n </i>Reference|Instance <i>V_description</i>&quot;</pre>
+    </td>
+  </tr>
+</table>
+<p>CAAAdpSave requires eleven input arguments. The first five are related to the 
+connection and described in the Basic Batch use case [<a href="#References">3</a>]. The 
+other five correspond to the inputs of this use case: the PLM Reference that 
+must be modified, and which components must be selected and input to <code>Save</code> method of the <em>CATAdpSaver</em> 
+class.<br>
+&nbsp;</p>
+
+
+<table class="border1"  id="table13" >
+  <tr>
+    <th><b>Repository</b></th>
+     <td><script type="text/javascript">insertRepository();</script></td>
+  </tr>
+  <tr>
+     <th><b>Server</b></th>
+    <td>The name and port of the server as <i>name</i>:<i>port_number</i></td>
+  </tr>
+  <tr>
+    <th ><b>User</b></th>
+    <td>The user name</td>
+  </tr>
+  <tr>
+    <th ><b>Password</b></th>
+    <td >The user password to authenticate the user</td>
+  </tr>
+  <tr>
+
+    <th><b>SecurityCtx</b></th>
+    <td>A string representing the security context (Role.Organization.Project).
+      Choose Role as Designer </td>
+  </tr>
+  <tr>
+    <th>PLMType</th>
+    <td>A String representing PLMType</td>
+  </tr>
+	<tr>
+  <th> <b>PLM_ExternalID</b> </th>
+			<td>The <code><b>PLM_ExternalID</b></code> of a Root PLM Product 
+			Reference </td>
+	</tr>
+	<tr>
+		<th> <b>V_version</b></th>
+		<td>The <code><b>V_version</b></code> of a Root PLM Product Reference</td>
+    </tr>
+	<tr>
+   		 <th>Save Depth</th>
+    	<td>0 to n</td>
+  	</tr>
+	<tr>
+    	<th>Save Type</th>
+    	<td>Instance or Reference</td>
+  	</tr>
+	<tr>
+    	<th>V_description </th>
+    	<td>New value for V_description attribute</td>
+  	</tr>
+
+</table>
+
+<p>You can directly execute this use case if you have a PLM Reference that 
+can be <b>modified</b>, i.e. its PLM environment and its two attributes: 
+<code>PLM_ExternalID</code> and <code>V_version</code>. If not, you can import a 3D XML file supplied in the 
+CAAPLMClientAdapter.edu framework:<br>
+</p>
+<table id="table10">
+  <tr>
+    <td><code>InstallRootDirectory\CAAPLMClientAdapter.edu\InputData\<b>CAAAdpSave.3dxml</b></code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">1</a>] is the directory where the CAA CD-ROM
+is installed.</p>
+<p>Please refer to document [<a href="#References">1</a>] for how to import such a 3D
+XML file in your PLM 
+repository. </p>
+<p>After a 3D XML file is imported, you can run the use case with arguments 8 to 
+9 containing at least : </p>
+<ul>
+	<li><b>CAAAdpSaveRoot1 ---</b></li>
+	<li><b>CAAAdpSaveRoot2 ---</b></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where"></a>Where to Find the CAAAdpSave Code</h3>
+<p>The CAAAdpSave use case is made of a single file located in
+the CAAAdpSave.m module of the CAAPLMClientAdapter.edu framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAAPLMClientAdapter.edu\CAAAdpSave.m\</code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">1</a>] is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are seven logical parts in CAAAdpSave. The prolog and epilog parts, 
+which correspond to 
+Creating/Closing a PLM session are already described in another document [<a href="#References">3</a>]. We 
+will only focus on the steps that are specific to this use case.</p>
+<ol>
+  <li><a href="#Parse">Parsing the input arguments</a></li>
+	<li><a href="#Open">Opening the PLM Reference</a></li>
+	<li><a href="#Prepare">Preparing the value to be set</a></li>
+	<li><a href="#Browse">Browsing and modifying the structure</a></li>
+	<li><a href="#Save">Saving the collected components</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Parse"></a>Parsing the input arguments</h3>
+<p>Convert argument 9 to a depth number (<code><b>saveDepth</b></code>), argument 
+10 to the corresponding PLMCoreType (<code><b>saveType</b></code>) and keeping 
+argument 11 for the new V_description attribute value.</p>
+      <pre class="code">...
+   int <b>saveDepth</b>;
+   rc = CATUnicodeString(iargv[9]).ConvertToNum(&amp;<b>saveDepth</b>);
+...
+   CATPLMCoreType <b>saveType</b>;
+   CATUnicodeString instOrRef(iargv[10]);
+   if (instOrRef == &quot;Instance&quot;)
+<b>      saveType</b> = PLMCoreInstance;
+   else if (instOrRef == &quot;Reference&quot;)
+<b>      saveType</b> = PLMCoreReference;
+...
+   const char *<b>newAttrValue</b> = iargv[11];
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Open"></a>Opening the PLM Reference</h3>
+<p>The identificator for PLM Reference is retrieved by using the global function <code><b>
+CAARetrieveIDofUniquePLMObject</b></code> defined in the CAAAdpUtilities.m module of the 
+CAAPLMClientAdapter.edu framework.Please refer to <a href="#References">[4]</a> for more details on this operation By using this identificator this reference is 
+opened using CATAdpOpener capabilities. This function returns an interface pointer to the requested Reference 
+( a Product Reference), which 
+is <b><i>CATIPLMNavEntity</i></b> in this case.</p>
+<table class="code">
+  <tr>
+    <td style="width: 623px">
+      <pre>...
+  
+   const char * iStrPLMTypeInput = iargv[6];
+   CATUnicodeString PLM_ExternalIDValue = iargv[7];
+   CATUnicodeString V_versionValue = iargv[8];
+  CATListOfCATString iListAttributeName ;
+   CATListOfCATUnicodeString iListAttributeValue ;
+   iListAttributeName.Append(&quot;PLM_ExternalID&quot;);
+   iListAttributeName.Append(CATCkePLMNavPublicServices::GetRevisionAttributeName(NULL_var).CastToCharPtr());
+   iListAttributeValue.Append(PLM_ExternalIDValue);
+   iListAttributeValue.Append(V_versionValue);
+   CATIAdpPLMIdentificator* opiIDComp = NULL;     
+		
+    rc =  CAARetrieveIDofUniquePLMObject (iListAttributeName,iListAttributeValue,														
+				     iStrPLMType,opiIDComp); 
+		
+    ... 
+    CATOmbLifeCycleRootsBag Bag;
+    CATAdpOpenParameters params(CATAdpExpandParameters::Navigation);
+    CATAdpOpener opener(Bag,params);
+	
+    rc= opener.CompleteAndOpen(opiIDComp,IID_CATIPLMNavEntity, (void**) &amp;piNavEntOnRoot);
+			
+...</pre>
+    </td>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prepare"></a>Preparing the New Attribute Value</h3>
+<p>The new V_description attribute value is setup as a pointer to a <i>CATIValue</i> 
+interface:</p>
+      <pre class="code">...
+<strong>   CATICkeParmFactory</strong>_var parmFactory = CATCkeGlobalFunctions::GetVolatileFactory();
+  <strong> CATICkeParm</strong>_var parmValue = parmFactory-&gt;<strong>CreateString</strong>("V_description",  newAttrValue);
+							    
+   <strong>CATIValue</strong> *piValueOnNewAttrValue = NULL;
+   rc = parmValue-&gt;QueryInterface(IID_CATIValue,   (void **) &amp;piValueOnNewAttrValue);				       
+...</pre>
+   <script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Browse"></a>Browsing and Modifying the Structure</h3>
+<p>The whole structure is browsed using a recursive depth-first algorithm, 
+implemented by three functions:</p>
+<ul>
+	<li><code><a href="#BrowseAndModify">BrowseAndModify</a></code></li>
+	<li><code><a href="#BrowseAndModifyReference">BrowseAndModifyReference</a></code></li>
+	<li><code><a href="#BrowseAndModifyInstance">BrowseAndModifyInstance</a></code></li>
+</ul>
+<p>All three functions share the same argument list:</p>
+<ol>
+	<li>[input] the component to be traversed (as a pointer to its <i>
+	CATIPLMNavEntity</i> interface)</li>
+	<li>[input] the component's depth level in the structure</li>
+	<li>[input] the new attribute value to be set (as a pointer to its <i>
+	CATIValue</i> interface)</li>
+	<li>[input] the PLMCoreType that's must be selected for save</li>
+	<li>[input] the depth level that's must be selected for save</li>
+	<li>[input/output] the list of components that are selected for save</li>
+</ol>
+<p>The modification of the component is done in a another function:</p>
+<ul>
+	<li><a href="#ProcessComponent">ProcessComponent</a></li>
+</ul>
+<h5><a name="BrowseAndModify"></a>BrowseAndModify</h5>
+<p><code>BrowseAndModify</code> first retrieves the type of the component it 
+gets as input:</p>
+      <pre class="code">...
+   CATPLMCoreType entityType;
+   HRESULT rc = ipiNavEntity-&gt;<b>GetPLMCoreType</b>(entityType);
+...</pre>
+   <p>It updates the list of selected components if the save criterias match:</p>
+      <pre class="code">...
+   int saveFlag = <b>(idepth == isaveDepth) &amp;&amp; (isaveType == entityType)</b>;
+   if (saveFlag) {
+	CATBaseUnknown *piCBU = NULL;
+	HRESULT rc = ipiNavEntity-&gt;QueryInterface(IID_CATBaseUnknown, (void**) &amp;piCBU);
+							 
+...
+	iosaveList.Append(piCBU);
+   }
+...</pre>
+   
+<p>The component is then modified and printed:</p>
+      <pre class="code">...
+  <b> ProcessComponent</b>(ipiNavEntity, piValueOnNewAttrValue, idepth, saveFlag);
+...</pre>
+   
+<p>The final step is to call <code><b><a href="#BrowseAndModifyReference">
+BrowseAndModifyReference</a></b></code> or <code><b>
+<a href="#BrowseAndModifyInstance">BrowseAndModifyInstance</a></b></code> 
+depending on whether the current component is a Reference or and Instance:</p>
+      <pre class="code" >...
+   if (<b>PLMCoreReference</b> == entityType)
+	return <b>BrowseAndModifyReference</b>(ipiNavEntity, idepth, 
+					piValueOnNewAttrValue,
+					isaveType, isaveDepth, 
+					iosaveList);
+   else if (<b>PLMCoreInstance</b> == entityType)
+	return <b>BrowseAndModifyInstance</b>(ipiNavEntity, idepth, 
+					piValueOnNewAttrValue, 
+				         isaveType, isaveDepth, 
+					iosaveList);
+...</pre>
+   
+<h5><a name="BrowseAndModifyReference"></a>BrowseAndModifyReference</h5>
+<p><code>BrowseAndModifyReference</code> takes as input a Reference, it just 
+have to fetch all the instances aggregated by the Reference and then browse each 
+one. </p>
+<p>It must first query the <i>CATIPLMNavReference</i> interface for the <code>
+ListChildren</code> method:</p>
+      <pre class="code">...
+<b>   CATIPLMNavReference</b> *piNavRef = NULL;
+   HRESULT rc = ipiNavEntity-&gt;QueryInterface(<b>IID_CATIPLMNavReference</b>,(void **) &amp;piNavRef);
+						  
+...
+   CATListPtrCATIPLMNavEntity childrenList;
+   rc = piNavRef-&gt;<b>ListChildren</b>(childrenList, 0, NULL);
+...</pre>
+  <p>Each child is then browsed by calling back <code><b>
+<a href="#BrowseAndModify">BrowseAndModify</a></b></code>:</p>
+      <pre class="code">...
+   for (int j = 1; j &lt;= childrenList.Size(); j++) {
+	<b>BrowseAndModify</b>(childrenList[j], idepth + 1,
+			piValueOnNewAttrValue, isaveType,
+			isaveDepth, iosaveList);
+...</pre>
+  
+<h5><a name="BrowseAndModifyInstance"></a>BrowseAndModifyInstance</h5>
+<p>By contrast, the input component to <code>BrowseAndModifyInstance</code> is 
+an Instance, which does not aggregate anything. <code>BrowseAndModifyInstance</code> 
+must therefore browse the Reference of the input component.</p>
+<p>This is done by first querying the <i>CATIPLMNavInstance</i> interface for 
+the&nbsp; <code>GetReferenceInstanceOf</code> method:</p>
+      <pre class="code" >...
+<b>   CATIPLMNavInstance</b> *piNavInst = NULL;
+   HRESULT rc = ipiNavEntity-&gt;QueryInterface(<b>IID_CATIPLMNavInstance</b>,(void **) &amp;piNavInst);
+						  
+...
+   CATIPLMNavReference *piNavRef = NULL;
+   rc = piNavInst-&gt;<b>GetReferenceInstanceOf</b>(piNavRef);
+...</pre>
+  
+<p>And then querying the <i>CATIPLMNavEntity</i><b>
+</b>interface on the Reference, before calling back <code><b>
+<a href="#BrowseAndModify">BrowseAndModify</a></b></code> to pursue the 
+browsing:</p>
+      <pre class="code" >...
+   CATIPLMNavEntity *piNavEnt = NULL;
+   rc = piNavRef-&gt;QueryInterface(<b>IID_CATIPLMNavEntity</b>,
+				      (void **) &amp;piNavEnt);
+...
+  <b> BrowseAndModify</b>(piNavEnt, idepth + 1, piValueOnNewAttrValue,
+			isaveType, isaveDepth, iosaveList);
+...</pre>
+   
+<h5><a name="ProcessComponent"></a>ProcessComponent</h5>
+<p>This function takes all input arguments:</p>
+<ol>
+	<li>a component, through its <i>CATIPLMNavEntity</i> interface</li>
+	<li>the new attribute value to be set, through its <i>CATIValue</i> 
+	interface, <code>ipiValueOnNewAttrValue</code></li>
+	<li>the current structure depth level (for printing only)</li>
+	<li>the flag indicating whether this component is selected for save (for 
+	printing only)</li>
+</ol>
+<p>The modification of a component's <b>V_description</b> attribute is done with 
+the <code>SetValue</code> method of <i>CATCkeObjectAttrWriteServices</i> class ( 
+KnowledgeInterfaces fw)</p>
+      <pre class="code">...
+  <b> CATICkeObject</b> *piCkeObjectOnNavEnt= NULL;
+   HRESULT rc = ipiNavEntity-&gt;QueryInterface(IID_<b>CATICkeObject</b>,(void **) &amp;piCkeObjectOnNavEnt);
+						  
+...
+   CATIValue_var spV_descriptionValue = ipiValueOnNewAttrValue;
+   rc = <b>CATCkeObjectAttrWriteServices</b>::SetValue(piCkeObjectOnNavEnt,"V_description",spV_descriptionValue) ;
+...</pre>
+  
+<h3><a name="Save"></a>Saving the Collected Components</h3>
+<p>In general, most users would save all the components that were modified 
+during the session. This is done by simply calling<code> Save</code> method of the <em>CATAdpSaver</em> 
+without any argument.</p>
+<p>Here we've chosen to call <code> Save</code> method with a 
+subset of the modified components to see its effects. This list must not be 
+empty otherwise S<code>ave</code> method will reject it:</p>
+      <pre class="code">...
+   int saveCount = saveList.Size();
+   if (saveCount &gt; 0) {
+	cout &lt;&lt; &quot;  Saving &quot; &lt;&lt; saveCount &lt;&lt; &quot; components&quot; &lt;&lt; endl;
+	 <strong>CATAdpSaver</strong> SaveClass;
+	 rc = SaveClass.<strong>Save</strong>(&amp;saveList);
+...</pre>
+<p>You can run the use case by selecting different combination of depth and 
+component type. And then check the structure to verify the components that have 
+been saved. This is done by opening the Properties window of the component and 
+check its Description field. If this field contains CAAAdpSave then the 
+component is saved. It is blank otherwise. Example of a component that was saved 
+(<b>CAAAdpSave</b> specified as <code>V_description</code> value).</p>
+<table>
+	<caption>
+<p><a name="Fig6"></a>Fig.6 - A Saved Component (with Description field containing 
+<b>CAAAdpSave</b>)</p>
+	</caption>
+	<tr>
+		<td>
+<img border="0" src="images/Save03.jpg" width="430" height="470"></td>
+	</tr>
+	</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="InShort"></a>In Short</h2>
+<p>We have seen how to traverse the entire structure of a PLM structure, how to 
+modify an attribute value and finally what are the consequences of the input 
+list of&nbsp; <code>Save</code> method of the <em>CATAdpSaver</em> 
+class on the components that 
+get saved. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="References"></a>References</h2>
+
+<table>
+     <tr>
+     <td valign="top">[1]</td>
+     <td>
+     <a href="../CAADocUseCases/CAADocRunSample.htm">Building
+      and Launching a CAA Use Case</a></td>
+     </tr>
+     <tr>
+     <td valign="top">[2]</td>
+     <td>
+     <a href="CAAAdpUcBasicBatch.htm">Creating a PLM session</a></td>
+     </tr>
+     <tr>
+     <td valign="top">[3]</td>
+     <td>
+     <a href="CAAAdpUcQueryOpen.htm">Querying, Expanding and Opening PLM Components</a></td>
+     </tr>
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Jan 2006]</td>
+    <td valign="top">Document created</td>
+  </tr>
+   <tr>
+    <td valign="top">Version: <strong>2</strong> [Dec 2010]</td>
+    <td valign="top">Document update to use CATAdpSaver class</td>
+  </tr>
+  <tr>
+
+<script type="text/javascript">insertLinkToTop();</script>  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

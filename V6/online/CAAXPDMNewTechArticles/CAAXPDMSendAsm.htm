@@ -1,0 +1,329 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Send Assembly Data to <strong>3D</strong>EXPERIENCE Plaform</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Send Assembly Data to <strong>3D</strong>EXPERIENCE Plaform</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use-Case</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h2><a name="Top"></a>Abstract&nbsp;</h2>
+		<p class="style2">This article illustrates about processing steps involved while 
+		sending assembly data to <strong>3D</strong>EXPERIENCE Platform by using 
+		event exchange services. This 
+		scenario is called as Import Scenario. This functionality is implemented 
+		in MyX-CAD and MyX-PDM application.Here it is important to understand 
+		user could create or use their own application to achieve this 
+		functionality. 
+		<ul> 
+		<li> <a href="#What">What you will learn with this Use?</a></li>
+		<li> <a href="#How">How does this usecase work?</a></li>
+		<li> <a href="#Usecase">Usecase Implementation</a></li>
+		<li> <a href="#Short">InShort</a></li>
+		<li> <a href="#References">References</a></li>
+		</ul>
+		
+		</td>
+		</tr>   
+  </table>
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h2> <a name="What"> </a> What you will learn with this Usecase</h2>
+<p>This usecase is intended to show the usage of events web services in sending 
+the event to gateway via simple scenario.This usecase illustrates import 
+scenario by using assembly data type of MyX-CAD i.e. Assembly data. This usecase 
+describes about methods used for writting XPDMXML of assembly data type.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="How"> </a> How does this usecase work?</h2>
+<p>Here we are using the MyX-CAD application to create sample data. This sample 
+data is saved with <code>.CAAasm </code>file format. For details 
+about data creation refer to <a href="#References">How to use MyX-CAD data 
+Type[1]</a>.</p>
+<p><strong>&quot;Send Assembly Data to 3DEXPERIENCE Platform&quot;</strong> functionality is provided in MyX-PDM addins 
+which are required to be loaded in MyX-CAD application. When user opens aseembly 
+structure in MyX-CAD application and clicks on Send 
+to <strong>3D</strong>EXPERIENCE Platform command this usecase gets invoked.</p>
+<p>How to execute this command is mentioned in <a href="#References">How to Use MyX-PDM ?[2]</a> 
+and <a href="#References">X-PDM Addins[3]</a>.</p>
+<p>This usecase is packaged in <strong class="style1">CAAVIXPDMIntegration.edu
+</strong>framework, which illustrates about processing events of MyX-PDM gateway.</p>
+		<p>Difference between import of component data and assembly data is 
+		creation of XPDMXML file.This is explained in <a href="#Usecase">Usecase 
+		implementation</a>.<h2> <a name="Check"></a> Before Launching the usecase</h2>
+<p> For this section please refer to <a href="#References">Description[4]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Usecase"> </a>Usecase implementation</h2>
+<p> 
+
+This usecase is split into different java files : <em>&nbsp;<strong>Send_Sample_To_EV6.java , 
+AdapterEventSend.java, ReadFile.java, WriteXPDMXML.java, XPGEventServices.java and XPGEventWebServicesWrapper.java</strong></em></p>
+<p> 
+
+<em>E</em>xecution of this usecase starts when user enters all the parameters 
+mentioned in Send to <strong>3D</strong>EXPERIENCE Platform window and click on Send to 
+<strong>3D</strong>EXPERIENCE Platform button. Control of the 
+application will be transferred to MyX-PDM. How to use this command is explained 
+in <a href="#References">X-PDM Addins[4]</a>.</p>
+<p> 
+
+Remaining processes are completed at MyX-PDM and status of execution will be 
+sent to MyX-CAD.Communication between MyX-CAD and MyX-PDM is achieved with 
+socket programming. Execution involves multiple steps which are mentioned as 
+follows :</p>
+<p> 
+
+In 
+
+<em>Send_Sample_To_EV6.java</em>,following operations will be performed :</p>
+
+<ol> <li> Copies the .CAAasm and including .CAAcmp file in gateways shadow directory</li>
+	<li> Copies the .cgr files in gateways shadow directory</li>
+	<li> Invokes to XPDMXML writer for writting assembly data XPDMXML</li>
+	<li> Copies XPDMXML to local shadow directory</li>
+	<li> Invoke to AdapterEventSend </li>
+</ol>
+
+		<p>Steps involved in sending of assembly data to <strong>3D</strong>EXPERIENCE Platform are 
+		same as that of component data. This steps are detailed in
+		<a href="#References">Send Sample to <strong>3D</strong>EXPERIENCE Platform[5]</a>.<script type="text/javascript">insertLinkToTop();</script>
+
+<h3> Reading Assembly File </h3>	
+<p> Sending assembly and component data uses same java code. In 
+Send_Sample_To_EV6.java this import is differentiated depending on the X-CAD 
+file selected by user. This is mentioned in below:</p>	
+<pre class="code">
+...
+ if(FileName.endsWith(".CAAasm")&amp;&amp; browsed==true)
+ {	
+   obj.BrowseCAAasmFile(FileName, directory, _XMLpath,user,OrgName,PrjName);
+ }
+...
+</pre>
+		<p>
+To read assembly file data we use	<code>ReadFile::BrowseCAAasmFile</code> method. 
+This method requires name of assembly file, shadow directory or user mentioned 
+directory path, output XPDMXML path, user, organization and project name entered 
+by user in Send to <strong>3D</strong>EXPERIENCE Platform window. </p>
+<pre class="code">
+public  void BrowseCAAasmFile(String fileName , String Directory, String _XMLpath, String _userN, String OrgName, String PrjName)
+{
+  ...
+  this.file = fileName;
+  ...
+  XMLUse xml = new XMLUse();
+  FileInputStream input = new FileInputStream(this.file);
+  XMLNode node = xml.parse(input, &quot;UTF-8&quot;); 
+  String _root = node.getAttribute(&quot;name&quot;);
+  Enumeration<XMLNode> _obj = node.getChildrenByName(&quot;Object&quot;);
+
+  while(_obj.hasMoreElements())
+  {
+     ...
+     XMLNode currentNode = _obj.nextElement();
+     String childName = currentNode.getAttribute(&quot;name&quot;);
+     Enumeration<XMLNode> relative = currentNode.getChildrenByName(&quot;RelativeXForm&quot;);
+     while(relative.hasMoreElements())
+     {
+        XMLNode thisRelative = relative.nextElement();   						
+        String xValue = ReadElements(thisRelative,&quot;X&quot;);
+        ...
+        _RelativeElementList.add(xValue);
+        ...
+     }
+     Element.add(new RelativeMatrix(childName,tValue,_RelativeElementList));
+  }
+  WriteXPDMXML obj=new WriteXPDMXML();
+  obj.WriteAsmXML(_XMLpath,_root,_userN,OrgName,PrjName,Element);  
+...
+</pre>
+<p>
+This method is used to read assembly file structure data. It reads relative 
+XForm mentioned in assembly file for every component. To read x,y,z and t 
+elements it uses	<code>ReadFile::ReadElements</code> method.</p>
+<p>
+Once assembly file is read successfully then it will invoke to <code>WriteXPDMXML::WriteAsmXML</code>	
+with all necessary arguments. XMLPath is path for storing output XPDMXML, Root 
+is the name of assembly structure,different components and relative information 
+are combined in <code> ArrayList&lt;RelativeMatrix&gt;</code> object.&nbsp; 
+other arguments are same as mentioned earlier for	<code>ReadFile::BrowseCAAasmFile</code>.</p>
+<p>
+<code> RelativeMatrix</code> is a user defined class containing the information about 
+name of node, rotation and translation values.</p>
+
+<h3> Writting XPDMXML File</h3>
+<p> We are using Product domain for writting XPDMXML for component and assembly data. Refer to 
+<a href="#References">XPDMXML for Product Domain [6]</a> to know about different elements and types 
+used here.</p>
+<p>
+<code>WriteXPDMXML::WriteAsmXML</code> is using some member functions for 
+creating product , instance, Rep3DAggr and file node. It uses member mehtods for creating XML header and writting XML file.</p>	
+
+<pre class="code">public void WriteAsmXML(String FilePath,String rootName, String _userN, String OrgName, String PrjName, ArrayList&lt;RelativeMatrix&gt; Element)
+{
+  ... 
+  XMLNode xml = WriteXMLHeader();	
+  XMLNode asmstructure= new XMLNodeImpl(1);
+  asmstructure.setName("ProductStructure");
+  asmstructure.setAttributeValue("rootRefs","ID_".concat(String.valueOf(i)) );
+  xml.addNode(asmstructure);
+		
+  XMLNode rootid= new XMLNodeImpl(1);
+  rootid.setName("Product");
+  asmstructure.addNode(rootid);
+  rootid.setParentNode(asmstructure);
+  rootid.setAttributeValue("id", "ID_".concat(String.valueOf(i)));
+  
+  CreateProductNode(rootid,rootName,String.valueOf(i));	
+  ...
+  CreatePrdInstNode(prdInst,String.valueOf(i),PrdInt_id,Element.get(j));				 
+  ...
+  CreateRep3DAggrNode(Rep3DAggr,PrdInt_id,File_Ref);
+  ...
+  CreateFileNode(FileNode,node_name.concat(".cgr"));
+  ...				
+  XMLWriter(FilePath,xml);	
+}
+</pre>
+<p> <code>WriteXMLHeader</code> method used for creating XML header.We are usign same mehtod in writting XPDMXML for component data.</p>
+<pre class="code">
+public XMLNode WriteXMLHeader()
+{
+  XMLNode xml = new XMLNodeImpl(1);
+  xml.setName("XPDMXML");
+  xml.setAttributeValue("schemaVersion","2");
+  xml.setAttributeValue("xmlns:", "http://www.3ds.com/xsd/XPDMXML");
+  xml.setAttributeValue("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+  xml.setAttributeValue("xsi:schemaLocation", "http://www.3ds.com/xsd/XPDMXML XPDMXML.xsd");
+  
+  return xml;
+}
+</pre>
+
+<p> <code> CreateProductNode</code> method is used for creating XML node. This 
+method requires id for node, name of node to be created, id for element or 
+component for which this node to be created.</p>
+<pre class="code">public XMLNode CreateProductNode(XMLNode product,String node_name,String id)
+{
+  ...
+  product.addNode(_Prductid);
+  product.addNode(Name_node);
+  ...	
+  return product;
+}
+</pre>
+<p> This method creates different elements under main root node like Id, Name,Description,CreationDate,ModificationDate,Organization,Project,User etc. 
+This elements contains attributes of element.</p>
+<p> <code>CreatePrdInstNode</code> is used for creating Product instance type 
+node.This XML node is aggregared under root product node. It has 
+owned,instancing and RelativeTransformation3D elements. </p>
+<p> <code> CreateRep3DAggrNode </code> is used for creating Rep3DAggr node. 
+This node has owned and FileRef elements.</p> 
+<p> <code> CreateFileNode</code> is used for creating File node. This node has 
+name,location and format elements.</p>
+<p> Please refer to XPDMXML article<a href="#References">[6]</a>for details of 
+output XPDMXML for assembly data.</p>
+
+<p> <code>XMLWriter</code> method is used for wriiting XPDMXML file from XMLNode valuated in above steps. Same method is also used in writting XPDMXML for component data.
+This method uses <code>Filewriter </code> for writting XML file and store XPDMXML file in output directory as mentioned by user.
+</p>
+
+<pre class="code">
+public void XMLWriter(String XMLFile, XMLNode xml)
+{
+    FileWriter fw = null;
+    ...
+    fw = new FileWriter(XMLFile);
+    BufferedWriter output = new BufferedWriter(fw);	
+    output.write(xml.getXmlString());	
+    ...
+}
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Short"> </a> In Short</h2>
+<p> 
+This article describes about all necessary steps used in sending data from X-PDM 
+to <strong>3D</strong>EXPERIENCE Platform. This article gives detailed 
+informtion for writting XPDMXML of assembly data.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+    
+       <td >[1]</td>
+       <td >
+		<a href="../CAADEC/CAAVIUcMyxCAD_UI.htm">How to use MyX-CAD data Type ?</a></td>
+     </tr>  
+     <tr>
+    
+       <td >[2]</td>
+        <td ><a href="CAAMy-XPDMApplication.htm">How to Use MyX-PDM ?</a></td>
+       </tr>
+          <tr>
+       <td >[3]</td>
+       <td ><a href="CAAXPDMAddin.htm">X-PDM Addins</a></td>
+     </tr>
+
+   
+ 
+     <tr>
+       <td >[4]</td>
+       <td ><a href="CAAUsecaseDesc.htm">Description</a></td>
+     </tr>
+   
+ 
+     <tr>
+       <td >[5]</td>
+       <td ><a href="CAAXPDMXMLProduct.htm">XPDMXML for Product Domain</a></td>
+     </tr>
+     
+     <tr>
+       <td >[6]</td>
+       <td ><a href="CAAXPDMAssemblyFileXPDMXML.htm">XPDMXML for Assembly Data Type</a></td>
+     </tr>
+
+     </table>
+   
+
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Aug 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

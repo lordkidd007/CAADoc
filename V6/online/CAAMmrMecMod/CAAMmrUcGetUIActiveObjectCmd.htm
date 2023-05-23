@@ -1,0 +1,451 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Retrieving The UI Active Object and The Edited Root PLM Component</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Retrieving the UI Active Object and The Edited 
+		Root PLM Component</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the <strong>CAAMmrGetUIActiveObjectCmd</strong> 
+		use case. This use case is an interactive command to retrieve the UI-active 
+		object from the current editor. It fundamentally works on a model which 
+		has a 3DShape (or Logical 3D Shape) for editing in the current session. 
+		It illustrates that in this case, the UI-active object is in fact a 
+		MechanicalPart feature associated with the Representation Instance. 
+		Since this object is &quot;database persistent&quot;, the associated PLM 
+		Component, a Representation Reference, 
+		is also retrieved.</p>
+		<p>It also outputs the list of objects loaded in the current editor.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAMmrGetUIActiveObjectCmd Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAMmrGetUIActiveObjectCmd Do</a></li>
+					<li><a href="#How">How to Launch CAAMmrGetUIActiveObjectCmd</a></li>
+					<li><a href="#Where">Where to Find the CAAMmrGetUIActiveObjectCmd 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case most importantly teaches us the steps involved in retrieving the 
+UI-active object when a Representation Instance is UI-activated in CATIA tree.</p>
+<p>It then illustrates that when a Representation Instance is identified for editing 
+in CATIA tree, it is the Part Object beneath, a MechanicalPart feature, which 
+is set as the current UI-active object.</p>
+<p>The Use Case also illustrates that any object which has &quot;database persistency&quot; 
+is associated with a PLM Component. You will see how to retrieve the Product 
+Representation Reference from the UI-active object.</p>
+<p>Lastly, a simple call to <code>CATPLMComponentInterfacesServices::GetEditedRootPLMComponents</code> 
+retrieves the root PLM Components associated with the current editor.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAMmrGetUIActiveObjectCmd Use Case</h2>
+<p><code>CAAMmrGetUIActiveObjectCmd</code> is a use case of the <code>CAAMechanicalModeler.edu</code> 
+framework that mainly illustrates CATMecModUseItf and CATMecModLiveUseItf frameworks 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAMmrGetUIActiveObjectCmd Do</h3>
+<p>This Use Case is an interactive exclusive command which retrieves the 
+UI-active object and the root PLM Components loaded in the current editor.</p>
+<p>The [<a href="#Fig1">Fig. 1</a>] below represents the input model which has a 
+PRODUCT, FUNCTIONAL and LOGICAL model loaded in &quot;Functional &amp; Logical Design&quot; 
+editor.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig.1 Input Model (Logical 3D Representation UI-active Object)</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAMmrGetUIActiveObjectCmd_Image_1.jpg" width="677" height="523"/></td>
+	</tr>
+</table>
+<p>The command <kbd>UIActive Object</kbd> integrated 
+in CATIA by this interactive use case, is a part of:</p>
+<ul>
+	<li><kbd>CAA MechMod UC</kbd> section of the action bar, for the <kbd>CAA: Logical 
+		3D Shape</kbd> app. This becomes available when the user UI-activates Logical 
+	3D Representation for the input model depicted in Fig. 1 above.</li>
+	<li><kbd>CAA MechMod UC</kbd> section of the action bar, as an add-in for Logical 3DShapes[<a href="#References">2</a>]. This also becomes 
+		available when the user UI-activates Logical 3D Representation.</li>
+	<li><kbd>CAA MechMod UC</kbd> section of the action bar, for the <kbd>CAA: 3D Shape</kbd> 
+	app. This becomes 
+		available when the user loads a 3D Part within the <kbd>CAA 3DShape</kbd> 
+		app in CATIA. This is as depicted in [<a href="#Fig2">Fig. 2]</a> 
+		below.</li>
+</ul>
+<table>
+	<caption style="width: 618px"><a name="Fig2"></a>Fig.2 Input Model (3D Shape UI-active Object)</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAMmrGetUIActiveObjectCmd_Image_2.jpg" width="618" height="498"/></td>
+	</tr>
+</table>
+<p>When activating the <kbd>UIActive Object</kbd> command, the following steps are perfomed:</p>
+<ul>
+	<li>Retrieves the current UI-active object. In the case where Logical 3D 
+	Representation is UI-active, the output is Logical 3D Representation 
+	Reference 
+	    which represents the Root object beneath the Logical Representation 
+		Reference. It is in fact a MechanicalPart feature and coincidentally shares 
+		the same name as the aggregating Representation Reference. It is important 
+		to note that this Part object does not have an independent identity in the 
+		CATIA tree, and hence the aggregating rep ref is highlighted as the 
+		current UI active object.</li>
+	<li>Confirms if the UI active object is a MechanicalPart feature by checking 
+		that it implements <em>CATIMmiUsePrtPart</em> interface.</li>
+	<li>If the UI active object is associated with a PLM database persistency, 
+		then the associated PLM component is retrieved. In the case of a MechanicalPart 
+		feature, the associated PLM Component is a PLM Rep Ref. [Fig. 3] representing 
+		the output in console, shows that Logical 3D Representation Reference 
+		is the custo type (ADP 
+		Type) for the associated PLM Component.</li>
+	<li>Retrieves the root PLM Entities loaded in the current editor. In this 
+		example, the console output shows that Logical Reference is the Root 
+	entity.</li>
+</ul>
+<p>The console output is described in [<a href="#Fig3">Fig. 3</a>] below:</p>
+<p>
+<table>
+	<caption><a name="Fig3"></a>Fig. 3 Console Output when Logical 3D Shape is 
+	UI-active</caption>
+	<tr>
+		<td>CAAMmrGetUIActiveObjectCmd Activate<br />
+		UI Active object Alias name :Logical 3D Representation Reference...<br />
+		UI Active object is MchanicalPart feature<br />
+		UI Active object Adp Type Alias name :Logical 3D Representation Reference(NLSMigr)<br />
+		Edited Root PLMComponent (Alias name) 2 : Logical Reference...<br />
+		</td>
+	</tr>
+</table>
+</p>
+<p>
+<table>
+	<caption><a name="Fig4"></a>Fig.4 Console Output when 3D Shape is
+	UI-active </caption>
+	<tr>
+		<td>CAAMmrGetUIActiveObjectCmd Activate<br />
+		UI Active object Alias name :<br />
+		UI Active object is MchanicalPart feature<br />
+		UI Active object Adp Type Alias name :3D Shape(NLSMigr)<br />
+		Edited Root PLMComponent (Alias name) 1 : Physical Product...<br />
+		</td>
+	</tr>
+</table>
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a href="#Where" name="How"></a>How to Launch CAAMmrGetUIActiveObjectCmd</h3>
+<p>To launch <code>CAAMmrGetUIActiveObjectCmd</code>, you will need to set up the 
+build time environment, then compile <code>CAAMmrGetUIActiveObjectCmd</code> 
+along with its prerequisites, set up the run time environment [<a href="#References">3</a>]. </p>
+<p>You will also need to declare the two following apps  in the myApps server: 
+<ul>
+<li><code>CAAMmr3dShapeWkb</code> : it's the &quot;CAA : 3D Shape&quot; app, an 
+app defined for 3D Shapes.</li>
+<li><code>CAAMmrLgcl3DShpWkb</code> : it's the &quot;CAA : 3D Logical 3D Shape&quot; app, 
+an app defined for Logical 3D Shapes.</li>
+</ul>
+<p>Then, execute the use case.</p>
+
+<p>Launch CATIA, when the application is ready:</p>
+<ul>
+	<li>Launch <kbd>Functional and Logical Design</kbd> app from 3D quadrant of 
+	the Compass.</li>
+	<li>Create one Functional Reference under Functional node.</li>
+	<li>Create one Physical Product under Physical node.</li>
+	<li>Then add 3D Shape beneath Product.</li>
+	<li>Create one Logical Reference under Logical node.</li>
+	<li>Launch <kbd>Create 3D Logical Representation</kbd> command (a secondary 
+	command in <kbd>Edition</kbd> section of the action bar) and select the Logical 
+	Reference.</li>
+	<li>Double click on the "Logical 3D Representation" node. By default the <kbd>Functional 
+	Part Design for Systems</kbd> app is loaded. (assuming default CATSettings 
+		on CATIA launch, without user customizations).</li>
+	<li>Override this default app by explicitly launching the <kbd>CAA: Logical 3D 
+		Shape</kbd> app from 3D quadrant of the compass.
+
+	<p>This app has the <kbd>UIActive Object</kbd> command, located in the <kbd>CAA 
+	MechMod UC</kbd> section of the action bar.</p>
+	<p>The <kbd>UIActive Object</kbd> command is also included in the add-in for Logical 
+	3D Shapes. Hence, the command appears twice in the action bar, since the 
+	<kbd>CAA Logical 3D Shape</kbd> app enherits from all commands defined for its data 
+	model, the Logical 3D Shape model. You can find more information on the 
+	structure of apps and add-ins in the article &quot;Wintop Frame Overview&quot;[<a href="#References">4</a>]. </p>
+
+    <p>The two commands are illustrated in  
+		[<a href="#Fig5">Fig. 5]</a> below:</p>
+	<table>
+					<caption style="width: 308px"><a name="Fig5"></a>Fig.5 
+					CAA Logical 3D Shape app</caption>
+					<tr>
+									<td>
+									<img alt="" src="images/CAAMmrGetUIActiveObjectCmd_Image_4.jpg" width="305" height="160"/></td>
+					</tr>
+	</table>
+	
+	<li>Run the <kbd>UIActive Object</kbd> command. Check that the output in console is the same as depicted 
+		in [<a href="#Fig3">Fig. 3]</a> above.</li>
+	<li>Double click on 3D Shape beneath the Physical Product. By default the <kbd>Part Design</kbd> 
+		app is loaded. (assuming default CATSettings on CATIA launch, 
+		without user customization)</li>
+	<li>Override this default app by explicitly launching the <kbd>CAA: 3D shape</kbd> app 
+	from 3D quadrant of the compass .
+		<p>This app has the <kbd>UIActive Object</kbd> command, located in the <kbd>CAA 
+	MechMod UC</kbd> section of the action bar, as shown in [<a href="#Fig6">Fig. 6]</a></p>
+		<table>
+			<caption style="width: 351px"><a name="Fig6"></a>Fig.6 CAA 3DShape 
+			app</caption>
+			<tr>
+				<td>
+				<img alt="" src="images/CAAMmrGetUIActiveObjectCmd_Image_7.jpg" width="348" height="138"/></td>
+			</tr>
+		</table>
+	</li>
+	<li>Run the <kbd>UIActive Object</kbd> command and check that the output in console is the same 
+		as depicted in [<a href="#Fig4">Fig. 4</a>] above. </li>
+</ul></p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Addin"></a>Add-in and apps Access</h3>
+<p>The add-ins are made available by uncommenting the following entries in the
+<code>CAAMechanicalModeler.edu.dico</code> file and updating the run time view of 
+the Workspace.</p>
+<pre class="code">...
+#CAA# CAAMmrLgcl3DShpWksAddin    CATIWorkbenchAddin                     libCAAMmrLgcl3DShpWksAddin
+#CAA# CAAMmrLgcl3DShpWksAddin    CATICATMmrLgcl3DShpWksAddin            libCAAMmrLgcl3DShpWksAddin
+...
+#CAA# CATApplicationFrame        CAAIMmrLgcl3DShpWkbFactory             libCAAMmrLgcl3DShpWbench
+#CAA# CAAMmrLgcl3DShpWkb         CATICATMmrLgcl3DShpWksConfiguration    libCAAMmrLgcl3DShpWbench
+...
+#CAA# CATApplicationFrame        CAAIMmr3dShapeWkbFactory               libCAAMmr3dShapeWorkbench
+#CAA# CAAMmr3dShapeWkb           CATIPrtWksConfiguration                libCAAMmr3dShapeWorkbench
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAMmrGetUIActiveObjectCmd Code</h3>
+<p>The <code>CAAMmrGetUIActiveObjectCmd</code> use case is made of a class defined 
+in the <code>CAAMmrCommands.m</code> module of the <code>CAAMechanicalModeler.edu</code> 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\CAAMmrCommands.m\</code></p>
+<ul>
+	<li><code>CAAMmrGetUIActiveObjectCmd.cpp</code> has the State Command implementation.</li>
+</ul>
+<p>The use case also pre-reqs the following modules:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\CAAMmrLgcl3DShpWksAddin.m\<br />
+InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\</code><code>CAAMmrLgcl3DShpWbench.m\<br />
+InstallRootFolder\CAADoc\CAAMechanicalModeler.edu\</code><code>CAAMmr3dShapeWorkbench.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the 
+folder where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The steps in the <code>CAAMmrGetUIActiveObjectCmd</code> use case are:</p>
+<ol>
+	<li><a href="#Step1">Prolog</a></li>
+	<li><a href="#Step2">The CATCommand::Activate Implementation</a><ul>
+			<li><a href="#Step21">Retrieving the UI Active Object</a></li>
+			<li><a href="#Step22">Retrieving the Adp Type of the Associated PLM Component</a></li>
+			<li><a href="#Step23">Retrieving Root PLM Entities from the Current Editor</a></li>
+		</ul>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Prolog</h3>
+<p>On running the &quot;Retrieve UI Active Object&quot; command, the application 
+instantiates a <em>CATCommand</em> class and further invokes the <code>CATCommand::Activate</code> 
+method [<a href="#References">1</a>]. The next step details the implementation of 
+the <code>CATCommand::Activate</code> method, the interest of this Use Case.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>The CATCommand::Activate Implementation</h3>
+<h4><a name="Step21"></a>Retrieving the UI Active Object</h4>
+<p>The method retrieves the UI Active object.</p>
+<pre class="code">CATStatusChangeRC CAAMmrGetUIActiveObjectCmd::<strong>Activate</strong>(CATCommand *iPublisher,
+                                                       CATNotification *iNotification)
+{
+  CATFrmEditor * pCurEditor = <strong>CATFrmEditor::GetCurrentEditor</strong><strong></strong>();
+  CATPathElement oActivePath = pCurEditor-&gt;<strong>GetUIActiveObject</strong>();
+               
+  CATBaseUnknown_var spCBUOnCurrObject;
+  oActivePath.<strong>InitToLeafElement</strong>();
+  spCBUOnCurrObject = oActivePath.<strong>NextFatherElement</strong>();
+...</pre>
+<p>A call to <code>CATFrmEditor::GetCurrentEditor</code> returns <code>pCurEditor</code>, 
+a CATFrmEditor type.</p>
+<p>Then a call to <code>CATFrmEditor::GetUIActiveObject</code> on <code>pCurEditor</code> 
+returns <code>oActivePath</code>, the active path, a <em>CATPathElement</em> type.</p>
+<p>Next, a call to <code>CATPathElement ::InitToLeafElement</code> on <code>oActivePath</code> 
+intializes a bottom-up run of the path.</p>
+<p>A call to <code>CATPathElement::NextFatherElement</code> on <code>oActivePath</code> 
+returns father element of the leaf element retrieved above, in this case the UI 
+active object.</p>
+<p>The code extract below checks that the active object found implements <em>CATIMmiUsePrtPart</em> 
+interface, thus confirming that it's a MechanicalPart feature. It also outputs the 
+active object's alias, which coincidentally has the same name as the pointing Rep 
+Ref (Console output Fig [3] [4] confirms this).</p>
+<pre class="code">...
+  <strong>CATIAlias</strong>* piAliasOnCurrObject = NULL;
+  rc = spCBUOnCurrObject-&gt;QueryInterface(IID_CATIAlias, (void**)&amp;piAliasOnCurrObject);
+...
+  CATUnicodeString strNameOfCurrObject (piAliasOnCurrObject-&gt;<strong>GetAlias</strong>());
+...
+  <strong>CATIMmiUsePrtPart</strong>* piPrtPartOnUIActiveObject = NULL;
+  rc = spCBUOnCurrObject-&gt;QueryInterface(IID_CATIMmiUsePrtPart, (void**)&amp;piPrtPartOnUIActiveObject);
+
+  if (SUCCEEDED(rc))
+...</pre>
+<p>We call <code>QueryInterface</code> to retrieve from <code>spCBUOnCurrObject</code> 
+a <em>CATIAlias</em> interface pointer, <code>piAliasOnCurrObject</code>.</p>
+<p>Then a call to <code>GetAlias</code> on <code>piAliasOnCurrObject</code> returns 
+the name of the object.</p>
+<p>We the do a <code>QueryInterface</code> on <code>spCBUOnCurrObject</code> to 
+retrieve a <em>CATIMmiUsePrtPart</em> interface pointer, <code>piPrtPartOnUIActiveObject</code>. 
+If QI succeeds, this UI active object is truly a MechanicalPart feature.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step22"></a>Retrieving the Adp Type of the Associated PLM Component</h4>
+<p>The code extract below retrieves the PLM Component (in this case a PLM Representation 
+Reference) associated with the UI active object (a MechanicalPart feature).</p>
+<pre class="code">...
+    CATIPLMComponent_var spiPLMCompOnUIActiveObject  ;
+    rc = <strong>CATPLMComponentInterfacesServices</strong>::<strong>GetPLMComponent</strong>(spCBUOnCurrObject,spiPLMCompOnUIActiveObject);
+...
+    CATIAdpType * piAdpTypeOnCurrPLMComponent = NULL;
+    rc = spiPLMCompOnUIActiveObject-&gt;<strong>GetAdpType</strong>(piAdpTypeOnCurrPLMComponent);
+...
+    CATUnicodeString strAliasNameOfCurrPLMComponent ;
+    rc = piAdpTypeOnCurrPLMComponent-&gt;<strong>GetAlias</strong> (strAliasNameOfCurrPLMComponent);
+...</pre>
+<p>First we use the static method <code>GetPLMComponentOf</code> of the <em>CATPLMComponentInterfacesServices</em> 
+class to retrieve from the active object <code>spCBUOnCurrObject</code> the associated 
+PLM Component, <code>spiPLMCompOnUIActiveObject</code>.</p>
+<p>Next, a call to <code>CATIPLMComponent::GetAdpType</code> on <code>piPLMCompOnUIActiveObject</code> 
+returns the Adp Type, <code>piAdpTypeOnCurrPLMComponent</code>.</p>
+<p>Then a call to <code>CATIAdpType::GetAlias</code> on <code>piAdpTypeOnCurrPLMComponent</code> 
+returns the name of the PLM Component customization type.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step23"></a>Retrieving Root PLM Entities from the Current Editor</h4>
+<p>Now we retrieve all root PLM entities loaded in the current editor.</p>
+<pre class="code">...
+  CATListPtrCATIPLMComponent ListEditedRoot ;
+  rc = <strong>CATPLMComponentInterfacesServices</strong>::<strong>GetEditedRootPLMComponents</strong>(pCurEditor,ListEditedRoot) ;
+...
+  for (int i= 1 ; i&lt;= ListEditedRoot.Size(); i++ )
+  {
+     CATIPLMComponent* pPLMCompOnRoot = ListEditedRoot[i];
+     ...
+     CATIAlias_var spAliasOnRoot= pPLMCompOnRoot;
+     CATUnicodeString strIdentifierRoot = spAliasOnRoot-&gt;<strong>GetAlias</strong>();
+     ...
+    }
+...</pre>
+<p>A call to <code>CATPLMComponentInterfacesServices::GetEditedRootPLMComponents</code> 
+takes following arguments:</p>
+<ul>
+	<li><code>pCurEditor</code>, a <em>CATFrmEditor</em> type, a current editor 
+		retrieved in first step.</li>
+	<li><code>ListEditedRoot</code>, a <em>CATListPtrCATIPLMComponent</em> type, 
+		a list of all editable PLM components on the current editor.</li>
+</ul>
+<p>We parse through this list of root PLM entities. Each entity is retrieved as 
+a smart handler of CATIAlias_var type, <code>spAliasOnRoot</code>.</p>
+<p>Next, a call to <code>GetAlias</code> on <code>spAliasOnRoot</code> returns the 
+name of the root.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to retrieve the UI active object in the current editor. 
+Since we have explicitly asked the user to UI activate the Rep Instance (a 3DShape 
+and a Logical 3D Shape) in the CATIA ree under the product model, the UI active 
+object returned is a MechanicalPart feature, a Part Object associated with a PLM 
+Representation Reference (though in CATIA, the highlighted entity is the Rep Inst).</p>
+<p>Since a MechanicalPart feature is &quot;database persistent&quot;, it is necessarily 
+linked to a PLM Component, a PLM Representation Reference. The use case retrieves 
+this associated PLM Component and its customization type (ADP type).</p>
+<p>Lastly, the use case outputs a list of root PLM entities associated with the 
+current editor.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegTaGettingStarted.htm">
+		Getting Started with State Dialog Commands</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcSampleAddin.htm">
+		Creating an Add-in</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrTaOverview.htm">
+		Wintop Frame Overview</a></td>
+	</tr>
+
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Feb 2009]</td>
+		<td>Document created</td>
+	</tr>
+   <tr>
+		<td>Version: 2 [Mai 2014]</td>
+		<td>Document updated for 3DEXPERIENCE platform migration</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

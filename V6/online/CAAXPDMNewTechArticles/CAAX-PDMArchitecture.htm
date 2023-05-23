@@ -1,0 +1,237 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Architecture</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Integration Architecture</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+		<p>X-PDM integration enables you to integrate your own PDM with the 
+		<strong>3D</strong>EXPERIENCE Platform. This article provides an overview of this integration 
+		architecture, its various components and the steps involved to realize 
+		this integration</p>
+		<ul>
+			<li>
+			<a href="#Components">Components of a X-PDM Integration</a></li>
+			<li><a href="#export">Export Scenario</a></li>
+			<li><a href="#Import">Import Scenario</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">
+			References</a></li>
+		</ul>
+
+	</td>
+  </tr>
+  
+  </table>
+
+  <h2><a name="Components"> </a>Component of X-PDM Integration</h2>
+  <p>X-PDM integration consists of components depicted below [<a href="#Fig.1">Fig.1</a>]:</p>
+  <table>
+			<caption><a name="Fig.1"></a>Fig.1 Integration of X-PDM with the 
+			<strong>3D</strong>EXPERIENCE Platform</caption>
+			<tr>
+			<td>
+			<img src="images/CAAXPDMArchitecture.jpg" width="573" height="361"/></td>
+			</tr>
+		</table>
+
+  
+<h4>1. Client Side Applications</h4>
+<p>Any application provides the user interface for X-PDM integration.These 
+applications are interacting with user and triggers different X-PDM related 
+opeartions.</p>
+<h4>2. X-PDM</h4>
+<p>X-PDM is a local repository,which serves as a database to X-Apps . X-PDM 
+stores the data or files created in this application.</p>
+<h4>3. <strong>3D</strong>EXPERIENCE Platform</h4>
+<p><strong>3D</strong>EXPERIENCE Platform is a V6 database server. </p>
+<h4>4. <strong>3D</strong>EXPERIENCE Platform Event Bus</h4>
+<p>The implementation of the Event Bus is based on two gateway to which the event is sent by APIs.
+</p>
+<p> <strong>3D</strong>EXPERIENCE Platform Event Bus is implemented of two Gateways which communicate to each other on http protocol.
+ <strong>3D</strong>EXPERIENCE Platform  publishes APIs (Command, C++, ws) enabling send Event to
+<strong>3D</strong>EXPERIENCE Gateway. 
+ XPG Event  Web Services published by the XPDM Gateway enables My-XPDM to send Event towards 
+<strong>3D</strong>EXPERIENCE Gateway</p>
+<h4>5. Bus Adapter</h4>
+<p>Bus Adapter provides links between the PDM servers and the Gateway. They 
+retrieve events from their local controllers and fetch and process the 
+associated data accordingly to the events types and documentation. The 
+processing step is the one that will make (if necessary) changes to the PDMs 
+objects. The Adapters are also responsible for sending new events to their 
+controller. </p>
+<p>We are having two adapters :<br>
+1) <strong>V6 Adapters</strong> which provides the links between 
+V6 database server i.e. <strong>3D</strong>EXPERIENCE Platform and <strong>3D</strong>EXPERIENCE Gateway.<br>
+2) <strong>XPDM Bus Adapter</strong>&nbsp; which provides the links between X-PDM and 
+X-PDM gateway.Customer have to create their own bus adapter in their application.</p>
+<p>For details about Bus Adapter refer to
+<a href="#References">
+Bus Adapter[1]</a>.</p>
+<h4>6. Gateway</h4>
+<p>Gateway are the dispatchers of events. They receive events via http and 
+dispatch them to their local Adapters(Bus Adapter) or remote controller for 
+processing. They also take care of event state, persistency. We are 
+having two gateways <strong>3D</strong>EXPERIENCE Gateway and X-PDM Gateway.</p>
+<p>Here,we are integrating X-PDM with <strong>3D</strong>EXPERIENCE&nbsp; by using event web services. 
+This integration allows us to send the data (which is created in any 
+application) from X-PDM to <strong>3D</strong>EXPERIENCE Platform and also receive the data sent by 
+<strong>3D</strong>EXPERIENCE Platform to X-PDM. This scenarios are named as Import(send) and Export(Receive) 
+respectively.</p>
+<p>For details of gateway refer to
+<a href="#References">
+Gateway[2]</a>.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="export"></a>Export Scenario</h2>
+<p><a href="#Fig.1">Fig.1</a> explains different steps involved in export scenario i.e. Receiving the data 
+from <strong>3D</strong>EXPERIENCE Platform to X-PDM.</p>
+<table> 
+<caption> Fig.1 Export Scenario</caption>
+<tr> 
+<td> 
+<a name="Fig.1"> 
+<img src="images/XPDM-ReceiveFromEv6_ClientService.jpg"></a> </td>
+</tr>
+</table>
+<ol>
+<li> Any V6 command,batch, API or ws invokes the export command <strong><em>
+&quot;Send to X-PDM&quot;</em></strong>.</li>
+<li> This 
+invocation will <strong><em>send an event</em></strong> to<strong> 3D</strong>EXPERIENCE Gateway through http protocol.</li>
+<li> When<strong> 3D</strong>EXPERIENCE&nbsp; gateway receives the event it communicates with  <strong>XPGClientService.</strong></li>
+<li> <strong>XPGClientService</strong> delegates the processing of this event to  <strong>XPGClientBatch.</strong></li>
+<li>  <strong>XPGClientBatch</strong> then exports the data in XPDMXML and is 
+uploaded to File Server.This file transfer is of asynchronus mode.</li>
+<li> After the local processing of event,<strong>3D</strong>EXPERIENCE gateway sends this event data to XPDM Gateway 
+for remote processing.This event is transfered in sychronous mode.<br> 
+6.1. 
+When X-PDM gateway receives the event,it download the data 
+attached with event from File server.</li>
+<li> X-PDM adapter polls the X-PDM gateway to retrieve the event and the 
+associates data.</li>
+<li> X-PDM adapter process the event. Refer to <a href="#References">Bus Adapter[3]</a> for detaills 
+of how events are processed.</li>
+<li> X-PDM adapter send the feedback of this processing to X-PDM gateway.</li>
+<li> X-PDM gateway transfers this processing feedback to <strong>3D</strong>EXPERIENCE gateway.</li>
+<li> When <strong>3D</strong>EXPERIENCE&nbsp; gateway receives the feedback from X-PDM gateway it will purge this 
+event.</li>
+</ol>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Import"> </a> Import Scenario</h2>
+<p><a href="#Fig.2">Fig.2</a> explains different steps involved in import 
+scenario i.e. sending the data from X-PDM to <strong>3D</strong>EXPERIENCE 
+Platform. </p>
+<table> 
+
+<caption> Fig.2 Import Scenario</caption>
+<tr> 
+<td> 
+<a name="Fig.2"> 
+<img src="images/XPDM-SendToEv6_ClientService.jpg"></a> </td>
+</tr>
+</table>
+
+<ol>
+<li>
+Any application having the addins of X-PDM will invoke to <strong>&quot;Send to 
+3DExperience Platform&quot;</strong>.This command will transfer the control to X-PDM adapter.</li>
+<li>
+X-PDM adapter <strong>sends the 
+event</strong> to XPDM gateway.Metadata or bulkdata which is attached with this event 
+will be copied to gateways shadow directory. </li>
+<li>
+XPDM gateway uploads data attached to event in File server in asynchronous file transfer mode.</li>
+<li>
+After completion of local processing
+XPDM gateway sends the event to <strong>3D</strong>EXPERIENCE gateway for remote processing. This transfer is synchronous 
+transfer.</li>
+<li><strong>3D</strong>EXPERIENCE gateway will communicates with <strong>XPGClientService</strong> which delegates 
+<strong>Import</strong> processing to <strong>XPGClientBatch</strong>.</li>
+<li>
+This event will be processed at V6 adapters.<br> 
+
+6.1. <strong>XPGClientBatch </strong>downloads event data in local shadow directory from File 
+server.</li>
+<li>
+V6 adapters sends processing feedback to <strong>3D</strong>EXPERIENCE gateway.</li>
+<li>
+<strong>3D</strong>EXPERIENCE gateway transfers the processing feedback to X-PDM gateway.</li>
+<li>
+X-PDM adapter can retrieve the processing feedback from X-PDM gateway and notify 
+the user about it.</li>
+</ol>
+
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="InShort"></a>In Short</h2>
+<p>The article deals with integration architecture of X-PDM. Different 
+components involved in this integration and their role in exchanging the data is 
+explained in this article.</p>
+<p>This article describes about different steps involved during exchange of data 
+between X-PDM and 3DExperience Platform. This article also gives details about 
+componets which&nbsp; need to be installed to achieve this integration. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+  
+  <tr>    
+       <td >[1]</td>
+       <td ><a href="CAAXPDMBasicOverview.htm">Integration of X-PDM with the <strong>3D</strong>EXPERIENCE Platform-An Overview</a></td>
+     </tr>  
+
+    <tr>    
+       <td >[1]</td>
+       <td ><a href="CAAXPDMSampleBusXPDMAdapter.htm">Bus Adapter</a></td>
+     </tr>  
+     <tr>    
+       <td >[2]</td>
+       <td ><a href="CAAXPDMGateway.htm">Gateway</a></td>
+     </tr>  
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [August 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

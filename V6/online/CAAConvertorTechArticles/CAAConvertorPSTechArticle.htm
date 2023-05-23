@@ -1,0 +1,165 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Designer Central Schema for Client Integrations</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>MultiCAD Convertors: Product Structure Conversion</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Technical Article</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article describes how to convert the Product Structure information of a xCAD document to V6 using the Format Conversion Services APIs. 
+      </td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>Introduction</h2>
+<p>Product Structure data refers to the hierarchy of the objects present in the 
+xCAD file. If the xCAD file is an Assembly file, it will contain a Root Product 
+Reference and many aggregated Instances under it. Our aim is to extract this 
+data and pass it to the relevant Convertor APIs to construct the similar Product 
+Structure.</p>
+<p>If the xCAD file is an Assembly file (.CAAasm in our use-case), it will 
+contain information about the objects/instances aggregated under the Root 
+reference directly. Incase the aggregated instance is again an Assembly then we 
+have to again navigate through that assembly file whereas, if the aggregated 
+instance is a representation (.CAAcmp file) then we have to switch to the 
+Tessellation implementation. Here we will explain only the Product Structure 
+implementation part.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Architecture of Product Structure Conversion</h2>
+<p>The Architecture explanation of Tessellated conversion can be divided in two parts. The Implementation class diagram and the Implementation code flow architecture.&nbsp;</p>
+<p> The picture shown below illustrates MultiCAD Convertor Import Architecture 
+for Product Structure conversion only.</p>
+<table>
+	<caption>Fig. 2. MultiCAD Convertor Product Structure IMPORT architecture</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAV6PSConvCodeFlowImage.jpg" width="1223" height="551"></td>
+	</tr>
+</table>
+
+<h3>Implementation Code flow architecture</h3>
+<p>When we Import an xCAD file (step 'a'), the control goes to the V6 Writer 
+provided by DS. This writer checks for the CAA Component through specific 
+Late-type (see article []). This CAA Compoenent is called as V6 Reader.</p>
+<p>If the CAA Component is implemented, V6 Writer sends callbacks to the APIs 
+implemented in the component. V6 Reader then answers to all the callbacks of V6 
+Writer by implementing the interfaces as shown in the class diagram above. It 
+answers to the calls through the implementation classes in series as illustrated in above figure 2. 
+Detail description of the flow is given in Use-case documentation of Product 
+Structure convertor</p>
+<p>The main implementation class here is the 
+CATIExchangeProductRepresentation, CATIExchangeProduct and 
+CATIExchangeProductInstance implementation classes. These classes send all the 
+Product Structure information present in the Assembly file selected.</p>
+<p>Finally, the V6 Writer takes all the Product Structure information and calls the core 
+APIs which create specification tree to display in CATIA tab.</p>
+<p>The Product References and Instances created, gets saved in the database.</p>
+<p>No cgr file is created</p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2>Basic Scenario for File based Import</h2>
+<p> The Basic Scenario for the File based Import in CATIA V6 will demonstrate 
+following points:</p>
+<p> 1. Select the xCAD file to be imported to V6<br>
+2. Reading the xCAD file. In case of XML format file, we need to implement DOM 
+or SAX parsers to read the data.<br>
+3. Passing the relevant data from file (Product Structure information) to the Format Convertor APIs<br>
+4. Conversion of the data into Product Structure data for Navigation.<br>
+5. The References created gets saved in the database</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2>APIs to Implement</h2>
+<p>Following is the list of Interfaces and the corresponding APIs to be 
+implemented.</p>
+<table class="fill">
+	<tr>
+		<th>Interface</th>
+		<th style="width: 286px">APIs</th>
+	</tr>
+	<tr>
+		<td>CATIExchangeInputDocument</td>
+		<td style="width: 286px">GetRepresentation()<br>
+		Initialize()<br>
+		GetDocumentPATH()</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProductRepresentation</td>
+		<td style="width: 286px">GetRootProducts()<br>
+		</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProduct</td>
+		<td style="width: 286px">GetDocument()<br>
+		GetInstanceList()<br>
+		GetProductAttributes()</td>
+	</tr>
+	<tr>
+		<td>CATIExchangeProductInstance</td>
+		<td style="width: 286px">GetReferenceProduct()<br>
+		GetTransformation()</td>
+	</tr>
+	</table>
+
+<p></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="In short"></a>In Short</h2>
+<p>We have seen the interfaces which have to be implemented in order to convert 
+Product Structure data present in Assembly XML files.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+     <tr>
+    
+       <td >[1]</td>
+       <td >(Ref. article)</td>
+     </tr>  
+   </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Oct 2013]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

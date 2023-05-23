@@ -1,0 +1,1632 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Feature Modeler Changes by Scenarios</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Feature Modeler Changes by Scenarios</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article lists the Feature modeler changes and their migration paths.</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>In order to secure the feature data model, we have removed all the generic APIs 
+accessing a feature. They have been removed to be replaced by secured APIs. No V5 
+functionality has been removed: you can still extend a feature, design StartUps, 
+instantiate a feature, instantiate a StartUp, access feature&#39;s attribute, but most 
+of these operations require to be granted.</p>
+<p>Before migrating your code one by one, it is strongly recommended that users 
+read two fundamental articles:</p>
+<ul>
+	<li>Feature Modeler API Presentation [<a href="#References">1</a>]
+	<p>It is a key article for an APIs introduction. For each Feature modeler object 
+	that you are used to work with, the APIs to handle it is displayed. You will 
+	learn that most APIs are now classes instead interfaces.</p>
+	</li>
+	<li>Understanding Credentials [<a href="#References">2</a>]
+	<p>Thanks the first article, you have learnt that most APIs are now classes 
+	instead interfaces . It enables Feature modeler to control the object&#39;s access. 
+	This control is ensured by credentials mostly based on feature catalog access 
+	right.</p>
+	</li>
+</ul>
+<p>If most V5 scenarios are still available, credentials apart, few of them have 
+been removed. So, this article starts by listed them. The next chapter explains 
+the path migration through some main basic scenarios. It gives you a first gist 
+of the change. The chapter &quot;API per API&quot; gives the migration for some methods.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Scenario0"></a>The Non Supported Scenarios</h2>
+<h3><a name="Scenario1"></a>Handling a StartUp as a Feature</h3>
+<p>The <em>CATOsmSUHandler</em> class has been replaced by the <em>CATFmStartUpFacade
+</em>class but with three major changes: secure access control [<a href="#References">2</a>], 
+the removal of the <code>RetrieveSU</code> method, and the instantiation without 
+a name. This last point is seen in the <a href="#Scenario3">Instantiating 
+with a Name</a> section.</p>
+<p><code>RetrieveSU</code> returns the StartUp as a feature and you could modify 
+the StartUp data. It is no more supported.</p>
+<p>This restriction has been introduced for multi-level compatibility reasons. The 
+OSM (CATFct file in RTV) is the data definition of the feature, and usually behavior 
+are implemented by code. If you modify in a session a StartUp, to add or remove 
+an attribute, your CATFct file will be not modified: it keeps its level of last 
+update or creation. When you will read a feature created with this StartUp modified 
+in session in an lower version, you wont know that the feature is different from 
+the lower catalog in the RTV, and certainly you wont have the correct behavior.
+</p>
+<p>Nevertheless two ideas:</p>
+<ul>
+	<li>You use the StartUp instance to retrieve attribute key, and then to valuate 
+	the newly feature&#39;s attributes.
+	<p>Follow the sections <a href="#Scenario105">Retrieving Feature&#39;s 
+	Attribute Value</a>/ <a href="#Scenario106">Modifying Feature 
+	Attribute Value</a></p>
+	</li>
+	<li>You use the StartUp instance to add/remove/modify attributes
+	<p>The proposal is to update your feature catalog to take into account the changes 
+	of the StartUp.</p>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scenario2"></a>Adding/Removing Feature&#39;s Attribute</h3>
+<p>It is the same issue to add/remove an attribute on a StartUp as for on an instance. 
+You can face same compatibility issues when reading data in a lower version.</p>
+<p>Keep in mind that adding / removing attributes on an instance is always dangerous. 
+Removing it is obvious, but adding too, since it you can lead to names conflict. 
+Imagine two concurrent codes adding the same attribute name.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scenario3"></a>Instantiating with a Name</h3>
+<p>The <em>Instanciate</em> method of the <em>CATOsmSUHandler</em> class enables 
+you to create a new feature with a name. But if you do that you loose the benefit 
+of the auto increment. The reading of the referenced article about feature naming 
+is strongly recommended [<a href="#References">6</a>] to understand the Feature 
+modeler&#39;s naming management capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scenario4"></a>Retrieving 
+Attribute Keys/Name Associated with a Feature</h3>
+<p>There is no replacement for the <code>CATISpecAttrAccess::ListAttrKeys</code> 
+and <code>ListAttrNames</code> methods. Only the owner of the StartUp can know the 
+attribute names, and he/she can find them in the OSM file associated with the CATfct 
+file defining StartUps.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scenario5"></a>Implementing Update (CATIOsmUpdate)</h3>
+<p>This interface has been removed from the CAA Exposition. With a well understanding 
+of the update&#39;s mechanism, as well the update behavior attribute management, you 
+can obtain the same result [<a href="#References">7</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scenario6"></a>Unset Value Removal 
+for Link Type Attribute</h3>
+<p>Whatever the type of the attribute, previously the &quot;Unset&quot; value was possible. 
+You could ask if the value was unset (<code>TestAttributeValue</code>), or unset 
+it (<code>UnsetAttributeValue</code>), with these two methods of <em>CATISpecAttrAccess</em>. 
+Now it is only possible for the primitive (and list of) type. For the link types 
+(tk_specobject, tk_component, tk_external, and list of ) the unset value is not 
+available.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Scenario100"></a>Main Basic Scenarios</h2>
+<p>In this chapter you will find the most common scenarios when working with Feature 
+modeler. Used in conjunction with the APIs per APIs Change article [<a href="#References">3</a>], 
+you are able to do your migration.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario101"></a>Feature Extension &amp; Resource 
+File</h3>
+<p>This section is the only one which does not deal with API. When you have created 
+the StartUp to extend a base feature, you also have provided a CATRcs file to give 
+the following information:</p>
+<pre class="code">
+ExtensionFeature.IsLocal=&quot;TRUE&quot;;
+ExtensionFeature.Extends=&quot;CAAOsmNovel&quot;;
+ExtensionFeature.Container=&quot;CAAFmExtApplication1&quot;;
+ExtensionFeature.ContType=&quot;CAAFmExtApplication1&quot;;
+ExtensionFeature.ContSuperType=&quot;CATFeatCont&quot;;...
+</pre>
+<p>You can keep this CATRsc file, but you can also update the CATfct file to integrate 
+inside the feature catalog these information. The new way, by metadata block, is 
+described in the referenced article [<a href="#References">14</a>].</p>
+<table class="fill">
+	<tr>
+		<th>CATRsc Keywords</th>
+		<th>OSM Keywords</th>
+	</tr>
+	<tr>
+		<td>IsLocal</td>
+		<td>IsLocal</td>
+	</tr>
+	<tr>
+		<td>Extends</td>
+		<td>Extends</td>
+	</tr>
+	<tr>
+		<td>Container</td>
+		<td>Container</td>
+	</tr>
+	<tr>
+		<td>ContType</td>
+		<td>ContType</td>
+	</tr>
+	<tr>
+		<td>ContSuperType</td>
+		<td>useless, since it could only be CATFeatCont</td>
+	</tr>
+</table>
+<p>If you upgrade the feature catalog [<a href="#References">4</a>] the new CATfct 
+file will automatically contain the metadata information, and your CATRsc file will 
+be useless.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario102"></a>Accessing a Feature</h3>
+<p>How to work with a feature ?</p>
+<p><strong>V5</strong></p>
+<p>The usual code is as follows:</p>
+<pre class="code">...
+CATBaseUnknown *pMyFeature= ... ;
+<strong>CATISpecObject</strong> * pSpecObjectOnMyFeat= NULL;
+pSpecObjectOnMyFeat-&gt;QueryInterface(IID_CATISpecObject,(void **) &amp; pSpecObjectOnMyFeat);
+...</pre>
+<p>and then you use methods of <em>CATISpecObject.</em></p>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade, and the CATFmCredentials</em> classes.</p>
+<pre class="code">...
+CATBaseUnknown *pMyFeature= &#8230; ;
+<strong>CATFmCredentials</strong> MyCredentials = ...;
+<strong>CATFmFeatureFacade</strong> MyFeatureFacade (MyCredentials, pMyFeature);  
+...</pre>
+<p>The <em>CATFmCredentials</em> class instance, <code>MyCredentials</code>, must 
+contain the required &quot;keys&quot; to work with a feature.</p>
+<pre class="code">...
+<strong>CATFmCredentials</strong> MyCredentials ;
+CATUnicodeString TheCatalogName (&quot;CatalogWhereisDefinedTheStartUpOfMyFeature&quot;);
+CATUnicodeString TheCatalogId (&quot;MyCatalogID&quot;);
+MyCredentials.<strong>RegisterAsCatalogOwner</strong>(TheCatalogName,TheCatalogId);  
+...</pre>
+<p>To be the owner of the feature catalog defining the StartUp of your feature grants 
+you to handle it. For more information see [<a href="#References">2</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario103"></a>Instantiating a StartUp</h3>
+<p><strong>V5</strong></p>
+<p>If you still use <em>CATICatalog</em> APIs, see the referenced article [<a href="#References">4</a>]. 
+Here we describe how to migrate when you are using <em>CATOsmSUHandler</em> class.</p>
+<pre class="code">...
+CATBaseUnknown    *piContainer = ... ;
+CATUnicodeString   catalogName(&quot;CAAOsmCatalogSU.CATfct&quot;);   
+CATUnicodeString   clientId(&quot;CAAOsmClientId&quot;);
+CATUnicodeString   novelSUType(&quot;CAAOsmNovel&quot;);
+<strong>CATOsmSUHandler</strong>    novelSUHandler(novelSUType, clientId , catalogName);
+CATISpecObject_var spNovelInst = NULL_var;
+rc = novelSUHandler.<strong>Instanciate</strong>(spNovelInst, piContainer, CATUnicodeString(&quot;CAAOsmNovel1&quot;));
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmStartUpFacade</em> class, the <em>CATFmFeatureFacade</em> 
+class, the <em>CATFmContainerFacade</em> class, and the <em>CATFmCredentials</em> 
+class.</p>
+<pre class="code">...
+<strong>CATFmStartupFacade</strong>   mySUFacade(MyCredentials,novelSUType);
+<strong>CATFmContainerFacade</strong> myContFacade (MyCredentials,piContainer);
+
+<strong>CATFmFeatureFacade</strong>   MyNewFeatFacade (MyCredentials) ;
+rc = mySUFacade.<strong>InstantiateIn</strong>(myContFacade, MyNewFeatFacade);
+...</pre>
+<p>The <code>InstantiateIn</code> method of the <em>CATFmFeatureFacade</em> class 
+creates a new instance, and returns it as the underlying object of an input <em>
+CATFmFeatureFacade,</em> <code>MyNewFeatFacade</code>. The <em>CATFmCredentials</em> 
+class instance <code>MyCredentials</code>, must contain the required authorizations:</p>
+<pre class="code">...
+<strong>CATFmCredentials</strong> MyCredentials ;
+MyCredentials.<strong>RegisterAsApplicationBasedOn</strong>(CATFmFeatureModelerID,PartnerId);  
+MyCredentials.<strong>RegisterAsCatalogOwner</strong>(catalogName,clientId);  
+...</pre>
+<p>To do an instantiation you need feature and container credentials [<a href="#References">2</a>] 
+.</p>
+<p><strong>Note</strong>: A new method <code>InstantiateUnder</code> has been introduced. 
+It enables you to merge two operations: instantiation and aggregation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario104"></a>Instantiating a Feature</h3>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeatToInstantiate= ... ;
+CATUnicodeString NexInstanceName(&quot;CAAOsmNovel1&quot;) ; 
+rc = pSpecObjectOnMyFeatToInstantiate.<strong>Instanciate</strong>(NexInstanceName);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmContainerFacade</em> 
+class, and the <em>CATFmCredentials</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeatToInstantiate (MyCredentials,pCBUOnMyFeatToInstantiate);
+<strong>CATFmContainerFacade</strong> myContFacade (MyCredentials,piContainer);
+
+<strong>CATFmFeatureFacade</strong>   MyNewFeatFacade (MyCredentials) ;
+FacadeOnMyFeatToInstantiate.<strong>InstantiateIn</strong>(myContFacade, MyNewFeatFacade);
+...</pre>
+<p>The <code>InstantiateIn</code> method of the <em>CATFmFeatureFacade</em> class 
+creates a new instance, and returns it as the underlying object of an input <em>
+CATFmFeatureFacade</em>, <code>MyNewFeatFacade</code>. The <em>CATFmCredentials</em> 
+class instance <code>MyCredentials</code> , must contain the required &quot;keys&quot; for 
+instantiation, see <a href="#Scenario103">Instantiating a StartUp</a> 
+section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario105"></a>Retrieving Feature&#39;s Attribute Value</h3>
+<p>This section explains how to retrieve a feature attribute. First for a single 
+value, and then for a list of.</p>
+<h4>For a single value</h4>
+<p><strong>V5</strong></p>
+<p>Suppose you are trying to access the &quot;x&quot; attribute of your feature.</p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+<strong>CATISpecAttrKey</strong> *piAttr = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;x&quot;);
+<strong>double</strong> result ;
+result = spAttrAccess-&gt;<strong>GetDouble</strong>(piAttr);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;x&quot;); ;
+<strong>CATFmAttributeValue</strong>  TheAttributeValue   ;
+
+FacadeOnMyFeat.<strong>SetValue</strong>(TheAttributeName, TheAttributeValue );
+double result =0.0;
+TheAttributeValue.<strong>GetDouble</strong>(result);
+...</pre>
+<p>The credentials instance plays a key role: you can only access the attributes 
+granted by the credentials. If you can access the attributes defined by your StartUp, 
+you cannot anymore access the attributes of the StartUp derived to create your own 
+StartUp, except if you are granted to work with this derived StartUp. [<a href="#References">2</a>]
+</p>
+<p>According to the type of the attribute you have an appropriate method on the
+<em>CATFmAttributeValue</em> class. Some are obvious, except these ones:</p>
+<ul>
+	<li>Octet is now called Byte. use GetByte instead GetOctet</li>
+	<li>SpecObject is now called Feature, use GetFeature instead GetSpecObject</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>For a list</h4>
+<p><strong>V5</strong></p>
+<p>Suppose you are trying to access the &quot;MyList&quot; attribute of your feature.</p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+<strong>CATISpecAttrKey</strong> *piAttr = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;MyList&quot;);
+int index= y;  // between 1 and size of the list
+int result = 0;
+result = spAttrAccess-&gt;<strong>GetInteger</strong>(piAttr, index);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;MyList&quot;); ;
+<strong>CATFmAttributeValue</strong>  TheAttributeValue  ;
+FacadeOnMyFeat.<strong>GetValueAtValue</strong>(TheAttributeName, index, TheAttributeValue);
+int result =0;
+TheAttributeValue.<strong>GetInteger</strong>(result);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario106"></a>Modifying Feature&#39;s Attribute Value</h3>
+<p>This section explains how to modify a feature attribute. First for a
+<a href="#Value">single value</a>, and then for a<a href="#List"> 
+list</a> of.</p>
+<h4><a name="Value"></a>For a single value</h4>
+<p><strong>V5</strong></p>
+<p>Suppose you are trying to modify the &quot;x&quot; attribute of your feature.</p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+<strong>CATISpecAttrKey</strong> *piAttr = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;x&quot;);
+spAttrAccess-&gt;<strong>SetDouble</strong>(piAttr, 230.);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;x&quot;); ;
+<strong>CATFmAttributeValue</strong>  TheAttributeValue   ;
+TheAttributeValue.<strong>SetDouble</strong>(230.);
+FacadeOnMyFeat.<strong>SetValue</strong>(TheAttributeName, TheAttributeValue );
+...</pre>
+<p>The credentials instance plays a key role: you can only access the attributes 
+granted by the credentials. If you can access the attributes defined by your StartUp, 
+you cannot anymore access the attributes of the StartUp derived to create your own 
+StartUp, except if you are granted to work with this derived StartUp. [<a href="#References">2</a>]
+</p>
+<p>According to the type of the attribute you have an appropriate method on the
+<em>CATFmAttributeValue</em> class. Some are obvious, except these ones:</p>
+<ul>
+	<li>Octet is now called Byte. hence use SetByte instead SetOctet.</li>
+	<li>SpecObject is now called Feature, hence use SetFeature instead SetSpecObject</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="List"></a>For a list</h4>
+<p><strong>V5</strong></p>
+<p>Suppose you are trying to modify the &quot;MyList&quot; attribute of your feature.</p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+<strong>CATISpecAttrKey</strong> *piAttr = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;MyList&quot;);
+int index= y;  // 0 or between 1 and size of the list
+spAttrAccess-&gt;<strong>SetInteger</strong>(piAttr, 230, index);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;MyList&quot;); ;
+<strong>CATFmAttributeValue</strong>  TheAttributeValue (230)  ;
+...</pre>
+<p>Then, if index is not equal to 0, it is a replacement:</p>
+<pre class="code">...
+FacadeOnMyFeat.<strong>ReplaceValueAtIndex</strong>(TheAttributeName, index, TheAttributeValue);
+...</pre>
+<p>Otherwise, it is an append at the end of the list:</p>
+<pre class="code">...
+FacadeOnMyFeat.<strong>AppendValue</strong>(TheAttributeName, TheAttributeValue);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario107"></a>Removing Elements</h3>
+<h4><a name="CATISpecAttrAccess::RemovePosition"></a>CATISpecAttrAccess::RemovePosition</h4>
+<p>This method only works for list, and its behavior according to the type of the 
+list is:</p>
+<ul>
+	<li>tk_external and tk_specobject : shrink (*) from 1 the list without deleting 
+	the pointed object</li>
+	<li>tk_component: shrink<em> (*)</em> from 1 the list, and deletes the aggregated 
+	object</li>
+	<li>primitive type (int/boolean/double...): Shrink from 1 the list</li>
+</ul>
+<p>(*) The shrink is done if the array mode of the attribute is &quot;off&quot; [<a href="#References">10</a>] 
+, it should be your case. If no shrink, the value is replaced by a NULL value.</p>
+<p>This method is replaced by <code>RemovePosition</code> of <em>CATFmFeatureFacade</em>.
+</p>
+<p>The first difference of behavior between then and now is the &quot;unset&quot; management. 
+Now, a feature, or a list of feature, cannot be unset. So now, the modified attribute 
+is not set to unset. The second is, as usual, the access right (credential). You 
+must be owner of the feature (owner of its StartUp) to modify its contents. The 
+third, and huge, difference is that you must know the name of the attribute where 
+the feature must be detached.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+...
+<strong>CATISpecAttrKey</strong> *piAttributeKey = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;MyList&quot;);
+spAttrAccess-&gt;<strong>RemovePosition</strong>(piAttributeKey ,index);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;MyList&quot;); ;
+
+FacadeOnMyFeat.<strong>RemovePosition</strong>(TheAttributeName, index);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="CATISpecAttrAccess::RemoveSpecObject"></a>CATISpecAttrAccess::RemoveSpecObject</h4>
+<p>This method can work with a list of tk_specobject or a tk_specobject. For a list, 
+its behavior is exactly like <em>CATISpecAttrAccess::</em><code>RemovePosition.
+</code>The feature to remove is never deleted.</p>
+<p>This method is replaced by <code>RemovePosition</code> of <em>CATFmFeatureFacade</em> 
+(for a list), and <code>SetValue</code> otherwise.</p>
+<p>The first difference of behavior between then and now is the &quot;unset&quot; management. 
+Now, a feature, or a list of feature, cannot be unset. So now, the modified attribute 
+is not set to unset. The second is, as usual, the access right (credential). You 
+must be owner of the feature (owner of its StartUp) to modify its contents.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+<strong>CATISpecAttrKey</strong> *piAttributeKey = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;AttributeName&quot;);
+CATISpecObject *pTheFeatureToRemove = ... ;
+spAttrAccess-&gt;<strong>RemoveSpecObject</strong>(piAttributeKey ,pTheFeatureToRemove);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;AttributeName&quot;); 
+...
+</pre>
+<p>When <code>AttributeName</code> is a list</p>
+<pre class="code">...
+C<strong>ATFmAttributeValue</strong>   ValueOnMyFeatureToRemove ;
+ValueOnMyFeatureToRemove-&gt;<strong>SetFeature</strong>(pTheFeatureToRemove);
+
+int PosFeature = 0;
+FacadeOnMyFeat.<strong>LocateValue</strong>(TheAttributeName,ValueOnMyFeatureToRemove,<strong>PosFeature</strong>)
+FacadeOnMyFeat.<strong>RemovePosition</strong>(TheAttributeName, <strong>PosFeature</strong>);
+...</pre>
+<p>When <code>AttributeName</code> is not a list</p>
+<pre class="code">...
+FacadeOnMyFeat.<strong>SetValue</strong>(TheAttributeName, <strong>CATFmAttributeValule().SetFeature(NULL)</strong>);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="CATISpecAttrAccess:RemoveAll"></a>CATISpecAttrAccess:RemoveAll</h4>
+<p>This method remove all elements of a list. When it is a list of component, component 
+are deleted.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+<strong>CATISpecAttrAccess_var</strong> spAttrAccess = pSpecObjectOnMyFeat ;
+...
+<strong>CATISpecAttrKey</strong> *piAttributeKey = spAttrAccess-&gt;<strong>GetAttrKey</strong>(&quot;MyList&quot;);
+spAttrAccess-&gt;<strong>RemoveAll</strong>(piAttributeKey);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;MyListOfSpecs&quot;); ;
+CATFmAttributeValue EmptyList = CATFmAttributeValue::<strong>CreateEmptyList</strong>(<em>typelist</em>);
+FacadeOnMyFeat.<strong>SetValue</strong>(TheAttributeName, EmptyList);
+...</pre>
+<p>you must know the type of the list to create the empty list. The information 
+can be retrieved in the OSM file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><strong><a name="CATISpecObject::RemoveComponent"></a>CATISpecObject::RemoveComponent</strong></h4>
+<p>First, some information about this method.</p>
+<ul>
+	<li>This method only works for tk_component.</li>
+	<li>The aggregated feature is not deleted.</li>
+	<li>If the attribute is a single tk_component ( not a list), the attribute value 
+	is set to NULL, and the attribute is set &quot;unset&quot;.</li>
+	<li>If the attribute is a list of tk_component, a locate is done, and according 
+	to the array mode,
+	<ul>
+		<li>&quot;Off&quot;: The list is reduced from 1 . The attribute becomes &quot;unset&quot; , 
+		if the list becomes empty.</li>
+		<li>&quot;On&quot;: The index value is set to NULL.</li>
+	</ul>
+	</li>
+</ul>
+<p>Array mode &quot;On&quot; is when you have the #array facet on the StartUp [<a href="#References">10</a>]. 
+It was not exposed, but check your OSM file.</p>
+<p>This method is replaced by the <code>DetachComponent</code> of the <em>CATFmFeatureFacade</em>, 
+you have the migration path details further.</p>
+<p>The first difference of behavior between then and now is the &quot;unset&quot; management. 
+Now, a feature, or a list of feature, cannot be unset. So now, the modified attribute 
+is not set to unset. The second is, as usual, the access right (credential). You 
+must be owner of the feature (owner of its StartUp) to modify its contents. The 
+third, and huge, difference is that you must know the name of the attribute where 
+the feature must be detached.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+CATISpecObject * pSpecObjectOnChild= ... ;
+pSpecObjectOnMyFeat-&gt;<strong>RemoveComponent</strong>(pSpecObjectOnChild);
+...</pre>
+<p><strong>V6</strong></p>
+<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+class, and the <em>CATFmAttributeValue</em> class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong> TheAttributeName<strong>(&quot;</strong>AttributeName&quot;); ;
+...</pre>
+<p>The change is that you must know the name of the attribute. CATISpecObject::<code>RemoveComponent</code>, 
+doing the locate, retrieved the attribute name.</p>
+<p>When <code>AttributeName</code> is a list:</p>
+<pre class="code">...
+<strong>CATFmAttributeValue</strong>   ValueOnChildToRemove ;
+ValueOnChildToRemove -&gt;<strong>SetFeature</strong>(pSpecObjectOnChild);  // the feature to detach is a the value of a CATFmAttributeValue
+
+int PosFeature = 0;
+FacadeOnMyFeat.<strong>LocateValue</strong>(TheAttributeName,ValueOnChildToRemove ,<strong>PosFeature</strong>) // we locate the feature in the list 
+FacadeOnMyFeat.<strong>DetachComponent</strong>(TheAttributeName, <strong>PosFeature</strong>);
+...</pre>
+<p>When <code>AttributeName</code> is not a list:</p>
+<pre class="code">...
+FacadeOnMyFeat.<strong>DetachComponent</strong>(TheAttributeName, <strong>1</strong>);
+...</pre>
+<p>Set 1 as index value when the attribute is not a list.<strong><a name="CATISpecObject::Remove"></a></strong></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><strong>CATISpecObject::Remove</strong></h4>
+<p>First, some information about this method.</p>
+<ul>
+	<li>This method only works for tk_component.</li>
+	<li>The aggregated feature is deleted.</li>
+	<li>If the attribute is a single tk_component (not a list), the attribute value 
+	is set to NULL, and the attribute is set &quot;unset&quot;.</li>
+	<li>If the attribute is a list of tk_component, a locate is done, and according 
+	to the array mode,
+	<ul>
+		<li>&quot;Off&quot;: The list is reduced from 1 . The attribute becomes &quot;unset&quot; , 
+		if the list becomes empty.</li>
+		<li>&quot;On&quot;: The index value is set to NULL.</li>
+	</ul>
+	</li>
+</ul>
+<p>Array mode &quot;On&quot; is when you have the #array facet on the StartUp [<a href="#References">10</a>]. 
+It was not exposed, but check your OSM file.</p>
+<p>This method can be replaced by several means according the context as detailed 
+just hereafter.</p>
+<p>The first difference of behavior between then and now is the &quot;unset&quot; management. 
+Now, a feature, or a list of feature, cannot be unset. So now, the modified attribute 
+is not set to unset. The second is, as usual, the access right (credential). You 
+must be owner of the feature (owner of its StartUp) to modify its contents. The 
+third difference is that you must know the name of the attribute where the feature 
+must be detach.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+CATBaseUnknown * pCBUOnChild= ... ;
+pSpecObjectOnMyFeat-&gt;<strong>Remove</strong>(pCBUOnChild);
+...</pre>
+<p><strong>V6</strong></p>
+<p>We propose two solutions according to your access right on the feature to remove 
+(the child)</p>
+<ul>
+	<li>You are owner of the StartUp defining the child feature<pre class="code">...
+<strong>CATFmFeatureFacade</strong> FacadeOnChild (MyCredentials,pCBUOnChild);
+pCBUOnChild-&gt;<strong>DeleteSelf</strong>()
+...</pre>
+	<p><code>MyCredentials</code> must contain the right to access the catalog defining 
+	the child feature. The feature aggregating the child (<code>pSpecObjectOnMyFeat</code>), 
+	will be automatically updated.</p>
+	</li>
+	<li>You are just owner of the feature on which you want to remove a feature
+	<p>You have to use the <em>CATFmFeatureFacade</em> class, the <em>CATFmAttributeName</em> 
+	class, and the <em>CATFmAttributeValue</em> class.</p>
+	<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong> TheAttributeName<strong>(&quot;</strong>AttributeName&quot;); ;
+...</pre>
+	<p>The change is that you must know the name attribute name. CATISpecObject::<code>Remove</code>, 
+	doing the locate, retrieved the attribute name.</p>
+	<p>When <code>AttributeName</code> is a list:</p>
+	<pre class="code">...
+<strong>CATFmAttributeValue</strong>   ValueOnChildToRemove ;
+ValueOnChildToRemove -&gt;<strong>SetFeature</strong>(pCBUOnChild);  // the feature to detach is a the value of a CATFmAttributeValue
+
+int PosFeature = 0;
+FacadeOnMyFeat.<strong>LocateValue</strong>(TheAttributeName,ValueOnChildToRemove,<strong>PosFeature</strong>) // we locate the feature in the list 
+FacadeOnMyFeat.<strong>RemovePosition</strong>(TheAttributeName,<strong> PosFeature</strong>);  // set NULL or collapse the list
+...</pre>
+	<p>When <code>AttributeName</code>is not a list:</p>
+	<pre class="code">...
+FacadeOnMyFeat.<strong>SetValue</strong>(TheAttributeName, <strong>CATFmAttributeValule().SetFeature(NULL)</strong>);
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario108"></a>Deleting a Feature</h3>
+<p>The purpose is to delete a feature.</p>
+<p><strong>V5</strong></p>
+<p>The method is LifeCycleObject::Remove .</p>
+<pre class="code">...
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+LifeCycleObject_var LCObjectOnMyFeat = pSpecObjectOnMyFeat ;
+LCObjectOnMyFeat -&gt;<strong>Remove</strong>();
+...</pre>
+<p><strong>V6</strong></p>
+<p>There are two cases to consider : you are the owner of the feature, or not. In 
+the first case you can use the <code>DeleteSelf</code> method<em> CATFmFeatureFacade.</em> 
+In the second case, you only have the <code>Delete</code> method of the DataCommonProtocolServices 
+class (DataCommonProtocolUse fw).</p>
+<p>First case:</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+FacadeOnMyFeat.<strong>DeleteSelf</strong>()
+...</pre>
+<p>Second case</p>
+<pre class="code">...
+CATIUseEntity *pEntityOnMyFeat = NULL;
+pSpecObjectOnMyFeat-&gt;QueryInterface(IID_CATIUseEntity, (void**)&amp; pEntityOnMyFeat );
+<strong>DataCommonProtocolServices::Delete</strong>(pEntityOnMyFeat);
+...</pre>
+<p>But, the feature must implement <em>CATIUseEntity</em> [<a href="#References">5</a>];
+</p>
+<p>For your own feature, if you have implemented the delete protocol [<a href="#References">5</a>], 
+using <code>DeleteSelf</code> or DataCommonProtocolServices::<code>Delete</code> 
+can be slightly different. The first one does not call a CanDelete method as does 
+DataCommonProtocolServices::<code>Delete.</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Scenario109"></a>Retrieving Applicative 
+Container Contents</h3>
+<p>There is a lot of APIs scanning a container. Some are modeler/application dependent: 
+refer to their migration document. In this case, we are explaining how to replace 
+the code <code>ListMembers</code> method of the <em>CATIClientContainer</em>, and 
+beyond the <code>ListMemberHere</code> method of <em>CATIContainer</em>.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATIContainer * pOnMyCont= ... ;
+<strong>CATIClientContainer</strong> *pClientCont = NULL ;
+pClientCont-&gt;QueryInterface(IID_CATIClientContainer,(void**) &amp; pClientCont );
+CATUnicodeString ClientCatalogId (&quot;MyCatalogId&quot;);
+CATListPtrCATBaseUnknown *pListOfFeature = new CATListPtrCATBaseUnknown ();
+pClientCont -&gt;<strong>ListMembers</strong>(IID_MyInterface,ClientCatalogId ,ListOfFeature);
+...
+</pre>
+<p>The <code>ListMemberHere</code> of <em>CATIContainer</em> is without check on 
+the clientId.</p>
+<p><strong>V6</strong></p>
+<p>The new APIs are the <em>CATFmContainerFacade</em> class, the <em>CATFmFeatureIterator</em> 
+class, the <em>CATFmFeatureFacade</em>, and the <em>CATFmCredentials</em> class.</p>
+<pre class="code">...
+<strong>CATFmContainerFacade</strong> FacadeOnMyCont(MyCredendials,pCBUOnMyCont);
+<strong>CATFmFeatureIterator</strong> MyIterator ;
+FacadeOnMyCont-&gt;<strong>ScanFeatures</strong>(MyIterator);
+...
+</pre>
+<p>The <code>ScanFeatures</code> method only retrieves the features granted by
+<code>MyCredendials</code>. So, within a container, you can only retrieve your features.[<a href="#References">2</a>]</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong> FacadeOnRetrievedFeature(MyCredendials);
+while (SUCCEEDED(MyIterator-&gt;<strong>Next</strong>(FacadeOnRetrievedFeature)) )
+{
+    ....
+    CATIMyInterface *pInterface = NULL ;
+    if SUCCEEDED (FacadeOnRetrievedFeature&gt;<strong>QueryInterfaceOnFeature</strong>(IID_MyInterface,(void**)&amp;pInterface))
+    {
+       // here the filter is done
+    }
+}
+...
+</pre>
+<p>The scan is done through the <em>CATFmFeatureIterator</em> class. The <code>Next</code> 
+method being without filtering, you have to do the interface&#39;s filter by yourself.</p>
+<p><strong>Note</strong> : A new method has been created, <code>ScanRootFeatures.
+</code>This method only retrieves the feature which are not aggregated.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Extension1"></a>Managing Feature Extension</h3>
+<p>The basic scenarios are : adding, removing , retrieving an extension on a base 
+feature. The concepts themselves have not changed. What has changed is the credentials. 
+As usual, a reading of the Understanding Credentials article is strongly recommended 
+[<a href="#References">2</a>]. In few words the credentials rules are:</p>
+<ul>
+	<li><strong><a href="#AdditionExt">Addition</a></strong>: If you are owner 
+	of the extension to add, you can add it at any kind feature</li>
+	<li><strong><a href="#RemovalExt">Removal</a></strong>: If you are owner of 
+	the base feature, you can remove its extension; if you are owner of an extension, 
+	you can remove it from any kind feature.</li>
+	<li><strong><a href="#RetrievalExt">Retrieval</a></strong>: if you are owner 
+	of the base feature, you can retrieve all its extension, otherwise you can only 
+	retrieve your extensions.</li>
+</ul>
+<p>Let us present the change in term of APIs. The <em>CATIOsmExtendable</em> interface, 
+an interface only implemented by the base features, is replaced by methods of the
+<em>CATFmFeatureFacade</em>, the <em>CATFmFeatureIterator</em>, and the <em>CATFmCredentials</em> 
+classes.</p>
+<h4><a name="AdditionExt"></a>Addition</h4>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;
+pMyFeatBase-&gt;<strong>AddExtension</strong>(&quot;MyExtensionName&quot;,FacadeOnMyExt);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);
+CATFmFeatureFacade FacadeonMyFeatExt(MyCredentials);
+
+FacadeonMyFeatBase.<strong>AddExtension</strong>(&quot;MyExtensionName&quot;,FacadeonMyFeatExt);
+...
+</pre>
+<p>You first create a facade bound to the base feature, then you use <code>AddExtension</code> 
+method. You can use the method <code>QueryInterfaceOnFeature</code> to get any interface 
+pointer on the newly created extension:</p>
+<pre class="code">...
+CATIXXX *pXXXOnNexExtention = NULL ;
+FacadeonMyFeatExt-&gt;<strong>QueryInterfaceOnFeature</strong>(IID_CATIXXX,(void **)&amp; pXXXOnNexExtention);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="RemovalExt"></a>Removal</h4>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;
+CATIOsmExtension *pOsmExt= ...  ;
+pMyFeatBase-&gt;<strong>RemoveExtension</strong>(pOsmExt);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);
+CATFmFeatureFacade FacadeonMyFeatToRemove(MyCredentials,pCBUOnExtToRemove);
+...
+FacadeonMyFeatBase.<strong>RemoveExtension</strong>(FacadeonMyFeatToRemove);
+...
+</pre>
+<p>You first create a facade bound to the base feature and the extension to remove, 
+and then you use the <code>RemoveExtension</code> method.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+pMyFeatBase-&gt;<strong>RemoveExtension</strong>(&quot;MyExtensionName&quot;);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);
+...
+CATFmFeatureFacade FacadeonMyFeatExtToRemove(MyCredentials,FacadeonMyFeatExtToRemove);
+FacadeonMyFeatBase.<strong>GetExtension</strong>(MyExtensionName&quot;,FacadeonMyFeatExtToRemove);
+...
+FacadeonMyFeatBase.<strong>RemoveExtension</strong>(FacadeonMyFeatExtToRemove);
+...
+</pre>
+<p>You first create a facade bound to the base feature, then you retrieve a facade 
+on the extension, and finally you remove it using the <code>RemoveExtension</code> 
+method as the first case.</p>
+<p><strong>V5</strong></p>
+<p>This method removes all the extension of the base feature located in the input 
+container</p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+pMyFeatBase-&gt;<strong>RemoveApplicativeExtensions</strong>(&quot;ContainerName&quot;);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);
+<strong>CATFmFeatureIterator</strong> ExtIterator ; 
+...
+FacadeonMyFeatBase.<strong>ScanExtensionsInContainer</strong>(&quot;ContainerName&quot;,ExtIterator);
+CATFmFeatureFacade FacadeOnFeatureToDelete ; // credential are useless if you are owner of the base feature
+while ( SUCCEEDED (ExtIterator.Next(FacadeOnFeatureToDelete)) )
+{
+   FacadeonMyFeatBase.<strong>RemoveExtension</strong>(FacadeOnFeatureToDelete); 
+}
+...
+
+</pre>
+<p>You first create a facade bound to the base feature, then you retrieve all extensions 
+of the base feature in the input container, and you remove then as usual with the
+<code>RemoveExtension</code> method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="RetrievalExt"></a>Retrieval</h4>
+<p><strong>V5</strong></p>
+<p>This method retrieves an extension by its name on a base feature.</p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+<strong>MyInterface</strong> *MyFeatExt = NULL ;
+pMyFeatBase-&gt;<strong>QueryExtension</strong>(&quot;MyExtensionName&quot;,IID_MyInterface,(void**)&amp; MyFeatExt );
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);
+CATFmFeatureFacade FacadeonMyFeatExt; // no credential are expected, since you will use QueryInterfaceOnFeature hereafter
+...
+FacadeonMyFeatBase.<strong>GetExtension</strong>(MyExtensionName&quot;,FacadeonMyFeatExt);
+...
+MyInterface *MyFeatExt = NULL ;
+FacadeonMyFeatExt-&gt;<strong>QueryInterfaceOnFeature</strong>(IID_MyInterface,(void **)&amp; MyFeatExt);
+...
+</pre>
+<p><strong>V5</strong></p>
+<p>This method retrieves the first extension in the input container implementing 
+a given interface.</p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+<strong>MyInterface</strong> *MyFeatExt = NULL ;
+pMyFeatBase-&gt;<strong>QueryApplicativeExtension</strong>(&quot;ContainerName&quot;,IID_MyInterface,(void**) &amp; MyFeatExt);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);	
+<strong>CATFmFeatureIterator</strong> ExtIterator ; 
+FacadeonMyFeatBase.<strong>ScanExtensionsInContainer</strong>(&quot;ContainerName&quot;,ExtIterator);
+CATFmFeatureFacade FacadeOnFeatureToRetrieve ; 
+CATBoolean Found = FALSE ;
+while ( SUCCEEDED (ExtIterator.Next(FacadeOnFeatureToRetrieve)) &amp;&amp; (FALSE == Found) )
+{
+    MyInterface *MyFeatExt = NULL ;
+    FacadeOnFeatureToRetrieve-&gt;<strong>QueryInterfaceOnFeature</strong>(IID_MyInterface,(void **)&amp; MyFeatExt);
+    if ( NULL != MyFeatExt ) Found = TRUE ;
+}
+...
+</pre>
+<p><strong>V5</strong></p>
+<p>This method retrieves all the extensions of the base feature implementing a given 
+interface.</p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+<strong>CATListPtrCATBaseUnknown</strong> *ListExtension= NULL ;
+pMyFeatBase-&gt;<strong>QueryAllExtensions</strong>(IID_MyInterface,&amp;ListExtension);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);	
+<strong>CATFmFeatureIterator</strong> ExtIterator ; 
+...
+CATListPtrCATBaseUnknown  *ListExtension= NULL ;
+FacadeonMyFeatBase.<strong>ScanExtensions</strong>(ExtIterator);
+CATFmFeatureFacade FacadeonMyFeatExt ; 
+while ( SUCCEEDED (ExtIterator.Next(FacadeonMyFeatExt)) )
+{
+    CATBaseUnknown *pCBUOnMyFeatExt = NULL ;
+    FacadeonMyFeatExt-&gt;<strong>QueryInterfaceOnFeature</strong>(IID_CATBaseUnknown,(void **)&amp; pCBUOnMyFeatExt );
+    if ( NULL != pCBUOnMyFeatExt ) ListExtension-&gt;<strong>Append</strong>(pCBUOnMyFeatExt);
+}
+...
+</pre>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATIOsmExtendable *pMyFeatBase = ... ;	
+<strong>CATListOfCATUnicodeString</strong> ListExtension;
+pMyFeatBase-&gt;ListExtensions(ListExtension);
+...
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeatBase(MyCredentials, pCBUOnMyFeatBase);	
+<strong>CATFmFeatureIterator</strong> ExtIterator ; 
+...
+<strong>CATListOfCATUnicodeString</strong> ListExtension ;
+FacadeonMyFeatBase.<strong>ScanExtensions</strong>(ExtIterator);
+CATFmFeatureFacade FacadeFeatureExt(MyCredentials) ; // here you must have the right to access each extension
+while ( SUCCEEDED (ExtIterator.Next(FacadeFeatureExt)) )
+{
+    CATString IdExtension ;
+    rc = FacadeonMyFeatExt-&gt;GetExtensionId(IdExtension); // this method will fail if MyCredentials does not give access to the extension
+    
+    if ( SUCCEEDED(rc) ) {
+       CATUnicodeString IdExtensionAsUnicodeString = IdExtension ;
+       ListExtension-&gt;<strong>Append</strong>(IdExtensionAsUnicodeString);
+    }
+}
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Extension2"></a>Retrieving Uuid</h4>
+<p>The <code>GetExtensionIdentifier</code> method of the <em>CATOsmExtensionServices</em> 
+class is replaced by the <code>GetExtensionUuid</code> method of the <em>CATFmFeatureFacade</em> 
+class.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATOsmExtensionServices<strong>::GetExtensionIdentifier</strong>(pExtension,ExtUuid,&quot;ClientId&quot;)
+...
+</pre>
+<p><strong>V6</strong></p>
+<p>The new APIs are the <em>CATFmFeatureFacade</em>, and the <em>CATFmCredentials</em> 
+class.</p>
+<pre class="code">...
+CATFmCredentials MyCredentials;
+MyCredentials.RegisterAsCatalogOwner(ClientId);
+<strong>CATFmFeatureFacade</strong> FacadeonMyFeatExt(MyCredentials,pExtension); 
+...
+FacadeonMyFeatExt.<strong>GetExtensionUuid</strong>(ExtUuid)
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Base"></a>Retrieving Base Feature from a Feature Extension</h3>
+<p>Now, we are on an extension.</p>
+<p><strong>V5</strong></p>
+<p>An extension implements the <em>CATIOsmExtension</em> interface.</p>
+<pre class="code">...
+<strong>CATIOsmExtension</strong> *pMyFeatExt= ... ;
+MyInterface *pBaseFeat = NULL;
+pMyFeatExt-&gt;<strong>QueryBaseObject</strong>(IID_MyInterface,(void**) &amp;pBaseFeat);
+...
+</pre>
+<p><strong>V6</strong></p>
+<p>The new APIs are the <em>CATFmFeatureFacade</em>, and the <em>CATFmCredentials</em> 
+class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong> FacadeonMyFeatExt(MyCredentials,pCBUOnMyFeatExt);
+...
+CATFmFeatureFacade FacadeonMyFeatBase;
+FacadeonMyFeatExt.<strong>GetBaseFeature</strong>(FacadeonMyFeatBase)
+...
+</pre>
+<p>The credential to retrieve the base feature of an extension, is to be owner of 
+the catalog defining the extension StartUp.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="StartUp"></a>Implementing Behavior on StartUp 
+(CATIBuild/LifeCycleObject/CATICutAndPastable/CATIReplace)</h3>
+<p>These interfaces implemented on the late type of your feature are replaced by 
+new interface, still implemented on the same late type.</p>
+<h4><a name="CATIBuild"></a>CATIBuild</h4>
+<p>The new interface is <em>CATIFmFeatureBehaviorCustomization</em>; The contents 
+of the <code>Build</code> method is similar for the <em>CATIBuild</em> and the
+<em>CATIFmFeatureBehaviorCustomization</em> interface. You have just to adapt the 
+contents of the new interface to be compatible with the new APIs when you handle 
+feature attributes.</p>
+<h4><a name="LifeCycleObject"></a>LifeCycleObject</h4>
+<p>If you use this interface to call the deletion of a feature, read the article 
+about the Feature Life cycle. Usually you have to use the <code>Delete</code> method 
+of the DataCommonProtocolServices class. But if your code is an implementation of 
+the interface, let us introduce the new interface<em>, CATIFmFeatureBehaviorCustomization.
+</em>The contents of its <code>BeforeRemove</code> method will be almost similar 
+with <code>OnRemove</code> of the<em> LifeCycleObject</em> interface. The difference 
+are:</p>
+<ul>
+	<li>Adapt the contents to be compatible with the new APIs when you handle feature&#39;s 
+	attributes</li>
+	<li>Do not call CATSpecLifeCycleObjectExt::remove(forCloseContext) at the end 
+	of the implementation, now it is useless.</li>
+</ul>
+<p>The <code>forCloseContext</code> argument was useless, so it does not appear 
+in the new APIs.</p>
+<h4><a name="CATIReplace"></a>CATIReplace</h4>
+<p>This interface is still exposed, but its adaptor <em>CATSpecReplaceExt</em> is 
+removed. In Mechanical modeler adoption you will find detail about a new and dedicated 
+adapter.</p>
+<h4><a name="CATICutAndPastable"></a>CATICutAndPastable</h4>
+<p>If you use this interface to do a CCP operation, use the <em>DataCommonProtocolCCPServices</em> 
+class. If your code is an implementation of this interface, the new interface is
+<em>CATIFmFeatureBehaviorCustomization</em>. This array gives the migration method 
+by method:</p>
+<table class="fill">
+	<tr>
+		<th>CATICutAndPastable</th>
+		<th>Migration path</th>
+	</tr>
+	<tr>
+		<td>ListExtractFormats</td>
+		<td>It was useless for implementation on feature</td>
+	</tr>
+	<tr>
+		<td><strong>BoundaryExtract</strong></td>
+		<td>CATIFmFeatureBehaviorCustomization::CcpRegisterAdditionalObjectsForCopy</td>
+	</tr>
+	<tr>
+		<td>Extract</td>
+		<td>It was useless for implementation on feature</td>
+	</tr>
+	<tr>
+		<td>ListPasteFormats</td>
+		<td>It was useless for implementation on feature</td>
+	</tr>
+	<tr>
+		<td><strong>Paste</strong></td>
+		<td>CATIFmFeatureBehaviorCustomization::CcpPaste</td>
+	</tr>
+	<tr>
+		<td>Create</td>
+		<td>It was extremelly dangerous to implement it on a feature.</td>
+	</tr>
+	<tr>
+		<td><strong>Update</strong></td>
+		<td>CATIFmFeatureBehaviorCustomization::CcpUpdate</td>
+	</tr>
+	<tr>
+		<td>ListRemoveFormats</td>
+		<td>It was useless for implementation on feature</td>
+	</tr>
+	<tr>
+		<td><strong>BoundaryRemove</strong></td>
+		<td>CATIFmFeatureBehaviorCustomization::CcpRegisterAdditionalObjectsForRemove</td>
+	</tr>
+	<tr>
+		<td>Remove</td>
+		<td>CATIFmFeatureBehaviorCustomization::BeforeRemove</td>
+	</tr>
+</table>
+<p>When a replacement method exists, adapt the contents to be compatible with the 
+new APIs when you handle feature&#39;s attributes.</p>
+<p>But we advise the reader to study the article about the CCP Customization [<a href="#References">8</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Retrieving"></a>Retrieving Pointing Object</h4>
+<p>The <code>ListPointing</code> method of <em>CATISpecObject</em> is replaced by
+<code>ScanPointingFeatures</code> <em>CATFmFeatureFacade</em>. Instead to retrieve 
+a list of <em>CATSpecPointing</em>, <code>ScanPointingFeatures</code> returns an 
+iterator, a <em>CATFmPointingFeatureIterator</em> instance class.</p>
+<ul>
+	<li>CATSpecPointing::<code>GetAccess</code> is replaced by CATFmPointingFeatureIterator::<code>Next</code></li>
+	<li>CATSpecPointing::<code>GetKey</code> is replaced by CATFmPointingFeatureIterator::<code>GetCurrentPointingAttributeName</code></li>
+</ul>
+<p><strong>Attention</strong>: <code>ListPointing</code> only returns the features 
+pointing this. <code>ScanPointingFeatures</code> returns the features and the external 
+objects ( the features pointing this from another stream). The referenced use case 
+explains in details what does <code>ScanPointingFeatures</code> do [<a href="#References">9</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Dummy"></a>API per API</h2>
+<p>In this section you will find an explanation API per APIs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Dummy-CATISpecObject"></a>CATISpecObject</h3>
+<p>There are two major changes about this interface: you cannot get the information 
+from a feature if you are not granted to access it, and you cannot handle StartUp 
+anymore.</p>
+<h4>SymbolIsLoaded</h4>
+<p>This method enables you to know if the Reference , the parent (owner) , or the 
+StartUp of the current feature are loaded in session.</p>
+<ul>
+	<li>For the Reference, call GetReference method of <em>CATFmFeatureFacade</em> 
+	. If the reference is not loaded, the HRESULT value will be <code>E_FMNOTLOADED</code></li>
+	<li>For the Parent, call GetParent method of <em>CATFmFeatureFacade</em> . If 
+	the parent is not loaded, the HRESULT value will be <code>E_FMNOTLOADED</code></li>
+	<li>For the StartUp, if you succeeded to create a credential, the answer is 
+	always TRUE</li>
+</ul>
+<h4>SymbolIsExternal</h4>
+<p>This method enables you to know if the Reference, the parent (owner) , or the 
+StartUp of the current feature is inside another stream as one of the current feature.</p>
+<ul>
+	<li>For the Reference, or the Parent, in V6 the answer can only be &quot;FALSE&quot;.
+	</li>
+	<li>For the Startup, usually the answer is &quot;TRUE&quot;, except if the feature is 
+	an instance defined in the CATfct.</li>
+</ul>
+<h4>GetName</h4>
+<p>This method has been removed for IP protection reason.</p>
+<h4>SetDisplayName</h4>
+<p>This method can be replaced by <code>SetAlias</code> of <em>CATIAlias</em>.</p>
+<h4>GetSuperType/IsSubTypeOf</h4>
+<p>These method has been removed for IP protection reason. For your feature you 
+have this information in the OSM file.</p>
+<h4>GetTimeStamp/GetUpdateStamp/IsOlderThan</h4>
+<p>These methods are useless.</p>
+<h4><a name="Synchronize"></a>Synchronize / IsSynchronize</h4>
+<p>The equivalent methods <code>(Synchronize/IsSynchonize</code> of <em>CATFmFeatureFacade</em> 
+) only work to synchronize the aggregated features [<a href="#References">11</a>]. 
+The synchonization of attribute whose the behavior is Sp_in, and not a component, 
+is still not possible.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>ListComponent</h4>
+<p>For your own feature, you know their component attributes (through OSM definition), 
+so you can replace this call by as many call to GetValue as component attribute.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecObject *pSpecObjectOnMyFeat = ... ;
+CATListValCATISpecObject_var ListComp = pSpecObjectOnMyFeat-&gt;<strong>ListComponent</strong>();
+...
+</pre>
+<p><strong>V6</strong></p>
+<p>The new APIs are the <em>CATFmFeatureFacade</em>, and the <em>CATFmCredentials</em> 
+class.</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong> FacadeonMyFeat(MyCredentials,pCBUOnMyFeat ); 
+...
+CATListValOfCATBaseUnknown_var ListComp ;
+CATFmAttributeName Name1 (&quot;AttributeComponentName1&quot;);
+CATFmAttributeValue Value ;
+FacadeonMyFeat.<strong>GetValue</strong>(Name1,Value) ;
+int NBelt = Value.Size();
+for ( int i=1; i&lt;=NBelt ;i++)
+{
+   ListComp.<strong>Append</strong>(Value[i].GetFeature() )
+}
+...
+CATFmAttributeName Name1 (&quot;AttributeComponentName2&quot;);
+FacadeonMyFeat.<strong>GetValue</strong>(Name2,Value) ;
+NBelt = Value.Size();
+for ( i=1; i&lt;=NBelt ;i++)
+{
+   ListComp.<strong>Append</strong>(Value[i].GetFeature() )
+}
+</pre>
+<h4>ChangeFather</h4>
+<p>This method can be replaced by two successive calls, first to <code>DetachComponent</code> 
+, and then <code>SetValue.</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Dummy-CATISpecAttribute"></a>CATISpecAttribute</h3>
+<p>Most methods of this interface are deprecated to be replaced by another methods 
+of <em>CATISpecAttrKey</em> or <em>CATISpecAttrAccess</em>. The adoption path of 
+these two interfaces give you the expected answers. Let us detail for the non Nodoc 
+methods.</p>
+<h4><a name="GetAccess::CATISpecObject"></a>GetAccess</h4>
+<p>This method is replaced by the <code>GetAttributeValuationInfo</code> of the
+<em>CATFmFeatureFacade</em> class.</p>
+<pre class="code">...
+CATFmFeatureFacade FacadeOnMyFeat (MyCredential,pCBUOnMyFeat) ;
+CATFmAttributeValuationInfo theInfo ;
+CATFmAttributeName MyAttributeName (&quot;xxxx&quot;);
+FacadeOnMyFeat-&gt;<strong>GetAttributeValuationInfo</strong> (MyName,theInfo );
+CATBoolean isPrivate = theInfo.<strong>_m_IsPrivate</strong> ;
+...
+</pre>
+<p><code>MyAttributeName</code> is the name of the attribute on which you try to 
+retrieve its access mode. You must know it to got a CATISpecAttribute interface 
+pointer.</p>
+<h4>SetAccess</h4>
+<p>This capability has been removed.</p>
+<h4>GetOwner</h4>
+<p>This method returns the feature holding the attribute. In the new API, this kind 
+of method is useless.</p>
+<h4>DumpValue</h4>
+<p>This capability has been removed. You can create yourself a Dump method to display 
+the contents of the attribute.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Dummy-CATISpecAttrAccess"></a>CATISpecAttrAccess</h3>
+<h4>Attribute Name</h4>
+<p>For most methods having an adoption path you will have to retrieve the attribute 
+name. If the <em>CATISpecAttrAccess</em> method already contains the attribute as 
+a string, you immediately have the solution, but otherwise, when the method contains 
+a <em>CATISpecAttrKey</em> as input, you must find the call which got this <em>CATISpecAttrKey</em> 
+interface pointer.</p>
+<pre class="code">...
+CATISpecAttrAccess *pAttrAccessOnMyFeat = ... ;
+
+CATISpecAttrKey* pAttrKeyForMyAttribute = NULL ;
+pAttrKeyForMyAttribute  = pAttrAccessOnMyFeat-&gt;<strong>GetAttrKey</strong>(&quot;AttributeName&quot;);
+</pre>
+<p>Then you could create a <em>CATFmAttributeName</em> class instance.</p>
+<pre class="code">...
+<strong>CATFmAttributeName</strong> MyAttributeName(&quot;AttributeName&quot;);
+</pre>
+<p>This <em>CATFmAttributeName</em> class is used by all methods of <em>CATFmFeatureFacade</em> 
+managing the value or information about an attribute.</p>
+<p>So the <code>GetAttrKey</code> is now useless.</p>
+<h4>TestAttrKey</h4>
+<p>This method is replaced by <code>GetAttributeValuationInfo</code> of the <em>
+CATFmFeatureFacade</em> class. If the method returns <code>E_FMKEYNOTFOUND</code> 
+the attribute doesn&#39;t exist for the feature. Don&#39;t do a confusion with E_ACCESSDENIED, 
+which is returned when the attribute exists but it is defined on an inherited StartUp 
+for which you are not granted to access.</p>
+<h4>TestAttributeValue</h4>
+<p>This method returns FALSE if the attribute&#39;s value is unset, and TRUE otherwise. 
+The same information can be retrieved by using <code>GetValue</code>/<code>GetValueAtIndex</code>. 
+If these methods returns S_FALSE, the value is &quot;unset&quot;.</p>
+<p>You can also use the <code>GetAttributeValuationInfo</code> of the <em>CATFmFeatureFacade</em> 
+class. The returned CATFmAttributeValuationInfo class instance contains the public 
+data <code>m_IsUnset</code>. But the usage of this data can be a little bit more 
+tricky as explained in the &quot;CATFmAttributeValuationInfo&quot; chapter of the &quot;Understanding 
+Feature Attribute&quot; article [<a href="#References">12</a>], so <code>GetValue</code>/<code>GetValueAtIndex
+</code>methods take more time, but it is easier.</p>
+<p>See restriction &quot;<a href="#Scenario6">Unset 
+Value Removal for Link Type Attribute</a>&quot;.</p>
+<h4>UnsetAttributeValue</h4>
+<p>This method is replaced by UnsetValue of <em>CATFmFeatureFacade</em> .</p>
+<p>See restriction &quot;<a href="#Scenario6">Unset 
+Value Removal for Link Type Attribute</a>&quot;.</p>
+<h4>Access management</h4>
+<p>The Set method is no more possible. For <code>GetAccess</code> method see above
+<a href="#GetAccess::CATISpecObject">CATISpecObject::GetAccess</a> adoption path.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>SetExternalObject</h4>
+<p>The method is to be used for previous tk_external. The pre-requisite is the pointed 
+object implements <em>CATILinkableObject</em>. Let us present the case when the 
+target is a feature.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecAttrAccess *pAttrAccessOnMyFeat = ... ;
+
+CATISpecAttrKey* pAttrKeyForMyAttribute = NULL ;
+pAttrKeyForMyAttribute  = pAttrAccessOnMyFeat-&gt;<strong>GetAttrKey</strong>(&quot;AttributeName&quot;);
+<strong>CATILinkableObject</strong> *pLinkObjectOnTarget =....;
+pAttrAccessOnMyFeat-&gt;<strong>SetExternalObject</strong>(pAttrKeyForMyAttribute,pLinkObjectOnTheFeatureToPoint);
+...
+</pre>
+<p><strong>V6</strong></p>
+<p>First you create a <em>CATObmObjectInContext</em> class instance like that:</p>
+<pre class="code">...
+CATLISTP(CATIPLMComponent) iPathOfInstances; //empty
+CATIPLMComponent* iRepInstance = NULL;
+CATBaseUnknown* piCBUOnTarget = .... ;
+
+CATOmbObjectInContext* pObjectInContext = NULL;
+rc = <strong>CATOmbObjectInContext::CreateObjectInContext</strong>(iPathOfInstances,iRepInstance,piCBUOnTarget ,pObjectInContext);
+...
+</pre>
+<p>then you use a <em>CATFmAttributeValue</em> object :</p>
+<pre class="code">...
+CATFmAttributeValue AttributeValue;
+AttributeValue.<strong>SetExternalObject</strong>(pObjectInContext);
+...</pre>
+<p>and finally, you change the attribute value on the feature as usual:</p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeat (MyCredentials, pCBUOnMyFeat);
+CATFmAttributeName AttributeName(&quot;xxx&quot;);
+
+FacadeonMyFeat.<strong>SetValue</strong>(AttributeName,AttributeValue);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>GetExternalObject</h4>
+<p>The method is to be used for previous tk_external. The pre-requisite is the pointed 
+object implements <em>CATILinkableObject</em>. Let us present the case when the 
+target is a feature.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATISpecAttrAccess *pAttrAccessOnMyFeat = ... ;
+
+CATISpecAttrKey* pAttrKeyForMyAttribute = NULL ;
+pAttrKeyForMyAttribute  = pAttrAccessOnMyFeat-&gt;<strong>GetAttrKey</strong>(&quot;AttributeName&quot;);
+<strong>CATILinkableObject</strong> *pLinkObjectOnTarget = NULL;
+CATFlavorParam Flavor =.. ;
+pAttrAccessOnMyFeat-&gt;<strong>GetExternalObject</strong>(pAttrKeyForMyAttribute,Flavor, &amp; pLinkObjectOnTheFeatureToPoint);
+...
+</pre>
+<p><strong>V6</strong></p>
+<p>First you get the value on the attribute.</p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeat (MyCredentials, pCBUOnMyFeat);
+CATFmAttributeName AttributeName(&quot;xxx&quot;);
+CATFmAttributeValue AttributeValue;
+FacadeonMyFeat.<strong>GetValue</strong>(AttributeName,AttributeValue);
+...</pre>
+<p>then you retrieve a <em>CATObmObjectInContext</em> class instance like that:</p>
+<pre class="code">...
+CATOmbObjectInContext_var poObjInContext;
+rc = AttrValueStoringBookFeat.<strong>GetExternalObject</strong>(poObjInContext);
+...
+</pre>
+<p>and then decode the links:</p>
+<pre class="code">...
+CATBaseUnknown* piCBUOnTarget = NULL;
+rc = poObjInContext-&gt;<strong>GetObjectOutOfContext</strong>(piCBUOnTarget);
+...</pre>
+<p>if you need to know the PLM Representation Reference aggregating this feature, 
+use the static method GetPLMComponentOf of the CATPLMComponentInterfacesServices 
+class (CATPLMComponentInterfaces fw).</p>
+<pre class="code">...
+<strong>CATIPLMComponent_var</strong> spPLMRepRep;
+rc = <strong>CATPLMComponentInterfacesServices::GetPLMComponentOf</strong>(piCBUOnTarget,spPLMRepRep);
+...</pre>
+<p><code>spPLMRepRep</code> contains the feature <code>piCBUOnTarget</code>.<code> 
+spPLMRepRep</code> is a PLM representation reference, a PLM object implementing 
+the <em>CATIPLMComponent</em> interface.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>Setxxx / Getxxx</h4>
+<p>The migration path is mainly given by these two section :
+<a href="#Scenario106">Modifying Feature&#39;s Attribute</a> section 
+for Setxxx methods, and <a href="#Scenario105">Retrieving Feature&#39;s 
+Attribute</a> for Getxxx methods.</p>
+<ul>
+	<li>Use the right ATFmAttributeValue method according to the type of the attribute 
+	(int/double/tec.).</li>
+	<li>Use SetValue / SetValue of <em>CATFmFeatureFacade</em> for a single attribute.</li>
+	<li>Use ReplaceValueAtIndex / GetValueAsIndex of <em>CATFmFeatureFacade</em> 
+	for a list.</li>
+</ul>
+<h4>GetQuality/SetQuality</h4>
+<p>The <code>SetQuality</code> is replaced by the <code>SetUpdateBehavior</code> 
+of <em>CATFmFeatureFacade</em>, and <code>GetQuality</code> is replaced by <code>
+GetAttributeValuationInfo</code> of <em>CATFmFeatureFacade</em>. The quality is 
+the update behavior. This information is managed by the enum <em>CATFmAttributeUpdateBehavior.
+</em></p>
+<h4>GetTimeStamp</h4>
+<p>These methods are of no use.</p>
+<h4>GetListSize</h4>
+<p>The same information can be retrieved by using <code>GetValue</code>, and then 
+you got the size of the CATFmAttributevalue.</p>
+<pre class="code">...
+CATFmFeatureFacade FacadeonMyFeat (MyCredentials, pCBUOnMyFeat);
+CATFmAttributeName AttributeName(&quot;xxx&quot;);
+CATFmAttributeValue AttributeValue;
+FacadeonMyFeat.<strong>GetValue</strong>(AttributeName,AttributeValue);
+int sizeofList = AttributeValue.<strong>Size</strong>();
+...
+</pre>
+<p>You can also use the <code>GetAttributeValuationInfo</code> of the <em>CATFmFeatureFacade</em> 
+class. The returned CATFmAttributeValuationInfo class instance contains the public 
+data <code>m_ListSize</code>. But the usage of this data can be a little bit more 
+tricky as explained in the &quot;CATFmAttributeValuationInfo&quot; chapter of the &quot;Understanding 
+Feature Attribute&quot; article [<a href="#References">12</a>], so <code>GetValue
+</code>memethods takes more time, but it is easier.</p>
+<h4>GetListType</h4>
+<p>The new method is <code>GetAttributeValuationInfo</code> of the <em>CATFmFeatureFacade</em> 
+class. The returned CATFmAttributeValuationInfo class instance contains the public 
+data <code>m_Type</code>.</p>
+<h4>GetPosition / MoveInPosition / InsertAtPosition</h4>
+<p>These three methods of CATISpecAttrAccess take as input a feature. So the first 
+thing to do, before calling the appropriate new <em>CATFmFeatureFacade</em> method, 
+is to look for the feature among the list with the <code>LocateValue</code> method. 
+You have an example of <code>LocateValue</code> in the
+<a href="#CATISpecAttrAccess::RemoveSpecObject">CATISpecAttrAccess::RemoveSpecObject
+</a>section.</p>
+<ul>
+	<li>GetPosition : LocateValue + GetValueAtIndex</li>
+	<li>MoveInPosition : LocateValue + MoveInPosition</li>
+	<li>InsertAtPosition : LocateValue + InsertValue</li>
+</ul>
+<h4>SetPrivate/UnsetPrivate</h4>
+<p>You cannot anymore change the Status Private/Public for an attribute.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>ListPointingObjects</h4>
+<p>This method returns all the features pointing this, and matching three criteria:
+</p>
+<ul>
+	<li>The pointing feature must implement a given interface.</li>
+	<li>The pointing feature points this with a specific attribute (FromAttr) ( 
+	optional, means all).</li>
+	<li>This is pointed by its attribute (ToAttr) (optional, and in this case represents 
+	an Attribute-Attribute link).</li>
+</ul>
+<p><strong>V5</strong></p>
+<pre class="code">.....
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+CATISpecAttrAccess_var spAttrAccess = pSpecObjectOnMyFeat ;
+...CATISpecAttrKey *piFromAttrKey = spAttrAccess-&gt;<strong>GetAttrKey</strong>((&quot;FromAttr&quot;); 
+CATListValCATBaseUnknown_var* pList = NULL ;
+pList  = spAttrAccess-&gt;<strong>ListPointingObjects</strong>((IID_CATIXXX, piFromAttrKey );
+
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">.....
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials1,pCBUObjectOnMyFeat);
+<strong>CATFmPointingFeatureIterator</strong>  ListToScan; 
+FacadeOnMyFeat.<strong>ScanPointingFeatures</strong>(ListToScan );
+...</pre>
+<p>If <code>FromAttr</code> and <code>ToAttr</code> are not specified</p>
+<pre class="code">...
+<strong>CATFmFeatureFacade</strong>   FacadeOnCurrentPointingFeat;  
+while ( SUCCEEDED( ListToScan.<strong>Next</strong>(FacadeOnMyFeat) ) )
+{
+   //first check the Interface
+   CATIXXX * pCurrent = NULL ;
+   FacadeOnCurrentPointingFeat.<strong>QueryInterfaceOnFeature</strong>(IID_CATIXXX, (void **) &amp; pCurrent) ;
+   if (pCurrent != NULL) 
+       list-&gt;Append( pCurrent );
+}...</pre>
+<p>IfIf <code>FromAttr</code> is specified, but not <code>ToAttr</code></p>
+<pre class="code">...
+<strong>CATFmAttributeName</strong> FromAttributeName(&quot;<strong>FromAttr</strong>&quot;) ; 
+<strong>CATFmFeatureFacade</strong>   FacadeOnCurrentPointingFeat(<strong>MyCredential2</strong>);  
+while ( SUCCEEDED( ListToScan.<strong>Next</strong>(FacadeOnMyFeat) ) )
+{
+   //first check the Interface
+   CATIXXX * pCurrent = NULL ;
+   FacadeOnCurrentPointingFeat.<strong>QueryInterfaceOnFeature</strong>(IID_CATIXXX, (void **) &amp; pCurrent) ;
+   if (pCurrent != NULL) 
+   {
+      // check if the attribute is FromAttr 
+      CATFmAttributeName CurrentAttributeName ;
+      FacadeOnCurrentPointingFeat.<strong>GetCurrentPointingAttributeName</strong>(CurrentAttributeName);
+      
+      if ( CurrentAttributeName == FromAttributeName)
+      {// the attribute pointing this is FromAttr. 
+          list-&gt;Append( pCurrent );
+      }
+   }
+}...</pre>
+<p>HeHere you must be owner of the StartUp defining the pointing feature, otherwise
+<code>GetCurrentPointingAttributeName</code> will fail.</p>
+<p>If <code>FromAttr</code> and <code>ToAttr</code> are specified</p>
+<pre class="code">...
+<strong>CATFmAttributeName</strong> FromAttributeName(&quot;<strong>FromAttr</strong>&quot;) ; 
+<strong>CATFmAttributeName</strong> ToAttributeName(&quot;ToAttr&quot;) ; 
+<strong>CATFmFeatureFacade</strong>   FacadeOnCurrentPointingFeat(<strong>MyCredential2</strong>);  
+while ( SUCCEEDED( ListToScan.<strong>Next</strong>(FacadeOnMyFeat) ) )
+{
+   //first check the Interface
+   CATIXXX * pCurrent = NULL ;
+   FacadeOnCurrentPointingFeat.<strong>QueryInterfaceOnFeature</strong>(IID_CATIXXX, (void **) &amp; pCurrent) ;
+   if (pCurrent != NULL) 
+   {
+      // check if the attribute is FromAttr 
+      CATFmAttributeName CurrentAttributeName ;
+      FacadeOnCurrentPointingFeat.<strong>GetCurrentPointingAttributeName</strong>(CurrentAttributeName);
+     
+      if ( CurrentAttributeName == FromAttributeName )
+      {// the attribute pointing this is FromAttr. 
+          CATFmAttributeValue FeatOfRedirection; 
+          CATFmAttributeName  NameOfRedirection ;
+          rc = FacadeOnCurrentPointingFeat.<strong>GetRedirectedValuation</strong>(CurrentAttributeName,FeatOfRedirection,NameOfRedirection);
+          if (SUCCEEDED(rc) &amp;&amp; (NameOfRedirection == ToAttributeName))   
+          {
+             list-&gt;Append( pCurrent ); 
+          }
+      }
+   }
+}...</pre>
+<p>If <code>FromAttr</code> not specified and <code>ToAttr</code> is specified cannot 
+be migrated.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>GetSpecAttribute / SetSpecAttribute</h4>
+<p>These two methods manage Attribute-Attribute link. The Attribute A of Feat1 is 
+redirected on the Attribute B of Feat2.</p>
+<p><code>SetSpecAttribute</code> is now <code>SetRedirectedValuation</code>, while
+<code>GetSpecAttribute</code> is now <code>GetRedirectedValuation</code>.</p>
+<p><strong>Note</strong>: The index&#39;s value of <code>GetSpecAttribute/SetSpecAttribute</code> 
+cannot be different of 1 or 0 (default value), but both means nothing. This index&#39;s 
+value are been removed from the new API, since useless.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><strong>GetFinalSpecAttribute/TestFinalSpecAttribute</strong></h4>
+<ul>
+	<li><code>GetFinalSpecAttribute</code> is replaced by <code>GetValue</code>. 
+	This method returns the value at the end of the redirection.</li>
+	<li><code>TestFinalSpecAttribute</code> is replaced by checking the HRESULT 
+	value of <code>GetValue</code>. TRUE= S_OK , FALSE = S_FALSE.</li>
+</ul>
+<h4>Knowledge Parameter</h4>
+<p>The <code>GetLiteral</code> method is only valid for attribute declared as &quot;knowledge 
+attribute&quot; in the CATfct file. We also call them New literal [<a href="#References">13</a>]. 
+If you are in this case, use the <code>GetKnowledgeParameter</code> method of the
+<em>CATFmFeatureFacade</em> class.</p>
+<p><strong>V5</strong></p>
+<pre class="code">.......
+CATISpecObject * pSpecObjectOnMyFeat= ... ;
+CATISpecAttrAccess_var spAttrAccess = pSpecObjectOnMyFeat ;
+...
+CATISpecAttrKey *piAttributeKey = spAttrAccess&gt;<strong>GetAttrKey</strong>(&quot;MyNewLiteral&quot;);
+CATBaseUnknown *pMyNewLiteral = NULL ;
+
+pCMyNewLiteral = spAttrAccess-&gt;<strong>GetLiteral</strong>(piAttributeKey ,IID_CATIXXXX );
+CATIXXXX *pCATIXXXOnMyNewLiteral = (CATIXXXX *) pMyNewLiteral ;
+</pre>
+<p><strong>V6</strong></p>
+<pre class="code">.......
+<strong>CATFmFeatureFacade</strong>   FacadeOnMyFeat (MyCredentials,pCBUObjectOnMyFeat);
+<strong>CATFmAttributeName</strong>   TheAttributeName(&quot;MyNewLiteral&quot;); ;
+CATIXXXX *pCATIXXXOnMyNewLiteral = NULL ;
+FacadeOnMyFeat.<strong>GetKnowledgeParameter</strong>(TheAttributeName, IID_CATIXXXX , (void**) &amp; pCATIXXXOnMyNewLiteral );
+...
+</pre>
+<h4>Synchronization</h4>
+<p>The <code>SynchronizeAllInstances</code> method has no equivalent API.</p>
+<p>For the migration see the section &quot;<a href="#Synchronize">Synchronize 
+/ IsSynchronize</a>&quot; of CATISpecObject.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="CATIAttrBehavior-CATSpecReplaceExt"></a>CATIAttrBehavior-CATSpecReplaceExt</h3>
+<p>The <em>CATSpecReplaceExt</em> class is an adapter for <em>CATIReplace</em>. 
+Its implementation requires that the feature implements <em>CATIAttrBehavior</em> 
+too. A path of migration exists for Mechanical modeler only.</p>
+<ul>
+	<li><em>CATSpecReplaceExt</em> is now <em>CATMmrReplaceAdapter</em></li>
+	<li><code>CATIAttrBehavior::GetRequestedBehavior</code> is replaced by <code>
+	CATMmrReplaceAdapter::GetRequestedBehavior</code></li>
+</ul>
+<p>The code of CATSpecReplaceExt::<code>Replace</code> and <code>IsElementValidForReplace</code> 
+is functionally the same as for CATMmrReplaceAdapter::<code>Replace</code> and
+<code>IsElementValidForReplace</code> . You have to migrate the code to remove the 
+CATISpecObject interface pointer.</p>
+<p>The code of <code>CATMmrReplaceAdapter</code>::<code>GetRequestedBehavior</code> 
+is the same as <code>CATIAttrBehavior</code>::<code>GetRequestedBehavior</code>.</p>
+<h3><a name="CATIStructureAnalyze"></a>CATIStructureAnalyze</h3>
+<p>This interface is replaced by <em>CATIMmiUseStructureAnalyse</em>.</p>
+<h3><a name="CATISpecDeclarations"></a>CATISpecDeclarations</h3>
+<p>This file only contains type definitions.</p>
+<table class="fill">
+	<tr>
+		<th>Type to Replace</th>
+		<th>Replacement</th>
+	</tr>
+	<tr>
+		<td>CATAttrAccess</td>
+		<td>CATFmAttributeValuationInfo (_IsPrivate) -[<a href="#References">12</a>]
+		</td>
+	</tr>
+	<tr>
+		<td>CATAttrKind</td>
+		<td>CATFmAttributeAndValueKind - [<a href="#References">12</a>]</td>
+	</tr>
+	<tr>
+		<td>CATFlavorParam</td>
+		<td>no replacement</td>
+	</tr>
+	<tr>
+		<td>CATAttrInOut</td>
+		<td>CATFmAttributeUpdateBehavior [<a href="#References">12</a>]</td>
+	</tr>
+	<tr>
+		<td>CATParentKind</td>
+		<td>useless</td>
+	</tr>
+	<tr>
+		<td>CATOldTimeStamp</td>
+		<td>useless</td>
+	</tr>
+	<tr>
+		<td>CATOldUpdateStamp</td>
+		<td>useless</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article describes the main changes in the Feature modeler APIs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaAPIPresentation.htm');">
+		Feature Modeler API Presentation</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaUnderstandingCredentials.htm');">
+		Understanding Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAACenOsmTaOsmMigration.htm">How to Move from C++ to OSM</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaCommonProtocol.htm');">
+		Common Protocol Integration</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaNamingFeatures.htm');">
+		Understanding Feature Naming</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaUpdateOverview.htm');">
+		Update Mechanism Overview</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaCCPCustomization.htm');">
+		Cut Copy Paste Customization</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtUcRetrievingPointingFeats.htm');">
+		Retrieving the Pointing Features</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAOsmTaModelingStartUps.htm');">
+		Modeling StartUps</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaSynchroAggr.htm');">
+		Understanding Component Synchronization</a></td>
+	</tr>
+	<tr>
+		<td>[12]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaFeatureAttribute.htm');">
+		Understanding Feature Attribute</a></td>
+	</tr>
+	<tr>
+		<td>[13]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaUnderstandingKnowledge.htm');">
+		Attribute as a Knowledge Parameter</a></td>
+	</tr>
+	<tr>
+		<td>[14]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAFmFeatModExt/CAAFmExtTaFeatureExtension.htm');">
+		Understanding Feature Extension</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

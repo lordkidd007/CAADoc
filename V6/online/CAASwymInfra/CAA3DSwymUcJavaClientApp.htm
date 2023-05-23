@@ -1,0 +1,746 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Creating Java Client Based Applications</title>
+<style type="text/css">
+ol.reset { counter-reset: item; }
+ol.reset li { display: block; }
+ol.reset li:before { content: counter(item) ". "; counter-increment: item; }
+/* ol.reset li ul li { display: block;  }
+ol.reset li ul li:before { content:"*"; counter-increment: none; } */
+</style>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating Java Client Based Applications</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article presents the basics on how to create a Java client application to access mainly 3DSwym web services.</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="JavaClientApplication"></a>Java Client Applications</h2>
+<p>A Java client application is a Java application that <b>communicates</b> with a server.
+</p>
+<p>3DSwym Cloud SaaS solution provides web services to client applications.
+Consequently the term <b>Java client application</b> refers to a Java application that consumes web services (here 3DSwym web services).
+</p>
+<p><!-- The client part of a Java client application manages web services consumption. -->
+3DSwym server communication protocol is <b>HTTPS</b> [<a href="#References">1</a>]. 
+It is common to create a generic set of classes to handle HTTPS requests and responses.
+</p>
+<!-- <p><b>Note:</b> the word <em>client</em> has a double meaning.
+It can refers to the all Java application as being a client of 3DSwym service providers.
+In this case the Java application becomes the Java client application.
+But it also refers to the classes that <em>directly</em> interact with server inside the Java client application.
+For 3DSwym use cases the CAAURLLoader, CAASwYmClient and <em>specific client</em> classes form the client part of the Java client application.
+</p>-->
+<p>Below is a scheme of how a <b>Java client application</b> should be structured:
+</p>
+<!-- 0.12 -->
+<p><img alt="Architecture" height="411" width="692" onclick="showImg('images/CAAArchitecture.png', 5770, 3326)" onmouseover="this.style.cursor='pointer'" src="images/CAAArchitecture.png" title="Application Architecture.
+Click to enlarge"/>
+</p>
+<p>A <b>Java client application</b> can be divided into graded layers.
+The <b><em>Application</em></b> brick represents a set of classes that want to use 3DSwym web services.
+An <b><em>Application</em></b> class asks a <code>Specific client</code> for firing a request and to return the response.
+<code>Specific client</code> classes rely on a common <code>CAASwYmClient</code> class.
+<b>Requests</b> follow a top to bottom path (down arrows).
+<b>Responses</b> follow a bottom to top path (up arrows).
+</p>
+<p>3DSwym use cases rely on:
+</p>
+<ol>
+	<li><b>Client classes</b>:
+		<ul>
+			<li>One or more <code>Specific client</code> class(es) with service consumption methods used by the application.</li>
+			<li><code>CAASwYmClient</code> class provides common tools (mainly a <code>CAAURLLoader</code> instance) to the <code>Specific client</code> classes.</li>
+		</ul>
+	</li>
+	<li><b>URL loader</b>:
+		<ul>
+			<li><code>CAAURLLoader</code> class loads URL and catches response based on <code>HttpsUrlConnection</code> class.</li>
+			<li><code>HttpsUrlConnection</code> is a class from <code>javax.net.ssl</code> package.</li>
+		</ul>
+	</li>
+</ol>
+<!--<p>Example to illustrate the scheme above: we want a Java client web application that list posts of a community. 
+The Application bloc calls a <code>getListOfPost(Community identifier)</code> method</p>
+<p>HttpsUrlConnection 
+It is the base of the client application. 
+The Application layer asks the specific client for data and treat them.
+The Specific client layer uses the CAASwYmClient class to consume web services and catch response.
+The CAASwYmClient class loads URL thanks to the CAAURLLoader class.
+And the CAAURLLoader class performs the HTTPS request thanks to HttpsUrlConnection class.</p>-->
+ 
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="Client"></a>Client Classes</h2>
+<p>The main goal of client classes is to provide the application with a set of simple methods to <b>call web services</b>.
+They will handle all the technical stuff like URL formation, use of the URL Loader etc.
+This way your main application remains clear with simple calls like:
+</p>
+<pre class="code">
+JSONObject current_user= UserClient.<b>getCurrentUser</b>();
+String name= current_user.getString("name");
+</pre>
+<p>This example uses a <em>getCurrentUser</em> method of a <code>UserClient</code> class (a specific client) to consume the get current user web service. 
+Then, thanks to <code>JSONObject</code> class (standard class to handle JSON format with Java) it can catch desired information easily [<a href="#References">2</a>].
+</p>
+
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="SpecificClient"></a>Specific Client Classes</h3>
+<p>Specific clients are gateways for other classes of the application to consume web services.
+To do so they provide methods for web services consumption.
+Those methods can have input parameters depending on the web service they consume.
+But most of all they return preprocessed data (usually a <code>JSONObject</code> object) for an easy to use response.
+</p>
+<h4>Class Structure</h4>
+<p>Specific client classes structure is:
+</p>
+<pre class="code">
+public class MySpecificClient {
+	private static CAASwYmClient _client;
+	public MySpecificClient(CAASwYmClient client) {
+		_client= client;
+	}
+	public JSONObject &lt;web service 1&gt;() throws Exception {
+		...
+	}
+	public JSONObject &lt;web service 2&gt;(int resource_identifier) throws Exception {
+		...
+	}
+	...
+}
+</pre>
+<p>All Specific clients share the same <code>CAASwYmClient</code> instance: <code>_client</code> (see <a href="#ClientClass">CAASwYmClient</a>).
+It is set in the constructor method.
+<code>_client</code> is used in the <em>&lt;web service XX&gt;</em> methods.
+</p>
+<h4>Web Service Method</h4>
+<p>Web service methods are relative to the application needs and to the web service they consume.
+It is the work of the developer to create methods that fit their application.
+There is no mandatory pattern to use.
+</p>
+<p>Example of web service method:
+</p>
+<pre class="code">
+public JSONObject <b>getCommunity</b>(String community_id) throws Exception {
+	...
+}
+</pre>
+<p>This method calls the POST get community web service.
+It needs the community identifier as input parameter [<a href="#References">1</a>].
+It returns the complete JSON of the community retrieved.
+</p>
+<p>Below is shown how a web service method works.
+It uses the <em>getCommunity</em> method as an example.
+</p>
+<h5>Redirect Standard Output</h5>
+<p>Loading a web service produces a lot of output.
+It has a debugging purpose.
+But it can easily overload the console.
+To keep traces of the request and response without overflowing the console, the standard output is redirected to an external trace file.
+</p>
+<pre class="code">
+PrintStream output = null;
+PrintStream old_output = System.out;
+String output_dir = _client.getOut();
+if (output_dir != null) {
+	output = new PrintStream(output_dir + "&lt;web service method name&gt;.traces", CAASwYmClient.ENCODING);
+	System.setOut(output);
+}
+
+...
+
+if (output_dir != null) {
+	output.flush();
+	output.close();
+	System.setOut(old_output);
+}
+...
+</pre>
+<p>It uses the <em>getOut</em> method from the <code>_client</code> (<a href="#ClientClass">CAASwYmClient Class</a>) to get an output directory.
+If an output directory have been successfully retrieved the standard output is redirected to a file in this directory.
+At the end of the method the standard output is reassigned to the console.
+</p>
+
+<h5>Build the Web Service URL</h5>
+<p>At this point the URL is simply represented as a String object:
+</p>
+<pre class="code">
+...
+String ws_url = _client.<b>getSwymServer()</b> + "&lt;web service path&gt;";
+...
+</pre>
+<p>The <em>getSwymServer</em> method from the <code>_client</code> (<a href="#ClientClass">CAASwYmClient Class</a>) gives directly something like <code>https://&lt;3DSwym Server Authority&gt;/</code>.
+</p>
+<p>Example for the get community method:
+</p>
+<pre class="code">
+...
+String ws_url = _client.getSwymServer() + <b>"api/community/get"</b>;
+...
+</pre>
+<p>With GET web services the input parameters must be appended to the end of the String to form the complete URL [<a href="#References">1</a>].
+</p>
+<h5>POST data</h5>
+<p>With POST web services the parameters are specified into the POST body of a request and format expected is JSON [<a href="#References">1</a>].
+</p>
+<pre class="code">
+String data= "{\"request_id\":0,\"params\":{\"&lt;parameter name&gt;\":\""+&lt;input value 1&gt;+"\" ... }}";
+byte [] post_data = data.getBytes();
+</pre>
+<p>Fire POST request requires the POST body to be a byte array.
+</p>
+<p>For the get community example it gives:
+</p>
+<pre class="code">
+String data= "{\"request_id\":0,\"params\":{\"id\":\""+community_id+"\"}}";
+byte [] post_data = data.getBytes();
+</pre>
+<h5>Fire the request</h5>
+<p>Fire the request uses <code>CAAURLLoader</code> instance given by _client (<a href="#ClientClass">CAASwYmClient Class</a>) method <em>getURLLoader</em>.
+<code>CAAURLLoader</code> offers two methods for loading URL (see <a href="#URLLoader"> URL Loader</a> for methods and parameters full description):
+</p>
+<ul>
+	<li><em>loadPOSTUrl</em> for POST web services</li>
+	<li><em>loadGETUrl</em> for GET web services</li>
+</ul>
+<p>For POST web services the web service method has:
+</p>
+<pre class="code">
+...
+byte [] response= _client.<b>getURLLoader</b>().<b>loadPOSTUrl</b>(ws_url, "application/json", post_data);
+...
+</pre>
+<p>Post data is a JSON so the content type is "application/json" (see Content-Type [<a href="#References">1</a>]). 
+</p>
+<p>For GET web services the web service method simply has:
+</p>
+<pre class="code">
+...
+byte [] response= _client.<b>getURLLoader</b>().<b>loadGETUrl</b>(ws_url);
+...
+</pre>
+<p>Both <em>loadGETUrl</em> and <em>loadPOSTUrl</em> methods return a byte array.
+</p>
+<h5>Process the response</h5>
+<p>The response as byte array needs to be parsed to a more friendly object.
+The parsing depends on the web service response.
+</p>
+<p>For the get community example the web service sends back a JSON that can be parsed inside a Java JSONObject as follows:
+</p>
+<pre class="code">
+...
+JSONObject response_json= _client.<b>getJSON</b>(response);
+...
+return response_json;
+</pre>
+<p>It uses the <em>getJSON</em> method from _client (<a href="#ClientClass">CAASwYmClient Class</a>).
+As the get community method sends back a JSON without further processing the JSONObject is directly returned.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="ClientClass"></a>CAASwYmClient Class</h3>
+<p>All common tools to <code>Specific client</code> classes have been grouped into a single <code>CAASwYmClient</code> class.
+Therefore it should only be used inside a <code>Specific client</code> class as described above.
+</p>
+<p>The <code>CAASwYmClient</code> class is composed as follows:
+</p>
+<pre class="code">
+public class <b>CAASwYmClient</b>
+{
+	public final static String <b>ENCODING</b> = "UTF-8";
+
+	private static CAAURLLoader _URL_loader = null;
+	private String _swym3ds_authority = null;
+	private String _output_dir = null;
+	
+	public <b>CAASwYmClient</b>(String swym3ds_authority, String output_dir){
+		...
+	}
+	public CAAURLLoader <b>getURLLoader</b>() {
+		return _URL_loader;
+	}
+	public String <b>get3DSwymServer</b>() {
+		return "https://"+_swym3ds_authority+"/";
+	}
+	public String <b>getOut</b>() {
+		return _output_dir;
+	}
+	public static final JSONObject <b>getJSON</b>(byte[] b) throws Exception {
+		...
+	}
+	
+</pre>
+<p>Bold methods and attributes are explained below.
+</p>
+<h4>ENCODING</h4>
+<p>Encoding should always be "UTF-8" <a href="#References">[1]</a>.
+This attribute is public and used as default encoding format whenever requires it.
+For example it is used to encode URLs during login (for avoiding malformed URL expressions) <a href="#References">[4]</a>.
+</p>
+<h4>Constructor</h4>
+<p>The default constructor takes as input parameters:
+</p>
+<ul>
+	<li>The 3DSwym server authority part see <a href="#References">[1]</a>.</li>
+	<li>An output directory for trace files (e.g. C:/documents/).</li>
+</ul>
+<p>The constructor builds the <code>CAAURLLoader</code> instance used to load URLs:
+</p>
+<pre class="code">
+_URL_loader = new CAAURLLoader();
+</pre>
+<p><code>_URL_loader</code> stores session Cookies (see <a href="#HandleCookies">Manage 3DSwym Cookies</a>).
+It means each time the <code>CAASwYmClient</code> constructor is called the current session is lost and user has to log in again.
+Consequently the <code>CAASwYmClient</code> constructor should only be called once per session.
+To keep the same session over several <code>Specific client</code> the <code>_URL_loader</code> is declared <b>static</b>.
+</p>
+<h4><em>getURLLoader</em></h4>
+<p>The <em>getURLLoader</em> method is a simple getter for the <code>_URL_loader</code> static object.
+</p>
+<h4><em>get3DSwymServer</em></h4>
+<p>The <em>get3DSwymServer</em> is a getter for the <code>_swym3ds_authority</code> String:
+</p>
+<pre class="code">
+return "https://"+_swym3ds_authority+"/";
+</pre>
+<p>It directly appends <code>"https://"</code> and <code>"/"</code> to simplify URL construction.
+</p>
+<h4><em>getOut</em></h4>
+<p>The <em>getOut</em> is a getter for the <code>_output_dir</code> String object.
+It returns the output directory specified in the constructor. 
+</p>
+<h4><em>getJSON</em></h4>
+<p><em>getJSON</em> is a method to parse a byte array to a standard <code>JSONObject</code> java object for JSON manipulation.
+It is used by <code>Specific clients</code> to transform the raw output of a request into a more usable object.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="URLLoader"></a>URL Loader</h2>
+<p><em>Consume a web service</em> is equivalent to <em>load an URL</em> (sometimes the term <em>call an API</em> is preferred). 
+They all refer to the same action of firing an HTTPS request to 3DSwym server and catching the response.
+</p>
+<p>To do this we rely on a <code>HttpsUrlConnection</code> class that provides HTTPS request management.
+</p>
+
+<h3><a name="LoadURLs"></a>Load URLs</h3>
+<p>URL loading is handled by <code>CAAURLLoader</code> class.
+</p>
+<p>3DSwym supports GET and POST methods. <code>CAAURLLoader</code> class is structured as follow:
+</p>
+<ul>
+	<li>A public <em>loadGETUrl</em> that only needs a string representation of the URL of the web service to consume.</li>
+	<li>A public <em>loadPOSTUrl</em> that needs the URL of the web service (as a String), the data to post as a byte array, and the content type (see Content-Type [<a href="#References">1</a>]).</li>
+	<li>A private <em>loadUrl</em> that regroups all arguments from the two previous plus a method argument with only two possible value "<b>GET</b>" or "<b>POST</b>".</li>
+</ul>
+<p>Both public methods call the private one as follows:
+</p>
+<pre class="code">
+public byte[] <b>loadGETUrl</b>(String url) throws Exception {
+	return loadUrl(new URL(url), "<b>GET</b>", null, null);
+}
+
+public byte[] <b>loadPOSTUrl</b>(String url, String content_type, byte[] post_data) throws Exception {
+	return loadUrl(new URL(url), "<b>POST</b>", content_type, post_data);
+}
+	
+private byte[] <b>loadUrl</b>(URL url, String method, String content_type, byte[] post_data) throws Exception {
+...
+}
+</pre>
+<p>As 3DSwym offers only POST and GET methods and to avoid null input parameters user is forced to use special methods instead of the generic one.
+</p>
+<p>The method <em>loadUrl</em> is described in the steps below:
+</p>
+<ol class="reset">
+	<li style="counter-reset: item -1;" ><a href="#BuildURL">Build an URL</a></li>
+	<li><a href="#OpenConnection">Open the Connection</a></li>
+	<li><a href="#RequestHeader">Set Request Header</a></li>
+	<li><a href="#Postdata">Post Data</a></li>
+	<li><a href="#CatchingResponse">Catch the Response</a></li>
+	<li><a href="#ResponseHeader">Process Response Header</a></li>
+	<li><a href="#ResponseBody">Parse Response Body</a></li>
+</ol>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="BuildURL"></a>Step 0 - Build an URL</h4>
+<p>In Java the <code>java.net</code> package provides a URL class to manage URL formation.
+</p>
+<p>URL template is <code>&lt;protocol&gt;://&lt;server authority&gt;&lt;path&gt;?&lt;query&gt;</code>(see request default URL pattern <a href="#References">[1]</a>).
+</p>
+<p>URL class provides a constructor that takes a String as input parameters.
+It is very handy to work with String to manage URL formation and build the URL object from it just before loading the URL (see the <em>load&lt;method&gt;Url</em> methods above).
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="OpenConnection"></a>Step 1 - Open the Connection</h4>
+<p>The <em>loadUrl</em> method starts as follows:
+</p>
+<pre class="code">
+HttpsURLConnection connection = (HttpsURLConnection) <b>url.openConnection()</b>;
+connection.<b>setInstanceFollowRedirects(true)</b>;
+connection.<b>setRequestMethod</b>(method);
+...
+</pre>
+<p>It first creates an <code>HttpsURLConnection</code> object. It does not connect to server yet.
+</p>
+<p>HTTPS response can be a redirection to another URL (response code is 302).
+For 3DSwym the application must perform automatic redirection <b>setInstanceFollowRedirects must be set to true</b>.
+It means that while response code is 302 the <code>HttpsURLConnection</code> will load the redirection URL.
+If too many redirection are performed an error will be raised to avoid infinite loop.
+</p>
+<p><em>setRequestMethod</em> tells the connection which method will be used (possible values for 3DSwym are POST or GET).
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="RequestHeader"></a>Step 2 - Set Request Header</h4>
+<p>Although the request header is automatically built by the connection it does not include the 3DSwym CSRF token (see Security section [<a href="#References">1</a>]).
+Consequently if a CSRF token has been previously set it is given in the request header as follows:
+</p>
+<pre class="code">
+...
+if(_CSRF_token != null) {
+	connection.<b>setRequestProperty</b>("X-SWYM", <b>_CSRF_token</b>);
+}
+...
+</pre>
+<p><code>_CSRF_token</code> is a String attribute of the <code>CAAURLLoader</code> class (see <a href="#ResponseHeader">Step 5</a>).
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="Postdata"></a>Step 3 - Post Data</h4>
+<p>Having post data in parameters is sufficient to tell if method is POST or GET because of <em>loadUrl</em> private nature:
+</p>
+<pre class="code">
+...
+if (post_data != null) {
+	connection.<b>setDoOutput(true)</b>;
+	connection.setRequestProperty("<b>Content-Length</b>", Integer.toString(post_data.length));    			
+	connection.setRequestProperty("<b>Content-Type</b>", content_type);
+	OutputStream output = connection.getOutputStream();
+	output.<b>write</b>(post_data);
+	output.flush();
+	output.close();
+}
+...
+</pre>
+<p>First action is to tell the connection data is sent. 
+Then the data type (see Content-Type [<a href="#References">1</a>]) and length are specified in the request header.
+And finally it writes the data to the output stream.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="CatchingResponse"></a>Step 4 - Catch the Response</h4>
+<p>So far the connection does not have established any link to 3DSwym servers.
+One way of doing that and of catching the response is to directly call the <em>getResponseCode</em> method from the <code>connection</code> object.
+</p>
+<pre class="code">
+...
+if(<b>connection.getResponseCode()</b> != 200)
+	throw new Exception("Response Code="+connection.getResponseCode()+" != 200");
+
+if(! connection.getURL().toString().equals( url.toString() ) ){
+	<b>_last_redirect_url</b>= connection.getURL();
+}
+...
+</pre>
+<p>With 3DSwym, the only available <b>success code is 200</b>.
+If another code is caught it means the request has failed (see Troubleshooting [<a href="#References">1</a>]).
+Success code does not guarantee that the web service did not fail but it guarantees a response has been sent and caught.
+</p>
+<p>Because of automatic redirections the URL of the connection might have changed from its initial value. 
+If so the new value is stored to a <code>_last_redirect_url</code> attribute.
+It may have been redirected several times. 
+This method gives only the <b>last URL</b> where the request have been redirected by following redirections.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="ResponseHeader"></a>Step 5 - Process Response Header</h4>
+<pre class="code">
+	...
+	for (int i = 1;; i++) {
+		String header_name = connection.getHeaderFieldKey(i);
+		String header_value = connection.getHeaderField(i);
+		if (header_name == null &amp;&amp; header_value == null)
+			break;
+		if ( header_name.equals("X-SWYM") )
+			<b>_CSRF_token</b>= header_value;
+		else if ( header_name.equals("Content-Type") )
+			<b>_content_type</b>= header_value;
+	}
+	...
+</pre>
+<p>Only CSRF token and response content type are stored.
+The CSRF token is first set during login and then refresh every time a 3DSwym web services is consumed.
+They can be caught outside <code>CAAURLLoader</code> class via getters.
+<code>CAAURLLoader</code> does not provide advance getters for all header fields because 3DSwym use cases do not require it.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="ResponseBody"></a>Step 6 - Parse Response Body</h4>
+<p><em>loadUrl</em> method returns response body as a byte array.
+</p>
+<pre class="code">
+...
+InputStream input = <b>connection.getInputStream()</b>;
+int read = 0;
+ByteArrayOutputStream ba = new ByteArrayOutputStream();
+<b>byte[] io_buffer</b> = new byte[0x10000];
+while ( ( read = input.<b>read</b>(io_buffer) ) >= 0 ) {
+	if (read == 0)
+		break;
+	ba.<b>write</b>(io_buffer, 0, read);
+}
+io_buffer = ba.toByteArray();
+<b>return io_buffer</b>;
+</pre>
+<p>Reader may want to check Java ByteArrayOutputStream documentation to understand deeper how the response body is retrieved.
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="HandleCookies"></a>Manage Cookies</h3>
+<p>3DSwym web services provider produces cookies as any web service providers (see 3DSwym Cookies [<a href="#References">1</a>]).
+Those cookies must be managed.
+</p>
+<p>Four objects from <code>java.net</code> package ensure default cookie management:
+</p>
+<ul>
+	<li><code>CookieManager</code></li>
+	<li><code>CookieStore</code></li>
+	<li><code>CookieHandler</code></li>
+	<li><code>CookiePolicy</code></li>
+</ul>
+<p>Extract from the Java documentation [<a href="#References">3</a>]:</p>
+<p>"<em><code>CookieManager</code> provides a concrete implementation of <code>CookieHandler</code>,
+which separates the storage of cookies from the policy surrounding accepting and rejecting cookies.
+A <code>CookieManager</code> is initialized with a CookieStore which manages storage,
+and a <code>CookiePolicy</code> object, which makes policy decisions on cookie acceptance/rejection. 
+"</em></p>
+<p>Cookies are set by <code>HttpsURLConnection</code>.
+It is an intern Java process meaning that developer does not specify any link between <code>HttpsURLConnection</code> instance and the <code>CookieHandler</code>.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4>Manage 3DSwym Cookies</h4>
+<p>Any HTTP Client (not only Java) has to manage 3DSwym cookies and should be configured as follow:
+</p>
+<ul>
+	<li>Keep all cookies set by a given service.
+	This includes cookies for user session identification on a given Service URL (e.g. PHPSESSID, JSESSIONID).
+	But also cookies for session affinity or stickyness on a given load balanced server.
+	</li>
+	<li>Be sure to keep only the latest value set on a given cookie name.
+	For instance, PHPSESSID value can be overridden several times thru <em>Set-cookie</em> directive.
+	</li>
+</ul>
+<p>Consequently 3DSwym requires a specific cookie management.
+Specificity resides in the fact that the same cookie can be sent several times during the request.
+When several instances are given in the same request only the last one must be stored.
+</p>
+<p>Moreover default <code>CookieManager</code> may keep several instances of the same cookie name in his default <code>CookieStore</code>.
+3DSwym does not support multiple sent of cookies sharing the same name.
+</p>
+<p>Consequently the Java client application must use custom <code>CookieManager</code> and <code>CookieStore</code> to adapt to 3DSwym specificity.
+</p>
+<p><code>CAAURLLoader</code> contains in his constructor:
+</p>
+<pre class="code">
+SwYm3DSCookieStore cs= new <b>SwYm3DSCookieStore</b>();
+SwYm3DSCookieManager cm= new <b>SwYm3DSCookieManager</b>(cs, <b>CookiePolicy.ACCEPT_ALL</b> );
+CookieHandler.<b>setDefault</b>(cm);
+</pre>
+<p><code>CAAURLLoader</code> has his own cookie management classes: <code>SwYm3DSCookieManager</code> and <code>SwYm3DSCookieStore</code>.
+</p>
+<p>Log in to 3DSwym produces cookies from multiple server (3DPassport, 3DSwym server...).
+So the cookie policy must be to accept cookies from all servers (<code>CookiePolicy.ACCEPT_ALL</code>).
+</p>
+<p>The <em>setDefault</em> method tells <code>HttpsURLConnection</code> to use our specific classes instead of the default one.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="3DSwymCookieManager"></a>3DSwym CookieManager</h4>
+<p><code>SwYm3DSCookieManager</code> class extends <code>CookieManager</code> class.
+<code>CookieManager</code> uses the request response header to deal with cookies.
+Only the <em>put</em> method of <code>CookieManager</code> needs to be overriden to adapt to 3DSwym:
+</p>
+<pre class="code">
+<b>@Override</b>
+public void put(URI uri, Map &lt; String, List &lt; String &gt; &gt; response_headers) throws IOException {
+	Map&lt;String, List&lt;String&gt;&gt; <b>super_response_headers</b> = new HashMap&lt;String, List&lt;String&gt;&gt;();
+	for (Entry &lt; String, List &lt; String &gt; &gt; response_header : response_headers.entrySet())
+		super_response_headers.put(response_header.getKey(), response_header.getValue());
+	try {
+		List&lt;String&gt; cookies = <b>response_headers.get("Set-Cookie")</b>;
+		if( cookies.size() > 1 ) {
+			ArrayList&lt;String&gt; <b>no_twin</b> = new ArrayList&lt;String&gt;();
+			ArrayList&lt;String&gt; cookie_names = new ArrayList&lt;String&gt;();
+			for (Iterator&lt;String&gt; iterator = cookies.iterator(); iterator.hasNext();) {
+				String cookie = iterator.next();
+				String cookie_name = cookie.substring(0, cookie.indexOf("=")) ;
+				if (<b>! cookie_names.contains(cookie_name)</b>) {						
+					cookie_names.add(cookie_name);
+					<b>no_twin.add(cookie)</b>;
+				}
+			}
+			<b>super_response_headers.remove("Set-Cookie")</b>;
+			<b>super_response_headers.put("Set-Cookie", no_twin)</b>;
+		}
+	} catch (Throwable t) { }
+	<b>super.put(uri, super_response_headers)</b>;
+}
+</pre>
+<p>To preserve original response header, it is copy to a <code>super_response_header</code> instance.
+<em>Set-Cookie</em> header is caught.
+If there is one or zero cookie, there cannot be any duplicates thus nothing is done.
+If there is more than one cookies in the response header then it might contain duplicate ones.
+In such case only the first one of all the duplicates found is kept.
+It does so because with <code>CookieManager</code> the cookies are set in reverse order when passed to <code>CookieManager</code>.
+So the valid cookie is the first one.
+Once the header has been cleaned from twin cookies, the super method is called.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h4><a name="3DSwymCookieStore"></a>3DSwym CookieStore</h4>
+<p><code>SwYm3DSCookieStore</code> class implements <code>CookieStore</code> interface.
+Only <em>get</em> and <em>add</em> methods are used and only <em>add</em> method needs customizing for 3DSwym.
+</p>
+<pre class="code">
+private Map &lt;String, List&lt;HttpCookie&gt; &gt; _my_cookies;
+</pre>
+<p>Cookies are store relatively to the authority of the URI.
+It simply means each server has its list of cookies.
+</p>
+<p>The method below is used by the <code>CookieManager</code> to add cookies to the <code>CookieStore</code>.
+</p>
+<pre class="code">
+<b>@Override</b>
+public void <b>add</b>(URI uri, HttpCookie cookie){
+	List&lt;HttpCookie&gt; <b>cookies</b>= _my_cookies.get(uri.getAuthority());
+	if(cookies== null)
+		cookies= new ArrayList&lt;HttpCookie&gt;();
+	for(int i=0; i&lt;cookies.size(); i++)
+		if(cookies.get(i).getName().equals(cookie.getName()))
+			cookies.remove(i);
+	<b>cookies.add(cookie)</b>;
+	<b>_my_cookies.put(uri.getAuthority(), cookies)</b>;
+}
+</pre>
+<p>It gets the list of cookies already set for this server.
+Then if a cookie with the same name already exists it is replaced by the cookie to add.
+Consequently there cannot be several cookies sharing the same name (for a same server).
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<!--<h2><a name="BuildClient"></a>Build Client</h2>
+
+<p>This section describes how to include client classes into a client application.</p>
+
+<p>CAAURLLoader should be unique because of cookie limitation. A static instance of the object is stored into the CAASwYmClient class.
+CAASwYmClient class works like an abstract class. 
+It Provides all the common tool to the <em>real</em> clients for consuming web services.
+It not only stores the CAAURLLoader unique instance but also the 3DSwym server address and output directory.</p>
+
+<pre class="code">
+public class CAASwYmClient 
+{
+	private static CAAURLLoader _URL_loader	= null;
+	private String _swym3ds_authority       = null;
+	private String _output_dir              = null;
+	...
+</pre>	
+
+<ul>
+	<li>CAAURLLoader allows client to load URLs</li>
+	<li>_swym3ds_authority is the server authority (ex https://dsxdev-online.dsone.3ds.com/enovia/ authority is dsxdev-online.dsone.3ds.com)</li>
+	<li>_output_dir purpose is to provide a directory for trace files.
+	The CAAURLLoader produces lot of traces so to avoid console congestion <code>System.out</code> is redirect to files stored in this directory.
+	If it is not set, traces will be displayed in console.</li>
+</ul>
+
+<pre class="code">
+public CAASwYmClient(String swym3ds_authority, String output_dir){
+	_swym3ds_authority = swym3ds_authority;
+	try {
+		_URL_loader = new CAAURLLoader();
+	} catch (Throwable t) {
+		System.err.println(t.getMessage());
+		t.printStackTrace();
+	}
+	_output_dir = output_dir;
+}
+</pre>	
+
+<p>Each time a new CAASwYmClient is construct the _URL_loader is renewed. causing all current opened session to be lost.
+To work with several clients at the same time sharing the same _URL_loader specific clients must be built.</p>
+
+<pre class="code">
+...
+CAASwYmClient client = new CAASwYmClient(swym3ds_server_authority, output_dir);
+CAASwYm&lt;Specific1&gt;Client client_&lt;specific1&gt; = new CAASwYm&lt;Specific1&gt;Client(client);
+CAASwYm&lt;Specific2&gt;Client client_&lt;specific2&gt; = new CAASwYm&lt;Specific2&gt;Client(client);
+...
+</pre>	
+
+<p>Each specific client share a unique CAASwYmClient instance and accordingly a unique server authority and output directory.</p>
+<script type="text/javascript">insertLinkToTop();</script>-->
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article shows the basics on how to build a Java client application to consume 3DSwym web services. It shows how to structure the code, and handle HTTPS requests.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAA3DSwymTaAboutWS.htm">About 3DSwym web services</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAA3DSwymUcGettingStarted.htm#Step2">Getting Started - Get Current User</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="#" onclick="javascript:CAAlinkUrl(' http://docs.oracle.com/javase/8/docs/api/java/net/CookieManager.html');return false;">CookieManager Class</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAA3DSwymUcGettingStarted.htm">Getting Started</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+
+<script type="text/javascript">insertCopyright();</script>
+</body>
+</html>

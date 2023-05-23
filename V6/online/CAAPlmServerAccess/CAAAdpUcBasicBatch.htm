@@ -1,0 +1,382 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Connecting to V6 Server</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Connecting to V6 Server</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to create and close a PLM session [<a href="#References">1</a>] 
+		with a given repository. This is the least that every batch is required 
+		to do before PLM operations can be carried out.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAAdpBasicBatch Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAAdpBasicBatch Do</a></li>
+				<li><a href="#How">How to Launch CAAAdpBasicBatch</a></li>
+				<li><a href="#Ticket">How to Generate a Login Ticket</a></li>
+				<li><a href="#Where">Where to Find the CAAAdpBasicBatch Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#CAAAdpCreateSession-CAAAdpCloseSession">CAAAdpCreateSession 
+			&amp; CAAAdpCloseSession</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>You will learn how to create a PLM session with a given repository, to list all 
+available environments [<a href="#References">2</a>] and finally to close it. Every 
+batch must always start by creating a session before executing PLM operations. Likewise 
+it must always end by closing the PLM session. Bear in mind that there can only 
+be one and unique session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAAdpBasicBatch Use Case</h2>
+<p>CAAAdpBasicBatch is a use case of the CAAPLMClientAdapter.edu framework that 
+illustrates CATPLMIntegrationAccess and CATPLMComponentInterfaces frameworks capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAAdpBasicBatch Do</h3>
+<p>CAAAdpBasicBatch creates a PLM session, lists available PLM environments and 
+closes the session. </p>
+<p>To create a session, your first need the name of the Repository, for ENOVIA V6 
+the string is:
+<script type="text/javascript">insertRepository();</script>
+. Then for this repository, the connection parameters are:</p>
+<ul>
+	<li>The <b>server</b> that you can specify with:<ul>
+		<li>One string Host:Port/RootURI or,</li>
+		<li>Three distinct strings : Host, Port, and RootURI</li>
+	</ul>
+	</li>
+	<li>The LoginTicket defined by one string.</li>
+</ul>
+<p>About the server, the three parameters are mandatory (Host, Port, RootURI), only 
+the protocole parameter is facultative. The default value is http.</p>
+<p>The output below is what you would obtain on a typical installation.</p>
+<table>
+	<caption>Fig.1 Output of Usecase</caption>
+	<tr>
+		<td>
+		<pre class="code">
+   CAAAdpBasicBatch started
+   Connection parameters set
+   Initializing session with:
+      Repository = PLM1
+      Server     = https://vdevpril505dsy.ux.dsone.3ds.com:443/3dexperience
+      Login Ticket = REMwQzNDRTBGMzZGNEIyMTk2Q0Q4NzlEMjZENDJGOER8RVpMfHx8fDB8
+   PLM Session initialized
+  Available environments:
+    VPM, alias: VPM
+  PLM session closed
+CAAAdpBasicBatch ended
+</pre>
+		</td>
+	</tr>
+</table>
+<p>On your own install, you can have more that one PLM environment, but you should 
+at least have <code>VPM</code> , it is the delivered one.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Ticket"></a>How to Generate a Login Ticket</h3>
+<p>The following describes how to generate a login ticket using a web service. This web service is not to be considered as a solution that will mandatorily be provided in the next releases, meaning that User Apps declaration may have to be performed differently in incoming releases.</p>
+<ol>
+	<li>Use your favorite web browser to connect to the 3DEXPERIENCE Platform Collaboration Server Web Users Experience</li>
+	<li>Replace, in the web browser url bar, <code>emxNavigator.jsp</code> by <code>ticket/get?accept=text/plain&maxuse=10</code></li>
+	<li>Hit enter</li>
+</ol>
+<p>As a result, the browser will display a content that looks this way:</p>
+<pre class="code">ticket=MEMwQjM0RDg5RTdCNDMwOTgxQUQ0N0REQkUzNERGNzd8anBhfHx8fDB8
+status=success</pre>
+<p>This ticket is valid for 10 usages as specified by the value of the <code>maxuse</code> parameter. It is possible not to provide this parameter, this
+generates a ticket that can be used an infinite number of times, however, for security purpose, it is highly recommended no to use this functionality.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAAdpBasicBatch</h3>
+<p>To launch CAAAdpBasicBatch, you will need to set up the build time environment, 
+compile CAAAdpBasicBatch along with its prerequisites, set up the run time environment, 
+and then execute the use case [<a href="#References">3</a>]. There are two ways 
+to launch the use case:</p>
+<p>The first way where the server is defined by one argument:</p>
+<pre class="code">mkrun -c &quot;CAAAdpBasicBatch <i>Repository</i> <i>Server LoginTicket</i>&quot;</pre>
+<p>The five input arguments to <strong>CAAAdpBasicBatch</strong> are:</p>
+<table class="border1">
+	<tr>
+		<th><b>Repository</b></th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th><b>Server</b></th>
+		<td>The server as <i>host</i>:<i>port_number/RootURI</i></td>
+	</tr>
+	<tr>
+		<th>LoginTicket</th>
+		<td>The string representing LoginTicket</td>
+	</tr>	
+</table>
+<p>The second one where the server is defined by three arguments:</p>
+<pre class="code">mkrun -c &quot;CAAAdpBasicBatch <i>Repository</i> <i>ServerHost ServerPort ServerRootURI LoginTicket&quot;</i></pre>
+<p>The seven input arguments to <strong>CAAAdpBasicBatch</strong> are:</p>
+<table class="border1">
+	<tr>
+		<th><b>Repository</b></th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>ServerName</th>
+		<td>The host of the Server</td>
+	</tr>
+	<tr>
+		<th>ServerPort</th>
+		<td>The port of the server</td>
+	</tr>
+	<tr>
+		<th>ServerRootURI</th>
+		<td>The Root URI. </td>
+	</tr>
+	<tr>
+		<th>LoginTicket</th>
+		<td>The string representing LoginTicket</td>
+	</tr>	
+
+	
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAAdpBasicBatch Code</h3>
+<p>The CAAAdpBasicBatch use case is made of a single source file located in the 
+CAAAdpBasicBatch.m module of the CAAPLMClientAdapter.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAPLMClientAdapter.edu\CAAAdpBasicBatch.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the 
+folder where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are five logical steps in CAAAdpBasicBatch:</p>
+<ol>
+	<li><a href="#Step1">Checking the input arguments</a></li>
+	<li><a href="#Step2">Setting up the connection parameters</a></li>
+	<li><a href="#Step3">Creating the PLM session</a></li>
+	<li><a href="#Step4">Listing available PLM environments</a></li>
+	<li><a href="#Step5">Closing the PLM session</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Checking the input arguments</h3>
+<p>According to the count of input arguments, we retrieve the right input connection 
+parameters which are the PLM Repository, the server ( with 3 or 1 parameter), the 
+user, its pasword, and a security context.</p>
+<pre class="code">...
+    const char* repository = iargv[1];
+    const char* server     = iargv[2];
+    const char* server_host = NULL ;
+    const char* server_port = NULL ;
+    const char* server_rootURI = NULL ;
+    if ( 8 == iargc )
+    {  argshift = +2 ;
+       server_host= iargv[2];
+       server_port = iargv[3];
+       server_rootURI =  iargv[4];
+    } 
+  const char* iLoginTicket = iargv[3+argshift];
+  ...</pre>
+<p>For PLM1 repository , 2 connections parameters are required&nbsp; (server/LoginTicket), for other repository it could be different.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Setting up the connection parameters</h3>
+<p>Before the PLM session could be created, we need to specify the connection parameters 
+with <b>CATPLMSessionServices::SetPLMSessionParameter. </b></p>
+<p>First the Repository:</p>
+<pre class="code">...
+	hr = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;<b>Repository</b>&quot;, repository);
+...</pre>
+<p>Then the server:</p>
+<pre class="code">...
+	hr = CATPLMSessionServices::SetPLMSessionParameter(&quot;<b>Server</b>&quot;, server);
+...</pre>
+<p>or </p>
+<pre class="code">...
+	hr = CATPLMSessionServices::SetPLMSessionParameter(&quot;<b>ServerName</b>&quot;, server_host);
+	hr = CATPLMSessionServices::SetPLMSessionParameter(&quot;<b>ServerPort</b>&quot;, server_port);
+	hr = CATPLMSessionServices::SetPLMSessionParameter(&quot;<b>ServerRootURI</b>&quot;, server_rootURI);
+...</pre>
+<p>and finally the loginTicket parameters :</p>
+<pre class="code">...
+	hr = CATPLMSessionServices::SetPLMSessionParamete<b>r</b>(&quot;<b>LoginTicket</b>&quot;, iLoginTicket);
+...</pre>
+<p>Now that all connection parameters are set, we can proceed to create the PLM 
+session and connect to the repository. </p>
+<p>The order inside the use case is one example, before calling the initialization, 
+you can call <code>SetPLMSessionParameter</code> in the order you want, and several 
+times. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Creating the PLM session</h3>
+<p>Creating the PLM session is simply done by calling <b>CATPLMSessionServices::InitPLMSession</b>.</p>
+<pre class="code">...
+	hr = <b>CATPLMSessionServices::InitPLMSession</b>();
+...</pre>
+<p>As there can only be one session for the runnnig program, the need for a pointer 
+on the session is irrelevant.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Listing the environments</h3>
+<p>Once the PLM session is successfully created, we can execute any PLM operation 
+such as listing the available environments. This can be done by calling <b>CATAdpDictionaryServices</b>::<b>ListEnvironments.</b></p>
+<pre class="code">...
+	CATListValCATString envIDList;
+	CATListValCATUnicodeString envAliasList;
+	hr = <b>CATAdpDictionaryServices</b>::<b>ListEnvironments</b>(repository,
+						   envIDList,
+						   envAliasList);
+...
+	cout &lt;&lt; &quot;  Available environments:&quot; &lt;&lt; endl;
+	for (int i = 1; i &lt;= envIDList.Size(); i++) {
+	   cout &lt;&lt; &quot;    &quot; &lt;&lt; envIDList[i] 
+	        &lt;&lt; &quot;, alias: &quot; &lt;&lt; envAliasList[i].ConvertToChar() &lt;&lt; endl;
+	}
+....</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Closing the session</h3>
+<p>Before terminating, the program must close the PLM session with <b>CATPLMSessionServices::ClosePLMSession</b>. 
+Again, as there can only be one PLM session, there is no need to specify it.</p>
+<pre class="code">...
+	hr = <b>CATPLMSessionServices</b>::<b>ClosePLMSession</b>();
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="CAAAdpCreateSession-CAAAdpCloseSession"></a>CAAAdpCreateSession &amp; CAAAdpCloseSession</h3>
+<p>These two global functions, <code>CAAAdpCreateSession</code> and <code>CAAAdpCloseSession</code>,<code>
+</code>are defined and exported by the CAAPLMClientAdapter.edu framework. They are 
+in fact used by other CAA use cases.</p>
+<p><code>CAAAdpCreateSession</code> takes as input all the connection parameters 
+along with a flag indicating whether these parameters should be printed out for 
+informational purposes:</p>
+<p>This method is deprecated from R2015x release.</p>
+<pre class="code">HRESULT <b>CAAAdpCreateSession</b>(const char * iRepository, 
+                            const char * iServer, 
+                            const char * iUser,
+                            const char * iPassword,
+                            const char * iRole,
+                            CATBoolean iTrace) 
+{
+  ...
+    HRESULT rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;Repository&quot;, iRepository);
+    if (FAILED(rc)) { return 1;}
+    rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;Server&quot;, iServer);
+    if (FAILED(rc)) { return 1;}
+    rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;UserID&quot;, iUser);
+    if (FAILED(rc)) { return 1;}
+    rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;UserPasswd&quot;, iPassword);
+    if (FAILED(rc)) { return 1;}
+    rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;SecurityCtx&quot;,iRole);
+    if (FAILED(rc)) { return 1;}
+
+    rc = <b>CATPLMSessionServices::InitPLMSession</b>();
+    return rc ;
+</pre>
+<p> New method for creating a session uses LoginTicket value as mentioned in 
+earlier section : </p>
+<pre class="code">HRESULT <b>CAAAdpCreateSession</b>(const char * iRepository, 
+                            const char * iServer, 
+                            const char *  iLoginTicket,
+                            CATBoolean iTrace) 
+{
+  ...
+    HRESULT rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;Repository&quot;, iRepository);
+    if (FAILED(rc)) { return 1;}
+    rc = <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;Server&quot;, iServer);
+    if (FAILED(rc)) { return 1;}
+    rc =  <b>CATPLMSessionServices::SetPLMSessionParameter</b>(&quot;LoginTicket&quot;, iLoginTicket);
+    if (FAILED(rc)) { return 1;}
+  
+    rc = <b>CATPLMSessionServices::InitPLMSession</b>();
+    return rc ;
+</pre>
+<p> &nbsp;</p>
+<p><code>CAAAdpCloseSession</code> was created just to be symmetric to <code>CAAAdpCreateSession</code>.</p>
+<pre class="code">HRESULT <b>CAAAdpCloseSession</b>() 
+{
+   HRESULT rc = CATPLMSessionServices::<b>ClosePLMSession</b>();
+   return rc ;
+}</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>We have seen how to create and close a PLM session with a given repository. This 
+is the least that every batch must do before doing a PLM operation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllClientServerArchi.htm">
+		PLM Client/Server Architecture Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">
+		Understanding PLM Environment</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2008]</td>
+		<td>Document update: RootURI is mandatory</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2006]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

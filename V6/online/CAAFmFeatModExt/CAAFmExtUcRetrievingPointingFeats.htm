@@ -1,0 +1,547 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Retrieving the Pointing Features</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Retrieving the Pointing Features</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the <code>CAAFmExtScanPointingFeats</code> use 
+		case. It illustrates retrieving the features &quot;pointing to&quot; a target (referenced) 
+		feature. The features retrieved are governed by the credentials associated 
+		with the target feature facade. A thorough understanding of the Credentials 
+		topic [<a href="#References">1</a>] is a prerequisite to convincingly understand 
+		the current use case.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmExtScanPointingFeats Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmExtScanPointingFeats Do</a></li>
+				<li><a href="#How">How to Launch CAAFmExtScanPointingFeats</a></li>
+				<li><a href="#Where">Where to Find the CAAFmExtScanPointingFeats 
+				Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This Use Case teaches an end user the steps involved to retrieve features pointing 
+to a target feature. The possible scenarios with their associated results (learnings) 
+are listed below:</p>
+<ul>
+	<li>A feature when scanned for its pointing features, without credentials does 
+	not output any feature.</li>
+	<li>When the credentials are of the referenced feature, all the pointed features 
+	are retrieved.</li>
+	<li>When the credentials are of the referencing feature, only those referencing 
+	features are retrieved. Moreover, one can also retrieve the &quot;pointing attribute&quot; 
+	associated with the referencing feature, provided it is local to this feature, 
+	meaning the attribute is not inherited.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAFmExtScanPointingFeats Use Case</h2>
+<p><code>CAAFmExtScanPointingFeats</code> is a use case of the <code>CAAFeatureModelerExt.edu</code> 
+framework that illustrates <code>FeatureModelerExt</code> framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmExtScanPointingFeats Do</h3>
+<p>The UC is based on the feature model defined below [<a href="#Fig.1">Fig. 1</a>].
+</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 Feature Model for UC Execution</caption>
+	<tr>
+		<td>
+		<img alt="Feature Model for UC Execution" src="images/CAAFmExtScanPointingFeats_Fig1.jpg"></td>
+	</tr>
+</table>
+<p>The features referred in feature model above are defined in various catalogs 
+listed in [<a href="#Fig.1">Fig. 1</a>] above. We begin by detailing the feature 
+StartUps:</p>
+<ul>
+	<li>The &quot;Reader Child&quot; StartUp is derived from the &quot;Library Book Reader&quot; StartUp.</li>
+	<li>The &quot;Libary Book Reader&quot; StartUp is associated with an attribute &quot;CAAFmExtBooksRead&quot; 
+	of type specobject (for creating a referencing link). The &quot;Reader Child&quot; derived 
+	from the &quot;Library Book Reader&quot; StartUp inherits this attribute.</li>
+	<li>The &quot;Book Reader&quot; StartUp is associated with an attribute &quot;CAAFmExtBookRead&quot;, 
+	of type external. Valuating this attribute with an external feature in context, 
+	results in an external link with may either be restricted inside a single PLM 
+	Component or may span across two.</li>
+</ul>
+<p>The UC execution proceeds as listed below. It begins with creating the feature 
+model by instantiating features from the StartUps referred above.</p>
+<ul>
+	<li>The UC creates two PLM Technological Representation.</li>
+	<li>It creates two Applicative Container in the 1st PLM Technological Representation.</li>
+	<li>Create the &quot;Library Book&quot; feature in Appli Cont 1.</li>
+	<li>Create the &quot;<strong>Library Book Reader</strong>&quot; and &quot;<strong>Reader Child</strong>&quot; 
+	in Appli Cont 2/</li>
+	<li>The features &quot;<strong>Library Book Reader</strong>&quot; and the &quot;<strong>Reader 
+	Child</strong>&quot; both point to the feature &quot;<strong>Library Book</strong>&quot;.</li>
+	<li>It creates an Applicative Container in the 2nd PLM Technological Representation.</li>
+	<li>Create the &quot;Book Reader&quot; feature inside this applicative container.</li>
+	<li>The feature &quot;<strong>Book Reader</strong>&quot; points to the feature &quot;<strong>Library 
+	Book</strong>&quot;.</li>
+</ul>
+<p>With the feature model ready, the UC now proceeds to illustrate the steps involved 
+to retrieve the features referencing a target feature. Various possible cases arise, 
+based on the credentials associated with the referenced feature (&quot;Library Book&quot;) 
+facade. The UC execution proceeds to illustrate these cases:</p>
+<ul>
+	<li>A Library Book feature facade is created without credentials. It is scanned 
+	for pointing features. None are output, since the feature facade is without 
+	credentials.</li>
+	<li>It then creates a Library Book feature facade with the Library Book Credentials. 
+	When this feature facade is scanned for pointing features it outputs all three 
+	features. Assuming user has only the Library Book credentials, introspecting 
+	the Library Book Reader, Reader Child and the Book Reader feature fails.</li>
+	<li>Next, it creates a Library Book feature facade with the credentials of the 
+	Library Book Reader feature. The output of the scan is only the Library Book 
+	Reader feature. We can introspect this feature since we have its credentials. 
+	By introspection, we imply retrieving the display name of the feature (the
+	<code>GetDisplayName</code>() call) and its attribute whose valuation creates 
+	a referencing/external link pointing to the Library Book feature (the <code>
+	GetCurrentPointingAttributeName</code>() call).</li>
+	<li>Lastly we create a Library Book feature facade with the credentials of the 
+	Reader Child feature. The output of this scan is only the Reader Child feature. 
+	The <code>GetDisplayName</code>() call on the Reader Child feature returns SUCCESS, 
+	while an attempt to retrieve the pointing attribute (the <code>GetCurrentPointingAttributeName</code>() 
+	call) fails. It implies that the credentials of an inherited feature, limit 
+	the introspection of the inherited feature to only those attributes local to 
+	it, while it fails to retrieve the values of the inherited attributes.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="How"></a>How to Launch CAAFmExtScanPointingFeats</h3>
+<p>ToTo launch <code>CAAFmExtScanPointingFeats</code>, you will need to set up the 
+build time environment, then compile <code>CAAFmExtScanPointingFeats</code> along 
+with its prerequisites, set up the run time environment, and then execute the sample. 
+This is fully described in the referenced article [<a href="#References">2</a>].</p>
+<p>mkmkrun -c &quot;<code>CAAFmExtScanPointingFeats</code><em> Repository Server UserId 
+Password SecurityCtx Environment</em>&quot;</p>
+<p>Where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as <em>Host:Port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer(Since use case modifies PLM Data)</td>
+	</tr>
+	<tr>
+		<th>Environment</th>
+		<td>A PLM environment containing PLMProductDS (a PRODUCT&#39;s custo)</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Where"></a>Where to Find the CAAFmExtScanPointingFeats Code</h3>
+<p><code>CAAFmExtScanPointingFeats</code> code is located in the <code>CAAFmExtScanPointingFeats.m</code> 
+use case module of the <code>CAAFeatureModelerExt.edu</code> framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CAAFmExtScanPointingFeats</code><code>.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the root 
+folder of your API installation. It is made of a unique source file named: <code>
+CAAFmExtScanPointingFeats.cpp</code>.</p>
+<p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+</p>
+<p>In addition, the UC also refers to the Catalogs <code>CAAFmExtBaseCatalogForCredential.CATfct</code>,
+<code>CACAAFmExtExternalLinkCatalog.CATfct, CAAFmExtScanFeatCatalog</code> and
+<code>CAAFmExtRefCatalogForCredential.CATfct</code>. The Catalogs are provided at 
+the location:</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\CNext\resources\graphic</code></p>
+<p>and by running the mkrtv tool, user copies it to the WS RTV.</p>
+<p>In addition we have also provided the OSM files corresponding to these catalogs 
+at the location below, just in case you would like to generate the <code>CATfct</code> 
+with the <code>CATfctEditorAssistant</code> tool [<a href="#References">4</a>].</p>
+<p><code>InstallRootFolder\CAADoc\CAAFeatureModelerExt.edu\InputData</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are six logical steps in <code>CAAFmExtScanPointingFeats</code>:</p>
+<ul>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Scan with no cred">Scan for Pointing Features using a Feature 
+	Facade with No Credentials</a></li>
+	<li><a href="#Scan with Cred of Base">Scan for Pointing Features using a Feature 
+	Facade with Credentials of the Pointed Feature</a></li>
+	<li><a href="#Scan with Cred of External Feat">Scan for Pointing Features using 
+	a Feature Facade with Credentials of the External Feature</a></li>
+	<li><a href="#Scan with Cred of Inherited Feat">Scan for Pointing Features using 
+	a Feature Facade with Credentials of an Inherited Feature</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ul>
+<p>We proceed to detail the steps involved.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The fundamental steps to create a batch session with a connection to an input 
+repository [<a href="#References">3</a>]. Next we create the Credentials object 
+which authorize working with various Catalogs listed in the &quot;What does the UC do&quot; 
+section above. We append each of these credentials with a Credentials object which 
+authorizes working with Applicative Containers defined by the Feature Modeler. [<a href="#References">1</a>].
+</p>
+<p>The reason we have multiple Credentials object in the current context, is solely 
+from an educational point of view, since we are interested in demonstrating various 
+possible scenarios of scanning the features referencing a target feature. It is 
+important to note that in real life applications, you may use only a single credentials 
+object which is all-inclusive.</p>
+<p>Next we create two PLM Technological Representation [<a href="#References">5</a>]. 
+The Book, Library Book Reader and the Reader Child features are instantiated in 
+one of those PLM Technological Representation while the External Book Reader exists 
+in the other PLM Technological Representation. The Library Book Reader and the Reader 
+Child feature occurs inside an Applicative Container while the Book feature is inside 
+the other Container. [<a href="#References">6</a>]</p>
+<p>The Library Book Reader and the Reader Child feature points to the Book feature. 
+This is realized by a referencing link created by valuating a specobject attribute 
+(BooksRead) of the referring features. [<a href="#References">7</a>] Next we create 
+an referencing link from the External Book Reader feature to the Book feature. This 
+is an external link since it spans across PLM Object. It is realized by valuating 
+an external attribute (CAAFmExtBookRead) of the referencing feature. [<a href="#References">8</a>]</p>
+<p>Now that we have the model ready, we proceed to scan the book feature for all 
+features pointing to it. Various possible scenarios are listed below.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scan with no cred"></a>Scan for Pointing Features using a Feature Facade 
+with No Credentials</h3>
+<p>A feature facade not associated with any credentials, when scanned for pointing 
+features returns no features.</p>
+<pre class="code">CATFmPointingFeatureIterator oPointingFeatsIterator;
+rc =  <strong>FeatFacadeOnBook.ScanPointingFeatures(oPointingFeatsIterator)</strong>;
+if (FAILED(rc)) return 1;</pre>
+<p>The <code>ScanPointingFeatures</code>() call of the <code>CATFmFeatureFacade</code> 
+class retrieves the features pointing to the feature on which this call is invoked.</p>
+<p><code>FeatFacadeOnBook</code>, a <em>CATFmFeatureFacade</em> type represents 
+the book feature on instantiation. Please note that this feature facade is not associated 
+with any credentials.</p>
+<p>The output of the scan is <code>oPointingFeatsIterator</code>, a <em>CATFmPointingFeatureIterator</em> 
+type. We scan through this iterator in the next step.<br>
+</p>
+<pre class="code">// 12-1-2- Confirm an empty Iterator is retrieved 
+CATFmFeatureFacade FeatFacadeOnPointedFeatWithNoCreds;
+<strong>if (SUCCEEDED(oPointingFeatsIterator.Next(FeatFacadeOnPointedFeatWithNoCreds))) return 1</strong>; 
+</pre>
+<p>The call to <code>Next</code>() of the <em>CATFmPointingFeatureIterator</em> 
+class scans through the iterator contents. Since the iterator is empty, the call 
+is expected to FAIL.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scan with Cred of Base"></a>Scan for Pointing Features using a Feature 
+Facade with Credentials of the Pointed Feature</h3>
+<p>A Feature Facade associated with the credentials of the pointed feature, when 
+scanned for the pointing features, returns all pointing features. However with those 
+credentials, introspection of the pointed feature fails.</p>
+<pre class="code"><strong>CATFmFeatureFacade FeatFacadeOnBookWithBookCreds(CredForBookAccess)</strong>; 
+<strong>FeatFacadeOnBookWithBookCreds = piCBUOnBookFeat</strong>;
+CATFmPointingFeatureIterator oPointingFeatsIterator_1;
+rc =  <strong>FeatFacadeOnBookWithBookCreds.ScanPointingFeatures(oPointingFeatsIterator_1)</strong>;
+if (FAILED(rc)) return 1;</pre>
+<p>We first instantiate a Feature Facade on Book, having associated it with the 
+Book Catalog credentials (<code>FeatFacadeOnBookWithBookCreds</code>, a <em>CATFmFeatureFacade</em> 
+type). At this stage, this facade has no feature bound to it.</p>
+<p><code>CredForBookAccess</code>, is a <em>CATFmCredentials</em> type representing 
+the Book Catalog (CAAFmExtBaseCatalogForCredential) Credentials.</p>
+<p>The call to operator= of the <em>CATFmFeatureFacade</em> class, assigns the book 
+feature (<code>piCBUOnBookFeat</code>, a <em>CATBaseUnknown</em>* type), to
+<code>FeatFacadeOnBookWithBookCreds</code>. Thus we now have a feature facade on 
+book, with the associated credentials that of the Book feature.</p>
+<p>The call to <code>ScanPointingFeatures</code>() on <code>FeatFacadeOnBookWithBookCreds</code> 
+returns an iterator, <code>oPointingsFeatsIterator_1</code>, a <em>CATFmPointingFeatureIterator</em> 
+type, which contains the pointing features. We next scan through the contents of 
+this iterator.</p>
+<pre class="code">int iCountOfFeats = 0;
+CATBoolean bMethodsFail = TRUE;
+<strong>while (SUCCEEDED(oPointingFeatsIterator_1.Next(FeatFacadeOnPointedFeatWithNoCreds)) &amp;&amp; (TRUE == bMethodsFail))</strong> 
+{
+    iCountOfFeats++;
+    CATUnicodeString strDisplayName;
+    rc = <strong>FeatFacadeOnPointedFeatWithNoCreds.GetDisplayName(strDisplayName)</strong>;
+<strong>    if (SUCCEEDED(rc)) bMethodsFail = FALSE</strong>;
+    ...
+}</pre>
+<p>The call to <code>Next</code>() of the <em>CATFmPointingFeatureIterator</em> 
+class scans through the iterator contents. We retrieve each pointing feature as 
+a Feature Facade without credentials namely. <code>FeatFacadeOnPointedFeatWithNoCreds</code>, 
+a <em>CATFmFeatureFacade</em> type. The reason we do not associate any credentials 
+with the retrieved feature facade is because we do not have the credentials of the 
+pointing features.</p>
+<p>The call to <code>GetDisplayName</code>() on the retrieved feature facade will 
+FAIL.</p>
+<pre class="code"><strong>while (SUCCEEDED(oPointingFeatsIterator_1.Next(FeatFacadeOnPointedFeatWithNoCreds)) &amp;&amp; (TRUE == bMethodsFail))</strong> 
+{
+    ...
+    CATFmAttributeName oPointingKey;
+    rc = <strong>oPointingFeatsIterator_1.GetCurrentPointingAttributeName(oPointingKey)</strong>;
+   <strong> if (SUCCEEDED(rc)) bMethodsFail = FALSE</strong>;
+}
+</pre>
+<p>The call to <code>GetCurrentPointingAttributeName</code>() on <code>oPointingFeatsIterator_1</code>, 
+a <em>CATFmPointingFeatureIterator</em> type also returns FAILURE, since the iterator 
+does not have the credentials of the pointing features.</p>
+<pre class="code"><strong>if (</strong>(3 != iCountOfFeats) ||<strong> (FALSE == bMethodsFail)) return 1</strong>;</pre>
+<p>Finally, we confirm that the scan returns three pointing features. We also ensure 
+that the two introspection methods called on the pointing features necessarily fail, 
+owing to inadequate credentials.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scan with Cred of External Feat"></a>Scan for Pointing Features using 
+a Feature Facade with Credentials of an External Feature</h3>
+<p>A Feature Facade associated with the credentials of an external referencing feature, 
+when scanned for the pointing features, returns those external features. Since now 
+user has the credentials to work with this external feature, introspection of this 
+feature returns SUCCESS.</p>
+<pre class="code"><strong>CATFmFeatureFacade FeatFacadeOnBookWithExternalReaderCreds(CredForExternalReaderAccess)</strong>;
+<strong>FeatFacadeOnBookWithExternalReaderCreds = piCBUOnBookFeat</strong>;
+CATFmPointingFeatureIterator oPointingFeatsIterator_2;
+rc =  <strong>FeatFacadeOnBookWithExternalReaderCreds.ScanPointingFeatures(oPointingFeatsIterator_2)</strong>;
+if (FAILED(rc)) return 1;</pre>
+<p>We first instantiate a Feature Facade on Book, having associated it with the 
+External Book Reader Catalog credentials (<code>FeatFacadeOnBookWithExternalReaderCreds</code>, 
+a <em>CATFmFeatureFacade</em> type). At this stage, this facade has no feature bound 
+to it.</p>
+<p><code>CredForExternalReaderAccess</code>, is a <em>CATFmCredentials</em> type 
+representing the External Book Reader Catalog (CAAFmExtExternalLinkCatalog) Credentials.</p>
+<p>The call to operator= of the <em>CATFmFeatureFacade</em> class, assigns the book 
+feature (<code>piCBUOnBookFeat</code>, a <em>CATBaseUnknown</em>* type) to <code>
+FeatFacadeOnBookWithExternalReaderCreds</code>. Thus we now have a feature facade 
+on book, with the associated credentials that of the External Book Reader feature.</p>
+<p>The call to <code>ScanPointingFeatures</code>() on <code>FeatFacadeOnBookWithExternalReaderCreds</code> 
+returns an iterator, <code>oPointingsFeatsIterator_2</code>, a <em>CATFmPointingFeatureIterator</em> 
+type, which contains the pointing features. We next scan through the contents of 
+this iterator.</p>
+<pre class="code">iCountOfFeats = 0;
+CATBoolean bMethodsOK = TRUE;
+CATBoolean bRetrievedKeyName = TRUE;
+<strong>while (SUCCEEDED(oPointingFeatsIterator_2.Next(FeatFacadeOnPointedFeatWithExternalReaderCreds)) 
+   &amp;&amp; (TRUE == bMethodsOK) &amp;&amp; (TRUE == bRetrievedKeyName))</strong>
+{
+    iCountOfFeats++;
+    CATUnicodeString strDisplayName;
+    rc = <strong>FeatFacadeOnPointedFeatWithExternalReaderCreds.GetDisplayName(strDisplayName)</strong>;
+<strong>    if (FAILED(rc)) bMethodsOK = FALSE</strong>;
+    ...
+}
+</pre>
+<p>The call to <code>Next</code>() of the <em>CATFmPointingFeatureIterator</em> 
+class scans through the iterator contents. We retrieve each pointing feature as 
+a Feature Facade with credentials of the External Reader Catalog namely. <code>FeatFacadeOnPointedFeatWithExternalReaderCreds</code>, 
+a <em>CATFmFeatureFacade</em> type.</p>
+<p>The call to <code>GetDisplayName</code>() on the retrieved feature facade should 
+SUCCEED, since the facade has the required credentials. The call to <code>GetCurrentPointingAttributeName</code>() 
+also SUCCEEDS, as depicted in the code extract that follows.</p>
+<pre class="code"><strong>while (SUCCEEDED(oPointingFeatsIterator_2.Next(FeatFacadeOnPointedFeatWithExternalReaderCreds)) 
+   &amp;&amp; (TRUE == bMethodsOK) &amp;&amp; (TRUE == bRetrievedKeyName))</strong>
+{
+    ...
+    CATFmAttributeName oPointingKey;
+<strong>    rc = oPointingFeatsIterator_2.GetCurrentPointingAttributeName(oPointingKey)</strong>; 
+    if (SUCCEEDED(rc))
+    {
+        CATUnicodeString AttrKeyNameRetrieved;
+        <strong>CATUnicodeString AttrkeyNameExpected(&quot;CAAFmExtBookRead&quot;)</strong>;
+        rc = <strong>oPointingKey.GetKeyName(AttrKeyNameRetrieved)</strong>;
+        if (SUCCEEDED(rc))
+            <strong>if (AttrkeyNameExpected != AttrKeyNameRetrieved) bRetrievedKeyName = FALSE</strong>;
+        else bMethodsOK = FALSE;
+
+    } else bMethodsOK = FALSE;
+}</pre>
+<p>The call to <code>GetCurrentPointingAttributeName</code>() on <code>oPointingFeatsIterator_2</code>, 
+a <em>CATFmPointingFeatureIterator</em> type retrieves the external attribute of 
+the External Reader feature, whose valuation creates an external link referencing 
+the Book feature. The attribute is returned as oPointingKey, a <em>CATFmAttributeName</em> 
+type.</p>
+<p>The Attribute name is retrieved by a call to GetKeyName() of the <em>CATFmAttributeName</em> 
+class. The attribute name expected is &quot;CAAFmExtBookRead&quot;.</p>
+<pre class="code"><strong>if ((1 != iCountOfFeats) || (FALSE == bMethodsOK) || (FALSE == bRetrievedKeyName)) return 1</strong>;</pre>
+<p>Finally, we confirm the scan output only a single feature. All introspection 
+methods invoked on this feature return SUCCESS. Lastly, the attribute responsible 
+for creating the external link is &quot;CAAFmExtBookRead&quot;.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Scan with Cred of Inherited Feat"></a>Scan for Pointing Features using 
+a Feature Facade with Credentials of an Inherited Feature</h3>
+<p>A Feature Facade associated with the credentials of an inherited feature, when 
+scanned for the pointing features, returns only those inherited features. Since 
+now user has the credentials to work with this inherited feature, introspection 
+of this feature SUCCEEDS, but it is limited only to retrieving the values of the 
+attributes local to the inherited feature. However, we fail to retrieve the values 
+of the inherited attributes.</p>
+<pre class="code"><strong>CATFmFeatureFacade FeatFacadeOnBookWithReaderChildCreds(CredForReaderChildAccess)</strong>;
+<strong>FeatFacadeOnBookWithReaderChildCreds = piCBUOnBookFeat</strong>;
+CATFmPointingFeatureIterator oPointingFeatsIterator_3;
+rc =  <strong>FeatFacadeOnBookWithReaderChildCreds.ScanPointingFeatures(oPointingFeatsIterator_3)</strong>;
+if (FAILED(rc)) return 1;</pre>
+<p>We first instantiate a Feature Facade on Book, having associated it with the 
+Reader Child Catalog credentials (<code>FeatFacadeOnBookWithReaderChildCreds</code>, 
+a <em>CATFmFeatureFacade</em> type). At this stage, this facade has no feature bound 
+to it.</p>
+<p><code>CredForReaderChildAccess</code>, is a CATFmCredentials type representing 
+the Reader Child Catalog (CAAFmExtScanFeatCatalog) Credentials.</p>
+<p>The call to operator= of the <em>CATFmFeatureFacade</em> class, assigns the book 
+feature (<code>piCBUOnBookFeat</code>, a <em>CATBaseUnknown</em>* type) to <code>
+FeatFacadeOnBookWithReaderChildCreds</code>. Thus we now have a feature facade on 
+book, with the associated credentials that of the Reader Child feature.</p>
+<p>The call to <code>ScanPointingFeatures</code>() on <code>FeatFacadeOnBookWithReaderChildCreds</code> 
+returns an iterator, <code>oPointingsFeatsIterator_3</code>, a <em>CATFmPointingFeatureIterator</em> 
+type, which contains the pointing features. We next scan through the contents of 
+this iterator.</p>
+<pre class="code">iCountOfFeats = 0;
+CATBoolean bMethodDisplayNameOK = TRUE;
+CATBoolean bMethodGetPointingAttrNameOK = FALSE;
+<strong>while (SUCCEEDED(oPointingFeatsIterator_3.Next(FeatFacadeOnPointedFeatWithReaderChildCreds)) 
+       &amp;&amp; (TRUE == bMethodDisplayNameOK) &amp;&amp; (FALSE == bMethodGetPointingAttrNameOK))</strong>
+{
+    iCountOfFeats++;
+    CATUnicodeString strDisplayName;
+    rc = <strong>FeatFacadeOnPointedFeatWithReaderChildCreds.GetDisplayName(strDisplayName)</strong>;
+<strong>    if (FAILED(rc)) bMethodDisplayNameOK = FALSE</strong>;
+    ...
+}</pre>
+<p>The call to <code>Next</code>() of the <em>CATFmPointingFeatureIterator</em> 
+class on <code>oPointingFeatsIterator_3</code> scans through the iterator contents. 
+We retrieve each pointing feature as a Feature Facade with credentials of the Reader 
+Child feature Catalog namely. <code>FeatFacadeOnPointedFeatWithReaderChildCreds</code>, 
+a <em>CATFmFeatureFacade</em> type.</p>
+<p>The call to <code>GetDisplayName</code>() on the retrieved feature facade should 
+SUCCEED, since the facade has the required credentials.</p>
+<pre class="code"><strong>while (SUCCEEDED(oPointingFeatsIterator_3.Next(FeatFacadeOnPointedFeatWithReaderChildCreds)) 
+       &amp;&amp; (TRUE == bMethodDisplayNameOK) &amp;&amp; (FALSE == bMethodGetPointingAttrNameOK))</strong>
+{
+    ...
+    CATFmAttributeName oPointingKey;
+    rc = <strong>oPointingFeatsIterator_3.GetCurrentPointingAttributeName(oPointingKey)</strong>;
+<strong>    if (SUCCEEDED(rc)) bMethodGetPointingAttrNameOK = TRUE</strong>;
+}</pre>
+<p>The call to <code>GetCurrentPointingAttributeName</code>() on <code>oPointingFeatsIterator_3</code>, 
+a <em>CATFmPointingFeatureIterator</em> type fails. It is significant to note here 
+that the specobject attribute &quot;BooksRead&quot; of the Reader Child feature, is inherited. 
+The credentials of the inherited feature catalog, authorize working with only those 
+attributes local to the inherited feature. In other words, it does not authorize 
+access to the inherited attribute. Hence an attempt to retrieve the &quot;BooksRead&quot; 
+attribute of the &quot;Reader Child&quot; feature fails, since it is inherited.</p>
+<pre class="code"><strong>if ((1 != iCountOfFeats) || (FALSE == bMethodDisplayNameOK) || (TRUE == bMethodGetPointingAttrNameOK)) return 1</strong>;</pre>
+<p>Finally, we confirm the scan output only a single feature, the Reader Child feature. 
+Only the <code>GetDisplayName</code>() call succeeds, while the call to <code>GetCurrentPointingAttributeName</code>() 
+fails.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>See the referenced article [<a href="#References">4</a>] for a detailed description 
+of the steps involved to save the session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The UC illustrates the steps involved to scan the features pointing to a feature. 
+We run this scan on the referenced feature facade by associating it with a different 
+credentials and subsequently study the output of the scan and the possibilities 
+of introspecting the retrieved pointing features.</p>
+<p>For the illustration we created a feature model which consists of a Book feature 
+referenced by the features namely. Reader, Reader Child (inherited from Reader) 
+in the same PLM Technological Representation as Book (specobject link) and another 
+Reader which exists in a different PLM Technological Representation (an external 
+link).</p>
+<p>The scan returns the pointing features, governed by the its associated credentials. 
+For an inherited pointing feature, though user has its credentials, the introspection 
+is limited to the attributes local to the inherited feature (meaning, not those 
+attributes inherited from the hierarchy above)</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAFmExtTaUnderstandingCredentials.htm">Understanding Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Connecting to V6 Server</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAOsmUcCatalogSU.htm">Creating StartUps in Catalogs</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModelerExt/CAAPstUcCreateAndInstantiateTechnoRep.htm')">
+		Creating PLM Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAFmExtUcInstantiation.htm">Creating Features</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAFmExtUcReferencedAttr.htm">Making Reference Links</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAFmExtUcCreatingExternalLinks.htm">Creating an External Link</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Apr 2010]</td>
+		<td>Creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

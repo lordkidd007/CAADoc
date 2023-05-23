@@ -1,0 +1,317 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Declaring a User App in the MyApps Service</title>
+<style type="text/css">
+.center {
+	text-align: center;
+}
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Declaring a User App in the MyApps Service</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h3>Abstract</h3>
+		<p>This article explains how to declare a new User App in the MyApps service 
+		within your own installation of the 3DEXPERIENCE Platform so that is appears 
+		in the Compass. This can be accomplished using the Platform Management console
+		described in product documentation and it is highly recommended to use it.  
+		The present article explains how to use a REST web service call instead, 
+		this may be useful for specific On Premises deployment of the platform but
+	       	its main goal is to explain what is the right information to provide when 
+		declaring an App.</p>
+		<p>Please note that:</p>
+		<ul>
+			<li>You do not need to be familiar with REST web services concepts to 
+				apply the hereby described procedure.</li>
+			<li>This web service is not to be considered as a solution that will 
+				mandatorily be provided in the next releases, meaning that User 
+				Apps declaration may have to be performed differently in incoming 
+				releases.</li>
+			<li>User Apps will appear as available to all platform users even if 
+				they do not access the App itself. The Platform Management 
+				console allows a thinner acces control.</li>
+			<li>This requires administrator access rights to the 3DEXPERIENCE Platform Collaboration 
+				server.</li>
+		</ul>
+		<ul>
+			<li><a href="#Description">Web Service Description</a></li>
+			<li><a href="#Declare">Steps by Step to Declare a New User App</a></li>
+			<li><a href="#Remove">Steps by Step to Remove a User App Declaration</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Web Service Description</h2>
+<p>People not familiar with web service concepts may skip this section and directly 
+go to the step-by-step.</p>
+<p>User Apps are declared through an http POST request to a REST web 
+service end point. Parameters are passed in the request body, with an
+<code>application/x-www-form-urlencoded</code> content type.</p>
+<p>The web service end point URL is:</p>
+<pre class="code">
+${URLENOVIA}/resources/AppsMngt/apps
+</pre>
+<p>Where <code>URLENOVIA</code> is the 3DEXPERIENCE Platform Collaboration 
+server URL.</p>
+<p>This web service uses the following parameters when declaring a User App:</p>
+<table class="fill">
+	<tr>
+		<th>Parameter</th>
+		<th class="center">Mandatory</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>quadrant</td>
+		<td class="center">Y</td>
+		<td>Compass quadrant in which the User App will appear. Possible values 
+		are <kbd>North</kbd>, <kbd>East</kbd>, <kbd>West</kbd>, or <kbd>South</kbd>. Default value is 
+		<kbd>North</kbd>.</td>
+	</tr>
+	<tr>
+		<td>launchinfos</td>
+		<td class="center">Y</td>
+		<td>URL for Web Apps, or app ID (the name of the app description class) 
+		for Native Apps.</td>
+	</tr>
+	<tr>
+		<td>type</td>
+		<td class="center">Y</td>
+		<td>App Type. Possible values are <kbd>Web</kbd> or <kbd>Native</kbd>.</td>
+	</tr>
+	<tr>
+		<td>displayname</td>
+		<td class="center">Y</td>
+		<td>Name of the app as it will appear in the Compass.</td>
+	</tr>
+	<tr>
+		<td>icon</td>
+		<td class="center"></td>
+		<td>URL of the app icon.</td>
+	</tr>
+	<tr>
+		<td>tooltip</td>
+		<td class="center"></td>
+		<td>Tooltip displayed when the mouse pointer moves over the 
+		app icon in the Compass.</td>
+	</tr>
+</table>
+<p>Two sub-resources, <code>apps/compassrich</code> and <code>apps/remove</code> allow to list and remove apps declarations as explained below.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Declare"></a>Step-by-Step to Declare a New User App</h2>
+<p>The following example uses Firefox but can be run with other browsers using similar 
+tools.</p>
+<ul>
+	<li>Launch Firefox.</li>
+	<li>Install the <kbd>RESTClient</kbd> add-on. This add-on will help you calling the REST 
+		web service.
+		<ol class="task">
+			<li>
+				<p>On the <kbd>Tools</kbd> menu, click <kbd>Add-ons</kbd>.</p>
+			</li>
+			<li>
+				<p>In the tab page that opens, retrieve the <kbd>RESTClient</kbd> 
+				add-on, for example by typing <kbd>RESTClient</kbd> in the search 
+				box.</p>
+			</li>
+			<li>
+				<p>Click <kbd>Install</kbd>.</p>
+				<p>Firefox displays the add-on as installed and requires a restart.
+				</p>
+			</li>
+			<li>
+				<p>Click <kbd>Restart now</kbd>.</p>
+				<p>After restart, a new icon is available on the right of the Firefox
+				<kbd>Navigation Toolbar</kbd>.</p>
+			</li>
+		</ol>
+	</li>
+	<li>Click this icon to launch the <kbd>RESTClient</kbd> client add-on.<p>
+		This creates a new tab named <kbd>RESTClient</kbd> in the browser.</p>
+	</li>
+	<li>
+		<p>Open a new browser tab and connect to the 3DEXPERIENCE Platform Collaboration 
+		Server as an administrator. You need to maintain the session open until 
+		the end of the scenario. For that purpose, come back in this tab page from 
+		time to time and perform any action.</p>
+	</li>
+	<li>Go back in the <kbd>RESTClient</kbd> tab page to create and launch the request 
+		to the web service:
+		<ol class="task">
+			<li>
+				<p>At the top of the page, on the <kbd>Headers</kbd> menu click<kbd> 
+				Custom Header</kbd>.</p>
+				<p>The <kbd>Request Header</kbd> pop-up opens.</p>
+			</li>
+			<li>
+				<p>In this pop-up, type <code>Content-Type</code> in the <kbd>Name</kbd> 
+				box and <code>application/x-www-form-urlencoded</code> in the
+				<kbd>Value</kbd> box.</p>
+			</li>
+			<li>
+				<p>Check <kbd>Save to favorite</kbd> so that you will not have to 
+				re-enter this information whenever you will need to use the service.</p>
+			</li>
+			<li>
+				<p>Click <kbd>Okay</kbd>.</p>
+			</li>
+			<li>
+				<p>In the <kbd>Method</kbd> list, select <kbd>POST</kbd>.</p>
+			</li>
+			<li>
+				<p>In the <kbd>URL</kbd> box, type the following URL: <code>http://&lt;SERVER&gt;:8090/ematrix/resources/AppsMngt/apps</code> 
+				where <code>&lt;SERVER&gt;</code> is the name of your 
+				3DEXPERIENCE Platform Collaboration server.</p>
+			</li>
+			<li>
+				<p>In the <kbd>Body</kbd> box, type the following text on one line:</p>
+				<pre class="code">quadrant=West&amp;launchinfos=<strong>appClientId</strong>&amp;type=Native&amp;displayname=<strong>appTitle</strong></pre>
+				<p>where:</p>
+				<ul>
+					<li><code><strong>appClientId</strong></code> is the name of the app 
+						description class that implements the add-in <em>CATIxxxConfiguration</em> 
+						interface deriving from <em>CATIWorkbench</em>, and declared 
+						in the .dico file, such as <strong>CAAAfrGeoCreationWkb</strong> 
+						in the
+						<a href="#" onclick="CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrUcSampleWorkbench.htm'); return false;">
+						Creating an App</a> use case.</li>
+					<li><code><strong>appTitle</strong></code> is the app title 
+						set in the app CATNls file using the <code>Title</code> 
+						keyword, such as <strong>CAA:Create Geom</strong> for the 
+						same app.</li>
+				</ul>
+			</li>
+			<li>
+				<p>Click <kbd>SEND</kbd>.</p>
+				<p>New fields are added to the page under the <kbd>Response</kbd> 
+				section.</p>
+			</li>
+		</ol>
+	</li>
+	<li>
+		<p>Check that the request has succeeded by looking at the <kbd>Response Body 
+		(Raw)</kbd> field content.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Remove"></a>Step-by-Step to Remove a User App Declaration</h2>
+<p>If you app has been wrongly declared or has become useless you can remove the app declaration. To do this you will need to retrieve its id on the server. This id is returned by the declaration service but if you haven't kept it you will first need to list apps the following way:</p>
+<ul>
+	<li>Go back in the <kbd>RESTClient</kbd> tab page to create and launch the request 
+		to the web service.
+		<ol class="task">
+			<li>
+			<p>be sure that the <kbd>Custom Header</kbd> is still set or set it as described upper.</p>
+			</li>
+			<li>
+				<p>In the <kbd>Method</kbd> list, select <kbd>GET</kbd>.</p>
+			</li>
+			<li>
+				<p>In the <kbd>URL</kbd> box, type the following URL: <code>http://&lt;SERVER&gt;:8090/ematrix/resources/AppsMngt/apps/compassrich</code> 
+				where <code>&lt;SERVER&gt;</code> is the name of your 
+				3DEXPERIENCE Platform Collaboration server.</p>
+			</li>
+			<li>
+				<p>Cleap up the content of the <kbd>Body</kbd> box.</p>
+			</li>
+			<li>
+				<p>Click <kbd>SEND</kbd>.</p>
+				<p>New fields are added to the page under the <kbd>Response</kbd> 
+				section.</p>
+			</li>
+			<li>
+				<p>Click in the <kbd>Response Body (preview)</kbd> tab to have a readable view of the answer.</p>
+			</li>
+		</ol></li>
+	<li>Identify the app to remove. The answer of the previous request is a sequence of apps declarations that looks this way:
+<pre>
+&lt;CompassRich&gt;
+  &lt;favorite/&gt;
+    &lt;app&gt;
+      &lt;id&gt;<strong>appServerId</strong>&lt;/id&gt;
+      &lt;title&gt;<strong>appTitle</strong>&lt;/title&gt;
+      &lt;quadrant&gt;<strong>West</strong>&lt;/quadrant&gt;
+      &lt;section&gt;...&lt;/section&gt;
+      &lt;launchInfos&gt;...&lt;/launchInfos&gt;
+      &lt;workbench&gt;<strong>appClientId</strong>&lt;/workbench&gt;
+   ...
+    &lt;/app&gt;
+    &lt;app&gt;
+   ...
+&lt;/CompassRich&gt;
+</pre>
+	using the informations you entered at creation time, retrieve the 
+	server id of you app (<kbd>appServerId</kbd> in the example upper).</li>
+
+	<li>Modify the <kbd>RESTClient</kbd> to create a removal request:
+		<ol>
+			<li>
+				<p>In the <kbd>Method</kbd> list, select <kbd>PUT</kbd>.</p>
+			</li>
+			<li>
+				<p>In the <kbd>URL</kbd> box, type the following URL: <code>http://&lt;SERVER&gt;:8090/ematrix/resources/AppsMngt/apps/remove</code> 
+				where <code>&lt;SERVER&gt;</code> is the name of your 
+				3DEXPERIENCE Platform Collaboration server.</p>
+			</li>
+			<li>
+			<p>In the <kbd>Body</kbd> box enter the following.</p>
+				<pre class="code">id=<strong>appServerId</strong></pre>
+				<p>Where <kbd>appServerId</kbd> is the app server id retrieved 
+				in the previous step.</p>
+			</li>
+			<li>
+				<p>Click <kbd>SEND</kbd>.</p>
+				<p>The App declaration has been removed.</p>
+			</li>
+		</ol></li>
+	</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article describes how to declare a New App into the myApps server to make 
+it available in the Compass, and how to remove this declaration.</p>
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2013]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jul 2014]</td>
+		<td>Add description of app removal</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

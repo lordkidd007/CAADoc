@@ -1,0 +1,379 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>adl_collect</title>
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+</head>
+
+<body>
+
+<p>&nbsp; </p>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP"><h1>RADE</h1>
+    </td>
+    <td VALIGN="TOP"><h2>Source Code Manager</h2>
+    </td>
+    <td ALIGN="RIGHT" VALIGN="TOP" ROWSPAN="2"><h3><a NAME="Top"></a>adl_collect</h3>
+    <p><i>Collecting modifications</i></td>
+  </tr>
+  <tr>
+    <td COLSPAN="2" class="quick">Quick Reference</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+    <p>The <b>adl_collect</b> command collects all the promotions of each child workspace, in
+    the current workspace.&nbsp; <ul>
+      <li><b><a href="#Synopsis">Synopsis</a></b></li>
+      <li><b><a href="#Usage">Usage</a></b></li>
+      <li><b><a href="#Options">Options</a></b></li>
+      <li><b><a href="#Process">Process</a></b></li>
+      <li><b><a href="#Necessary">Necessary Context</a></b></li>
+      <li><b><a href="#Prerequisite">Prerequisite commands</a></b></li>
+      <li><b><a href="#Simulation">Simulation</a></b></li>
+      <li><b><a href="#Examples">Examples</a></b></li>
+      <li><b><a href="#References">References</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Synopsis"></a>Synopsis</h3>
+<b>
+
+<p>adl_collect</b> [workspace_name...] [<b>-tree</b> ws_tree_name...] [<b>-no_ds</b>] [<b>-simul</b>]
+[<b>-no_manual_merge</b>] [-<b>merge_info</b> file] [<b>-h</b> | <b>-help</b> | <b>-?</b>]
+<br>
+&nbsp; </p>
+
+<h3><a NAME="Usage"></a>Usage</h3>
+
+<p>It is possible either to give the names of the workspaces to be collected, or to
+collect all the workspaces having promoted, if no workspace name has been given. </p>
+
+<p><b><u>Example:</u></b> <br>
+adl_ch_ws Ws1 &#150;image Image1 <br>
+adl_collect </p>
+
+<p>It is possible to make several collects one after another, if there are no merges or no
+local modification between the collects. <br>
+<b><u>Error management:</u></b> <br>
+<font face="Comic Sans MS">Error cases (return code different from 0) are:</font> 
+
+<ul>
+  <li>At least one of the workspace(s) given as parameter of the command does not exist in any
+    tree of the site</li>
+  <li>At least one of the workspace(s) given as parameter of the command exists in at least
+    one tree of the site, but this workspace is not a child of the collecting workspace in any
+    tree of the site.</li>
+</ul>
+<font face="Comic Sans MS">
+
+<p>Non-error cases (return code equal to 0) are:</font> 
+
+<ul>
+  <li>There is nothing to collect for one or more child workspace(s) in one or more tree(s) of
+    the collecting workspace</li>
+  <li>Each workspace given as parameter exists at least in one of the collecting workspace
+    tree(s), and is its child</li>
+  <li>The collecting workspace has no child (there is nothing to collect).</li>
+</ul>
+<b><u>
+
+<p>Example:</u></b> <br>
+Context: <br><xmp>
+Tree1:    WsRoot1   __    Ws1  __    Ws11 
+                     |         |__   Ws12 
+                     |         |__   Ws13 
+                     | 
+                     |__  Ws2 
+
+Tree2:    WsRoot2    __  Ws1  __   Ws11 
+                     | 
+                     |__ Ws13 
+
+</xmp></p>
+
+<p><b><u>Commands:</u></b> <br>
+&nbsp; </p>
+
+<table BORDER="1">
+  <tr>
+    <td>adl_ch_ws Ws1</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">adl_collect WsBidon Ws11</td>
+    <td>=&gt;</td>
+    <td>run adl_ls_ws and choose an existing workspace. <br>
+    Return code ? 0.</td>
+  </tr>
+  <tr>
+    <td>adl_collect Ws11 Ws12 Ws13</td>
+    <td>=&gt;</td>
+    <td>Ws11 will be collected in Tree1 and Tree2. <br>
+    Ws12 will be collected in Tree1. <br>
+    Ws13 will be collected in Tree1. <br>
+    Return code = 0.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">adl_collect Ws2 Ws11</td>
+    <td>=&gt;</td>
+    <td>run adl_ls_ws &#150;from Ws1. <br>
+    Return code ? 0.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">adl_collect</td>
+    <td>=&gt;</td>
+    <td>Ws11 will be collected in Tree1 and Tree2. <br>
+    Ws12 will be collected in Tree1. <br>
+    Ws13 will be collected in Tree1. <br>
+    Return code = 0.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%">adl_collect Ws1 Ws11</td>
+    <td>=&gt;</td>
+    <td>run adl_ls_ws &#150;from Ws1. <br>
+    Return code ? 0.</td>
+  </tr>
+  <tr>
+    <td>adl_ch_ws Ws11</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>adl_collect</td>
+    <td>=&gt;</td>
+    <td>There is nothing to collect. <br>
+    Return code = 0.</td>
+  </tr>
+</table>
+
+<p><br>
+&nbsp; </p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Options"></a>Options</h3>
+
+<p>adl_collect accepts the following options: <br>
+&nbsp; </p>
+
+<table>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-h|-help|-?</tt></td>
+    <td>Help of the command</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>workspace_name ...</tt></td>
+    <td>Workspace's name to collect</td>
+  </tr>
+  <tr>
+    <td><tt>-tree ws_tree_name</tt></td>
+    <td>Collect only these workspace trees.</td>
+  </tr>
+  <tr>
+    <td><tt>-no_ds</tt></td>
+    <td>No display</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-simul</tt></td>
+    <td>To simulate the collect.</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-no_manual_merge</tt></td>
+    <td>Not to solve merge at the end of the command (useless if adl_set_merge -later has been
+    run).</td>
+  </tr>
+  <tr>
+    <td VALIGN="TOP" WIDTH="20%"><tt>-merge_info file</tt></td>
+    <td>File in which to write whether merges should be solved or not (interface with other
+    tool).</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><!---------------------------------comment-------------------------------------></h3>
+
+<h3><a NAME="Process"></a>Process</h3>
+
+<p>&nbsp; 1. Photo if necessary <br>
+&nbsp; 2. Collect (creation of a new version if no collect has been done just
+before) <br>
+&nbsp; 3. Automatic merges <br>
+&nbsp; 4. Refresh of the current image <br>
+&nbsp; 5. Manual merges </p>
+
+<p>The following modification, provided it is different from a collect, leads to a photo.
+You can do several collects on the same version of a workspace. <br>
+&nbsp; </p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p><br>
+&nbsp; </p>
+
+<h3><a NAME="Necessary"></a>Necessary context</h3>
+
+<ul>
+  <li>Promotions must exist.</li>
+  <li>The context is identical to the context of the [<a href="#References">3</a>] adl_photo
+    command.</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="Prerequisite"></a>Prerequisite commands</h3>
+
+<ul>
+  <li>[<a href="#References">1</a>] adl_ci (or [<a href="#References">3</a>] adl_photo) in the
+    other workspace's images.</li>
+  <li>[<a href="#References">2</a>] adl_solve_merge</li>
+  <li>[<a href="#References">4</a>] adl_rm_priv or [<a href="#References">5</a>] adl_co</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<p><br>
+&nbsp; </p>
+
+<h3><a NAME="Simulation"></a>Simulation</h3>
+
+<p>With the &#147;-simul&#148; option, you can simulate a collect, without validating it.
+At the beginning and at the end of the simulation, the following messages are displayed: </p>
+
+<p>--- Beginning of simulation --- <br>
+... <br>
+---&nbsp; End of simulation&nbsp; --- </p>
+
+<p>These messages explain the use of the &#147;-simul&#148; option, and reassure the user.
+<br>
+A control that would cancel a command in usual mode, becomes a warning in simulation mode.
+</p>
+
+<p>For example, an &#147;adl_promote&#148; is refused if the parent workspace has blocked
+the requests for promotion, but an &#147;adl_promote &#150;simul&#148; will display a
+message indicating the refusal of these promotion requests, but will finish the promotion
+simulation. You can see the list of all the promoted modifications. <br>
+&nbsp; </p>
+
+<h3><a NAME="Examples"></a>Examples</h3>
+
+<dl>
+  <b><p>Collect </b>of the &#147;MyWs&#148; workspace: </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <p>adl_ch_ws MyWs <br>
+        <b>adl_collect</b></p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Collect </b>one of my son's workspace &quot;MySonWsOne&quot;: &nbsp; </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <b><p>adl_collect</b> MySonWsOne</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Collect </b>all the workspaces, only in the tree &quot;ToolsTree&quot;: &nbsp; </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <b><p>adl_collect</b> -tree ToolsTree&nbsp;</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Collect </b>all the workspaces, only in the tree &quot;ToolsTree&quot; in simulation
+  mode. The results are sent to the file MyResultFile: &nbsp; </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <b><p>adl_collect</b> -tree ToolsTree -simul -merge_info MyResultFile&nbsp;</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p><b>Collect </b>all the workspaces with no manual merges &nbsp; </p>
+  <table class="code">
+    <tr>
+      <td><dl>
+        <b><p>adl_collect</b> -no_manual_merge&nbsp;</p>
+      </dl>
+      </td>
+    </tr>
+  </table>
+</dl>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="References"></a>References</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP">[1] <br>
+    [2] <br>
+    [3] <br>
+    [4] <br>
+    [5]</td>
+    <td><a href="CAAWsmCi.htm">adl_ci: Checking in official acquisition</a> <br>
+    <a href="CAAWsmSolveMerge.htm">adl_solve_merge: Solving merges</a> <br>
+    <a href="CAAWsmPhoto.htm">adl_photo: Freezing your workspace</a> <br>
+    <a href="CAAWsmRmPriv.htm">adl_rm_priv: Suppressing private acquisition</a> <br>
+    <a href="CAAWsmCo.htm">adl_co: Acquiring files</a></td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a NAME="History"></a>History</h3>
+
+<table WIDTH="100%">
+  <tr>
+    <td VALIGN="TOP">Version: <b>1</b> [Mar 2001]</td>
+    <td VALIGN="TOP">Document created</td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2001, Dassault Systèmes. All rights reserved.</i> </p>
+</body>
+</html>

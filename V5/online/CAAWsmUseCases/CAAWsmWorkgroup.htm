@@ -1,0 +1,485 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Workgroup Support</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top"><h1>RADE</h1>
+    </td>
+    <td valign="top"><h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top"><h3><a name="Top"></a>Workgroup Support</h3>
+    <p><em>Isolation and sharing between workspaces</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+    <p>This article explains why a workspace is an isolated place to work in and how people
+    can share and exchange data between workspaces. <ul>
+      <li><b><a href="#Isolation">Isolation</a></b></li>
+      <li><b><a href="#How to get data from other people">How to Get Data From Other People</a></b>
+        <ul>
+          <li><a href="#starting a new development">When Starting a New Development</a></li>
+          <li><a href="#Daily work">Daily Work</a></li>
+        </ul>
+      </li>
+      <li><b><a href="#How to give data to other people">How to Give Data To Other People</a></b> <ul>
+          <li><a href="#Promoting a workspace">Promoting a Workspace</a></li>
+          <li><a href="#Displaying a promotion change set">Displaying a Promoted Change Set</a></li>
+          <li><a href="#Canceling a promotion">Canceling a Promotion</a></li>
+          <li><a href="#Publishing a workspace">Publishing a Workspace</a></li>
+        </ul>
+      </li>
+      <li><b><a href="#InShort">In Short</a></b></li>
+      <li><a href="#References"><strong>References</strong></a></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Isolation"></a>Isolation</h3>
+
+<p>Using SCM, users work on files under workspace images [<a href="#References">1</a>].
+Even if several users work on the same components (frameworks, modules), they do not edit
+the same files.SCM provides a central repository from which users get copies of files
+throughout workspaces and these copies are projected from the repository to their file
+systems (workspace images).<br>
+Each time a copy of a given file is requested by one user (adl_co), SCM creates a copy and
+registers the identifier of the original version. That way SCM will be able to manage
+multiple copies and to merge them at the time they will come in the same workspace.</p>
+
+<p>Like for files, components and directories are specific to any workspace, that is why
+any action is seen only in the workspace it has been performed: renaming (adl_mv), move
+(adl_mv), creation (adl_mk_...), deletion (adl_rm), ...</p>
+
+<p>This isolation can be broken only at user need. The owner of a workspace can decide
+either to deliver (adl_promote) what has been developed inside his/her workspace or get
+outer developments (adl_collect, adl_sync) performed on the same components. This is
+explained in the next sections.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="How to get data from other people"></a>How to Get Data From Other People</h3>
+
+<p>SCM manages four kinds of objects (framework, module and data, directory, file). SCM
+provides specific commands for registering them in the repository (resp. adl_mk_fw,
+adl_mk_mod and adl_mk_data, adl_mk_dir and adl_mk_elem). However, once objects have been
+registered in SCM (from one workspace), other workspaces must ask for copies of them. Note
+that the same object (same path relatively to the image root directory) can be declared in
+different workspaces but they won't be considered as the same file because a path to a
+file cannot be used as a unique identifier but only as a file attribute.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="starting a new development"></a>When Starting a New Development</h4>
+
+<p>Before being able to get copies of files in a workspace, people must ask for a copy of
+the embedding components. It is not possible to get a copy of a file without all the files
+belonging to the same component. This ensures to provide a consistent file set.</p>
+
+<p>To find out the components that can be attached in a given workspace, go into this
+workspace and execute the <b>adl_ls_fw</b> command with the <code>-all</code> option.<br>
+Without the <code>-all</code> option, the command lists only framework already attached in
+a workspace while the <code>-all</code> option causes the command to display all
+components that are available from the parent workspace.</p>
+
+<p>Note that isolation prevents users to see a component as soon as it has been created in
+a workspace, this workspace must first publish its content before other directly linked
+workspaces can see the new component. If a workspace is not a direct child of a workspace
+which publishes it content, it must wait for its own parent workspace to be synchronized
+with the published level and for its parent workspace publishing before being able to see
+the new component.</p>
+
+<p>In the following example, the &quot;project&quot; workspace creates the &quot;fw2&quot;
+component but does not publish, so the &quot;team&quot; workspace cannot see it even
+executing adl_ls_fw -all. Then the &quot;project&quot; workspace publishes its new content
+and the &quot;team&quot; workspace executes again the command: the new component is still
+not present in the list. This is due to the fact that the &quot;team&quot; workspace
+didn't synchronized with the &quot;project&quot; state where the component appeared. After
+executing adl_sync command, the &quot;team&quot; project executes again the adl_ls_fw -all
+command and this time the new component is displayed in the list. Now the component can be
+attached in the &quot;team&quot; workspace using the adl_attach command.<br>
+Note: all the command messages are not listed below (replaced by '...').</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ adl_ch_ws project 
+...
+$ adl_mk_fw fw2 
+Creating the framework &quot;fw2&quot; in the workspace &quot;project&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+</pre>
+    <pre>$ adl_ch_ws team 
+...
+$ adl_ls_fw -all 
+Component      Type    Attachment     Resp.      Ws tree        
+--------------------------------------------------------
+SampleFw1      Fw      Attached       cga        SampleTree1
+fw1            Fw      Attached       cga        SampleTree1
+fw1.edu        Fw      Attached       cga        SampleTree1
+fw1.tst        Fw      Attached       cga        SampleTree1
+</pre>
+    <pre>$ adl_ch_ws project
+...
+$ adl_publish
+...
+Publishing the workspace &quot;project&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+$</pre>
+    <pre>$ adl_ch_ws team
+...
+$ adl_ls_fw -all
+Component      Type    Attachment     Resp.      Ws tree        
+--------------------------------------------------------
+SampleFw1      Fw      Attached       cga        SampleTree1
+fw1            Fw      Attached       cga        SampleTree1
+fw1.edu        Fw      Attached       cga        SampleTree1
+fw1.tst        Fw      Attached       cga        SampleTree1</pre>
+    <pre>$ adl_sync
+...
+Synchronizing the workspace &quot;team&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+...
+$ adl_ls_fw -all
+Component      Type    Attachment     Resp.      Ws tree        
+--------------------------------------------------------
+SampleFw1      Fw      Attached       cga        SampleTree1
+fw1            Fw      Attached       cga        SampleTree1
+fw1.edu        Fw      Attached       cga        SampleTree1
+fw1.tst        Fw      Attached       cga        SampleTree1
+<strong>fw2            Fw      Not attached   cga        SampleTree1</strong>
+$ adl_attach fw2
+Attaching &quot;fw2&quot; (Framework) in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Daily work"></a>Daily Work</h4>
+
+<p>The attachment of components is an operation that can be performed at any time all
+along the workspace life. In a same way, components can be detached at any time,
+especially when a development is finished (and delivered), the workspace can be cleaned up
+by detaching components.</p>
+
+<p>During a development, several users are working on the same components and need to
+integrate their changes from time to time. Integration is performed in one or more
+integration workspaces that are parent workspaces of development workspaces. The data flow
+follows the workspace hierarchy and components are managed in two different ways depending
+the flow is going down or up through the hierarchy.</p>
+
+<table width="100%">
+  <tr>
+    <td align="center"><table>
+      <caption>Fig 1: Dataflow Commands</caption>
+      <tr>
+        <td><img src="images/ComponentInWsTree3.gif" width="270" height="360"></td>
+      </tr>
+    </table>
+    </td>
+    <td>In a project workspace, data can get in either from the parent workspace or from child
+    workspace(s).<br>
+    In a workspace at the bottom of the hierarchy, data can get in only from parent workspace.
+    <p>Data available from a parent workspace can get in a child workspace using the <b>adl_sync</b>
+    command. This command copies from the parent workspace the last state of modules and files
+    belonging to frameworks attached in the child workspace. Even if new components
+    (framework, modules) appear in the parent workspace, they are not copied in the child
+    workspace - it must attach them (see adl_attach). This mechanism avoids the user to have
+    all frameworks attached in his/her workspace while he/she just needs a subset of them.</p>
+    <p>In a reverse way, data available from child workspace(s) are copied in the parent
+    workspace using the <b>adl_collect</b> command.This command attaches automatically all new
+    components in the parent workspace because it is considered as an integration workspace,
+    that is a place where all developments must be integrated and tested together.</td>
+  </tr>
+</table>
+
+<p>The adl_sync and adl_collect commands operate on developments made public by other
+workspaces, this mechanism ensures better data exchanges because SCM lets users decide
+when what they have done is right to be used by others.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="How to give data to other people"></a>How to Give Data To Other People</h3>
+
+<p>There are two ways of making available data from a workspace: 
+
+<ul>
+  <li>the promotion request is performed using the <b>adl_promote</b> command. This command
+    causes the last changes to be promoted from a workspace to its parent workspace.</li>
+  <li>the publishing is performed by the <b>adl_publish</b> command. This operation makes
+    available the content of a project workspace and child workspaces can then synchronize
+    themselves for getting the new changes. The publishing is automatically performed for non
+    project workspaces each time a dataflow command is executed (adl_promote, adl_sync, ...).</li>
+</ul>
+
+<p>Like for any dataflow commands, the promotion and the publishing involve the whole
+workspace: it is not possible to deliver a subset of changes considering they have been
+built and tested together and the most consistent change set that can be delivered is the
+whole set.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Promoting a workspace"></a>Promoting a Workspace</h4>
+
+<p>The promotion is an operation that can be performed at any time but respecting some
+rules: 
+
+<ul>
+  <li>all checked-out files must have been checked-in. Sometimes the check-in operation is
+    automatic but this can be done only for the current working image. If some files have been
+    checked-out in other images than the current one, they cannot be checked-in because they
+    are often located in different hosts.</li>
+  <li>the workspace must publish its content. The publishing operation is performed
+    automatically by the adl_promote command for workspaces without child workspace (bottom of
+    the workspace hierarchy).</li>
+  <li>the workspace must be synchronized with its parent workspace. This is a default mode
+    that can be changed using administrative commands. This default mode has been set up to
+    ensure a proper delivery of changes:</li>
+  <ul>
+    <li>the synchronization may get new changes in the workspace willing to promote and this way
+      the user checks his/her workspace (by compiling and testing) to prevent any defect when
+      integrating his/her own changes in the parent workspace</li>
+    <li>if the same files have been modified both in the child workspace and in the parent
+      workspace, the synchronization will lead to merging them in the child workspace. As often
+      developers have a better knowledge of the contents of their files than the integrator, it
+      is better to let them merging conflicting changes. Note that the default process forbids
+      workspaces for promoting at the same time change sets having common files.</li>
+  </ul>
+</ul>
+
+<p>Once a the workspace has promoted its content, the user can continue to work by
+creating/modifying/deleting other files or the same files, the promoted change set is not
+impacted even it is not yet collected by the parent workspace. However, if a new promotion
+is performed, a new change set will be computed between the first promoted and the new one
+by considering that the last modification is the best one: 
+
+<ul>
+  <li>if the same file is modified in the two change sets, the last state of the file will
+    replace the previous state.</li>
+  <li>if the same file is moved twice, the final location will be promoted</li>
+  <li>if a file belongs to the first promotion and has been deleted since this promotion, the
+    new change set will include both the modification and the deletion (note that the
+    modification will be collected in the parent workspace but seen as deleted).</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Displaying a promotion change set"></a>Displaying a Promotion Change Set</h4>
+
+<p>When the adl_promote command is run, its displayed the set of modifications being
+promoted. He/she can then check that everything is delivered and possibly decide to cancel
+his/her promotion (see <a href="#Canceling a promotion">canceling a promotion</a>).</p>
+
+<p>The adl_promote command provides the <code>-simul</code> option to simulate a
+promotion. Note however that the simulation respects the same rules as a normal promotion
+(the workspace must be synchronized, etc).</p>
+
+<p>The following example shows a simulation whose traces indicate that new components
+(SampleFw1, CNext, CNext.specifics_Windows_NT, SampleMod1.M) and files (ADLEContext.c,
+...) have been created and that a file has been moved (from &quot;TestCases&quot;
+directory to &quot;SwitchTestCases&quot; directory).</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ adl_promote -simul
+Promoting the workspace &quot;team&quot; to &quot;project&quot; in the workspace tree &quot;SampleTree1&quot;.
+SampleFw1 has been <strong>created</strong>
+SampleFw1/CNext has been created
+SampleFw1/CNext.specifics_Windows_NT has been created
+SampleFw1/SampleMod1.m has been created
+SampleFw1/SampleMod1.m/src has been created
+SampleFw1/SampleMod1.m/src/ADLEContext.c has been <strong>created</strong>
+SampleFw1/SampleMod1.m/src/ADLECustom.c has been created
+SampleFw1/SampleMod1.m/src/ADLEEnv.c has been created
+SampleFw1/SampleMod1.m/src/ADLELog.c has been created
+SampleFw1/SampleMod1.m/src/ADLEMain.c has been created
+SampleFw1/SampleMod2.m has been created
+fw1.tst/FunctionTests/SwitchTestCases/test1.sh <strong>comes from </strong>fw1.tst/FunctionTests/TestCases/test1.sh
+$</pre>
+    </td>
+  </tr>
+</table>
+
+<p>The <code>-simul</code> option is used before really promoting a workspace. Conversely
+SCM provides the <b>adl_ds_promo</b> command to display the change set of the last
+promotion of a given workspace. This command displays the same change set as the one
+displayed during the execution of the adl_promote command. Note that this command works
+only while the promotion request is not yet collected by the parent workspace.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Canceling a promotion"></a>Canceling a Promotion</h4>
+
+<p>Promoting a workspace does not have a direct impact on the parent workspace. The
+corresponding changes are pending until the parent workspace runs the adl_collect command.
+While the promotion request is pending, it can be canceled: 
+
+<ul>
+  <li>by the child workspace using the <b>adl_rm_promo</b> command.<br>
+    The adl_rm_promo command does not have any parameter as it is run from the workspace
+    having performed the promotion.</li>
+  <li>by the parent workspace using the <b>adl_rm_req</b> command.<br>
+    The adl_rm_req command provides the <code>-ws</code> option to specify which promotion
+    request is to be canceled because more than one workspace can promote to the same parent
+    workspace.</li>
+</ul>
+
+<p>Canceling a promotion does not lead to lose changes in the promotion. These changes are
+still in the child workspace, possibly replaced by other ones, and will be delivered again
+the next time the adl_promote will be executed. For example, the following example shows a
+promotion, then a new file is modified, the promotion is canceled and a new promotion is
+performed. We can see that the new change set includes the new modified file.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ adl_promote
+Promoting the workspace &quot;team&quot; to &quot;project&quot; in the workspace tree &quot;SampleTree1&quot;.
+SampleFw1 has been created
+SampleFw1/CNext has been created
+SampleFw1/CNext.specifics_Windows_NT has been created
+SampleFw1/SampleMod1.m has been created
+SampleFw1/SampleMod1.m/src has been created
+SampleFw1/SampleMod1.m/src/ADLEContext.c has been created
+SampleFw1/SampleMod1.m/src/ADLECustom.c has been created
+SampleFw1/SampleMod1.m/src/ADLEEnv.c has been created
+SampleFw1/SampleMod1.m/src/ADLELog.c has been created
+SampleFw1/SampleMod1.m/src/ADLEMain.c has been created
+SampleFw1/SampleMod2.m has been created
+fw1.tst/FunctionTests/SwitchTestCases/test1.sh comes from<strong> </strong>fw1.tst/FunctionTests/TestCases/test1.sh
+$ cd fw1/mod1.m/src
+$ adl_co main.cpp
+Officially checking-out the file element &quot;fw1/mod1.m/src/main.cpp&quot; in the workspace &quot;team&quot; and the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+$ adl_promote 
+Freezing the revision &quot;10&quot; of the workspace &quot;team&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Publishing the workspace &quot;team&quot; in the workspace tree &quot;SampleTree1&quot;.
+Command successful.
+
+Promoting the workspace &quot;team&quot; to &quot;project&quot; in the workspace tree &quot;SampleTree1&quot;.
+SampleFw1 has been created
+SampleFw1/CNext has been created
+SampleFw1/CNext.specifics_Windows_NT has been created
+SampleFw1/SampleMod1.m has been created
+SampleFw1/SampleMod1.m/src has been created
+SampleFw1/SampleMod1.m/src/ADLEContext.c has been created
+SampleFw1/SampleMod1.m/src/ADLECustom.c has been created
+SampleFw1/SampleMod1.m/src/ADLEEnv.c has been created
+SampleFw1/SampleMod1.m/src/ADLELog.c has been created
+SampleFw1/SampleMod1.m/src/ADLEMain.c has been created
+SampleFw1/SampleMod2.m has been created
+<strong>fw1/mod1.m/src/main.cpp has been modified</strong>
+fw1.tst/FunctionTests/SwitchTestCases/test1.sh comes from fw1.tst/FunctionTests/TestCases/test1.sh
+Command successful.</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Publishing a workspace"></a>Publishing a Workspace</h4>
+
+<p>The publishing operation exists for all workspace but is more dedicated to 
+workspaces having child workspaces. The publishing means that all the other 
+workspaces will access to the modifications of the current workspace (adl_sync, 
+adl_import, ...). 
+
+<p>A workspace can be published at any time but cannot be canceled. As a workspace content evolves in time, the last
+published state is the one other workspaces can see.</p>
+
+<p>The publishing is needed before delivering a workspace (this is an automatic task for
+workspaces without child workspace) because if the responsible of a project workspace
+considers his/her workspace has reached a correct state and can be promoted, it can be
+also used by child workspace(s).</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+
+<p>Operations performed inside a workspaces are isolated. It's up to users to decide when
+they are ready to send or to get new modifications.<br>
+Data exchanges are performed following to the workspace hierarchy and involve the whole
+workspaces.<br>
+The adl_promote command is used to deliver modifications from a workspace to its parent
+workspace.<br>
+The adl_collect command is used to get promotion requests.<br>
+The adl_publish command is used to make available for child workspace(s) the content of a
+project workspace.<br>
+The adl_sync command is used to synchronize a child workspace with the last published
+state of its parent workspace.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmTechArticles/CAAWsmConcepts.htm#Images">Images</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+
+<table width="1020">
+  <tr>
+    <td valign="top" width="279">Version: <strong>2</strong> [Jul 2003]</td>
+    <td valign="top" width="737">Document update. Review Publishing a workspace.</td>
+  </tr>
+  <tr>
+    <td valign="top" width="279">Version: <strong>1</strong> [Apr 2000]</td>
+    <td valign="top" width="737">Document creation</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2" width="1018">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+</body>
+</html>

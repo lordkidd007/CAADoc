@@ -1,0 +1,220 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Working With Extension Features</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Working With Extension Features</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Sometimes, it is useful to add data or behaviors to a feature in order 
+		to customize models. One way to enrich features is to extend them, using &quot;Extension 
+		Features&quot; managed by Feature Modeler's API (<em><strong>CATIOsmExtendable</strong></em> 
+		and <em><strong>CATIOsmExtension</strong></em>) [<a href="#References">1</a>]</p>
+		<p>This article deals with Extension Features in Mechanical Modeler, and 
+		more particularly about behaviors available on Extensions in Mechanical 
+		Modeler.</p>
+		<ul>
+			<li><a href="#100000">What Is an Extension Feature?</a></li>
+			<li><a href="#200000">Extension Features in Mechanical Modeler Context 
+				- Restrictions</a></li>
+			<li><a href="#300000">Adding Data and Behaviors</a></li>
+			<li><a href="#400000">Extension Feature integration in Mechanical Modeler 
+				- Provider Mechanisms on MechanicalPart</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		<p><strong>Notes</strong>:</p>
+		<ol>
+			<li>To take full advantage of this article, it may be interesting to 
+				have a look at the Feature Modeler's CAA articles: &quot;How to 
+				Add Data to a Feature&quot; [<a href="#References">1</a>], &quot;Working 
+				with Feature Extensions&quot; [<a href="#References">2</a>] and &quot;Creating 
+				Feature Extensions&quot; [<a href="#References">3</a>].</li>
+			<li>This article, dealing with Extension Feature in Mechanical Modeler, 
+				is illustrated with a dedicated Use Case [<a href="#References">4</a>].</li>
+		</ol>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What Is an Extension Feature?</h2>
+<p>An Extension Feature is a specific feature which allows you to add behaviors 
+or data (like parameters) on a &quot;Base Feature&quot; without modifying its structure. 
+You should create the Startup using the OSM technology [<a href="#References">5</a>].</p>
+<p>Conversely to a traditional Startup, creating the Extension's StartUp is not 
+enough, you should provide a CATNls file too. This additional resource's file determines 
+its &quot;extendibility&quot; and its applicative container in which it will be 
+instantiated. It is fully explained in the referenced article [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Extension Features in Mechanical Modeler context - Restrictions</h2>
+<p>Globally, Extension Features, defined by Feature Modeler, could extend a multitude 
+of features.</p>
+<p>However, in Mechanical Modeler, we recommend you to restrict your extension to 
+the features defined below:</p>
+<ul>
+	<li>Mechanical Part.</li>
+	<li>Mechanical Tool.</li>
+	<li>GSMTool.</li>
+	<li>User Features.</li>
+	<li>GeometricalElement3D.</li>
+</ul>
+<p>Of course, all their subtypes and derivatives support also Extension Features.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="300000"></a>Adding Data and Behaviors</h2>
+<p>As said before, Extensions are specific features which allow you to add behaviors 
+and parameters on base features. It means that once the new feature is created, 
+you can provide him behaviors by implementing interfaces. </p>
+<p>The Extension feature that you will define, will derive from a specific Feature 
+Modeler's feature. So it means that your feature will take benefit from interfaces 
+natively implemented on the derived DS feature (The <em>CATINavigateObject</em> interface 
+is an example). But take care, the derived DS feature is not the base feature which 
+is extended, it is the StartUp whose derives your feature)</p>
+<p>Here are listed the main behavior to take into account, but for a complete application, 
+this list can be extended.</p>
+<ul>
+	<li>LifeCycleObject
+		<p>There is an implementation of this interface on the DS feature whose 
+		derives your extension feature. But this implementation is not specific 
+		to a feature extension, so you can re-implement it to use <code>RemoveExtension</code> 
+		method of <em>CATIOsmExtendable</em> interface.</p>
+		<p>Add Data - Parameters<br />
+		Extension Features are useful to add parameters or attributes to a base 
+		feature even if you don't have any rights on it.</p>
+		<p>How does it work?<br />
+		Well, this addition is not really done on the base feature itself, but, 
+		the Extension Feature held the parameters and data you want to add to your 
+		base feature. Extending the base feature, you add indirectly those attributes!</p>
+	</li>
+	<li><strong>Useful interfaces to implement</strong>
+		<p>Just like traditional features, it might be useful to implement some 
+		interfaces on Extension Features to obtain specified behaviors.</p>
+	</li>
+	<li>Customize the f(x) - CATIParmPublisher interface
+		<p>To manage Extension's parameters, it will be useful to implement CATIParmPublisher. 
+		This Interface declares which parameters user can see and interact with 
+		in f(x).</p>
+		<table>
+			<caption>Implementation of CATIParmPublisher on CAADataExtension</caption>
+			<tr>
+				<td>
+				<img alt="" height="437" src="images/CAAMmrExtensionf(x).jpg" width="637"/></td>
+			</tr>
+		</table>
+	</li>
+	<li>Customize Spec Tree: CATINavigateObject - CATINavigateFilter
+		<p>To show Feature Extension and its aggregated parameters in the Graph, 
+		you can implement &quot;CATINavigateObject&quot; interface. However, it 
+		is not mandatory to implement it since the feature whose your extension's 
+		feature derives already implement it.</p>
+		<p>In order to show or not your feature extension in the spec tree, you 
+		must implement the CATINavigateFilter interface on the Feature Extension. 
+		The extended feature will be visible just beneath the extended feature.</p>
+		<p>Please, note that if you do not implement the <em>CATINavigateFilter</em> 
+		interface, the behavior is not guarantee: the extended feature can be visible, 
+		like it can be hidden.</p>
+	</li>
+	<li>Customize Build - Compute Extension
+		<p>If extensions have to compute something, it will be necessary to implement
+		<em>CATIFmFeatureBehaviorCustomization</em> on them, like it is done on traditional 
+		features. Please, note that if you do this, you will have to set a &quot;Provider 
+		Mechanism&quot; between the applicative container, containing the Extension, 
+		and the CATPrtCont because of default update mechanism [<a href="#References">6</a>].</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="400000"></a>Extension Feature Integration in Mechanical Modeler - Provider 
+Mechanisms on MechanicalPart</h2>
+<p>As Extensions are implemented in an Applicative container, it may be useful to 
+implement <strong>providers</strong> to extend behaviors normally restricted to <strong>CATPrtCont</strong> 
+(like Update Mechanism) on this applicative container</p>
+<p>Please refer to article &#8220;<strong>Working with Providers in Mechanical Part</strong>&#8221; 
+[<a href="#References">6</a>] for more information about this specified mechanism.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Extensions are specific features dedicated to add behaviors and customize existing 
+features. They must be defined in a <strong>catalog</strong>, declared in a <strong>resource file</strong>
+and they must implement interfaces to customize the behaviors wanted.</p>
+<p>In some cases, it is useful to set up <strong>Providers</strong> between CATPrtCont and 
+applicative container in order to extend behaviors like Update mechanism, which 
+is described in another article [<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaFeatureExtension.htm">
+		Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtUcManageExtensions.htm">
+		Working with Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtUcCreateExtensions.htm">
+		Defining Feature Extensions</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAMmrUcExtendingCombinedCurveSamplesOverview.htm">Extending 
+		a Mechanical Feature using Extension Features and Providers</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAOsmTaModelingStartUps.htm">
+		Modeling StartUps</a> </td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAMmrTaProvidersInMechPart.htm">Working with Providers</a></td>
+	</tr>
+	</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

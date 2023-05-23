@@ -1,0 +1,428 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Interactive Set of Objects</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Interactive Set of Objects</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The Interactive Set of Objects is an interactive object used to visualize 
+		temporary components, those not kept by a data model. This article describes 
+		it in detail, and explains how to use it. The last section is dedicated 
+		to the temporary component creation.</p>
+		<ul>
+			<li><a href="#CATISO">A CATISO Class Instance</a></li>
+			<li><a href="#Bag">A Bag of Components</a></li>
+			<li><a href="#Editors">Managed by Model Editors</a></li>
+			<li><a href="#Root">Like a Root Model</a></li>
+			<li><a href="#How">How Does it Work?</a></li>
+			<li><a href="#Temporary">Creating Temporary Components</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATISO"></a>A CATISO Class Instance</h2>
+<p>The Interactive Set of Objects is a component [<a href="#References">1</a>] whose 
+main class is the <em>CATISO</em> class<em>. </em>It implements <em>CATI3DGeoVisu</em>,
+<em>CATI2DGeoVisu</em>, and <em>CATIModelEvents</em> interfaces, as represented 
+by the following UML diagram:</p>
+<p>
+<img alt="CATISO UML Diagram" height="298" src="images/CAAVisISOUMLDiagram.jpg" width="298"/></p>
+<p>The implementation of the <em>CATI3DGeoVisu</em> (or <em>CATI2DGeoVisu)</em> 
+interface builds a <em>CAT3DBagRep</em> (or <em>CAT2DBagRep)</em> class instance. 
+This set (bag) of graphic representations contains the graphic representations of 
+all components set in the ISO. The next section, <a href="#Bag">A Bag of Components</a>, 
+details this notion of bag.</p>
+<p>For the <em>CATIModelEvents</em> interface, the <a href="#How">How Does it Work?</a> 
+section gives you explanations on the role of this interface.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Bag"></a>A Bag of Components</h2>
+<p>The <em>CATISO</em> class contains methods to:</p>
+<ul>
+	<li><strong>Add</strong> elements in the ISO: the <code>AddElement </code>method.</li>
+	<li><strong>Remove</strong> elements from the ISO: <code>RemoveElement</code> 
+		method.</li>
+</ul>
+<p>Before adding or removing an element, it is useless to test if the element already 
+exists, because these two method do it. However, you can always need to know if 
+a component is included in the ISO, for that there is the <code>IsMember</code> 
+method.</p>
+<p>The introspection methods are:</p>
+<ul>
+	<li>The <code>InitElementList</code><code></code> method.
+		<p>It locates an internal &quot;cursor&quot; just before the first element 
+		of the ISO. To retrieve the first element of the list, call <code>InitElementList</code> 
+		and then, <code>GetNextElement</code> .</p>
+	</li>
+	<li>The <code>GetNextElement</code> method.
+		<p>It returns the element just after the current position of the cursor, 
+		and then increases the position of the cursor. If the returned value is 
+		NULL, the end of the list is reached.</p>
+	</li>
+</ul>
+<p>The elements of the ISO are components which must at least implement the <em>
+CATI3DGeoVisu</em> or the <em>CATI2DGeoVisu</em> interface. The
+<a href="#Temporary">Creating Temporary Components</a> section describes three kind 
+of components that you can use or create.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Editors"></a>Managed by Model Editors</h2>
+<p>Each model is interactively controlled by one <em>CATFrmEditor</em> class instance 
+called an <strong>editor </strong>[<a href="#References">2</a>] for short. When 
+this object is instantiated, it creates three kinds of ISO:</p>
+<ol>
+	<li><strong>Normal</strong>:
+		<p>Elements contained in the normal ISO are drawn in taken their graphic 
+		attributes into account. The <code>GetISO</code> method the <em>CATFrmEditor</em> 
+		class retrieves this specific ISO.</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="Normal ISO" height="64" src="images/CAAVisSampleTmpObjectTrihedral.jpg" width="63"/></td>
+				<td>A component with three red axes.</td>
+			</tr>
+		</table>
+	</li>
+	<li><strong>Furtive</strong>:
+		<p>Elements contained in the furtive ISO are drawn in XOR. It is useful 
+		for rubber-bending, clipping box,... for a component does not need graphic 
+		attributes, but performance. The <code>GetFurtiveISO</code> method of the
+		<em>CATFrmEditor</em> class retrieves this specific ISO.</p>
+		<table>
+			<tr>
+				<td>
+				<img alt="Furtive ISO" src="images/CAAVisSampleTmpObjectWireBox2.jpg"/></td>
+				<td>A clipping box drawn in XOR</td>
+			</tr>
+		</table>
+	</li>
+	<li><strong>Background</strong>:
+		<p>Elements contained in the background ISO are drawn the first. So they 
+		are in the background. The <code>GetBackgrdISO</code> method of the <em>
+		CATFrmEditor</em> class retrieves this specific ISO.</p>
+	</li>
+</ol>
+<p>In the C<em>ATFrmEditor</em> class destructor, these three interactive sets of 
+objects are first emptied and then released. Consequently, in your command, while 
+the editor is alive you must ensure the contents of the ISO. Refer you to the CAAAfrBoundingElementCmd 
+use case [<a href="#References">3</a>] for an example.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Root"></a>Like A Root Model</h2>
+<p>In a model, Product Representation features and the top Product are root components. 
+You can you refer to the referenced article [<a href="#References">9</a>] for a 
+brief notion of root object.You will also learn the main role of the unique <em>
+CATVisManager</em> class instance.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Root Model of a Product Representation" height="246" src="images/CAAVisISORootPrt.jpg" width="399"/></td>
+		<td valign="top">
+		<img alt="Root Model of a Product" height="201" src="images/CAAVisISORootPrd.jpg" width="295"/></td>
+	</tr>
+</table>
+<p>The <em>CATISO</em> instance class plays the same role. It means that when you 
+want create a new window class [<a href="#References">2</a>] for a model, if you 
+want the elements of the ISO to be also drawn in this new window, you must do the 
+relation between each viewer of the window and each Interactive Set of Objects. 
+You can you refer to the use cases [<a href="#References">4</a>] [<a href="#References">5</a>] 
+which detail the creation of a new window. In the new window class constructor you 
+can have the following lines:</p>
+<pre class="code">...
+  CATISO * pISO = pEditor-&gt;<strong>GetISO</strong>()  ;  
+  pISO-&gt;<strong>AddViewer</strong>(_pViewer);</pre>
+<pre>  CATISO * pfurtiveISO = pEditor-&gt;<strong>GetFurtiveISO</strong>()  ;  
+  pfurtiveISO-&gt;<strong>AddViewer</strong>(_pViewer);</pre>
+<pre>  CATISO * pbgISO = pEditor-&gt;<strong>GetBackgrdISO</strong>()  ;  
+  pbgISO-&gt;<strong>AddViewer</strong>(_pViewer);
+...</pre>
+<p>The <code>AddViewer</code><strong> </strong>method<strong> </strong>calls the
+<code>AttachTo</code> method of the <em>CATVisManager</em> class with the following 
+arguments:</p>
+<ul>
+	<li>The root model is the <em>CATISO</em> class instance itself</li>
+	<li>The viewpoint is the main 3D (2D) viewpoint of the viewer given as an argument
+	</li>
+	<li>The list of interfaces contains CATI3DGeoVisu interface (or CATI2DGeoVisu)
+	</li>
+	<li>The command selector is the one of the editor of the ISO. ( <code>GetCommandSelector</code> 
+		method of the <em>CATFrmEditor</em> class)</li>
+</ul>
+<pre class="code">HRESULT AttachTo ( CATPathElement* iTreeRoot,
+                   CATViewpoint*	iViewpoint,
+                   list&lt;IID&gt;&amp;	iVisuList,
+                   CATCommand* iSelectorFather = NULL,
+                   int iFurtive=0,
+                   int iLocalMatrix=0,
+                   int iLocalGraphicAttributs=0 );</pre>
+<p>The following schema explains the command tree, and the similitude between a 
+root object and the ISO.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Command Tree" height="357" src="images/CAAVisISOCmdTree.jpg" width="557"/></td>
+	</tr>
+</table>
+<p>The manipulator (CAT3DManipulator/CAT2DManipulator) associated with the graphic 
+representation of the root object, and the ISO are inside the command tree. It enables 
+us to receive the information coming from the end user interactions in the viewer.</p>
+<p>This diagram shows that the complete path of an element into the ISO is first 
+the ISO itself and then the component. Here is the code to create this path:</p>
+<pre class="code">...
+CATFrmEditor * pEdt = CATFrmEditor::GetCurrentEditor();
+CATISO * pISO = pEdt-&gt;<strong>GetISO</strong>();
+
+CATPathElement pPathElement (pISO);</pre>
+<pre>PathElement.<strong>AddChildElement</strong>(pComponent);
+...</pre>
+<p>Where <code>pComponent</code> is a pointer on an element contained in the ISO.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="How"></a>How Does it Work?</h2>
+<p>When an element is <strong>added</strong> in the ISO, the <em>CATISO</em> class 
+instance keeps the new component in a list, and sends a <em>CATCreate</em> notification 
+thanks to its implementation to the <em>CATIModelEvents</em> interface. The <em>
+CATVisManager</em> receives the notification and asks the reconstruction of the 
+graphic representation of the ISO. The <code>Build</code> method of the <em>CATI3DGeoVisu</em> 
+(or 2D) interface, for the <em>CATISO</em> component, browses the internal list 
+of the ISO, and asks the <em>CATVisManager</em> to retrieve or build the graphic 
+representation of each element of the list.</p>
+<p>When an element is <strong>removed</strong> from the ISO, the element is first 
+removed from the internal list. Then, depending on the second argument of the
+<code>RemoveElement</code> method, two kinds of notifications can be sent:</p>
+<ol>
+	<li>The value is <strong>0</strong> (default value): a <em>CATDelete</em> notification 
+		is sent. The graphic representation associated with the element to remove 
+		is<strong> deleted</strong>. To re-visualize the same element, you must 
+		first re-create the graphic representation before using the <code>AddElement</code> 
+		method. </li>
+	<li>The value is <strong>1</strong>: A notification is sent to erase the element, 
+		but its graphic representation is <strong>not deleted</strong>. Consequently, 
+		to re-visualize the same element, you do not have to re-create the graphic 
+		representation before using the <code>AddElement</code> method.</li>
+</ol>
+<p>When an element of the ISO is <strong>updated</strong>, thanks to the <code>UpdateElement</code> 
+method, a <em>CATModify</em> notification is sent. The <em>CATVisManager</em> will 
+ask for the re-construction of the graphic representation associated with the element 
+to update. This reconstruction must be absolutely done by the <em>CATVisManager</em> 
+thanks to the implementation of the <em>CATI3DGeoVisu</em> (or 2D) interface on 
+the component to update.</p>
+<p>Here is a forbidden scenario:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Forbidden Scenario" height="171" src="images/CAAVisISOKOScenario.gif" width="437"/></td>
+	</tr>
+</table>
+<p>You must not modify the graphic representation of a component included into an 
+ISO.</p>
+<p>Here is a possible scenario:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Correct Scenario" height="112" src="images/CAAVisISOOKScenario.gif" width="447"/></td>
+	</tr>
+</table>
+<p>The step 3 consists in using an interface of the component to modify one or more 
+of its characteristic. These characteristics are parameters used to build the graphic 
+representation, and consequently used in the <em>CATI3DGeoVisu</em> (or 2D) interface.</p>
+<p>You can you refer to the CAADegClippingByBoxCmd use case [<a href="#References">6</a>] 
+where elements are added into ISO, removed with or without deletion from the ISO, 
+and updated.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Temporary"></a>Creating Temporary Components</h2>
+<p>There are three ways to create a component which will be displayed thanks to 
+the Interactive Set of Objects:</p>
+<ol>
+	<li><a href="#Temp1">Create an instance of the <em>CATModelForRep3D</em> class</a>
+	</li>
+	<li><a href="#Temp2">Create a component which derives from the <em>CATModelForRep3D
+		</em>component</a> </li>
+	<li><a href="#Temp3">Create a component which derives from <em>CATBaseUnknown</em> 
+		and implements, at least, the <em>CATI3DGeoVisu</em> interface (or 2D)</a></li>
+</ol>
+<p>Each case is in relationship to a specific usage of the component.</p>
+<ol>
+	<li><a name="Temp1"></a>Create an instance of the <em>CATModelForRep3D</em> 
+		class
+		<p>It is the simplest way to create a temporary component. Here is an example:</p>
+		<pre class="code">...
+CATModelForRep3D *pModel = new <strong>CATModelForRep3D</strong>();
+
+CAT3DCustomRep *pMyRep = new CAT3DCustomRep() ; 
+...
+pModel-&gt;<strong>SetRep</strong>(pMyRep );
+...</pre>
+		<p>The graphic representation is built in your code and associated with 
+		the component, <code>pModel</code>, thanks to the <code>SetRep</code> method 
+		of the <em>CATModelForRep3D</em> class. Once the graphic representation 
+		is associated with the component, it is hold by the component, you do not 
+		have to delete the graphic representation (<code>pMyRep</code>).</p>
+		<table class="Remark">
+			<tr>
+				<td class="Remark"><span class="run-in">Tip:</span> Use it when 
+				your component is just a visual help, not modifiable and not selectable 
+				by the end user.</td>
+			</tr>
+		</table>
+	</li>
+	<li><a name="Temp2"></a>Create a component which derives from the <em>CATModelForRep3D
+		</em>component
+		<p>You create a component [<a href="#References">1</a>] which Object Modeler 
+		and C++ derives from the <em>CATModelForRep3D</em> component, you create 
+		a specific interface [<a href="#References">8</a>], and you implement it 
+		on your component. This interface will be used as filter of an agent of 
+		selection.</p>
+		<pre class="code">...
+<strong>CATPathElementAgent</strong> * pAgent = new CATPathElementAgent(...);
+pAgent-&gt;<strong>AddElementType</strong>(IID_ISpecificInterface);
+...</pre>
+		<p>To create the component, and set it its graphic representation, the method 
+		is identical as the one detailed above:</p>
+		<pre class="code">...
+CATMyModel *pModel = new <strong>CATMyModel</strong>();
+
+CAT3DCustomRep *pMyRep = new CAT3DCustomRep() ; 
+...
+pModel-&gt;<strong>SetRep</strong>(pMyRep );
+...</pre>
+		<p>where <em>CATMyModel</em> is a component main class which OM and C++ 
+		derives from CATModelForRep. If the component implements <em>CATICreateInstance</em>, 
+		refer to the use case [<a href="#References">7</a>] for a complete implementation.</p>
+		<table class="Remark">
+			<tr>
+				<td class="Remark"><span class="run-in">Tip:</span> Create such 
+				a component when the end user must select it without ambiguity.</td>
+			</tr>
+		</table>
+	</li>
+	<li><a name="Temp3"></a>Create a component which derives from <em>CATBaseUnknown</em> 
+		and implements, at least, the <em>CATI3DGeoVisu</em> interface (or 2D)
+		<p>In fact, there are the following steps:</p>
+		<ul>
+			<li>Creating a component which Object Modeler and C++ derives from
+				<em>CATBaseUnknown</em> </li>
+			<li>Creating and implementing an interface of type which retrieves and 
+				sets the characteristics of your component </li>
+			<li>Implementing <em>CATI3DGeoVisu</em> (or 2D) which uses the interface 
+				of type to create the graphic representation</li>
+		</ul>
+		<table class="Remark">
+			<tr>
+				<td class="Remark"><span class="run-in">Tip:</span> Create such 
+				a component when the graphic representation can change during the 
+				life cycle of the component. See the <a href="#How">How Does it 
+				Work</a> section to understand the life cycle of the graphic representation. 
+				The interface of type can also be the filter interface.</td>
+			</tr>
+		</table>
+	</li>
+</ol>
+<p>You can refer to the CAADegClippingByBoxCmd use case [<a href="#References">7</a>] 
+where these three kinds of components have been implemented.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The Interactive Set of Objects (ISO) is an interactive object handled by the
+<em>CATISO</em> class. It enables you to display components which are not included 
+in a model. These components must only implement the <em>CATI3DGeoVisu</em> (2D) 
+interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">
+		Creating Components</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="../CAAAfrApplicationFrame/CAAAfrTaLayoutV5.htm">
+		Understanding the Wintop Frame Layout</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADegDialogEngine/CAADegUcSampleDialogOnly.htm">
+		Creating a Command that Consists in a Dialog Window</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcSampleCustomWindow1.htm">
+		Creating a Model's Window - Part 1</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcSampleCustomWindow2.htm">
+		Creating a Model's Window - Part 2</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAVisUcSampleISO.htm">Visualizing Temporary Components</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAVisUcSampleTempObject.htm">Creating Temporary Components</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingInterfaces.htm">
+		Creating Interfaces</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAAVisUcSampleVisManager.htm">Using the Visualization Manager</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Feb 2004]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Dec 2006]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

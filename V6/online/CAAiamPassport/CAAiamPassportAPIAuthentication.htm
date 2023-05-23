@@ -1,0 +1,177 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>CAS Authentication</title>
+   
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>CAS Authentication</h1>
+		</td>
+	</tr>
+	
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>     
+		<td>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Role"></a>Role</h2>
+<p>Authenticates a user to the 3D Passport CAS server, and optionally can redirect to a provided service URL too. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Request"></a>Request</h2>
+<table class="fill">
+    <tr>
+		<th>Method</th>
+		<th>Path</th>	 
+	</tr>
+    <tr>
+		<td>POST</td>
+		<td>/login</td>
+    </tr>
+</table>
+
+ <p><b>POST Message Body</b>  </p>
+ <p>A string with the following format:</p>
+ <pre class="code">lt=&lt;loginticket&gt;&username=&lt;username&gt;&password=&lt;password&gt;</pre>
+<p>Where:</p>
+<table class="fill">
+    <tr>
+		<th>Key</th>
+		<th>Required</th>
+		<th>Value</th>	 
+	</tr>
+	<tr>
+		<td>username</td>
+		<td>YES</td>
+		<td>The username of the user to authenticate</td>	 
+	</tr>
+       <tr>
+		<td>password </td>
+		<td>YES</td>
+		<td>The password of the user to authenticate</td>	 
+	</tr>
+	<tr>
+		<td>lt</td>
+		<td>YES</td>
+		<td>The login ticket</td>	 
+	</tr>
+	<tr>
+		<td>rememberMe</td>
+		<td>NO</td>
+		<td>true, to keep the CATSTGC cookie 1 week instead of 2 hours</td>	 
+	</tr>
+</table>
+<p><b>Parameters</b> </p>
+<table class="fill">
+    <tr>
+		<th>Name</th>
+		<th>Required</th>
+		<th>Value</th>	 
+		<th>Description</th>	 
+	</tr>
+	<tr>
+		<td>service</td>
+		<td>NO</td>
+		<td>An URL service. The format is URL-encoded.</td>
+		<td>The URL of the service to be redirected to after successful authentication. The service URL must use a trusted domain declared in 3DPassport configuration.</td>	 
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Response"></a>Response</h2>
+<p>The response code can be:</p>
+<ul>
+
+  <li>302, a redirection
+  <p>The authentication is successful. A SSO cookie (also named CATSTGC) is sent in the response header. The CATSTGC is valid for 2 hours ( 1 week if "Remember me" box is checked.</p>
+  <p>About the url of redirection:</p>
+   <ul>  
+      <li> You have provided an url service as input parameter.  </li>  
+	  <p>The url of redirection is the input url service in adjonction with a service ticket. In case of no automatic url redirection you have two mn to realize yourself the redirection.  </p>  
+      <li> otherwise </li> 
+	  <p>The url of redirection is my-profile page of 3DPassport</p>
+	  </ul>
+	  </li>
+  <li>Error</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Example"></a>Example</h2>
+<p>The web services has been launched while a login ticket and a 3DPassport session (JSESSIONID) already exist. The call creates a CASTGC cookie, and then redirects to the service set as input (https://<3dswym-url>/api/passport/login ). </p>
+<pre class="code">
+##CLIENT REQUEST
+##------------------------------------------------------------
+[POST] https://&lt;3DPassport-url&gt;/login?service=https%3A%2F%2F&lt;3dswym-url&gt;%2Fapi%2Fpassport%2Flogin
+POST Data : lt=LT-94359-qbrGnodK0DeZFZ1X6ll9Pb6ZuVV3kx&username=yyy&password=xxx
+Content-Type=application/x-www-form-urlencoded
+
+##[COOKIE STORE] CASTGC=TGT-28033-UMcZAYxds1AD7Py0BdpJS4de7U0yM04eamflRPS6jjhkfNEZ2H-cas
+##[COOKIE STORE] PHPSESSID=ST59221mp691zcKbrRGZJl0KK3Hcas
+##[COOKIE STORE] JSESSIONID=1D9573D43CF213D7F38A0D251D5F6E58
+##SERVER RESPONSE [200] OK
+##--------------------
+
+Has been redirected. Last Redirect URL : https://&lt;3dswym-url&gt;/api/passport/login
+
+#RESPONSE HEADER : 
+#--------------------
+HTTP/1.1 200 OK
+Date: Fri, 13 Jun 2014 12:34:46 GMT
+Server: Apache/2.2.11 (Unix) mod_ssl/2.2.11 OpenSSL/0.9.8i PHP/5.3.10
+X-Powered-By: PHP/5.3.10
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Pragma: no-cache
+Set-Cookie: 
+Cache-Control: no-cache
+Swym-Auth-Ok: 1
+Vary: User-Agent,Accept-Encoding
+Content-Length: 470
+Keep-Alive: timeout=5, max=256
+Connection: Keep-Alive
+Content-Type: text/html; charset=UTF-8
+
+#RESPONSE BODY
+#--------------------
+
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+&lt;!-- Minimal Web pages, starting point for Web Designers --&gt;
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;title&gt;SwYm Success&lt;/title&gt;
+	&lt;/head&gt;
+  &lt;body&gt;
+	&lt;p&gt;
+	User yyy successfully logged into SwYm platform.
+	&lt;/p&gt;
+	&lt;p&gt;
+	For security reasons, please Log Out and Exit your web browser 
+    when you are finished accessing services that require authentication!
+	&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>The code response of the redirection is 200, and the body response shows the success to the 3DSwYm login. Note a session id 3DSwYm has been created (here PHPSESSID).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

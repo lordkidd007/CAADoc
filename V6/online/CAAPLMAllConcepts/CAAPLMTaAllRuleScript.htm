@@ -1,0 +1,658 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>PLM Customization by Business Rules</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Customization by Business Rules</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>The unique PLM system is based on an architecture merging 
+		seamlessly a PLM Core Model [<a href="#References">1</a>] with native authoring 
+		applications covering the design, engineering, simulation and 
+		manufacturing domains. This architecture needs to be customizable on 
+		site by administrators, to better match the critical behaviors of the 
+		PLM system with the specificities of the customer business processes. The 
+		objective of this document is to explain what are the principles of this 
+		openness, and how this customization will be achieved by an 
+		administrator. </p>
+		<p>Foreword: In order to illustrate explanations, you will find in this 
+		article some examples of openness. The reader must be informed that 
+		there are not necessary official openness.&nbsp; </p>
+      <ul>
+        <li><a href="#PLM System Openness">PLM System Openness </a>
+              <ul>
+        <li><a href="#PLM Opening Principles">PLM Opening Concept</a></li>
+		<li><a href="#Easy Openess">Easy Openness</a></li>
+		<li><a href="#Safe Openess">Safe Openness</a></li>
+      </ul></li>
+		<li><a href="#PLM Openness in Details">PLM Openness In Details</a> 
+		<ul>
+        <li><a href="#Rules Contents">Rule Contents</a></li>
+		<li><a href="#Rule Family: Rule with Condition">Rule Family: Rule 
+		under Condition</a></li>
+      </ul>
+      		<li><a href="#Process for an Administrator">Process for an 
+		Administrator</a></li>
+		<li> <a href="#InShort">In Short</a> </li>
+		<li> <a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="PLM System Openness"></a>PLM System Openness</h2>
+<p>The PLM system consists in a full set of building blocks that make PLM. It 
+includes the server data modeler, the server core mechanisms, the client core 
+meta-modeler [<a href="#References">1</a>], the PLM modelers ( Product, Config, 
+...), and the user interface. </p>
+<p>The&nbsp; PLM system is delivered with a set of <b>pre-defined</b> openness 
+in order to able the customer to integrate its specific processes. All the openness can 
+only take place on <b>client side</b>.</p>
+<p>The architecture of this openness is based on <b>PLM Openings.</b>&nbsp;The 
+objective of this first chapter is to describe their principles, and why it is a 
+safe and easy way to customize the PLM system. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="PLM Opening Principles"></a>PLM Opening Concept</h3>
+<p>A PLM Opening is used to customize any object known by the Knowledge 
+infrastructure [<a href="#References">3</a>]. PLM Components are ones of those.&nbsp; 
+The following picture presents the principle of the PLM Opening:</p>
+<table border="0" id="table27">
+	<caption><a name="Fig.1">Fig.1</a> PLM Opening Principle</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPLMAllRuleScript_PLMOpening.gif" width="390" height="271"></td>
+	</tr>
+</table>
+<p>The PLM System triggers a rule script (the implementation of a PLM Opening) 
+with :</p>
+<ul>
+	<li>Two inputs:<ul>
+		<li>The object to be customized itself : it is called the <b>Input </b>object.</li>
+		<li>The object containing useful parameters (read/write) : it is named the
+		<b>Context</b> object</li>
+	</ul>
+	<p>These inputs, accessible by the rule script, are detailed in the
+<strong ><a href="#Rules Contents">Rule Contents
+</a>section.</strong></li>
+	<li>The <b>Customization intent </b>of the PLM Opening : which kind of PLM 
+	Opening is it ? </li>
+</ul>
+<blockquote>
+	<p>It will be detailed in the <a href="#Safe Openess">Safe Openness</a> 
+	section</p>
+</blockquote>
+<p>These three information build the PLM Opening &quot;<b>Contract</b>&quot;. For each PLM 
+Opening, its contract must be <b>described by an article</b>. Some examples:</p>
+<ul>
+	<li>The PLM Openings allowing to customize PLM Components for generic PLM 
+	operations [<a href="#References">2</a>] are described in the &quot;Business 
+	Logic Openness Infrastructure Reference&quot; section of the &quot;References&quot; 
+	node of the CAA Encyclopedia.</li>
+	<li>otherwise you should refer to the Modeler's documentation exposing PLM 
+	Openings. See the &quot;PLM Dictionary Reference&quot; section beneath the same &quot;References&quot; 
+	node.</li>
+</ul>
+<p>To close the generalities, each PLM Opening is referenced by an unique 
+identifier: the<b> PLM Opening ID</b>. This identifier (a string) is necessary 
+for the PLM System to find the implementation of the PLM Opening. It will be 
+developed in the <a href="#PLM Openness in Details">Openness in Details</a> 
+section.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Easy Openess"></a>Easy&nbsp; Openness</h3>
+<p>The implementation of a PLM Opening is done through <b>rule(s) </b>(Rule 
+Script <a href="#Fig.1">Fig.1</a>). A rule 
+is the description of the behavior alteration in the Enterprise Knowledge 
+Language (EKL) [<a href="#References">4</a>]. EKL is an interpreted language that 
+manipulates variables, constants, operators, attribute accessors, functions ands 
+keywords through a strict grammar. </p>
+<p>Here is a rule enabling the customization of the alias name of a PLM 
+Component such as it can be displayed in a dialog box:</p>
+    
+<table class="code" id="table3" width="519">
+  <tr>
+    <td>
+      <pre>let aliasvalue (string)
+aliasvalue  = "My object: &#8221; + <b>ThisObject</b>.PLM_ExternalID 
+if (<b>ThisObject</b>.V_SupplierName <> "")
+{
+    aliasvalue<b> = </b>aliasvalue<b> + </b>" from supplier  &#8220; + ThisObject.V_SupplierName
+}
+<b>Parameters</b>-&gt;SetAttributeString(&quot;Alias&quot;,aliasvalue<b>)</b>
+..
+</pre>
+    </td>
+  </tr>
+</table>
+
+<p>It is a PLM Opening to valuate the <code>Alias</code> parameter.&nbsp; 
+To build the output string the rule uses :</p>
+<ul>
+	<li><b><code>ThisObject</code> , </b>the input object, to retrieve PLM attribute 
+	[<a href="#References">5</a>] values such as <code>V_SupplierName</code> and P<code>LM_ExternalID,</code></li>
+	<li><code>Parameters</code> <b>&nbsp;</b>the context object , containing the
+	<code>Alias</code> parameter. </li>
+</ul>
+<p>The details of a rule file, and the usage of <b><code>ThisObject</code> </b>
+and<code> Parameters</code> &nbsp;is explained in the
+<strong ><a href="#Rules Contents">Rule Contents
+</a>section.</strong></p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Safe Openess"></a>Safe Openness</h3>
+<p>Previously we have seen [<a href="#Fig.1">Fig.1</a>] that the PLM System 
+triggers the rule with a customization intent.&nbsp; There are three types of 
+intent: </p>
+<ul>
+	<li><b>Validation</b>: the objective is to validate the state of an object, 
+	or an action of an object. </li>
+	<li><b>Computation: </b>the objective is to compute a result from the state 
+	of an object</li>
+	<li><b>Execution: </b>the objective is to modified the object itself.</li>
+</ul>
+<p>It means that 
+the PLM Opening implementation must respect rules:</p>
+<ul>
+	<li>Validation/Computation: The PLM Opening cannot modify the input object 
+	</li>
+	<li>Execution: The PLM Opening can modify the input object.&nbsp; </li>
+</ul>
+<p>PLM System code triggers the PLM Opening according to its type: it means that at run time 
+it can check if the PLM Opening implementation respects the contract. The reason 
+of this contract is to <b>control the openness</b>.&nbsp; Taken an example to 
+illustrate that.&nbsp; </p>
+<p>Suppose a PLM Opening enabling to customize the V_version attribute (it is 
+not possible but imagine). It is important that the PLM System control the value of this attribute: 
+the value can be invalid, or already exists, and so one. Since this check can only be done at 
+runtime, the only way to ensure the data integrity, is that the PLM Opening computes 
+(proposes) a value, and then the PLM System validates or 
+not the value. If the value is valid, V_version attribute will be modified with 
+the customized value.</p>
+<p>The type of the PLM opening, such as other information about the PLM 
+Opening see <a href="#PLM Opening Principles">PLM Opening</a> section, must be 
+explicitly notified in the PLM Opening documentation.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="PLM Openness in Details"></a>PLM Openness in Details</h2>
+<p>In the first chapter we have seen that the PLM system exposes pre-defined PLM 
+Openings in order to introduce the business logic of a customer. The current one 
+explains in details how to implement them.&nbsp; </p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><strong><a name="Rules Contents"></a>Rule Contents</strong></h3>
+<p>The easiest way to implement a PLM Opening is to create a CATRule file whose name is 
+of the following form:</p>
+<table class="code" id="table25">
+  <tr>
+    <td>
+      <pre>...
+PLMOpeningID.CATRule
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>where <code>PLMOpeningID</code> is the unique name identifying the PLM 
+Opening.&nbsp; If the PLM System finds inside the runtime view a file whose the 
+name matches the PLM Opening ID, its contents is executed.</p>
+<p>Let's see in details what is the contents of a rule. In the<a href="#Easy Openess"> Easy Openness</a> section of the first chapter 
+we have seen that a CATRule file contains the customer behavior described in the 
+Enterprise Kernel Language (EKL).&nbsp; </p>
+<p>In all rule you can find these three typed variables with the following name:</p>
+<ul>
+	<li><b>ThisObject : </b>This is the main object on which the rule is acting. It is the &quot;input 
+object&quot;. </li>
+</ul>
+<blockquote>
+	<p>The knowledge type of this variable depends on the object passed at 
+		runtime ( it may be a customized PLM type). The documentation of the PLM 
+		Opening will explain what the minimum type of the variable is: for 
+		example, it will explain that the input object is at least a 
+		VPMReference ( the PLM Reference of the PRODUCT modeler), it means that 
+		in the writing of the rule you will be able to access the attributes of 
+		a VPMReference. </p>
+	<p>This variable provides the access to the attributes of the input 
+		object.&nbsp; Here is an example of script file:</p>
+<table class="code" id="table20">
+  <tr>
+    <td>
+      <pre>...
+if (<b> ThisObject</b>.V_IndustryCode ==&quot;MyCie&quot; ) 
+...</pre>
+    </td>
+  </tr>
+</table>
+	<p><code>V_IndustryCode</code> is an attribute of the 
+	<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADocPLMPackage/PLMClass_PLMProductDS.htm')">PLMProductDS</a> data 
+	model. </p>
+	<p><b>Which attributes to use in rule scripts ?</b></p>
+	<ul>
+		<li>The only attributes authorized to be used in rule script are those 
+		presented in
+				PLM Dictionary Reference pages. </li>
+	</ul>
+	<p>In &quot;execution&quot; usage, attributes may be modified by the rule, 
+		whereas in &quot;validation&quot; or &quot;computation&quot; usage, attributes can only be 
+		read by the rule</p>
+	<p>It is not possible to navigate between reference and instances.</p>
+</blockquote>
+<ul>
+	<li><b>Parameters: </b>This is a standard object that provides contextual 
+	information of the opening. This is the &quot;context object&quot;</li>
+</ul>
+<blockquote>
+	<p>This variable has the following type: RuleContext. 
+		This type inherits from the basic Feature type and holds 5 attributes: 
+		UserID, Role, Project, Organization and Message. <br>&nbsp;</p>
+	<table border="1" id="table21">
+		<tr>
+			<td width="72">UserID</td>
+			<td>It is the user ID (a string in read only mode). </td>
+		</tr>
+		<tr>
+			<td width="72">Role</td>
+			<td rowspan="3">It is the security context selected at login 
+			(strings in read only mode). </td>
+		</tr>
+		<tr>
+			<td width="72">Project</td>
+		</tr>
+		<tr>
+			<td width="72">Organization </td>
+		</tr>
+		<tr>
+			<td width="72">Message</td>
+			<td>It is a string that can be valuated inside the rule to bring 
+		back messages to the end-user. It is meaningful especially in the 
+		context of the validation opening.</td>
+		</tr>
+	</table>
+	<p>&nbsp;</p>
+<p>here is an example where UserID is used in a script. </p>
+<table class="code" id="table22">
+  <tr>
+    <td>
+      <pre>...
+if (<b> Parameters</b>.<b>UserID</b> == ThisObject.V_user) 
+...</pre>
+    </td>
+  </tr>
+</table>
+	<p>The other information contained in the context object are the attributes 
+	depending on the openness. They won't be available as attributes of the RuleContext. They 
+	will be accessible as dynamic attributes through the following methods of 
+	the EKL: (** is the type of the attributes)</p>
+	<ul>
+		<li>GetAttribute**(&quot;parameter1&quot;) 
+		</li>
+		<li>SetAttribute**(&quot;parameter1&quot;,value)&nbsp; </li>
+	</ul>
+<p>here is an example using string attributes.</p>
+<table class="code" id="table23">
+  <tr>
+    <td>
+      <pre>...
+<b>Let</b> ValInputAttr1(String)
+Let ValInputAttr2(String)
+ValInputAttr1<b> = Parameters-&gt;Get</b>Attribute<b>String</b>(&quot;Myattr1&quot;)
+ValInputAttr2= ValInputAttr1 + "MyCustoName"
+<b>Parameters</b>-><b>Set</b>Attribute<b>String</b>(&quot;Myattr2&quot;,ValInputAttr2) 
+...</pre>
+    </td>
+  </tr>
+</table>
+	<p>The PLM Opening documentation will explain the list of attributes that 
+	will be available from the context (name, type and read or write mode). </p>
+</blockquote>
+<ul>
+	<li><b>Validation</b></li>
+</ul>
+<blockquote>
+	<p>If the rule is used by the PLM Opening as a validation, an additional 
+	variable <code>Validation</code>, of type boolean, will be available within 
+	the rule. The rule will write is value to express the validation.</p>
+	<p>The <code>Message</code> attribute of Parameters will be set or not 
+	inside the rule. If it is set, the standard failing message will be replaced 
+	by the one set inside the rule.</p>
+	<table class="code" id="table24">
+		<tr>
+			<td>
+			<pre>...
+<b>Validation</b> = (ToUpper (Parameters.UserID) == ToUpper(ThisObject.V_use) )
+If (Validation == false)
+{
+    <b>Parameters</b>.Message = &#8220;Impossible to change the maturity state of an object that is not yours&#8221;
+}
+...</pre></td>
+		</tr>
+	</table>
+	<p>In this script, you can see that </p>
+	<ul>
+		<li>We valuate the <code>Validation </code>boolean to decide whether or 
+		not the change maturity operation is authorized. The comparison is done 
+		between the V_Use attribute of the input Object ( which holds the 
+		creator of the PLM Component),and the current user (<code>UserID</code> 
+		) which is logged , and which has requested the change maturity. </li>
+		<li>We valuate the <code>Message</code> to explain what is the reason of 
+		the denial.</li>
+	</ul>
+</blockquote>
+
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h3><a name="Rule Family: Rule with Condition"></a>Rule Family: Rule under 
+Condition</h3>
+<p>You also have the possibility for a given PLM Opening to attach several 
+script files depending on the type of the input object, and other 
+characteristics. In this case you define a <b>rule family.&nbsp;</b></p>
+<p>A family rule is an XML file with the <code>.CATRuleExit</code> suffix. It must be located in the runtime 
+view, such as the <code>.CATRule</code> files.&nbsp;The name of a rule family 
+file does not matter.</p>
+<table class="code" id="table26">
+  <tr>
+    <td>
+      <pre>...
+xxx.<code>CATRuleExit</code> 
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>Let's see the contents of a family file.</p>
+<p>A family is 
+defined in a&nbsp; file which begins and ends with these tags:</p>
+<table class="code" id="table8">
+  <tr>
+    <td>
+      <pre>...
+<font color="#FF0000"><b>&lt;Scripts&gt;</b></font>
+     
+   ...
+	
+<font color="#FF0000"><b>&lt;/Scripts&gt</b></font>
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>Between these two tags, you define the rules and their conditions. There are 
+two possibilities:</p>
+<ul>
+	<li><a href="#Condition_only_on_knowledge_type">simple condition: only on 
+	the knowledge type the input object </a></li>
+	<li>
+	<a href="#Multiple_conditions:_on_the_input_object_knowledge_type_as_condition_and_with_conditions_on_context_object_.">
+	multiple condition: on the knowledge type the input object , and on the 
+	context object too. </a></li>
+</ul>
+<p>In the two cases, you cannot set condition on the input object attributes [<a href="#References">5</a>]. 
+On example, you cannot filter on the C_creation attribute (date of creation) of 
+the PLM Component. </p>
+<p><b><a name="Condition_only_on_knowledge_type">Simple condition: only on 
+knowledge type</a></b></p>
+<p>The syntax is as follows:</p>
+<blockquote>
+<table class="code" id="table10">
+	<tr>
+		<td>
+		<pre>&lt;<font color="#0000FF"><b>Script</b></font> <b>OpeningID</b>=&quot;xxx" <b>Type</b>=&quot;yyy" <b> ScriptName</b>=&quot;zzz"&gt;</pre>
+		</td>
+	</tr>
+</table>
+<p>where:</p>
+<ul>
+	<li><code>OpeningID : </code>xxx is the PLM Opening ID. The unique name 
+		identifying the PLM 
+Opening.&nbsp;&nbsp; </li>
+	<li><b><code>Type</code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		:&nbsp; </b>yyy is the knowledge type of the Input Object</li>
+	<li><code>ScriptName: </code>zzz.CATRule is a file containing the customer 
+	code.</li>
+</ul>
+</blockquote>
+<p>The rule (zzz.CATRule) is executed if the knowledge type of the input object 
+is yyy.</p>
+<p><b>
+<a name="Multiple_conditions:_on_the_input_object_knowledge_type_as_condition_and_with_conditions_on_context_object_.">
+Multiple conditions: on the input object 
+	knowledge type and on context object .</a></b> </p>
+<p>The syntax is as follows: </p>
+<blockquote>
+	<table class="code" id="table11">
+		<tr>
+			<td>
+			<pre>&lt;<font color="#0000FF"><b>Script</b></font> <b>OpeningID</b>=&quot;xxx" <b>Type</b>=&quot;yyy" <b> ScriptName</b>=&quot;zzz"&gt;
+	&lt;<b>Condition</b> Attribute="Attr1" Value="val1"/&gt;
+	&lt;Condition Attribute="Attr2" Value="val2"/&gt;
+&lt;<b><font color="#0000FF">/Script</font></b>&gt;</pre></td>
+		</tr>
+	</table>
+	<p>&nbsp;</p>
+	<table border="1" id="table29">
+		<tr>
+			<td width="72">UserID</td>
+			<td>It is the user ID (a string in read only mode). </td>
+		</tr>
+		<tr>
+			<td width="72">Role</td>
+			<td rowspan="3">It is the security context selected at login 
+			(strings in read only mode). </td>
+		</tr>
+		<tr>
+			<td width="72">Project</td>
+		</tr>
+		<tr>
+			<td width="72">Organization </td>
+		</tr>
+		<tr>
+			<td width="72">Message</td>
+			<td>It is a string that can be valuated inside the rule to bring 
+		back messages to the end-user. It is meaningful especially in the 
+		context of the validation opening.</td>
+		</tr>
+	</table>
+	<p>&nbsp;</p>
+	<p>where:</p>
+	<ul>
+		<li><code>OpeningID : </code>xxx is the PLM Opening ID. The unique name 
+		identifying the PLM 
+Opening.&nbsp;&nbsp; </li>
+		<li><b><code>Type</code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		:&nbsp; </b>yyy is the knowledge type of the Input Object</li>
+		<li><code>Condition</code> : you can have 1 or more conditions. It is an 
+		AND between the conditions. 
+	<ul>
+		<li><code>Attribute :</code> Attr1 is an attribute of the context 
+		object. (&quot;UserID&quot;,&quot;Role&quot;,&quot;Project&quot;,&quot;Organization&quot;, and all other 
+		attributes depending on the PLM Openness)</li>
+		<li><code>Value&nbsp;&nbsp;&nbsp;&nbsp; :</code> the value of the input 
+		attribute </li>
+	</ul>
+		</li>
+		<li><code>ScriptName: </code>zzz.CATRule is a file containing the client 
+		code. </li>
+	</ul>
+</blockquote>
+<p>The rule (zzz.CATRule) is executed if the knowledge type of the input object 
+is yyy, and all conditions are successful. </p>
+<p>Taken an example to illustrate these two kinds of conditions.</p>
+<table class="code" id="table5">
+  <tr>
+    <td>
+      <pre>...
+&lt;Scripts&gt;
+	&lt;Script <b>OpeningID</b>="PLMNewModifyAttribute" <b>Type</b>="PLMProductDS" <b> 
+	                    ScriptName</b>="PLMNewCustoInitValuesPLMProduct2"&gt;
+	&lt;Script OpeningID="PLMNewModifyAttribute" Type="VPMReference"  
+	                    ScriptName="PLMNewCustoInitValuesPLMProduct3"/&gt;
+	
+	&lt;Script OpeningID="PLMNewModifyAttribute" Type="VPMReference"    
+	                    ScriptName="PLMNewCustoInitValuesPLMProduct4"&gt;
+		&lt;<b>Condition</b> Attribute="AttributeName"   Value="SupplierName"/&gt;</pre>
+		<pre>                  &lt;Condition Attribute="Projcet" Value="Project1"/&gt;
+	&lt;/Script&gt;
+
+	&lt;Script OpeningID="PLMNewInit"  Type="VPMReference"    
+	                    ScriptName="PLMNewCustoInitValuesPLMProduct3"&gt;
+&lt;/Scripts&gt
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>This file contains a set of rules for the <code>PLMNewModifyAttribute</code> 
+PLM Opening: </p>
+<ul>
+	<li>When the input object will be a PLM Product Reference of the 
+	PLMProductDS customization, the rule contained in the 
+	PLMNewCustoInitValuesPLMProduct2.CATRule will be executed.</li>
+	<li>When the input object will be a PLM Product Reference of another 
+	customization
+<ul>
+	<li>if the two conditions are ok, PLMNewCustoInitValuesPLMProduct4.CATRule 
+	will be executed.</li>
+	<li>otherwise PLMNewCustoInitValuesPLMProduct3.CATRule will be executed.</li>
+</ul>
+	</li>
+</ul>
+<p>For the <code>PLMNewInit</code> PLM Opening, the family described just above 
+contains one rule. You can choose this way, in place of a single <code>PLMNewInit</code>.CATRule 
+file for many reasons:</p>
+<ul>
+	<li>Another family can contain other rules, </li>
+	<li>In a future, you think to add new rules,</li>
+	<li>you want constraint the rule using condition ( knowledge type or&nbsp; context object)</li>
+</ul>
+<p>Note that, the PLM system 
+reads all the <code>.CATRule</code> and <code>.CATRuleExit</code> files contained in 
+the runtime view to<code> </code>be able to assign one or several rules to a PLM 
+Opening. The exact location of these two kinds of file is the following:</p>
+<table class="code" id="table30">
+  <tr>
+    <td>
+      <pre>intel_a/resources/knowledge/scripts/</pre>
+    </td>
+  </tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2 align="left"><strong><a name="Process for an Administrator"></a></strong>
+Process for An Administrator</h2>
+<p align="left">The process to implement a PLM Opening is the following:</p>
+<ol>
+	<li>
+	<p align="left">First at all, read the documentation associated with the 
+	PLM Opening. You will know what its intent is, what are the kinds of input 
+	objects that it manipulates, and what are the context parameters that are 
+	accessible from the rules. Each PLM Opening has a PLM Opening ID.</li>
+<li>
+<p align="left">Write a rule compliant with the EKL syntax, manipulating the 
+input object and the context object as variables, and save it in a intel_a/resources/knowledge/scripts/PLMOpeningID.CATRule file 
+(on the client runtime view ).</li>
+<li>
+<p align="left">Test the behavior of the PLM system that takes into account the 
+rule customization. It may happen that the rule syntax is incorrect. In this 
+case, a message will be raised explaining what the problem is. Modify the rule 
+and test again.<br>
+<br>
+On the client side, you have the opportunity to activate some environment 
+variables before running PLM<ol>
+	<li>
+	<p align="left">To have traces generated by the PLM customization engine, 
+	explaining the problems encountered (scripts not found, scripts not valid 
+	syntactically, scripts failing at runtime, etc&#8230;): need to set <b>
+	CKE_CUSTO_TRACES=1</b></li>
+<li>
+<p align="left">To have a &quot;live&quot; behavior of the PLM customization engine: this 
+means that you can modify both scripts and families at runtime, without leaving 
+PLM application and the new rules will be taken into account. You will need to 
+set the <b>CKE_CUSTO_DYNAMIC=1. </b>By default, and for the final user, this is 
+not a desired behavior to ensure disk access optimizations. </li>
+</ol>
+</li>
+<li>
+<p align="left">When satisfied with the customization, you deploy the 
+customization simply by deploying the runtime 
+view&#8230; </li>
+<li>
+<p align="left">Finally, it will be possible to describe a higher flexibility in 
+the choice of the script for a given opening, thanks to the definition of a 
+family</li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <tr>
+    <td >[1]</td>
+    <td><a href="CAAPLMTaAllCorePrinciples.htm">PLM Core Modeler Overview</a></td>
+  </tr>
+  <tr>
+    <td >[2]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAPlmTaVersioningPrinciples.htm')">Understanding PLM Versioning</a></td>
+
+    </td>
+  </tr>
+  <tr>
+    <td >[3]</td>
+    <td>
+    <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAALifTechArticles/CAALifObjectUserViewArticle.htm')">Knowledge Language Integration</a></td>
+
+    </td>
+  </tr>
+  <tr>
+    <td >[4]</td>
+    <td>Enterprise Knowlege Language - see the Interactive documentation</td>
+  </tr>
+  <tr>
+    <td >[5]</td>
+    <td><a href="CAAPLMTaAllAttributes.htm">PLM Component Attributes</a></td>
+  </tr>
+  <tr>
+    <td >[6]</td>
+    <td><a href="CAAPLMTaAllMaturity.htm">PLM Component Maturity</a> </td>
+  </tr>
+  
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td >Version: <strong>1</strong> [Dec 2006]</td>
+    <td >Document created</td>
+  </tr>
+  
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

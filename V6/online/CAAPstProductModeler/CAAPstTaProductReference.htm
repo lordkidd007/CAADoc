@@ -1,0 +1,251 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>PLM Product Reference</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>PLM Product Reference</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article is about the PLM Product Reference, the specialization of 
+		the PLM Core Reference for the PRODUCT modeler [<a href="#References">1</a>].
+		</p>
+		<ul>
+			<li><a href="#ProductVS3DPart">Product versus 3D Part</a>
+				<ul>
+					<li><a href="#Product">Product</a></li>
+					<li><a href="#3DPart">3D Part</a></li>
+				</ul>
+			</li>
+			<li><a href="#ProductReferences">Creating Product Reference</a>
+				<ul>
+					<li><a href="#Retrieving">Retrieving the Factory Interface</a></li>
+					<li><a href="#Creating">Creating the Product Reference</a></li>
+					<li><a href="#Modifying">Modifying the PLM Attributes</a></li>
+				</ul>
+			</li>
+			<li><a href="#Deleting">Deleting Product Reference</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ProductVS3DPart"></a>Product versus 3D Part</h2>
+<p>A PLM Product Reference can be created to have two kinds of behaviors. To differentiate 
+them two words are used:</p>
+<ul>
+	<li><strong>Product</strong></li>
+	<li><strong>3D Part</strong></li>
+</ul>
+<p>You can see that on the New command:</p>
+<p><img alt="New Command" src="images/CAAPstProductReferenceNewBox.jpg"/></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Product"></a>Product</h3>
+<p>A <strong>Product</strong> is a PLM Product Reference without restrictions. It can aggregate;
+</p>
+<ul>
+	<li>0..N PLM Product Instances.</li>
+	<li>0 to N mono- instantiable PLM Product Representation References.</li>
+	<li>0 to N multi- instantiable PLM Product Representation References.</li>
+</ul>
+<p>Its icon is</p>
+<p>
+<img alt="Icon" height="28" src="images/CAAPstProductReferenceIcon1.jpg" width="43"/></p>
+<p>There are CAA Api to create a such PLM Product Reference like it is described 
+in the next chapter &quot;<a href="#Creating">Creating the Product 
+Reference</a>&quot; .</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="3DPart"></a>3D Part</h3>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<p>When a <strong>3D Part</strong> is created :</p>
+<ul>
+	<li>It automatically creates and instantiates a mono-instantiable PLM Product 
+		Representation Reference [<a href="#References">2</a>] whose the stream 
+		is a 3D Shape.
+		<p>
+		<img alt="PLM Product Representation Reference" src="images/CAAPstProductReference_3DPartInit.png"/></p>
+	</li>
+	<li>This 3D Shape instance cannot be deleted : nor interactively or by API.</li>
+	<li>You cannot insert PLM Product Instances. The 3D Part is a leaf in a Product 
+		assembly.</li>
+	<li>The life cycle of the 3D Part is linked with its 3D Shape. The deletion, 
+		versioning, or duplication of the 3DPart, implies the deletion, versioning, 
+		or duplication of its 3D Shape ( like any mono-instantiable PLM Product 
+		Representation Reference).</li>
+</ul>
+<p>But the 3DPart can contain other PLM Representation Instances (except 3DShape). 
+You can interactively, or by code (when the stream permits it), add another mono 
+or multi PLM Representation Reference as you can see it with this picture:</p>
+<p>
+<img alt="PLM Representation Reference" src="images/CAAPstProductReference_3DPartAll.png"/></p>
+<ul>
+	<li>All the added representation instances are managed (created/deleted/versioning) 
+		on a 3DPart like on any other Product Reference.</li>
+</ul>
+<p>Its icon is:</p>
+<p><img alt="Icon" src="images/CAAPstProductReferenceIcon2.jpg"/></p>
+<p>A 3D Part is a PLM Product Reference whose the <strong>V_usage</strong> attribute value 
+is &quot;3DPart&quot;. You can use this information to identify a 3D Part from a 
+Product.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="ProductReferences"></a>Creating Product Reference</h2>
+<p>The pattern for creating PLM Product Reference is the following:</p>
+<ol>
+	<li><a href="#Retrieving">Retrieving the Factory Interface</a></li>
+	<li><a href="#Creating">Creating the Product Reference</a></li>
+	<li><a href="#Modifying">Modifying PLM Attributes</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving"></a>Retrieving the Factory Interface</h3>
+<p>The factory interface for Product Reference (except 3DPart) is <em>CATIPrdReferenceFactory</em>. 
+It is obtained by calling the <strong>CATPrdFactory::CreatePrdFactory</strong>:</p>
+<pre class="code">#include &quot;<strong>CATPrdFactory</strong>.h&quot;
+#include &quot;<strong>CATIPrdReferenceFactory</strong>.h&quot;
+...
+<strong>CATIPrdReferenceFactory</strong> *piFactory = NULL;
+HRESULT hr = <strong>CATPrdFactory::CreatePrdFactory</strong>(<strong>IID_</strong><strong>CATIPrdReferenceFactory</strong>, (void **) &amp;piFactory);
+...</pre>
+<p>For the 3DPart, the factory interface is <em>CATIPrd3DPartReferenceFactory.</em> 
+It is obtained by the same way:</p>
+<pre class="code">#include &quot;<strong>CATPrdFactory</strong>.h&quot;
+#include &quot;<strong>CATIPrd3DPartReferenceFactory</strong>.h&quot;
+...
+<strong>CATIPrd3DPartReferenceFactory</strong>* piFactory = NULL;
+HRESULT hr = <strong>CATPrdFactory</strong>::<strong>CreatePrdFactory</strong>(<strong>IID_CATIPrd3DPartReferenceFactory</strong>, (void **) &amp;piFactory );
+...</pre>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Creating"></a>Creating the Product Reference</h3>
+<p>Just below you have the piece of code to create a <strong>PLM Product Reference</strong>.</p>
+<pre class="code">#include &quot;CATIPLMProducts.h&quot;
+#include "CATListValCATICkeParm.h"
+...
+CATIType_var spRefType;
+CATCkePLMNavPublicServices::RetrieveKnowledgeType("VPMReference", spRefType);
+CATIPLMProducts* piProduct = NULL;
+CATListValCATICkeParm_var EmptyPLMAttributeList  ;
+CATIAdpEnvironment *piAdpEnv = ...;
+...
+CATIPLMProducts *piProduct = NULL;
+hr = piFactory-&gt;<strong>CreatePrdReference</strong>(spRefType, EmptyPLMAttributeList, piProduct, piAdpEnv);                                                                   
+...</pre>
+<p>Information about arguments:</p>
+<ul>
+	<li>The first one is a smart pointer to <em>CATIType</em>, retrieved thanks 
+		to the <code>CATCkePLMNavPublicServices::RetrieveKnowledgeType</code> static 
+		method. A product reference handled using a <em>CATIPLMProducts</em> pointer 
+		is of the VPMReference PLM type.</li>
+	<li>The list of PLM attributes must be empty.</li>
+	<li>The third argument is the newly created Product Reference.</li>
+	<li>The environment can be NULL if you want to use the current environment (be 
+		sure that one is set), otherwise you use the one you want. Usually, in a 
+		batch code, you will use a specific environment, but the same code in a 
+		command will use the current environment (NULL as input).</li>
+</ul>
+<p>You have an example with the &quot;Creating Product Structure&quot; use case 
+[<a href="#References">3</a>].</p>
+<p>For a <strong>3DPart</strong>, the piece of code is as follows:</p>
+<pre class="code">#include &quot;CATIPLMProducts.h&quot;
+#include "CATListValCATICkeParm.h"
+...
+CATIAdpEnvironment *piAdpEnv = ...;
+CATListValCATICkeParm_var EmptyPLMAttributeList  ;
+...
+CATIPLMProducts *piProduct = NULL;
+hr = piFactory-&gt;<strong>Create3DPart</strong>(piAdpEnv ,EmptyPLMAttributeListForRef  , EmptyPLMAttributeListForRepRef  piProduct);                                                                   
+...</pre>
+<p>You have the same explanation as previously about the arguments.</p>
+<p>You have an example with the "Creating 3DPart" use case [<a href="#References">4</a>].
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modifying"></a>Modifying PLM Attributes</h3>
+<p>The API of creation calls a business logical to initialize the PLM Attributes. 
+You don't have to use the input attribute list to valuate any PLM Attributes. But 
+anyway, if after the creation, you want to change an attribute value, you can use 
+the <em>CATCkeObjectAttrWriteServices</em> API.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Deleting"></a>Deleting Product Reference</h2>
+<p>There is an API to delete a list of PLM Product Reference. It is the <code>DeleteProductStructures</code> 
+method of the <em>CATPLMPrdDeleteServices</em> class (ProductStructureAccess framework). 
+A use case illustrates its use [<a href="#References">5</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCoreModelerReference.htm">
+		PLM Core Modeler Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPstTaProductRepRef.htm">PLM Product Representation Reference
+		</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPstUcCreationStructureProductModel.htm">Creating Product 
+		Structure Model</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAPstUcCreate3DPart.htm">Creating a 3DPart</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAPstUcDeleteRefProduct.htm">Deleting Product Reference</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Nov 2010]</td>
+		<td>Document updated to introduce new API of creation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

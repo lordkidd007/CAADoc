@@ -1,0 +1,229 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Working with the Silver Editor</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Working with the Silver Editor</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This technical article delves into the details of working inside the 
+		Silver Editor. The Silver Editor is a commonly referred to the VPM/RFLP/PPR 
+		navigators, in general all editors in which a PLM model is explored. It 
+		primarily focuses on the Ref-Inst and the Occurrence model which are created 
+		in the session and the dialog agents to manage selection of the PLM entities 
+		inside the silver window.</p>
+		<ul>
+			<li><a href="#Introduction">Introduction</a></li>
+			<li><a href="#Auth vs Silver data model">Authoring Versus Silver Data 
+			Model</a></li>
+			<li><a href="#Recommendations">Recommendations</a></li>
+			<li><a href="#Nav Prop acquisition agent">Navigation Properties Acquisition 
+			Agent</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a><a name="Web"></a>Introduction</h2>
+<p>A Silver Editor allows user to access primarily the navigate VPM objects. A Silver 
+session which has a Product loaded in it, is depicted in the Fig. that follows.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 VPM Navigator Editor</caption>
+	<tr>
+		<td>
+		<img alt="VPM Navigator Editor" src="images/CAADocTaWorkingWithSilverEditor_Fig2.jpg" width="528" height="524"></td>
+	</tr>
+</table>
+<p>While working with silver editors it is critical to understand the data model 
+created in session to represent the explored PLM Object. Further, an interactive 
+selection of an entity in the spec tree, is realized by one of the two agents namely. 
+a Path Element agent and a Nav Properties Acquisition agent. The article details 
+the significance of each agent and the context in which each is relevant.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Auth vs Silver data model"></a>Authoring Versus Silver Data Model</h2>
+<p>The Fig. that follows depicts the models loaded inside a Silver and an Authoring 
+session.</p>
+<table>
+	<caption><a name="Fig.2"></a>Fig. 2</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADocTaWorkingWithSilverEditor_Fig1.jpg" width="603" height="378">
+		</td>
+	</tr>
+</table>
+<p>A PLM Object in database is identified by its Identificator, represented in session 
+by a component implementing <em>CATIAdpPLMIdentificator</em>. The component is next 
+loaded in session either interactively (from Search Editor) or using code (Query 
+APIs). </p>
+<p>The Fig. above depicts the two sessions namely. the Authoring and the Silver 
+session when a PLM model is loaded in it. </p>
+<p>In Authoring editor, when a structure is loaded the Reference-Instance* data 
+model is created in session, and for some models, an Occurrence data model too is 
+created. By &quot;created&quot; we imply the Object Modeler components are created corresponding 
+to each entity namely. an Occurrence, an Instance, a Reference and so on. Each OM 
+Component implements a set of Interfaces, some are specific to individual Modelers, 
+while some are &quot;generic&quot; as those that belong to the CATPLMComponentInterfaces Framework. 
+These OM components are represented by PLM Comp1 and PLM Occ1 respectively respectively 
+for the Ref-Inst and the Occurrence model.</p>
+<p>(*) instance/reference data model includes the 6 Core PLM entities</p>
+<p>In Silver editor when a structure is explored, an Instance/Reference and an Occurrence 
+data model, both are created in session. By &quot;created&quot; again we imply, the OM components 
+corresponding to each of those entities are created in session. A significant point 
+to note here is that the OM Components in the Silver session are distinct from those 
+that exist in an Authoring session. In other words, the OM components for a PLM 
+entity in the two editors are likely to implement a different set of Interfaces 
+and moreover the implementation of a specific Interface could be different for these 
+components. These OM components are represented as PLM Comp2 and PLM Occ2 respectively 
+for the Ref-Inst and the Occurrence model. </p>
+<p>We elaborate this distinction of the OM Components inside the two editors below.</p>
+<ul>
+	<li><em>CATIPLMOccurrence</em>::<code>GetChildren</code>() on a component representing 
+	an Occurrence<ul>
+		<li>Authoring: Returns the direct Occurrences corresponding to the Instances, 
+		irrespective of the collapse/expand node state</li>
+		<li>Silver: Returns the direct Occurrences corresponding to the the instances 
+		of References, instances of Representation References and sometimes Connection 
+		are returned. It is significant to note that the child Occurrences in the 
+		list returned is a function of the node state (collapse, expand) in the 
+		spec tree corresponding to the invoking Occurrence. Thus if the node is 
+		collapsed at the time of invoking that API, the child occurrences under 
+		it will be unloaded from the current session and hence will not occur in 
+		the list returned</li>
+	</ul>
+	</li>
+	<li><em>CATIPLMNavEntity</em>::<code>ListPublicAttributes</code>() on a component 
+	representing a Reference and its Instance<ul>
+		<li>Authoring: give access to all public attributes</li>
+		<li>Silver: give access to only TREE MASK attributes</li>
+	</ul>
+	</li>
+	<li><em>CATIPLMNavReference</em>::<code>GetChildren</code>() on a component 
+	representing a Reference<ul>
+		<li>Authoring: returns the Instances aggregated by the invoking Reference</li>
+		<li>Silver: NOT IMPLEMENTED (which explains why navigating a Ref-Inst model 
+		is impossible in the Silver window)</li>
+	</ul>
+	</li>
+	<li><em>CATIPLMComponent</em><ul>
+		<li>Authoring: only Ref-Inst data model implements this Interface</li>
+		<li>Silver: both Ref-Inst data model and the Occurrences implement this 
+		Interface</li>
+	</ul>
+	</li>
+	<li><em>CATPLMComponentInterfaceServices</em>::<code>GetEditedRootPLMComponents</code> 
+	which returns the roots (one or more depending on the editor)
+	<ul>
+		<li>Authoring: It returns the Root Reference </li>
+		<li>Silver: It returns the Root Occurrence</li>
+	</ul>
+	</li>
+</ul>
+<h2><a name="Recommendations"></a>Recommendations</h2>
+<ul>
+	<li><em><strong>CATIPLMOccurrence</strong></em><strong>::GetChildren() must 
+	be invoked with caution</strong>: The list of child occurrences returned by 
+	the API inside the Silver window is a function of the state (expand, collapse) 
+	of the node in the spec tree corresponding to the invoking Occurrence. In other 
+	words, if the node is collapsed, the child occurrences under it, are unloaded 
+	from the current session and hence do not exist in the returned list. On similar 
+	lines, if the node is expanded, subsequent to the invocation, there could be 
+	several other child occurrences which might get loaded in the current session. 
+	What this implies is that the list returned by this API, is valid only if subsequent 
+	to it, there is no end-user interaction which will alter the state of the associated 
+	node. So we recommend this API invocation must essentially be inside a one-shot
+	<em>CATCommand</em> for eg. or in your batch application, in both case, where 
+	end-user interaction is not a possibility.</li>
+	<li><strong>Skip the Occurrences which are exclusive to the Silver window (meaning 
+	don&#39;t exist in an authoring session)</strong>: The <em>CATIPLMOccurrence</em>::GetChildren() 
+	invoked inside a Navigator session, returns a list of occurrences other than 
+	those corresponding to instances of a Reference. In other words, since a silver 
+	window creates Occurrences corresponding to instances of Rep Refs as well as 
+	connections, unlike the authoring session, these will have to be skipped while 
+	working inside the Silver window, if operations specific to a Reference like 
+	navigation are planned. In the next release, the silver window will be enhanced 
+	so that only Instances of References will be considered as Occurrences. This 
+	condition will then be redundant, and will serve only for backward compatibility</li>
+	<li><strong>No global function with generic API</strong>: Do not create a function 
+	whose argument is an Interface of either of the CATPLMComponentInterfaces framework 
+	(<em>CATIPLMNavXXX</em>) or the PLMIntegrationAccess framework (<em>CATIPLMComponent</em>). 
+	The reason is because as we mentioned before, those Interfaces can come either 
+	from an Authoring or the Silver session, since both editors have distinct components 
+	implementing this Interface (implying distinct behavior). As a result, your 
+	function code will get too complex since there is no easy means to recognize 
+	the editor a particular Interface comes from. Hence we recommend, your code 
+	must be split, according to the context (editor).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Nav Prop acquisition agent"></a>Navigation Properties Acquisition Agent</h2>
+<p>The Nav Properties Acquisition Agent manages the selection of a PLM entity inside 
+the Silver window. It offers a PLM compliant filtering of the selected object. It 
+is typically used to retrieve the PLM properties of the selected entity. A significant 
+point to note here is that this agent returns a proxy which contains the PLM properties 
+inside it, and not the actual underlying PLM entities. Though for specific operations 
+like Navigation, the underlying PLM entity will have to be retrieved. In this case 
+the Nav Properties Acquisition agent is no good, but one has to use the Path Element 
+Agent instead.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This technical article delves into the details of working inside the Silver Editor. 
+A PLM model loaded in an Authoring and a Silver editor have both its Ref-Inst and 
+the Occurrence model. In other words, the OM components corresponding to both these 
+models are created in session, though the components are distinct. </p>
+<p>The distinction in the OM components arises from the fact that they may implement 
+a different set of Interfaces. Moreover the implementation of the same Interface 
+is different for the Components. For eg. the <code>GetChildren()</code> API of the
+<em>CATIPLMNavReference</em> Interface is not implemented for a Reference inside 
+a Navigator session while it lists the direct child instances under the Reference 
+in an Authoring session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

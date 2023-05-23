@@ -1,0 +1,396 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Updating PLM Objects Created by FBDI</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Updating PLM Objects Created by FBDI</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This Use case mainly demonstrates how you can, without an open in session, 
+		retrieved the PLM Class type of PLM Objects coming from FBDI process.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAADLCUpdatePLMObject Case</a>
+			<ul>
+				<li><a href="#What">What Does CAADLCUpdatePLMObject Do</a></li>
+				<li><a href="#How">How to Launch CAADLCUpdatePLMObject </a></li>
+				<li><a href="#Where">Where to Find the CAADLCUpdatePLMObject Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The FBDI batch migrates V5 Document into PLM Object(s). The Modeler of this PLM 
+object is depending on V5 document. If you migrate CATPart or CATProduct files, 
+the PRODUCT modeler will be used. The modeler is automatically defined by the V5 
+document type. But the Modeler&#39;s customization is depending on the current PLM Environement 
+[<a href="#References">10</a>]. The authoring customization defines inside the current 
+PLM Environment and for the given modeler will be used. You are able to find the 
+used customizations (it can be more that one if there are different kinds of V5 
+documents) using the <code>GetAuthoringType</code> method of the <em>CATIAdpEnvironment</em> 
+interface. Nevertheless, if you want create a batch where you want checked each 
+created PLM Object, this use case shows how you can retrieve the PLM Customization 
+of each one. It enables us to make filter without an open.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAADLCUpdatePLMObject Use Case</h2>
+<p><code><strong>CAADLCPLMBatchFBDI</strong></code> is a use case of the <code><strong>CAADataLifeCycle.edu</strong></code> 
+framework that illustrates the <code><strong>PLMBatchDataAccessInterfaces</strong></code> 
+and <code>CATPLMIdentificationAccess</code> frameworks capabilities.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAADLCUpdatePLMObject Do</h3>
+<p>This use case scenario is as follows:</p>
+<ul>
+	<li>Launch FBDI process for a list of input CATDocument (CATProcess, CATProduct, 
+	CATPart, etc.).</li>
+	<li>Retrieve list of PLM Objects created by FBDI process.</li>
+	<li>Retrieve the PLM Customization of these PLM objects without an open in session.</li>
+	<li>Open PLM Objects those of a given PLM Customization, and modify the V_description 
+	attribute with an hard coded value (v_description is valid for all PLM object).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAADLCUpdatePLMObject </h3>
+<p>To launch <code><strong>CAADLCUpdatePLMObject</strong></code>, you will need to set up 
+the build time environment, then compile <code><strong>CAADLCUpdatePLMObject</strong></code>
+along with its prerequisites, set up the run time environment, and then execute 
+the use case <a href="#References">[1].</a></p>
+<p>To launch the use case execute the command:</p>
+<p><a><code><strong>mkrun -c &quot;CAADLCUpdatePLMObject Repository Server User Password SecurityCtx 
+Environment CustoName </strong></code></a><code><strong>-input InputDataTxtFile -license LicenseFilePath 
+[-ParamXMLFilePath ParamXmlPath]&quot;</strong></code> </p>
+<p>where:</p>
+<table class="border1">
+	<tr>
+		<th><strong>Repository</strong></th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th><strong>Server</strong></th>
+		<td>The name and port of the server as <em>servername</em>:<em>serverport_number[:RootURI]</em></td>
+	</tr>
+	<tr>
+		<th><strong>User</strong></th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th><strong>Password</strong></th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th><strong>SecurityCtx</strong></th>
+		<td>A string representing the security context (Role.Organization.Project). 
+		Choose Role as Designer (as the use case modifies the PLM Data)</td>
+	</tr>
+	<tr>
+		<th><strong>Environment</strong></th>
+		<td>PLM environment containing an authoring customization of the modeler(s) 
+		required by the V5 documents migration.</td>
+	</tr>
+	<tr>
+		<th>CustoName</th>
+		<td>It represents the name of a PLM Customization.</td>
+	</tr>
+	<tr>
+		<th><strong>InputDataTxtFile*</strong></th>
+		<td>Path of the txt file containing the V5 Documents to be processed by 
+		the FBDI Batch</td>
+	</tr>
+	<tr>
+		<th><strong>LicenseFilePath**</strong></th>
+		<td>Path of the file containing the licensing information for FBDI Batch</td>
+	</tr>
+	<tr>
+		<th><strong>ParamXMLPath</strong></th>
+		<td>Path of the directory where the Batch Parameters XML file is to be created. 
+		An optional input.</td>
+	</tr>
+</table>
+<p><strong>*I</strong><strong>nputDataTxtFile </strong></p>
+<p>You can import any CATDocument as you want, but you can also use <strong><code>
+CAADLCInputV5Documents.txt</code></strong>, located within:</p>
+<p><code>InstallRootFolder\CAADataLifeCycle.edu\InputData\</code></p>
+<p>where <code>InstallRootFolder</code>[<a href="#References">1</a>] is the 
+directory where the API CD-ROM is installed.</p>
+<p>This text file has the entries for input models <code><strong>CAADLCPLMBatchFileEnoviaV5_Root</strong></code>.<code><strong>CATProduct</strong></code> 
+and <code><strong>CAADLCPLMBatchFileEnoviaV5_3DShape</strong></code>.<a><code><strong>CATPart</strong></code> 
+which also occur at the location</a></p>
+<p>(**) <strong>LicenseFilePath</strong></p>
+<p>Refer to the License section of the technical technical [<a href="#References">6</a>] 
+to create this file.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAADLCUpdatePLMObject Code</h3>
+<p>The <a><code><strong>CAADLCUpdatePLMObject</strong></code></a> use case is located in the
+<a><code><strong>CAADLCUpdatePLMObject.m</strong></code></a> module of the <a><code><strong>CAADataLifeCycle.edu</strong></code></a> 
+framework</p>
+<p><code>InstallRootFolder\CAADoc\CAADataLifeCycle.edu\CAADLCUpdatePLMObject.m\</code></p>
+<p>The Use Case also refers to the <a><code><strong>CAADLCBatchEventWatcher.m </strong>
+</code></a>module also in the <a><code><strong>CAADataLifeCycle.edu</strong></code></a> framework</p>
+<p><code>InstallRootFolder\CAADoc\CAADataLifeCycle.edu\CAADLCBatchEventWatcher.m\</code></p>
+<p>where <a><code><strong>InstallRootFolder</strong></code> </a><a href="#References">[1]</a> 
+is the directory where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code><strong>CAADLCUpdatePLMObject</strong></code>:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Converting V5 Documents in PLM Objects">Converting V5 Documents 
+	in PLM Objects</a></li>
+	<li><a href="#Retrieving the created PLM Object">Retrieving the created PLM 
+	Object</a></li>
+	<li><a href="#Filtering the PLM object of a Given PLM Type">Filtering the PLM 
+	object of a Given PLM Customization</a></li>
+	<li><a href="#Opening and modifying the filtered PLM object">Opening and modifying 
+	the filtered PLM object</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code><strong>CAADLCUpdatePLMObject</strong></code> use case begins by creating a session 
+and connecting to the Input Repository. This, being the most fundamental prerequisite 
+for all batch use cases, it is the first step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with a designer role 
+(since we are modifying PLM data into the database). There are other parameters 
+as well, details of which can be found in the &quot;<strong>Creating a Basic PLM Batch</strong>&quot; 
+use case article [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Converting V5 Documents in PLM Objects"></a>Converting V5 Documents 
+in PLM Objects</h3>
+<p>Here in this step we are converting V5 document into PLM objects directly created 
+in the connected database. All important steps for about conversion are explained 
+in to FBDI [<a href="#References">7</a>] Use case.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving the created PLM Object"></a>Retrieving the created PLM Object
+</h3>
+<p>We retrieve Identificator of the created PLM objects by decoding the report file 
+which is returned by FBDI process. See just below:</p>
+<pre class="code">...
+  CATUnicodeString FBDIMappingXmlFile ;
+  hr = PLMBatch-&gt;<strong>GetReportName</strong>(FBDIMappingXmlFile);
+...</pre>
+<p><code>PLMBatch</code> is a <em>CATPLMBatch</em> instance used to launch the FBDI 
+process in the earlier step.</p>
+<p>Thanks <code>FBDIMappingXmlFile</code> we can retrieve all the created PLM objects 
+like that:</p>
+<pre class="code">...
+  CATUnicodeString custoName = iArgv[7];
+	CATUnicodeString oPathOrigin ;
+	<strong>CATLISTP(CATIAdpPLMIdentificator)</strong> oListofMappedPLMComponent;
+	short int irecnumber = 1 ;
+	while(SUCCEEDED(hr = <strong>CATPLMBatchXMLToolBox::ReadPathQueryMappingFile</strong> 
+                                                     (FBDIMappingXmlFile, irecnumber, 
+                                                      PathOrigin, <strong>oListofMappedPLMComponent</strong>)))
+...</pre>
+<p>The <code>ReadPathQueryMappingFile</code> method decodes the report file, locally 
+named <code>FBDIMappingXmlFile</code>. This record file contains several lines, 
+one per V5 document processed. The decoded elements for one V5 Document are inside
+<code>oListofMappedPLMComponent. </code>It is a list of <em>CATIAdpPLMIdentificator</em> 
+interface pointer [<a href="#References">5</a>], each one being the identifier of 
+one PLM Object in database. </p>
+<p>Now for each PLM Object, represented by its identifier, we should retrieve its 
+PLM Class type. It will be detailed inside the local function, <code>LoadPLMCustoAndModifyAttributes</code></p>
+<pre class="code">...
+    <strong>for</strong>(int i = 1 ; <strong>i&lt;=oListofMappedPLMComponent.Size()</strong> ; i++)
+    HR = <strong>LoadPLMCustoAndModifyAttributes</strong>(oListofMappedPLMComponent[i], custoName);
+    irecnumber++ ; 
+  }
+...</pre>
+<p>Note <code>irecnumber++</code> to reach the next line in the report file.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Filtering the PLM object of a Given PLM Type"></a>Filtering the PLM 
+object of a Given PLM Customization</h3>
+<p>The objective of the local function, <code>LoadPLMCustoAndModifyAttributes</code> 
+is double, first identify the PLM objects (from their identifier) whose the PLM 
+customization is the one given as input (second argument), and then open them to 
+modify one PLM_Attribute.</p>
+<p>First detailing the core of this article, how we can retrieve the PLM Customization 
+from a <em>CATIAdpPLMIdentificator</em> interface pointer.</p>
+<pre class="code">HRESULT <strong>LoadPLMCustoAndModifyAttributes</strong>(CATIAdpPLMIdentificator * <strong>iIdentifier</strong>, CATString <strong>strPLMCustoName</strong>)
+{
+  ...
+  CATIAdpType * piAdpTypeOnIdentificator = NULL;
+  hr = iIdentifier-&gt;<strong>GetAdpType</strong>(piAdpTypeOnIdentificator);
+  if (SUCCEEDED(hr) &amp;&amp; (NULL!=piAdpTypeOnIdentificator) )
+  {	
+      CATIType *piCkeType = NULL;
+      hr = CATPLMTypeServices::GetKweTypeFromAdpType(piAdpTypeOnIdentificator,piCkeType );
+      if(SUCCEEDED(hr))
+      {	
+	...
+	if ( CurrentCustoName == strPLMCustoName)
+	{	
+	 ...    </pre>
+<p><code><strong>LoadPLMProductDSAndModifyAttributes</strong></code> takes <code><strong>CATIAdpPLMIdentificator</strong></code>(<code><strong>iIdentifier</strong></code>) 
+and the PLM customization name (<code><strong>strPLMCustoName</strong></code>) as input and 
+further from identificator retrieves <em>CATIAdpType</em> (<code><strong>piAdpTypeOnIdentificator</strong></code>) 
+by using <code><strong>CATIAdpPLMIdentificator</strong></code> ::<code><strong>GetAdpType</strong></code> 
+method.</p>
+<p>From the PLM class type you can retrieve its type <code><strong> piCkeType </strong></code>by using
+<code><strong> GetKweTypeFromAdpType.</strong></code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Opening and modifying the filtered PLM object"></a>Opening and modifying 
+the filtered PLM object</h3>
+<p>Overall we are showing opening PLM object and updating its attributes. </p>
+<pre class="code">...
+  <strong>CATIPLMComponent</strong> *piPLMCompOnComp = NULL;
+  <strong>CATOmbLifeCycleRootsBag</strong> Bag;
+  <strong>CATAdpOpener</strong> opener(Bag);
+  hr= opener.<strong>CompleteAndOpen</strong>(<strong>iIdentifier</strong>,IID_CATIPLMComponent, (void**) &amp;piPLMCompOnComp);
+  ...				
+  CATUnicodeString iAttrName      = &quot;V_description&quot;;
+  CATUnicodeString iAttrNewValue  = &quot;NewValue&quot;;
+			
+  CATICkeObject_var spCkeObjectOnComp = piPLMCompOnComp;
+  hr = <strong>CATCkeObjectAttrWriteServices::SetValueWithString</strong>(spCkeObjectOnComp,
+                                                         iAttrName,iAttrNewValue);
+                                                         CATUnicodeString postValuatedValue;
+  hr = <strong>CATCkeObjectAttrReadServices::GetValueAsString</strong>(spCkeObjectOnComp,
+                                                         iAttrName,postValuatedValue);
+...</pre>
+<p>For opening reference type of PLM Object in session we are using <code>CompleteAndOpen</code> 
+method of <em>CATAdpOpener </em>[<a href="#References">8</a>]. For this method we 
+are giving identificator and mode of opening as an input and it returns <code>
+<strong>CATIPLMComponent</strong></code>*(<code><strong>piPLMCompOnComp</strong></code>).</p>
+<p>PLM component implements <code><strong>CATIPLMComponent</strong></code> and <code><strong>CATICkeObject</strong></code> 
+these two interfaces. From <code><strong>CATIPLMComponent</strong></code> we are retrieving
+<code><strong>CATICkeObject(spCkeObjectOnComp)</strong></code>. </p>
+<p>Further by using <code><strong>CATICkeObject</strong></code>. we are accessing attribute 
+values. For modifying Attribute of PLM Component we are using <code><strong>CATCkeObjectAttrWriteServices</strong></code>::<code><strong>SetValueWithString
+</strong></code>[<a href="#References">9</a>] and for reading attribute value we are 
+using <code><strong>CATCkeObjectAttrReadServices</strong></code>::<code><strong>GetValueAsString</strong></code> 
+method.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code><strong>CAADLCUpdatePLMObject</strong></code> use case ends by saving Opened 
+PLM Components and closing the PLM session. Since all use cases necessarily conclude 
+by closing the PLM session, we have a dedicated article on this topic namely &quot;<strong>Creating 
+a Basic PLM Batch</strong>&quot; [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In this Use case we have seen how to handle PLM Objects processed by FBDI batch 
+for input custo type. The important steps defined in the use are as follows.</p>
+<ul>
+	<li>Retrieve Identificator list from report file which is returned by FBDI process.</li>
+	<li>Retrieve PLM Object of input custo name by filtering it from the list of 
+	FBDI processed PLM Objects.</li>
+	<li>Open PLM Component if it is of given custo Type.</li>
+	<li>Modify attribute of PLM Component.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcBasicBatch.htm">
+		Creating a Basic PLM Batch</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAABatUseCases/CAABatBatchLauncherSample.htm">
+		Launching a CAA V5 Batch</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm">
+		Querying PLM Component by Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		PLM Component Identifier</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAADlcTaPLMBatchPrinciples.htm">Launching PLM Batch outside 
+		the Batch Monitor Environment</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAADlcUcPLMBatchFBDI.htm">Run FBDI Batch outside Batch Monitor</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryOpen.htm">
+		Querying, Expanding and Opening PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="../CAAPlmPLMCompAttribute/CAAAdpUcModifyingPLMComponentAttribute.htm">
+		Modifying PLM Attributes of PLM Component</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">
+		Understanding PLM Environment</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

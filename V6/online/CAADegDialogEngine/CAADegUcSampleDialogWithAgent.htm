@@ -1,0 +1,396 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Associating a Dialog Box with a Dialog Agent - Part 1</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Associating a Dialog Box with a Dialog Agent - Part 
+		1</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to use a dialog box to value a dialog agent. The 
+		agent is valuated by a notification sent by the Dialog box. In this article, 
+		the agent is valuated by an existing notification of the <em>CATDlgDialog</em> 
+		class: either the OK, Cancel, Close, and so one notification. For a valuation 
+		by a new notification refer to the second part of this article [<a href="#References">1</a>]</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a> </li>
+			<li><a href="#UseCase">The Polyline Command Use Case</a>
+				<ul>
+					<li><a href="#What">What Does the Polyline Command Do</a>
+					</li>
+					<li><a href="#How">How to Launch the Polyline Command</a>
+					</li>
+					<li><a href="#Where">Where to Find the Polyline Command Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show how to use a dialog box associated with a dialog 
+agent in a state dialog command. The dialog box values the dialog agent when the 
+end user presses the OK push button. This dialog box is used to input precise values 
+rather than using the mouse to indicate a point on the screen.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The Polyline Command Use Case</h2>
+<p>The Polyline command is a use case of the CAADialogEngine.edu framework that 
+illustrates the DialogEngine framework capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the Polyline Command Do</h3>
+<p>The Polyline command creates a polyline by successively indicating or selecting 
+points, or entering their coordinates using a dialog box. A right click stops the 
+polyline creation and exits the command. </p>
+<p>The Polyline command is a state dialog command according to the following UML 
+statechart diagram [<a href="#References">2</a>].</p>
+<p>
+<img alt="Polyline Command State Chart" height="376" src="images/CAADegCreatePolylineStatechart.jpg" width="496"/></p>
+<p>The dialog is as follows:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePolyline1.jpg" width="508" height="386"/></td>
+		<td>Select the Polyline command. The active state becomes StartState, and 
+		the dialog box is displayed. You can either indicate or select a point, 
+		or use the dialog box.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePolyline2.jpg" width="518" height="391"/></td>
+		<td>Click to indicate a point. The point is created. The transition makes 
+		the RepeatState the active state. The self transition that creates a temporary 
+		line is triggered as long as the mouse moves, even to locate it in the dialog 
+		box.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePolyline3.jpg" width="512" height="389"/></td>
+		<td>Enter values in the dialog box spinners. Clicking OK creates the point 
+		whose coordinates were entered and creates a line segment between the two 
+		points. You can again either click to indicate or select a point, or use 
+		the dialog box.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePolyline4.jpg" width="519" height="385"/></td>
+		<td>Click to indicate another point or enter another set of values in 
+		the dialog box spinners. A third point and a second line segment are created.</td>
+	</tr>
+	<tr>
+		<td>
+		<img alt="" src="images/CAADegCreatePolyline5.jpg" width="517" height="391"/></td>
+		<td>Right click to end the command. The Polyline is created with two 
+		lines.</td>
+	</tr>
+</table>
+<p>Indicating a point [<a href="#References">3</a>] [<a href="#References">7</a>] 
+means clicking on the screen at the desired location with the left mouse key. Selecting 
+a point [<a href="#References">4</a>] [<a href="#References">7</a>] means clicking 
+on an existing point. A third way to create points is to enter their absolute coordinates 
+in a dialog box. The dialog box is associated with a dialog agent and pressing OK 
+in the dialog box values the dialog agent. This triggers a transition that creates 
+a point with the entered coordinates, and that creates a line segment using the 
+last two created points. We focus on the RepeatState and its self transition that 
+is triggered by the dialog box.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the Polyline Command</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+the <cite>The CAAGeometry Sample</cite> [<a href="#References">5</a>] use case for 
+a detailed description of how this use case should be launched.</p>
+<p>Then, in the window where you run the mkrun command, do not type the module 
+name on the command line, but type 3DEXPERIENCE instead. When the application is ready, do the 
+following:</p>
+<ul>
+    <li>Click on <strong>3D</strong>, the west quadrant of Compass.</li>
+    <li>In the <strong>3D Modeling apps</strong> section, select <strong>CAA: Create Geom</strong> app. </li>
+    <li>Launch the <strong>Polyline</strong> command situated in the flyout of 
+	the<strong> Rectangle </strong>command,&nbsp; in <strong>&quot;CAA Geometry Creation Section&quot;</strong> 
+    of the action bar. Click to create the points and right click to end.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the Polyline Command Code</h3>
+<p>The Polyline command is made of a single class named <em>CAADegCreatePolylineCmd</em> 
+located in the CAADegGeoCommands.m module of the CAADialogEngine.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAADialogEngine.edu\CAADegGeoCommands.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">6</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To create the CreatePoint, there are seven steps:</p>
+<table>
+	<tr>
+		<th>#</th>
+		<th>Step</th>
+		<th>Where</th>
+	</tr>
+	<tr>
+		<td>1</td>
+		<td><a href="#Step1">Declare the dialog agent and the dialog box</a></td>
+		<td>Header file</td>
+	</tr>
+	<tr>
+		<td>2</td>
+		<td><a href="#Step2">Instantiate the dialog agent</a></td>
+		<td><code>BuildGraph</code> method [<a href="#References">7</a>]</td>
+	</tr>
+	<tr>
+		<td>3</td>
+		<td><a href="#Step3">Instantiate the dialog box</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>4</td>
+		<td><a href="#Step4">Associate the dialog box with the dialog agent</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>5</td>
+		<td><a href="#Step5">Create the RepeatState and plug the dialog agent</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>6</td>
+		<td><a href="#Step6">Create the self transition</a></td>
+		<td><code>BuildGraph</code> method</td>
+	</tr>
+	<tr>
+		<td>7</td>
+		<td><a href="#Step7">Release the indication agent and the dialog box</a></td>
+		<td>Destructor</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Declaring the Dialog Agent and the Dialog Box</h3>
+<p>The CAADegCreatePolylineCmd state command class derives from CATStateCommand.</p>
+<pre class="code">...
+class CAADegCreatePolylineCmd : public CATStateCommand
+{
+  ...	
+  private :
+    ...
+    CATDialogAgent    * _daEditor;     <em>// Dialog agent to associate with the dialog box</em>
+    CAADegPointEditor * _PointEditor;  <em>// Dialog box</em>
+    ...</pre>
+<p>The private part of its header file includes the dialog agent declaration, as 
+well as other members. The dialog agent to associate with the dialog box is a
+<em>CATDialogAgent</em> instance. The dialog box is a <em>CAADegPointEditor</em> 
+instance that contains a spinner for each coordinate, and the OK, Apply, and Cancel 
+push buttons.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Instantiating the Dialog Agent</h3>
+<p>The dialog agent is instantiated in the <code>BuildGraph</code> method.</p>
+<pre class="code">void CAADegCreatePolylineCmd::BuildGraph()
+{
+  ...
+  _daEditor = new <strong>CATDialogAgent</strong>(&quot;PointEditorId&quot;);
+  _daEditor-&gt;<strong>SetBehavior</strong>(CATDlgEngRepeat); 
+  ...</pre>
+<p>The character string <code>PointEditorId</code> defined as the argument of the
+<em>CATDialogAgent</em> constructor is the dialog agent identifier. This identifier 
+can be used to assign undo/redo prompts replacing the Undo and Redo items in the 
+Edit menu. The dialog agent behavior is set to <code>CATDlgEngRepeat</code> to enable 
+the dialog agent to be valued more than once without being reinitialized and nevertheless 
+remain usable to trigger a transition using the <code>IsLastModifiedAgentCondition</code> 
+method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Instantiating the Dialog Box</h3>
+<p>This is done in the <code>BuildGraph</code> method.</p>
+<pre class="code">...
+    CATApplicationFrame * pFrame = NULL ;
+    CATDialog * pParent = NULL ;
+    pFrame = CATApplicationFrame::<strong>GetFrame</strong>() ;
+    if ( NULL != pFrame ){
+       pParent = pFrame-&gt;<strong>GetMainWindow</strong>() ;
+
+    }
+   _PointEditor = new <strong>CAADegPointEditor</strong>(pParent);
+   _PointEditor-&gt;<strong>Build</strong>();
+...</pre>
+<p>The dialog box is instantiated and built. It is an instance of the <em>CAADegPointEditor</em> 
+class that derives from the <em>CATDlgDialog</em> class and that simply includes 
+a spinner for each coordinate, and three push buttons OK, Apply, and Cancel. Dialog 
+boxes should always be instantiated without controls (or other dialog objects). 
+Instantiating these controls in a <code>Build</code> method called after the constructor 
+has returned make sure that the control resources will be correctly allocated.</p>
+<p>The parent of this dialog box is an invisible dialog object which contains all 
+the windows of the same model. This object is returned by the <code>GetMainWindow</code> 
+method on the application frame. Refer to the article entitled &quot;Understanding 
+the Application Frame Layout&quot; [<a href="#References">8</a>] for complete details 
+about this object.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Associating the Dialog Box with the Dialog Agent</h3>
+<p>This association is declared in the <code>BuildGraph</code> method.</p>
+<pre class="code">  ...
+  _daEditor-&gt;<strong>AcceptOnNotify</strong>(_PointEditor, _PointEditor-&gt;<strong>GetDiaOKNotification</strong>());
+  ...</pre>
+<p>The <code>AcceptOnNotify</code> method enables the dialog agent to be valued 
+whenever the dialog box sends an OK notification. This is an instance of the <em>
+CATDlgDiaOKNotification</em> class retrieved thanks to the <code>GetDiaOKNotification</code> 
+method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Creating the RepeatState and Plugging the Dialog Agent</h3>
+<p>This is still done in the <code>BuildGraph</code> method.</p>
+<pre class="code">  ...
+  CATDialogState *stRepeatState = <strong>AddDialogState</strong>(&quot;stRepeatPointId&quot;);
+  ...
+  stRepeatState-&gt;<strong>AddDialogAgent</strong>(_daEditor);
+...</pre>
+<p>The RepeatState is not the first state in the command statechart diagram and 
+is therefore created using the <code>AddState</code> method. The <code>AddDialogAgent</code> 
+method plugs the dialog agent to the state.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Creating the Self Transition</h3>
+<p>The last to do is to create the self transition triggered when the dialog agent 
+is valued by the OK notification, and that creates the point with the entered coordinates 
+and the corresponding line segment.</p>
+<pre class="code">  ...
+  CATDialogTransition *pRepeatTransitionBox = <strong>AddTransition</strong>
+  (
+    stRepeatState,
+    stRepeatState,
+    AndCondition(<strong>IsLastModifiedAgentCondition</strong>(_daEditor),
+                 <strong>Condition</strong>((ConditionMethod) &amp; CAADegCreatePolylineCmd::CheckPointByBox)),
+    <strong>Action</strong>(
+           (ActionMethod) &amp; CAADegCreatePolylineCmd::CreateLineByBox,
+           (ActionMethod) &amp; CAADegCreatePolylineCmd::UndoCreateLine,
+           (ActionMethod) &amp; CAADegCreatePolylineCmd::RedoCreateLine 
+          )
+  ); 
+</pre>
+<p>The <code>AddTransition</code> method creates a transition and adds it to the 
+transitions managed by the dialog command. Pointers to the transition's source and 
+target states are the first and second arguments respectively. This self transition 
+goes from/to the same RepeatState. The transition trigger is defined in the guard 
+condition as the first condition to be checked using the <code>IsLastModifiedAgentCondition</code> 
+method applied to the indication agent. This method returns True when the dialog 
+agent is valued or if its value is modified. Modifying the value of the dialog agent 
+is made possible because the dialog agent behavior is set to CATDlgEngRepeat. Using
+<code>IsLastModifiedAgentCondition</code> doesn't require to reinitialize the dialog 
+agent. A second condition uses the <code>CheckPointByBox</code> method. Because 
+we use <code>AndCondition</code> to create the guard condition, both condition methods 
+must return True to fire the transition. In this case, the <code>CreateLineByBox</code> 
+action method is executed. The two other action methods are dedicated to respectively 
+undo and redo the action.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Releasing the Indication Agent and the Dialog Box</h3>
+<p>A pointer to the dialog agent was created in the command <code>BuildGraph</code> 
+method as a data member to be accessed and used in different methods. It should 
+be released (<code>RequestDelayedDestruction</code>) when it becomes useless. This 
+can be done in the command destructor, as shown here. This could also be done in 
+the <code>Cancel</code> method called just before the destructor. In the same way, 
+the dialog box should be destructed by using the <code>RequestDelayedDestruction</code> 
+method.</p>
+<pre class="code">CAADegCreatePolylineCmd::~CAADegCreatePointCmd()
+{
+  if (_daEditor)    _daEditor-&gt;<strong>RequestDelayedDestruction</strong>() ;
+  _daEditor =  NULL ;
+  if (_PointEditor) _PointEditor-&gt;<strong>RequestDelayedDestruction</strong>();
+  _PointEditor = NULL ;
+  ...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to valuate a dialog agent by a notification sent by a 
+Dialog box.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADegUcSampleDialogWithAgent2.htm">Associating a Dialog Box 
+		with a Dialog Agent - Part 2</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAADegTaUMLDescription.htm">How to Describe State Dialog Commands 
+		Using UML</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAADegUcSampleIndication.htm">Managing Indication</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAADegUcSampleSelection.htm">Managing Selection</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcCAAGeometryOverview.htm">
+		The CAAGeometry Sample</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAADegTaGraph.htm">How to Implement the Command Statechart 
+		Diagram</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="../CAAAfrApplicationFrame/CAAAfrTaLayoutV5.htm">
+		Understanding the Wintop Frame Layout</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Mar 2014]</td>
+		<td>Migration to 3DEXPERIENCE platform</td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

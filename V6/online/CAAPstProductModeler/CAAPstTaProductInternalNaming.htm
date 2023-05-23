@@ -1,0 +1,288 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Product Component Internal Naming</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Product Component Internal Naming</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article deals with the internal name of a PLM Product Component: 
+		what is it, how to modify it, how to retrieve it.</p>
+		<ul>
+			<li><a href="#Definition">Internal Name Definition</a></li>
+			<li><a href="#IdentifierSet">Based or not on Identifier Set Atributes</a></li>
+			<li><a href="#Management">Internal Name Management</a>
+				<ul>
+					<li><a href="#Creation">Creation</a></li>
+					<li><a href="#Modification">Modification</a></li>
+					<li><a href="#Retrieving">Retrieving</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Definition"></a>Internal Name Definition</h2>
+<p>An internal name is the <strong>identifier</strong> of the PLM Component (*). There are 
+two cases to consider:</p>
+<ul>
+	<li>PLM component which can be &quot;separable&quot; [<a href="#References">1</a>]: 
+		PLM Reference and PLM Representation reference.
+
+	<p>The internal name identifies the PLM Component in the database: Whatever 
+	the PLM Component its internal name is <strong>unique in the database</strong>. To be 
+	exact, the name must be unique for a given customized PLM Component [<a href="#References">2</a>]:
+	</p>
+	<ul>
+		<li>A PLM Reference and PLM Representation reference can have the same identifier</li>
+		<li>A PLM Reference created with custo A, can have the same identifier as 
+			a PLM Reference created with custo B.</li>
+		<li>Two PLM References (or two PLM Representation References) of the same 
+			custo cannot share the same identifier.</li>
+	</ul>
+</li>
+
+	<li>PLM component which are not &quot;separable&quot; (by a PLM Reference): 
+		PLM instance, PLM Rep Instance, PLM Port, PLM Connection.
+	<p>The internal name identifies the PLM Component in its aggregating component: 
+	Whatever the PLM Component its internal name is <strong>unique inside the scope of 
+	its aggregating component</strong>.</p>
+</li>
+</ul>
+<p>(*) this definition is not specific to the Product Modeler.</p>
+<p>In both cases, the internal name is based on attributes [<a href="#References">3</a>], 
+as the next section will show.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="IdentifierSet"></a>Based or not on Identifier Set Attributes</h2>
+<p>Attached to a PLM Component there is a set of attributes.</p>
+<p>Some of these have the particularity of belonging to the &quot;<strong>Identifier 
+Set</strong>&quot; [<a href="#References">3</a>]. In this case, the internal name is 
+defined by these attributes. For your information, as of today, only PLM Product 
+Reference and PLM Product Representation reference can have an identifier set.</p>
+<p>If no identifier set is defined for a PLM Product Component, the internal name 
+is the:</p>
+<ul>
+	<li><strong>PLMExternal_ID</strong> attribute for PLM Product instance, 
+		PLM Product Representation instance, PLM Product Connection.</li>
+	<li><strong>V_FunctionalName</strong> attribute for PLM Product Port.</li>
+</ul>
+<p>Regarding the PLM Product instance, the internal name is only relevant for the 
+first instance, the internal name of an occurrence [<a href="#References">4</a>] 
+has no sense.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Management"></a>Internal Name Management</h2>
+<p>We have previously seen that the internal name is based on attributes, and which 
+ones. This section details how they are managed.</p>
+<h3><a name="Creation"></a>PLM Component Creation</h3>
+<p>Defining an internal name consists in valuating attributes forming the internal 
+name.</p>
+<p>This valuating is depending of the PLM Product component type:</p>
+<ul>
+	<li>PLM Product Reference and PLM Product Representation reference
+	<p>The API to create those objects call the Init business logic. The PLM_ExternalID 
+	value will be automatically valuated.</p>
+</li>
+
+<li>PLM Product Instance
+
+	<p>No API enables you to create a PLM Product instance with an input internal 
+	name. All <code>AddProduct</code> method of <em>CATIPLMProducts</em> are without 
+	such argument.</p>
+</li>
+
+	<li>PLM Product Representation Instance
+
+
+	<p>The first argument of the <code>AddRepInstance</code> method (<em>CATIPLMRepInstances</em> 
+	interface ) is the <code>PLM_ExternalID</code> value.</p>
+</li>
+	<li>PLM Product Publication
+
+	<p>The name of the Publication is hold by the <code>V_FunctionalName</code> 
+	PLM Attribute. This attribute must be specified in the list of PLM Attributes 
+	of the <code>AddPrdPublication</code> methods (<em>CATIPLMPublications</em> 
+	interface ). <code>V_FunctionalName</code> is a read-only PLM Attribute. 
+	So it means that you could not change the internal name of the PLM Publication 
+	after its creation.</p>
+</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modification"></a>Modification</h3>
+<p>Modifying an internal name consists in modifying the value of attributes forming 
+the internal name.</p>
+<p>The <em>CATCkeObjectAttrWriteServices</em> class (knowledgeInterfaces framework) 
+enables you to modify the PLM Product Components attributes. The use case &quot;Modifying 
+PLM Properties&quot; [<a href="#References">7</a>] describes how to use it this 
+class.</p>
+<p>Attention, only the writable attributes forming the internal name are modifiable 
+by client application. If you can change the <code>PLM_ExternalID</code> PLM attribute, 
+you cannot modify <code>V_FunctionalName</code> PLM attribute.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving"></a>Retrieving</h3>
+<p>Retrieving the internal name of a PLM Product Component can be useful for two 
+reasons:</p>
+<ul>
+	<li>Accessing to each attribute, in order to modify it or whatever operation 
+		on attributes.</li>
+	<li>Displaying the complete internal name.</li>
+</ul>
+<p>For the first case, the <em>CATCkeObjectAttrAttrServices</em> class (knowledgeInterfaces 
+framework) is dedicated for this purpose. For the Port you can also used the
+<code>GetName</code> method of the <em>CATIPLMPublication</em> interface.</p>
+<p>For display purpose, the <em>CATIPLMIdentifierSet</em> interface is the dedicated 
+one. Such as explained in the Representing PLM Product Component Textually [<a href="#References">8</a>], 
+the unique method of this interface, <code>GetIdentifierSet</code>, returns the 
+concatenation (without separator) of the identifier set attributes.</p>
+<p>The attribute's order returned by <code>GetIdentifierSet</code> depends on the 
+attribute's order defining the metadata.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The internal name of a PLM component is either:</p>
+<ul>
+	<li>The identifier set attributes defined by the customization.</li>
+	<li>The <code>PLM_ExternalID</code> attribute for PLM Product instance, PLM 
+		Product Representation instance, PLM Product Connection.</li>
+	<li>The <code>V_FunctionalName</code> attribute for the PLM port.</li>
+</ul>
+<p>This array sums-up for each kind of PLM Product Component, the current status:</p>
+<table class="fill">
+	<tr>
+		<th>PLM Component Type</th>
+		<th>Internal Name</th>
+		<th>Uniqueness scope</th>
+		<th>Retrieve for Display</th>
+		<th>Get/Set for modification purpose</th>
+	</tr>
+	<tr>
+		<td>PLM Product Reference</td>
+		<td>Identifier Set attributes</td>
+		<td>database for the customized PLM Ref</td>
+		<td>CATIPLMIdentifierSet</td>
+		<td>CATCkeObjectAttrWriteServices/CATCkeObjectAttrReadServices</td>
+	</tr>
+	<tr>
+		<td>PLM Product Rep Reference</td>
+		<td>Identifier Set attributes</td>
+		<td>database for the customized PLM Rep Reference</td>
+		<td>CATIPLMIdentifierSet</td>
+		<td>CATCkeObjectAttrWriteServices/CATCkeObjectAttrReadServices</td>
+	</tr>
+	<tr>
+		<td>PLM Product Instance (first)</td>
+		<td>PLMExternal_ID</td>
+		<td>aggregating comp.</td>
+		<td>CATIPLMIdentifierSet</td>
+		<td>CATCkeObjectAttrWriteServices/CATCkeObjectAttrReadServices</td>
+	</tr>
+	<tr>
+		<td>PLM Product Instance (occurence)</td>
+		<td>NA</td>
+		<td>NA</td>
+		<td>NA</td>
+		<td>NA</td>
+	</tr>
+	<tr>
+		<td>PLM Product Rep Instance</td>
+		<td>PLMExternal_ID</td>
+		<td>aggregating comp.</td>
+		<td>CATIPLMIdentifierSet</td>
+		<td>CATCkeObjectAttrWriteServices/CATCkeObjectAttrReadServices</td>
+	</tr>
+	<tr>
+		<td>PLM Product Port</td>
+		<td>V_FunctionalName</td>
+		<td>aggregating comp.</td>
+		<td>CATIPLMPublication::GetName</td>
+		<td>CATIPLMPublication::GetName (Set impossible)</td>
+	</tr>
+	<tr>
+		<td>PLM Product Connection</td>
+		<td>PLMExternal_ID</td>
+		<td>aggregating comp.</td>
+		<td>&nbsp;</td>
+		<td>CATCkeObjectAttrWriteServices/CATCkeObjectAttrReadServices</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">
+		PLM Modeler Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCusto.htm">
+		Understanding PLM Modeler and Customization</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllAttributes.htm">
+		PLM Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAPstTaProductNavigate.htm">Product Structure Navigation</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAAPstUcModifyingProperties.htm">Modifying PLM Properties
+		</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td><a href="CAAPstTaRepresentingOccurrences.htm">Representing PLM Product 
+		Component Textually</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Sept 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

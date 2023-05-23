@@ -1,0 +1,576 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Launching the PLM Batch outside the BatchMonitor Environment</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Launching PLM Batch outside the Batch Monitor Environment</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A <code><strong>PLM Batch</strong></code> is a Batch built on an architecture, 
+		referred to as the Batch Infrastructure [<a href="#References">1</a>]. &quot;<strong>PLM</strong>&quot; 
+		prefixed before Batch implies that it is exclusively dedicated for querying 
+		PLM Components from and saving them to a PLM database.</p>
+		<p>A <code><strong>PLM Batch</strong></code> is typically run with a
+		<code><strong>BatchMonitor</strong></code> tool, invoked either from a
+		<code><strong>session</strong></code> through <code><strong>Tools Utility</strong></code> 
+		or from a command line, using <code><strong>CATBatchStarter</strong></code> 
+		or <code><strong>CATUtil</strong></code>. The article &quot;<strong>Running Batches 
+		Using the Batch Monitor</strong>&quot; in the DS Application User Guides details 
+		this subject further.</p>
+		<p>Alternatively, one can launch a <code><strong>PLM</strong></code><code><strong> 
+		Batch</strong></code> outside the official <code><strong>BatchMonitor</strong></code> 
+		environment, in the CAA client code, as detailed in the article &quot;<strong>Launching 
+		a CAA V5 Batch</strong>&quot; [<a href="#References">2</a>], with two exceptions 
+		exclusively for the <code><strong>PLM Batch</strong></code> environment 
+		as listed below:</p>
+		<ul>
+			<li>Generating a <strong>Parameters XML</strong> file, an input for 
+			the <code><strong>PLM Batch</strong></code> execution, accomplished 
+			through a set of services exposed by the <code><strong>CATPLMBatch</strong></code> 
+			APIs.</li>
+			<li>Analyzing the generated XML file, which has the output information 
+			in it, accomplished with the calls to <code><strong>CATPLMBatchXMLToolBox</strong></code> 
+			APIs.</li>
+		</ul>
+		<p>These exceptions have been further detailed in this article.</p>
+		<ul>
+			<li><a href="#Part1">Introduction</a></li>
+			<li><a href="#Create the Para XML file">Creating the XML Parameter File 
+			using the CATPLMBatch Class</a><ul>
+				<li><a href="#Define the PLMBatch name">Instantiating a CATPLMBatch 
+				Class with the PLM Batch name</a></li>
+				<li><a href="#Set the list of PLM Comps">Setting the List of PLM 
+				Components</a></li>
+				<li><a href="#Set the list of CAA V5 Documents">Setting the List 
+				of V5 Documents</a></li>
+				<li><a href="#Setting Applicative Parameters">Setting Applicative 
+				Parameters</a></li>
+				<li><a href="#Creating License File">Creating a License File</a></li>
+				<li><a href="#SettingAuthoringCusto">Managing PLM Component Type</a></li>
+				<li>
+				<a href="#Set the License, authorizing the run of the PLMBatch and generate the Parameters XML">
+				Generating Parameters XML File</a></li>
+			</ul>
+			</li>
+			<li><a href="#Analysing the PLMBatch output">Analyzing the PLM Batch 
+			Output</a><ul>
+				<li><a href="#Retrieving the Batch output">Retrieving the Batch 
+				Outputs</a></li>
+				<li><a href="#Retrieving the generated V5 Documents">Retrieving 
+				Generated V5 Documents</a></li>
+				<li><a href="#Retrieving the generated PLM Objects">Retrieving Generated 
+				PLM Components</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Introduction</h2>
+<p>The picture below is an overview of a <code><strong>PLM Batch</strong></code> 
+launch outside the <strong>BatchMonitor</strong> environment, in the CAA environment. 
+The Use Case [<a href="#References">2</a>] explains the process of actually launching 
+the <code><strong>PLM Batch</strong></code>.</p>
+<p>This technical article, on the other hand, primarily focuses on detailing the 
+CAA exposed services which generate an input data for the <code><strong>PLM Batch</strong></code> 
+launch and then post-process its output.</p>
+<table>
+	<caption><a name="Fig.1"></a>Fig. 1 PLM Batch Launch using CAA Client Code</caption>
+	<tr>
+		<td>
+		<img alt="PLM Batch Launch using CAA Client Code" src="images/CAADlcPLMBatchPrinciples_Fig1.jpg" width="569" height="341"></td>
+	</tr>
+</table>
+<p>The <code><strong>CATPLMBatch</strong></code> class exposes services to create 
+a <strong>Parameters XML </strong>file. The inputs for the PLM Batch processing 
+are read from this file.</p>
+<p>A <strong>Mapping XML</strong> file is an output of the PLM Batch processing. 
+The <code><strong>CATPLMBatchXMLToolBox</strong></code> Class exposes services for 
+analyzing the results by decoding the Mapping XML. Please note that this <strong>
+Mapping XML</strong> is an optional output and users are recommended to refer to 
+the individual <code><strong>PLM Batch</strong></code> documentation, which specifies 
+the batch output.</p>
+<p>This article explains in detail the usage of the above two classes. Those classes 
+have been actually deployed in the Use Cases &quot;<strong>Running Downward Compatibility 
+Batch outside Batch Monitor</strong>&quot; [<a href="#References">5</a>] and &quot;<strong>Running 
+FBDI Batch outside Batch Monitor</strong>&quot; [<a href="#References">6</a>], which 
+are useful references in parallel with the current article.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Create the Para XML file"></a>Creating the XML Parameter File using 
+the CATPLMBatch Class</h2>
+<p>The <code><strong>CATPLMBatch</strong></code> is a CAA exposed class providing 
+services to generate an input <strong>Parameters XML</strong> file for <code>
+<strong>PLM Batch</strong></code> processing. This XML has the list of input data 
+for batch processing, written into it in a format conforming to the <strong>Batch 
+Infrastructure</strong> standards [<a href="#References">1</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Define the PLMBatch name"></a>Instantiating a CATPLMBatch Class with 
+the PLM Batch name</h3>
+<p>We begin by instantiating a CATPLMBatch class.</p>
+<pre class="code">CATUnicodeString BatchName(&quot;<strong>DownwardCompatibility</strong>&quot;); 
+...
+<strong>CATPLMBatch</strong>* <strong>pPLMBatch</strong> = new CATPLMBatch(BatchName.ConvertToChar());</pre>
+<p>The <code><strong>CATPLMBatch</strong></code> constructor takes the <code>
+<strong>PLM Batch</strong></code> name as an input, as it appears in the interactive
+<code><strong>BatchMonitor</strong></code> tool, seen in <a href="#Fig. 2">Fig.2</a>. 
+This Batch Name eventually gets written to the Parameters XML file, an input for 
+the batch processing. </p>
+<p>Those steps are executed interactively through the <code><strong>BatchMonitor</strong></code> 
+tool that appears in [<a href="#Fig. 2">Fig.2</a>] below. User simply has to select 
+the <code><strong>PLM Batch</strong></code> for launch eg. <code><strong>DownwardCompatibility</strong></code> 
+and ...</p>
+<table>
+	<caption><a name="Fig. 1"></a>Fig. 2 Batch Monitor Interface</caption>
+	<tr>
+		<td>
+		<img alt="Batch Monitor Interface" src="images/CAADLCPLMBatch_Fig2.gif" width="620" height="344"></td>
+	</tr>
+</table>
+<p>On double clicking the <code><strong>PLM Batch</strong></code> entry in the
+<code><strong>BatchMonitor</strong></code> tool, the Interface, as the one seen 
+below [<a href="#Fig. 3">Fig.3</a>] appears. It is a <code><strong>DownwardCompatibility</strong></code> 
+Batch Interface which lets the user specify the inputs for a Parameters XML file 
+and create/save it subsequently.</p>
+<p>Please note that the list of <code><strong>PLM Batches</strong></code> depicted 
+in the <code><strong>BatchMonitor</strong></code> tool [<a href="#Fig. 2">Fig.2</a>] 
+are those available, at the time of writing this document. To retrieve the latest 
+list of <code><strong>PLM Batches</strong></code> available at your site, please 
+run the <code><strong>CATUtil</strong></code> tool available with your <code>
+<strong>CATIA</strong></code> install. It is not possible currently for an end-user 
+to create his own PLM Batch as depicted in the Use Case &quot;<strong>Creating a CAA 
+V5 Batch</strong>&quot; [<a href="#References">7</a>]</p>
+<table>
+	<caption><a name="Fig. 2"></a>Fig. 3 DownwardCompatibility Batch Interface for 
+	Defining Batch Parameters</caption>
+	<tr>
+		<td>
+		<img alt="DownwardCompatibility Batch Interface for Defining Batch Parameters" src="images/CAADLCPLMBatch_Fig2.jpg" width="770" height="427"></td>
+	</tr>
+</table>
+<p>The type of input data for each <code><strong>PLM</strong></code><code><strong>Batch</strong></code> 
+is specified in its documentation. For eg. a <code><strong>Downward Compatibility</strong></code> 
+batch requires a list of <code><strong>PLM Components</strong></code> for processing 
+while the <code><strong>FBDI</strong></code> batch requires a list of <code>
+<strong>V5 Documents</strong></code> as input. The <code><strong>CATPLMBatch</strong></code> 
+class provides services for providing either of these inputs as illustrated in the 
+sections ahead.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Set the list of PLM Comps"></a>Setting a list of PLM Components, an 
+input for PLM Batch processing</h3>
+<p>The <code><strong>CATPLMBatch</strong></code> class provides a service to set 
+a list of PLM Components as an input for processing by a <code><strong>PLM Batch</strong></code>. 
+The input PLM Component can either be a <code><strong>PLM Reference</strong></code> 
+or a <code><strong>PLM Representation Reference</strong></code>.</p>
+<p>The <code><strong>SetSelectedObjects</strong></code> call sets this data to the
+<code><strong>CATPLMBatch</strong></code> instance, as illustrated by the code extract 
+below.</p>
+<pre class="code"><strong>CATListPtrCATIAdpPLMIdentificator</strong> oListofPLMComponents ; 
+...
+hr = pPLMBatch-&gt;<strong>SetSelectedObjects</strong>(oListofPLMComponents);</pre>
+<p>It takes a list of <code><strong>Identifiers</strong></code> (<code><strong>CATIAdpPLMIdentificators</strong></code>* 
+type) as an input, retrieved by Querying the database for PLM Components with the 
+attribute-value sets, specified as input by the user. The steps involved in that 
+query are well-explained in the Use Case &quot;<strong>Querying PLM Components by Attributes</strong>&quot; 
+[<a href="#References">3</a>]. The article &quot;<strong>PLM Component Identifier</strong>&quot; 
+[<a href="#References">4</a>] details the concept of a <code><strong>PLM Identifier</strong></code>.</p>
+<p>An equivalent of this occurs for eg. in the <code><strong>DownwardCompatibility</strong></code> 
+batch launched through the <strong>BatchMonitor</strong> tool. The Query is executed 
+from an Interface as seen below [<a href="#Fig. 3">Fig. 4</a>]. This Query dialog 
+appears when the user clicks the <strong>Query</strong> command within the <code>
+<strong>DownwardCompatibility</strong></code> Batch Interface (shown encircled in
+<a href="#Fig. 2">Fig. 3</a>)</p>
+<table>
+	<caption><a name="Fig. 3"></a>Fig. 4 Query Panel for the DownwardCompatibility 
+	Batch</caption>
+	<tr>
+		<td>
+		<img alt="Query Panel for the DownwardCompatibility Batch" src="images/CAADLCPLMBatch_Fig3.jpg" width="405" height="487"></td>
+	</tr>
+</table>
+<p>In the interactive mode, one can explicitly specify the various attributes for 
+a PLM Component search or moving a step ahead, launch a wildcard search on the 
+database, e.g. to identify and list all <code><strong>PLM Product References</strong></code>, 
+whose <code><strong>PLM_ExternalID </strong></code>begin with the substring &quot;<code><strong>CAA</strong></code>&quot;, 
+as depicted above. This list of <code><strong>PLM Product References</strong></code> 
+serve as an input for the <code><strong>Downward Compatibility</strong></code> batch.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Set the list of CAA V5 Documents"></a>Setting the list of V5 Documents, 
+an input for PLM Batch Processing</h3>
+<p>The <code><strong>CATPLMBatch</strong></code> class provides a service to set 
+a list of V5 Documents, as an input for processing by a <code><strong>PLM Batch</strong></code> 
+for eg. the <code><strong>FBDI</strong></code> batch.</p>
+<p><strong>An overloaded</strong> <code><strong>SetSelectedObjects</strong></code> 
+call sets this data to the <code><strong>CATPLMBatch</strong></code> instance. Each
+<code><strong>V5 Document</strong></code> in the input list is a <code><strong>CATUnicodeString</strong></code> 
+representing its absolute path. </p>
+<pre class="code"><strong>CATListOfCATUnicodeString</strong> ListofFileObjects ;
+...
+hr = pPLMBatch-&gt;<strong>SetSelectedObjects</strong>(ListOfFileObjects);</pre>
+<p>An equivalent of this occurs interactively through the <code><strong>FBDI</strong></code> 
+Batch panel, launched from the <strong>BatchMonitor</strong> tool as seen in [<a href="#Fig. 5">Fig.5</a>] 
+below.</p>
+<table>
+	<caption><a name="Fig. 4"></a>Fig. 5 FBDI Batch Interface for Defining Batch 
+	Parameters</caption>
+	<tr>
+		<td>
+		<img alt="FBDI Batch Interface for Defining Batch Parameters" src="images/CAADLCPLMBatch_Fig4.jpg" width="582" height="425"></td>
+	</tr>
+</table>
+<p>The command encircled in the panel above on activation launches the &quot;<strong>File 
+-&gt; Enovia V5 Object Management</strong>&quot; dialog seen below [<a href="#Fig. 6">Fig. 
+6</a>]. This dialog lets the user define a <strong>query</strong> (<strong>search 
+criteria</strong>) to identify a list of local V5 Documents for <code><strong>FBDI</strong></code> 
+processing.</p>
+<table>
+	<caption><a name="Fig. 6"></a>Fig. 6 Set List of V5 Documents Interactively</caption>
+	<tr>
+		<td>
+		<img alt="Set List of V5 Documents Interactively" src="images/CAADlcPLMBatch_Fig6a.jpg" width="612" height="509"></td>
+	</tr>
+</table>
+<p>The &quot;<strong>CATIAFileBox</strong>&quot; dialog box displays a list of CATIA V5 Documents 
+as depicted above [<a href="#Fig. 6">Fig. 6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Setting Applicative Parameters"></a>Setting Applicative Parameters</h3>
+<p>It is possible to &quot;tune&quot; the PLM batch by option [<a href="#References">9</a>]. 
+You use the <code>SetApplicativeParameter</code> method. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Creating License File"></a>Creating a License File</h3>
+<p>In order to execute a batch, a txt file must contain the license file for each 
+batch to execute. This file can contain several lines. Each one is for a PLM batch:</p>
+<pre class="code">Batch Namei<strong>|</strong>LicenseFilex<strong>.slt</strong>
+Batch Namej<strong>|</strong>LicenseFiley<strong>.slt</strong></pre>
+<p>on example:</p>
+<pre class="code">DownwardCompatibility|xxx.slt
+CheckRepresentation|xxx.slt
+FBDI|xxx.slt</pre>
+<p>where xxx is the name of your licence.</p>
+<p>In the next section,
+<a href="#Set the License, authorizing the run of the PLMBatch and generate the Parameters XML">
+Generating Parameters XML File</a>, you will see that it is not necessary that you 
+create yourself this txt file. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="SettingAuthoringCusto"></a>Managing PLM Component Type</h3>
+<p>Some PLM batches produce PLM Components, typically FBDI. For this example, the 
+PLM Class type [<a href="#References">10</a>] of each created PLM Component is defined 
+by the current PLM Environment [<a href="#References">8</a>]. You know that a PLM 
+Environment for a given Modeler, and a given PLM Core Type, defines one and only 
+PLM Class type. It is defined by the authoring customization of the Modeler.</p>
+<p>Hence, given that background, it is essential for us to specify the PLM Environment 
+[<a href="#References">8</a>], as an input.</p>
+<pre class="code">PLMPSISessionHelpers* pSessionHelpers = NULL;
+hr = PLMPSISessionHelpers::GetSessionHelpers(pSessionHelpers);
+...
+hr = pSessionHelpers-&gt;SetCurrentEnvironment(EnvironmentName);
+...</pre>
+<p>To continue with FBDI, some examples of Modeler:</p>
+<ul>
+	<li>CATProduct, CATPart files create PRODUCT modeler objects.</li>
+	<li>CATProcess files create PROCESS modeler objects.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>
+<a name="Set the License, authorizing the run of the PLMBatch and generate the Parameters XML">
+</a>Generating Parameters XML File </h3>
+<p>The <code><strong>CATPLMBatch</strong></code>::<code><strong>FillXMLFile</strong></code> 
+call finally generates an input Parameters XML file.</p>
+<pre class="code">CATUnicodeString LicenseFileName ;
+LicenseFileName = iArgv[13] ;
+CATUnicodeString ParamXmlFileName ;
+ParamXmlFileName = iArgv[15] ;
+hr = pPLMBatch-&gt;<strong>FillXmlFile</strong>(LicenseFile,ParamXmlFileName) ;</pre>
+<p>The <code><strong>FillXMLFile</strong></code> call takes the following arguments:</p>
+<ul>
+	<li><code><strong>LicenseFileName</strong></code>, a <code><strong>CATUnicodeString</strong></code> 
+	representing the complete License File name (including absolute path) of the 
+	file which has the licensing information, to authorize the run of the PLM Batch. 
+	The entries in a such file occur in the format <code><strong>PLMBatchName</strong></code>|<code><strong>License</strong></code> 
+	as seen below, where <code><strong>PLMBatchName</strong></code> is the name 
+	of the batch for launch.
+	<pre class="code">DownwardCompatibility|InternalDS.slt<br>FBDI|InternalDS.slt</pre>
+	<p>Nevertheless, the argument <code><strong>LicenseFileName </strong></code>
+	can be an empty string if the license file name has been defined through Tools 
+	Options.</p>
+	<table>
+		<tr>
+			<td><img alt="" src="images/CAADLCPLMBatch_ToolsOptions.jpg"></td>
+		</tr>
+	</table>
+	</li>
+	<li><code><strong>ParamXmlFileName</strong></code>, a <code><strong>CATUnicodeString</strong></code> 
+	which defines the complete filename (including absolute path) of the output
+	<code><strong>Parameters XML</strong></code> file. If set to <code><strong>NULL</strong></code>, 
+	it is valuated to <code><strong>$PLMBatch_Default_TargetDir/iBatchName.xml,</strong></code> 
+	where:
+	<ul>
+		<li><code><strong>PLMBatch_Default_TargetDir</strong></code> is an environment 
+		variable, which also defines the the location of the Global Report and the 
+		Mapping XML, outputs of the PLM Batch execution.</li>
+		<li><code><strong>iBatchName</strong></code> is the name of the batch application 
+		as it occurs in the <code><strong>Batch Description XML</strong></code>, 
+		found in the run time view of your CATIA install. Its an input to the
+		<code><strong>CATPLMBatch</strong></code> constructor.</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Analysing the PLMBatch output"></a>Analyzing the PLM Batch Output</h2>
+<p>The entire process of a PLM Batch execution is summarized below [<a href="#Fig. 5">Fig. 
+7</a>].</p>
+<table>
+	<caption><a name="Fig. 5"></a>Fig. 7 A PLM Batch Execution</caption>
+	<tr>
+		<td>
+		<img alt="A PLM Batch Execution" src="images/CAADLCPLMBatch_Fig5.gif" width="630" height="245"></td>
+	</tr>
+</table>
+<p>The PLM Batch execution outputs:</p>
+<ul>
+	<li>A <strong>Global Report</strong> indicates the success or failure of processing 
+	each selected object and the return code of the batch execution.</li>
+	<li>A set of <code><strong>V5</strong></code> <code><strong>Documents</strong></code> 
+	for a batch like <code><strong>DownwardCompatibility</strong></code> generating 
+	V5 Documents.</li>
+	<li>A list of <code><strong>PLM Components</strong></code> for a batch like
+	<code><strong>FBDI</strong></code> which creates those in the database.</li>
+	<li>A <code><strong>Mapping</strong></code> XML which maps each processed object 
+	with a list of the converted objects. This gives you the ability to post-process 
+	the objects and manage data synchronization across levels. This is an optional 
+	output since certain PLM Batches may not output a <code><strong>Mapping XML</strong></code>.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><strong><a name="Retrieving the Batch output"></a></strong><strong>Retrieving 
+the Batch Output</strong></h3>
+<p>The <code><strong>CATPLMBatch</strong></code> class has calls which enable us 
+retrieve the <strong>Global Report</strong> and the <strong>Mapping XML</strong>, 
+outputs of the PLM Batch processing.</p>
+<pre class="code">CATUnicodeString DWCMappingXmlFile ;
+hr = pPLMBatch-&gt;<strong>GetReportName</strong>(DWCMappingXmlFile);</pre>
+<p>The <code><strong>CATPLMBatch</strong></code>::<code><strong>GetReportName</strong></code> 
+call returns an absolute path without extension as a <code><strong>CATUnicodeString</strong></code>. 
+This output if appended with a <code><strong>htm</strong></code>, results in the
+<strong>Global Report</strong> file, while if appended with a <code><strong>xml</strong></code>, 
+results in the <strong>Mapping XML</strong> file, as seen below.</p>
+<pre class="code">DWCMappingXmlFile.<strong>Append</strong>(&quot;.xml&quot;); </pre>
+<p>The target directory for these files can be customized by setting the environment 
+variable <code><strong>PLMBatch_Default_TargetDir </strong></code>appropriately.</p>
+<p>If <code><strong>PLMBatch_Default_TargetDir</strong></code> is not set, users 
+can rely on the return of the <code><strong>CATPLMBatch</strong></code>::<code><strong>GetReportName</strong></code> 
+call to locate the above files.</p>
+<p>The report directory is the directory where reports and traces will be generated. 
+This report directory can be set to specified path using <strong>CATPLMBatch</strong>::<strong>SetReportParameters</strong>.</p>
+<p>For setting report directory we need to valuate <strong>PLMBATCH_Report_Directory</strong> 
+option with specified path. This API can set various parameters report. The parameters 
+that can be set are listed below.</p>
+<ul>
+	<li>PLMBATCH_Report_Directory: Defines the directory where reports and traces 
+	will be generated.</li>
+	<li>PLMBATCH_Report_GlobalReportName: Defines the name of the htm global report 
+	where traces will be generated.</li>
+	<li>PLMBATCH_Report_ObjectReportName: Defines the name of the htm Object report 
+	where traces will be generated.</li>
+	<li>PLMBATCH_Report_ObjectReportFormat: Defines the format (txt/htm) of the 
+	Object report where traces will be generated.</li>
+</ul>
+<pre class="code">CATUnicodeString strCompleteDirectoryPath = iArgv[9]; 
+CATString strOptionName = &quot;PLMBATCH_Report_Directory&quot;;
+hr = PLMBatch-&gt;SetReportParameters(strOptionName,strCompleteDirectoryPath) ; 
+</pre>
+<p>Please note that by default report directory is set to value of <code>
+<strong>PLMBatch_Default_TargetDir </strong></code>variable. If the variable is 
+not set/exported in that case directory is set to the current directory (Directory 
+from where the .exe application is running) </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving the generated V5 Documents"></a>Retrieving Generated V5 
+Documents</h3>
+<p>A PLM Batch for eg. <code><strong>DownwardCompatibility</strong></code> converts 
+a PLM Component (<code><strong>PLM Reference </strong></code>or <code><strong>PLM 
+Representation Referenc</strong></code>e) to output a list of associated V5 Documents. 
+The Mapping XML file lists each processed object (<code><strong>Ref</strong></code> 
+or <code><strong>Rep</strong></code> <code><strong>Ref</strong></code>) and maps 
+it to a list of V5 documents created (<code><strong>CATParts</strong></code>,
+<code><strong>CATProducts</strong></code>)</p>
+<p>The <code><strong>CATPLMBatchXMLToolBox</strong></code>::<code><strong>ReadQueryPathMappingFile</strong></code> 
+API, whose signature occurs below, represents a CAA exposed service, which decodes 
+an input Mapping XML file, where a <strong>PLM_Component-File</strong> kind of object 
+mapping exists.</p>
+<pre class="code">static HRESULT <strong>ReadQueryPathMappingFile</strong> ( const CATUnicodeString &amp; iMappingFilePath, const int&amp; irecnumber,
+			<strong>CATIAdpPLMIdentificator</strong> *&amp; <strong>oDataBaseOrigin</strong>, <strong>CATListOfCATUnicodeString</strong> &amp; <strong>oListofMappedPath</strong>);</pre>
+<p>The call to this API decodes each record (identified by <code><strong>irecnumber</strong></code>) 
+in the Mapping XML file (<code><strong>iMappingFilePath</strong></code>) to output 
+an <code><strong>Identificator</strong></code> of a PLM Component processed (<code><strong>oDataBaseOrigin</strong></code>) 
+and a list of the V5 documents created as a result (<code><strong>oListOfMappedPath</strong></code>).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Retrieving the generated PLM Objects"></a>Retrieving Generated PLM 
+Components</h3>
+<p>A PLM Batch for eg. <code><strong>FBDI</strong></code> converts a V5 Document 
+to output a set of associated PLM Components (<code><strong>Ref</strong></code> 
+or <code><strong>Rep</strong></code> <code><strong>Ref</strong></code>). The Mapping 
+XML file lists each processed object (<code><strong>CATPart</strong></code>,
+<code><strong>CATProduct</strong></code>) and maps it to a list of PLM Components 
+(<code><strong>Ref</strong></code> or <code><strong>Rep Ref</strong></code>).</p>
+<p>The <code><strong>CATPLMBatchXMLToolBox</strong></code>::<code><strong>ReadPathQueryMappingFile</strong></code> 
+API, represents a CAA exposed service, which decodes an input Mapping XML file, 
+where a <strong>File-PLM_Component</strong> kind of object mapping exists. </p>
+<pre class="code">static HRESULT <strong>ReadPathQueryMappingFile</strong> ( const CATUnicodeString &amp; iMappingFilePath, const int&amp; irecnumber,
+			<strong>CATUnicodeString</strong> *&amp; <strong>oPathOrigin</strong>, <strong>CATLISTP(CATIAdpPLMIdentificator) &amp; oListOfMappedPLMComponent</strong>);</pre>
+<p>The call to this API decodes each record (identified by <code><strong>irecnumber</strong></code>) 
+in the Mapping XML file (<code><strong>iMappingFilePath</strong></code>) to output 
+an absolute path of the V5 document processed (<code><strong>oPathOrigin</strong></code>) 
+and a list of PLM Components <code><strong>Identificators</strong></code>, created 
+as a result (<code><strong>oListOfMappedPLMComponent</strong></code>).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A <code><strong>PLM Batch</strong></code> is a Batch built on an architecture 
+referred to as Batch Infrastructure [<a href="#References">1</a>]. The reason we 
+prefix &quot;<strong>PLM</strong>&quot; to this batch is because these typically query objects 
+from and save them to a PLM database.</p>
+<p>A <code><strong>PLM Batch</strong></code> is typically launched through the BatchMonitor 
+tool, from a session using Tools Utility or from a command line using <code>
+<strong>CATBatchStarter</strong></code> or <code><strong>CATUtil</strong></code>. 
+An alternative way to launch the <code><strong>PLM Batch</strong></code> outside 
+the official BatchMonitor environment involves generating an input Parameters XML 
+file, launching the batch and finally, analyzing its output. The steps to launch 
+the batch are as detailed in the Use Case &quot;<strong>Launching a CAA Batch</strong>&quot; 
+[<a href="#References">2</a>] while the rest is specific to the <code><strong>PLM 
+Batch</strong></code> environment. </p>
+<p>This article details the set of CAA Services exposed by the <code><strong>CATPLMBatch</strong></code> 
+class, to set the parameters for the <code><strong>PLM Batch</strong></code> execution 
+by generating an input Parameters XML file. These parameters include the batch name, 
+a list of <code><strong>V5 Documents</strong></code> (<code><strong>FBDI</strong></code> 
+batch), a set of PLM Component <code><strong>Identificators</strong></code> (<code><strong>DownwardCompatibility</strong></code> 
+batch), the file which has the Licensing information to authorize our batch run 
+and the target directory to locate the batch outputs.</p>
+<p>The output of the <code><strong>PLM Batch</strong></code> execution includes 
+a Global Report and <strong>optionally</strong> a Mapping XML, both retrieved by 
+a call to the <code><strong>CATPLMBatch</strong></code>::<code><strong>GetReportName</strong></code> 
+API. The Global Report summarizes the result of the batch processing while The Mapping 
+XML maps each object processed by the <code><strong>PLM Batch</strong></code> to 
+the newly created data. Thus, for <code><strong>FBDI</strong></code> a mapping exists 
+between a V5 Document (<code><strong>CATParts</strong></code>, <code><strong>CATProducts</strong></code>) 
+and a list of newly created PLM Component (<code><strong>Identificators</strong></code>) 
+while it is vice versa for <code><strong>DownwardCompatibility</strong></code>.
+</p>
+<p>The Mapping XML is decoded, using the CAA services exposed by the <code>
+<strong>CATPLMBatchXMLToolBox</strong></code> class. The <code><strong>CATPLMBatchXMLToolBox</strong></code>::<code><strong>ReadPathQueryMappingFile</strong></code> 
+API, decodes an XML where a <code><strong>File-PLM_Component</strong></code> kind 
+of object mapping exists (<code><strong>FBDI</strong></code>) while <code>
+<strong>CATPLMBatchXMLToolBox</strong></code>::<code><strong>ReadQueryPathMappingFile</strong></code> 
+API, decodes an <code><strong>PLM_Component-File</strong></code> kind of object 
+mapping (<code><strong>DownwardCompatibility</strong></code>) </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAABatUseCases/CAABatBatchSample.htm">
+		Batch Infrastructure</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAABatUseCases/CAABatBatchLauncherSample.htm">
+		Launching a CAA Batch</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAAdpUcQueryPLMComponent.htm">
+		Querying PLM Components by Attributes</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAAPlmTaCATIAdpPLMIdentificator.htm">
+		Understanding PLM Component Identificator</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAADlcUcPLMBatchDownwardComp.htm">Running Downward Compatibility 
+		Batch outside Batch Monitor</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAADlcUcPLMBatchFBDI.htm">Running FBDI Batch outside Batch 
+		Monitor</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAABatUseCases/CAABatBatchSample.htm">
+		Creating a CAA Batch</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">
+		Understanding PLM Environment</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td><a href="CAADlcQrParameterOptionsList.htm">PLM Batch Option Reference</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllPLMDictionary.htm">
+		Understanding PLM Dictionary</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

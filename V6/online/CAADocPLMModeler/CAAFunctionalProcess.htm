@@ -1,0 +1,486 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0" />
+<meta name="ProgId" content="FrontPage.Editor.Document" />
+<link rel="stylesheet" type="text/css" href="../CAAShrResources/caav5.css"/>
+<script type="text/javascript" src="../CAAShrResources/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAAShrResources/submit.js">/* */</script>
+<title>Functional Process Modeler Description &amp; Customization</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Functional Process Modeler Description &amp; Customization</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<p>This article presents the <em>Functional Process</em> modeler, and explains 
+		how to customize it.</p>
+		<ul>
+			<li><a href="#Description">Description</a>
+			<ul>
+				<li><a href="#Conceptual Model">Conceptual Model</a></li>
+				<li><a href="#Implementation Model">Implementation Model</a></li>
+				<li><a href="#Business Logic Description">Business Logic</a></li>
+			</ul>
+			</li>
+			<li><a href="#Customization">Customization</a>
+			<ul>
+				<li><a href="#Modeler PLM Package Customization">PLM Package Customization</a>
+				</li>
+				<li><a href="#UI mask customization">UI Mask Customization</a>
+				</li>
+				<li><a href="#Business Logic Customization">Business Logic Customization</a></li>
+			</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Description"></a>Description</h2>
+<p>This section first presents the objects representing the<em> Functional Process
+</em>modeler. Then it describes how this object model view has been translated towards 
+PLM objects based on PLM Core Modeler objects. You will see the description of each 
+PLM package defining these PLM objects.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Conceptual Model"></a>Conceptual Model</h3>
+<p>The <strong>Functional Process</strong> model specifies the product transformations 
+to realize the manufactured product. The transformation can be ordered through relation 
+between transformations either Data Requirement (i.e. Data driven) or Precedence 
+(i.e. Time driven).</p>
+<p>Within PPR domains, the <strong>Functional Process</strong> domain enables to 
+define the way to assemble the product specified in Physical domain. To enable the 
+traceability the functional process implements (i.e. Satisfy) components of the 
+product assembly.</p>
+<p>This is summarized in the following UML schema:</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> Functional Process, Model</caption>
+	<tr>
+		<td>
+		<img alt="Conceptual Moedel" src="CAAFunctionalProcess_ConceptualModel.jpg"/></td>
+	</tr>
+</table>
+<ul>
+	<li>
+	<p>Functional process domain gathers:</p>
+	<ul>
+		<li><strong>Structure entities:</strong><ul>
+			<li><strong>Process Function Reference</strong>: defines the function 
+			to realize.</li>
+			<li><strong>Process Function Instance:</strong> use of a Function Reference 
+			in the context of another Reference.</li>
+			<li><strong>Precedence port</strong>: specifies the precedence interface 
+			of a Function. The direction of a port can be In or Out.</li>
+			<li><strong>Data requirement port</strong>: specifies the data interface 
+			of a Function. Data can be either requested or provided by the Function 
+			depending on the direction of the connected port In or Out.</li>
+			<li><strong>Process Function Representation Reference</strong>: enables 
+			to store private data such as picture, simulation data result, etc.</li>
+			<li><strong>Process Function Representation Instance</strong>: use of 
+			a Function Representation Reference in a given context.</li>
+		</ul>
+		</li>
+		<li><strong>Intra domain relationship:</strong>
+		<ul>
+			<li><strong>Required signal</strong>: links Precedence ports of sibling 
+			Functions. Specifies the workflow of functions : a Function can start 
+			as soon as all port Out of connected Functions are validated.</li>
+			<li><strong>Required data</strong>: links data requirement ports of 
+			sibling Functions. Specifies the workflow of data between Functions.
+			</li>
+			<li><strong>Data requirement exposition connection</strong>: specifies 
+			the data either requested or provided by a Function of an upper or lower 
+			level.</li>
+			<li><strong>Data requirement materialization connection</strong>: specifies 
+			explicitly the data provided by a port. it may be a specification for 
+			the Function or a result of the Function.</li>
+		</ul>
+		</li>
+	</ul>
+	<ul>
+		<li><strong>Inter domains relationship:</strong><ul>
+			<li><strong>Implement Reference and Instances</strong>: relationship 
+			between Functional Process domain and Physical domain. The relation 
+			is oriented FROM s<em>ource</em> TO <em>target</em>: the <em>source</em> 
+			is sensitive to target <em>changes</em>. Such relationship allows bidirectional 
+			(Forward &amp; Backward) traceability since the <em>target</em> is a requirement 
+			for the <em>source</em>.</li>
+		</ul>
+		</li>
+	</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Implementation Model"></a>Implementation Model</h3>
+<p>The Functional Process model is implemented with PLM Core Object as follows:</p>
+<table>
+	<caption>Fig.2 PLM Core Objects</caption>
+	<tr>
+		<td>
+		<img alt="Conceptual Moedel" src="CAAFunctionalProcess_ImplementationModel.jpg"/></td>
+	</tr>
+</table>
+<p>The following array shows the links between the conceptual and PLM Core objects:</p>
+<table class="fill">
+	<tr>
+		<th>Model Object</th>
+		<th>PLM Modeler Type</th>
+		<th>PLM Core Type</th>
+		<th>Modeler PLM Package</th>
+	</tr>
+	<tr>
+		<td>Process Function Reference</td>
+		<td>
+		DELFmiFunctionReference</td>
+		<td>PLMCoreReference</td>
+		<td>
+		DELFmiFunctionalModel</td>
+	</tr>
+	<tr>
+		<td>Process Function Instance</td>
+		<td>
+		DELFmiFunctionInstance</td>
+		<td>PLMCoreInstance</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Process Function Representation Reference</td>
+		<td>
+		DELFmiFunctionRepresentationReference</td>
+		<td>PLMCoreRepReference</td>
+		<td>
+		DELFmiFunctionalModel</td>
+	</tr>
+	<tr>
+		<td>Process Function Representation Instance</td>
+		<td>
+		DELFmiFunctionRepresentationInstance</td>
+		<td>PLMCoreRepInstance</td>
+		<td>
+		DELFmiFunctionalModel</td>
+	</tr>
+	<tr>
+		<td>Data requirement connection</td>
+		<td>
+		DELFmiProcessPrerequisiteCnx</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelPrerequisiteCnx</td>
+	</tr>
+	<tr>
+		<td>Data requirement connection</td>
+		<td>
+		DELFmiProcessPrerequisiteCnxCust</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelPrerequisiteCnx1</td>
+	</tr>
+	<tr>
+		<td>Data requirement port</td>
+		<td>
+		DELFmiProcessPrerequisitePort</td>
+		<td>PLMPort</td>
+		<td>
+		DELFmiFunctionalModelPrerequisitePort</td>
+	</tr>
+	<tr>
+		<td>Data requirement exposition connection</td>
+		<td>
+		DELFmiProcessExpositionCnx</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelExpositionCnx</td>
+	</tr>
+	<tr>
+		<td>Data requirement exposition connection</td>
+		<td>
+		DELFmiProcessExpositionCnxCust</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelExpositionCnx1</td>
+	</tr>
+	<tr>
+		<td>Data requirement materialization connection</td>
+		<td>
+		DELFmiProcessPrereqMaterializationCnx</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelPrereqMatCnx</td>
+	</tr>
+	<tr>
+		<td>Process precedence connection</td>
+		<td>
+		DELFmiProcessPrecedenceCnx</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelPrecedenceCnx</td>
+	</tr>
+	<tr>
+		<td>Process precedence connection</td>
+		<td>
+		DELFmiProcessPrecedenceCnxCust</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelPrecedenceCnx1</td>
+	</tr>
+	<tr>
+		<td>Process precedence port</td>
+		<td>
+		DELFmiProcessPrecedencePort</td>
+		<td>PLMPort</td>
+		<td>
+		DELFmiFunctionalModelPrecedencePort</td>
+	</tr>
+	<tr>
+		<td>Process Function Implement link</td>
+		<td>
+		DELFmiProcessImplementCnx</td>
+		<td>PLMConnection</td>
+		<td>
+		DELFmiFunctionalModelImplementCnx</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Description"></a>Business Logic Openness</h3>
+<p>This section lists the PLM Opening ID integrated at modeler level for the following 
+PLM classes of the <em>Functional Process</em> modeler and the associated default 
+implementation if any.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="ExternalClassName1, implemented Business Logic"></a>DELFmiFunctionReference, 
+Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>Valuates <em>PLM_ExternalID</em> attribute for naming purpose</td>
+	</tr>
+	<tr>
+		<td>PLMInstanceAggregationCheck [<a href="#References">1</a>]</td>
+		<td>No default implementation</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionInstance, Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>No default implementation</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionRepresentationReference, Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>Valuates <em>PLM_ExternalID</em> attribute for naming purpose</td>
+	</tr>
+	<tr>
+		<td>PLMInstanceAggregationCheck [<a href="#References">1</a>]</td>
+		<td>No default implementation</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionRepresentationInstance, Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>No default implementation</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Customization"></a>Customization</h2>
+<p>Customization first deals with the modeler PLM package customization [<a href="#References">2</a>]. 
+It consists on creating a new package containing new PLM classes for each &quot;Customizable&quot; 
+PLM class of the modeler PLM package. Then, you should take into account the UI 
+masks creation to create either a new security mask file, or to update the default 
+one [<a href="#References"> 3</a>]. Finally, you can integrate your own business 
+logic on each new PLM classes by implementing provided PLM opening ID [<a href="#References">4</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Modeler PLM Package Customization"></a>PLM Package Customization</h3>
+<p>This part consists on creating a new package when the modeler PLM package must 
+be customized.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="P1_descr12">DELFmiFunctionalModel</a></h4>
+<p>DELFmiFunctionalModel package must customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+	</tr>
+	<tr>
+		<td>
+		DELFmiFunctionReference</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>
+		DELFmiFunctionInstance</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>
+		DELFmiFunctionRepresentationReference</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>
+		DELFmiFunctionRepresentationInstance</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionalModelPrerequisiteCnx1</h4>
+<p>DELFmiFunctionalModelPrerequisiteCnx1 package must customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+	</tr>
+	<tr>
+		<td>
+		DELFmiProcessPrerequisiteCnxCust</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionalModelExpositionCnx1</h4>
+<p>DELFmiFunctionalModelExpositionCnx1 package must customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+	</tr>
+	<tr>
+		<td>
+		DELFmiProcessExpositionCnxCust</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionalModelPrecedenceCnx1</h4>
+<p>DELFmiFunctionalModelPrecedenceCnx1 package must customized.</p>
+<table class="fill">
+	<tr>
+		<th>PLM Class Name</th>
+		<th>To Be Customized</th>
+	</tr>
+	<tr>
+		<td>
+		DELFmiProcessPrecedenceCnxCust</td>
+		<td>Yes</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="UI mask customization"></a>UI Mask Customization</h3>
+<p>When a PLM attribute is defined (inside modeler PLM package) some features like 
+its editable criteria, mandatory/optional option, can be overwritten by UI mask. 
+You can say this PLM attribute is not writable in Query context, this PLM attribute 
+is mandatory in Create context, this user PLM attribute is not never visible and 
+so one. A set of UI masks form a security mask file. We say security mask because 
+it is associated with these files security information. For a people, and a given 
+context can be associated a security mask.</p>
+<p>For each customized Modeler PLM package, at least one UI mask file must be created 
+(for the default security mask ), since it must contain the new PLM Attributes. 
+When you use the tool to create a customization, a default UI mask file is provided 
+taken into account the added PLM attributes. You can modify the default file to 
+introduce your change.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Rules to respect for a new UI mask creation</h4>
+<p>No specific rule to customize UI mask file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Business Logic Customization"></a>Business Logic Openness Customization</h3>
+<p>You can yourself integrate your business logic for any PLM classes of the <em>
+Functional Process</em> modeler by associating a script to each PLM Opening ID.</p>
+<p>By default, some rules are delivered for following entities customized in VPM 
+environment delivered as sample.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiProcessReferenceSample, Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>Valuates <em>PLM_ExternalID</em> attribute which is part of the identifier 
+		set</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>DELFmiFunctionRepresentationReferenceSample, Implemented Business Logic</h4>
+<table class="fill">
+	<tr>
+		<th>PLM Opening ID</th>
+		<th>Script Contents</th>
+	</tr>
+	<tr>
+		<td>PLMIdentificationInitialization [<a href="#References">1</a>]</td>
+		<td>Valuates <em>PLM_ExternalID</em> attribute which is part of the identifier 
+		set</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>Business Logic Openness Infrastructure Reference, in the DS Product 
+			Documentation Portal, Client Collaborative Platform, Virtual Product 
+			Modeling, VPM Knowledge Standardization, PLM Openings</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Oct 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

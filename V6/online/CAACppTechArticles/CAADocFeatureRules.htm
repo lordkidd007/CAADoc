@@ -1,0 +1,479 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Feature Modeler Rules</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Feature Modeler Rules</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The Feature Modeler rules must necessarily be considered in order to 
+		create functional and coherent applications. These rules have been designed 
+		as guidelines in performing the most frequent activities related to programming 
+		with the Feature Modeler:</p>
+		<ul>
+			<li><a href="#Introduction">Introduction</a>
+			<ul>
+				<li><a href="#ExtVsDeriv">Extensions vs. Derivation</a></li>
+				<li><a href="#Instantiation">Instantiation</a></li>
+				<li><a href="#PubPriv">&quot;Public&quot; and &quot;private&quot; Features and Attributes</a></li>
+				<li><a href="#Compatibility">Managing StartUp Compatibility</a></li>
+			</ul>
+			</li>
+			<li><a href="#Catalog">Feature Catalog Creation and Access Rules</a></li>
+			<li><a href="#StartUps">StartUp Creation, Extension and Derivation Rules</a></li>
+			<li><a href="#Features">Feature Creation, Extension and Deletion Rules</a></li>
+			<li><a href="#Attributes">Attribute Creation and Access Rules</a></li>
+			<li><a href="#DataCompatiblity">Data Compatibility Rules</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>This document defines a number of rules to follow while working with the feature 
+modeler. Following is a quick review of the concepts that are at the base of the 
+rules defined here.</p>
+<p>The feature modeler is based on a prototype/instance model. As such, the creation 
+of new features in a document is initially based on the retrieval of a prototype 
+object called a StartUp. All StartUps must be created in catalogs in order to be 
+shareable between documents as well as for memory size and performance reasons. 
+Catalogs are protected by a client identifier that must be known in order to access 
+the catalog. At run-time, new features are created by instantiating either StartUps 
+from catalogs or by instantiating other features already existing in the document.</p>
+<p>A StartUp can be enriched with new behaviors and/or data in essentially two ways:</p>
+<ul>
+	<li>The feature extension mechanism: allows the feature object to be extended 
+	at run-time with the data and behaviors of a feature extension object defined 
+	in a specific application context.</li>
+	<li>The feature derivation mechanism: allows the feature object to inherit data 
+	and behaviors from other, previously defined feature objects.</li>
+</ul>
+<p>A StartUp can be created in several different ways:</p>
+<ul>
+	<li>&quot;from scratch&quot; - this is the case where the StartUp is entirely user-defined, 
+	i.e., it does not inherit any data or behaviors from other StartUps.</li>
+	<li>simple derivation - this is the case where the StartUp derives from another 
+	StartUp found in one of the owner&#39;s catalogs.</li>
+	<li>factory derivation - this is the case where the StartUp derives from another 
+	StartUp found in a catalog that does not belong to the same owner.</li>
+</ul>
+<p>An extension is created like a StartUp except that it can only derive from another 
+extension owned by the same user.</p>
+<p>Here is a graphical illustration of the methods and mechanisms described above:</p>
+<p>Case 1: Create a StartUp &quot;from scratch&quot; and derive a new StartUp from it.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Feature Rule Case 1" src="images/CAAOsmFeatureRulesCase1.jpg" width="400" height="190"/></td>
+		<td>Client B creates a new StartUp &quot;from scratch&quot; with late type &quot;XXX&quot;. 
+		Client B then derives a new StartUp with late type &quot;YYY&quot; from &quot;XXX&quot;. Client 
+		B can perform this direct derivation because he is the owner of both.</td>
+	</tr>
+</table>
+<p>Case 2: Create a new derived StartUp using a provided Factory.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Feature Rule Case 2" src="images/CAAOsmFeatureRulesCase2.jpg" width="434" height="86"/></td>
+		<td>Client B creates a new StartUp with late type &quot;YYY&quot; deriving from the 
+		StartUp with late type &quot;XXX&quot; by using the provided factory. Since Client 
+		B is not the owner of the &quot;XXX&quot; late type, his only means of deriving a 
+		new StartUp from it is through the provided factory.</td>
+	</tr>
+</table>
+<p>Case 3: Create a feature extension &quot;from scratch&quot; and use it to extend a feature 
+object. Create a derived feature extension.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Feature Rule Case 3" src="images/CAAOsmFeatureRulesCase3.jpg" width="346" height="240"/></td>
+		<td>Client B activates a feature extension on a feature object. The feature 
+		object can be his own, Dassault Systemes&#39; or Client A&#39;s. Client B can create 
+		a new feature extension by deriving one of his already-existing feature 
+		extensions.</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="ExtVsDeriv"></a>Extension vs. Derivation</h3>
+<p>The feature extension mechanism allows a base feature to be enriched with behaviors 
+and data belonging to a feature extension that is activated at run-time. It is used 
+in the case where a base object has characteristics common to several different 
+applications. Using extensions, each application can take into account its own specific 
+needs while the base feature object remains stable and unchanged.</p>
+<p>The derivation mechanism alters the base feature by actually creating a new feature 
+late type having different data and behaviors.</p>
+<p>It is important to understand that in the case of a derived StartUp, an active 
+application depends on the existence of API managing the derived/deriving StartUp 
+as well as on the existence of the catalogs containing the derived/deriving StartUps. 
+On the other hand, in the case of extensions, the active application will tolerate 
+the absence of an extension.</p>
+<p>Between these two ways of enriching feature objects, choose the appropriate one 
+given the specific application needs and remember that the extension mechanism should 
+be favored whenever possible.</p>
+<h3><a name="Instantiation"></a>Instantiation</h3>
+<p>A feature object is instantiated in two possible types of containers: a general 
+applicative container or a Dassault Systemes container, depending on the API used. 
+In other words, if using the ObjectSpecsModeler API to manipulate client-owned features 
+in a specific client applicative context, the general applicative container must 
+be used. Otherwise, if using Dassault Systemes specific API to manipulate features 
+in a specific applicative context, the container used will be a Dassault Systemes 
+container.</p>
+<h3><a name="PubPriv"></a>&quot;Public&quot; and &quot;Private&quot; Features and Attributes</h3>
+<p>A StartUp can be either &quot;public&quot; or &quot;private&quot;. A &quot;public&quot; StartUp means that 
+its derivation is permitted by others. In this case, the owner of the &quot;public&quot; StartUp 
+must provide a factory that will actually create the derived StartUp. The owner 
+of the &quot;public&quot; StartUp also provides specific API allowing the access and manipulation 
+of the features instantiated from it. A &quot;private&quot; StartUp, on the other hand, remains 
+hidden from others.</p>
+<p>The attributes of a &quot;public&quot; StartUp also have a &quot;public&quot; or &quot;private&quot; status 
+defined at the time of their creation. A &quot;public&quot; attribute can be accessible in 
+read and/or write mode, whereas a &quot;private&quot; attribute is not accessible at all.</p>
+<h3><a name="Compatibility"></a>Managing StartUp Compatibility</h3>
+<p>In order to ensure upward compability of feature data, specific rules must be 
+followed and applied when modifying StartUps and StartUp catalogs. These rules are 
+classified into three categories:</p>
+<ul>
+	<li>Rules for StartUp structure: moving and adding attributes on StartUps or 
+	from one StartUp to another</li>
+	<li>Rules for StartUp hierarchy: deleting StartUps in catalogs that may themselves 
+	be descendants or ascendants of other StartUps in the same or pre-requisite 
+	catalogs</li>
+	<li>Rules for StartUp catalogs: modifying catalog identity.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Catalog"></a>Feature Catalog Creation and Access Rules</h2>
+<table class="fill">
+	<colgroup align="left" valign="top" span="5">
+	</colgroup>
+	<colgroup align="center" valign="top">
+	</colgroup>
+	<tr>
+		<th>Rule Title</th>
+		<th>Rule Description</th>
+		<th>Explanation</th>
+		<th>Notes</th>
+		<th>Metrics</th>
+		<th>Objectives</th>
+	</tr>
+	<tr>
+		<td><strong>1-Catalog identification and creation</strong></td>
+		<td>
+		<ul>
+			<li>Follow the C++ Naming Rules [<a href="#References">1</a>] when creating 
+			a new catalog</li>
+			<li>Always define a unique client identifier for a new catalog.</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>A catalog must be named using the following naming rule: CAA&lt;FWAlias&gt;name.CATfct. 
+			Naming rules should be followed in order to avoid the collision of one 
+			catalog with another.</li>
+			<li>A client identifier is necessary in order to access and protect 
+			the catalog.</li>
+		</ul>
+		</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td><strong>2-Catalog storage location</strong></td>
+		<td>The storage pathname of a new catalog should reference the CNext + resources 
+		+ graphic directory of the current framework.</td>
+		<td>In order to be accessible during an <code>AccessCatalog, UpgradeCatalog</code> 
+		or <code>OpenPrereqCatalog</code> operation, a catalog must be found under 
+		the current &quot;OS&quot; + resources + graphic directory. If it is stored under 
+		the CNext + resources + graphic directory as recommended, the update of 
+		the runtime view will then automatically place the catalog in the proper 
+		directory for being accessible.</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="StartUps"></a>StartUp Creation, Extension and Derivation Rules</h2>
+<table class="fill">
+	<colgroup align="left" span="5">
+	</colgroup>
+	<colgroup align="center">
+	</colgroup>
+	<tr>
+		<th>Rule Title</th>
+		<th>Rule Description</th>
+		<th>Explanation</th>
+		<th>Notes</th>
+		<th>Metrics</th>
+		<th>Objectives</th>
+	</tr>
+	<tr>
+		<td><strong>1-Base StartUp and Extension creation and Identification</strong></td>
+		<td>
+		<ul>
+			<li>A new StartUp or extension name and late type should follow standard 
+			C++ Naming Rules [<a href="#References">1</a>].</li>
+			<li>Attributes should be added at StartUp or extension creation time.</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>A StartUp or extension must be named using the following naming 
+			rule: V5&lt;FWAlias&gt;FeatureName or V5&lt;FWAlias&gt;LateTypeName. Naming rules 
+			should be followed in order to avoid the collision of one StartUp with 
+			another.</li>
+			<li>For extensions, it is not even possible to add attributes or to 
+			modify attribute values at run-time.</li>
+			<li>For &quot;public&quot; StartUps, &quot;public&quot; attributes can only be added at 
+			build-time. &quot;Private&quot; attributes may, however, be added at run-time 
+			as well.</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>Attribute values on StartUps are propagated to all of the instances 
+			based on this StartUp.</li>
+			<li>It is better that attributes be added and valuated at creation time 
+			in order to gain performance at run-time. Furthermore, the definition 
+			of the &quot;public&quot;/&quot;private&quot; status of an attribute is done at creation 
+			time as well.</li>
+		</ul>
+		</td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td><strong>2-Deriving StartUps</strong></td>
+		<td>
+		<ul>
+			<li>The owner of a &quot;public&quot; StartUp must provide a factory allowing 
+			its derivation.</li>
+			<li>The owner of a &quot;public&quot; StartUp must provide API in order to manipulate 
+			those features instantiated from it.</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>The users deriving the StartUp need not access the owner&#39;s catalog 
+			themselves, nor should they have visibility on those attributes of the 
+			StartUp considered as &quot;private&quot;.</li>
+			<li>The API must take into account the &quot;public&quot;/&quot;private&quot; status of 
+			the StartUp&#39;s attributes.</li>
+		</ul>
+		</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Features"></a>Feature Creation, Extension and Deletion Rules</h2>
+<table class="fill">
+	<colgroup align="left" span="5">
+	</colgroup>
+	<colgroup align="center">
+	</colgroup>
+	<tr>
+		<th>Rule Title</th>
+		<th>Rule Description</th>
+		<th>Explanation</th>
+		<th>Notes</th>
+		<th>Metrics</th>
+		<th>Objectives</th>
+	</tr>
+	<tr>
+		<td><strong>1-Creating a new feature by instantiation</strong></td>
+		<td>
+		<ul>
+			<li>New features should always be created in applicative containers 
+			if they are instances of client-owned StartUps created &quot;from scratch&quot;.</li>
+			<li>An applicative container should be named according to standard C++ 
+			Naming Rules [<a href="#References">1</a>] for applicative containers.</li>
+			<li>The new feature&#39;s name should follow the standard C++ Naming Rules 
+			[<a href="#References">1</a>] for features.</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>An applicative container must be named using the following naming 
+			rule: V5&lt;FWAlias&gt;ContainerName. Naming rules should be followed in order 
+			to avoid the collision of one applicative container with another.</li>
+			<li>A feature object must be named using the following naming rule: 
+			V5&lt;FWAlias&gt;FeatureName. Naming rules should be followed in order to 
+			avoid the collision of one feature with another.</li>
+		</ul>
+		</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Attributes"></a>Attribute Creation and Access Rules</h2>
+<table class="fill">
+	<colgroup align="left" span="5">
+	</colgroup>
+	<colgroup align="center">
+	</colgroup>
+	<tr>
+		<th>Rule Title</th>
+		<th>Rule Description</th>
+		<th>Explanation</th>
+		<th>Notes</th>
+		<th>Metrics</th>
+		<th>Objectives</th>
+	</tr>
+	<tr>
+		<td><strong>1-Attribute status</strong></td>
+		<td>
+		<ul>
+			<li>The &quot;public&quot;/&quot;private&quot; status of an attribute is defined at the 
+			time of its creation.</li>
+		</ul>
+		</td>
+		<td>The &quot;public&quot;/&quot;private&quot; status of an attribute cannot be changed once 
+		it has been defined.</td>
+		<td>If an attribute is defined as available for read and/or write access, 
+		it is said to be a &quot;public&quot; attribute. Otherwise, it is said to be a &quot;private&quot; 
+		attribute.</td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td><strong>2-Attribute Creation and Access</strong></td>
+		<td>
+		<ul>
+			<li>An attribute should be added to a StartUp at build-time (i.e., StartUp 
+			creation time).</li>
+			<li>An attribute should be valuated with a default value at build-time 
+			(i.e., StartUp creation time).</li>
+		</ul>
+		</td>
+		<td>
+		<ul>
+			<li>A &quot;public&quot; attribute cannot be defined at run-time.</li>
+			<li>A &quot;private&quot; attribute may be defined at run-time.</li>
+		</ul>
+		</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="DataCompatiblity"></a>Data Compatibility Rules</h2>
+<p>The following notation is used here: V5Rn and V5Rp designate two V5 releases, 
+where p is greater than n.</p>
+<table class="fill">
+	<colgroup align="left" span="5">
+	</colgroup>
+	<colgroup align="center">
+	</colgroup>
+	<tr>
+		<th>Rule Title</th>
+		<th>Rule Description</th>
+		<th>Explanation</th>
+		<th>Notes</th>
+		<th>Metrics</th>
+		<th>Objectives</th>
+	</tr>
+	<tr>
+		<td><strong>1-Modifying StartUp structure</strong></td>
+		<td>
+		<ul>
+			<li>A new attribute can be added in V5Rp. However, if the new attribute 
+			is a &quot;tk_component&quot; type, the already existing feature objects instantiated 
+			from it must be specifically synchronized.</li>
+			<li>An attribute can be moved from a StartUp to one of its base StartUps 
+			except if it is a &quot;tk_component&quot; attribute in which case it must not 
+			be moved.</li>
+			<li>The sp_IN/OUT facet of the attribute of a StartUp should not be 
+			modified in order to avoid subsequent update problems.</li>
+		</ul>
+		</td>
+		<td>Adding an attribute in V5Rp is possible because applications written 
+		for V5Rn will go on running without caring for the new attribute. In V5Rp, 
+		the synchronization mechanism automatically adds the attribute to any instance 
+		that does not already have it. If this attribute is accessed, it is valued 
+		using the StartUp attribute value, if this value exists. The application 
+		must either provide a default value that is compatible with its process, 
+		or valuate the attribute when accessing it on the instance. Remember that 
+		the automatic synchronization mechanism does not apply to &quot;tk_component&quot; 
+		types of attributes.</td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td><strong>2-Modifying StartUp hierarchy</strong></td>
+		<td>A StartUp must not be deleted unless it has definitely never been used, 
+		i.e., instantiated or derived.</td>
+		<td></td>
+		<td>A StartUp cannot be added into a catalog if another StartUp with the 
+		same type exists in one of the prerequisite catalogs.</td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+	<tr>
+		<td><strong>3-Modifying StartUp catalogs</strong></td>
+		<td>If a catalog existed in V5Rn, then in V5Rp its name or its UID must 
+		not be changed.</td>
+		<td></td>
+		<td></td>
+		<td>(Number of deviations)/(Number of entries)</td>
+		<td>0%</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAADocCppNamingRules.htm">C++ Naming Rules</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1.0</strong> [Dec 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

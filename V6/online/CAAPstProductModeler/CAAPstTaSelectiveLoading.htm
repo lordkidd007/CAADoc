@@ -1,0 +1,437 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding Representation Loading Mode</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Understanding Representation Loading Mode</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The article details the different modes of loading a Product Representation 
+		Reference (Product Rep Ref) in session. It further details the possible 
+		loading mode transitions for a Product Rep Ref according to its type (StructuredContent, 
+		Non CATIA, Technological Representation ).</p>
+		<ul>
+			<li><a href="#Intro">Introduction</a></li>
+			<li><a href="#LoadingModes">Stream Loading Modes</a></li>
+			<li><a href="#API">Managing Loading Mode</a></li>
+			<li><a href="#Default">Default Loading Mode</a> </li>
+			<li><a href="#Transitions">Loading Mode Transitions</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Intro"></a>Introduction</h2>
+<p>To remind you, a PLM Representation Reference (Rep Ref) is a PLM object associated 
+representing file data (also called streams) [<a href="#References">1</a>]. A PLM 
+Rep Ref, typically is associated with a main stream and zero or more secondary streams. 
+When a PLM Rep Ref is in session, based on the stream loading mode, it is either 
+the main or one of the secondary streams which are loaded in the current session. 
+In this article you will learn, for the Product context only:</p>
+<ul>
+	<li>The possible stream loading modes and their significance.</li>
+	<li>What are the possible switch between stream loading mode according to the 
+		Product PLM Rep Ref type.</li>
+	<li>What is the default stream loading mode when opening PLM Product Representation 
+		Reference.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="LoadingModes"></a>Stream Loading Modes</h2>
+<p>The four possible stream loading modes for a Product Rep Ref are listed in the 
+following table. For each loading mode, it specifies the stream loaded in session, 
+the actions allowed on the data contained within this stream, and the context in 
+which this loading mode is relevant.</p>
+<table class="fill">
+	<caption>Table 1 - The Product Rep Ref Stream Loading Modes.</caption>
+	<tr>
+		<th>Loading Mode </th>
+		<th>Stream Loaded </th>
+		<th>Allowed<br />
+		Actions</th>
+		<th>Usage</th>
+	</tr>
+	<tr>
+		<th><a name="PLMMODE"></a>PLMMode</th>
+		<td>None</td>
+		<td>No edition possible</td>
+		<td>When the geometry is not required, and we work solely on the PLM structure</td>
+	</tr>
+	<tr>
+		<th><a name="VisuMode"></a>VisuMode</th>
+		<td>Secondary/Main* stream necessary for visualization</td>
+		<td>No edition possible</td>
+		<td>The geometry is visualized thanks to a light-weight rendering</td>
+	</tr>
+	<tr>
+		<th>LinkableMode</th>
+		<td>Main stream</td>
+		<td>Only linking is allowed<br />
+		No other edition permitted</td>
+		<td>Linking allowed on the Rep Ref (geometric features for instance), but 
+		no Rep Ref stream modification</td>
+	</tr>
+	<tr>
+		<th><a name="EditMode"></a>EditMode</th>
+		<td>Main stream</td>
+		<td>All edition allowed</td>
+		<td>Full authoring </td>
+	</tr>
+</table>
+<p>*Non-CATIA data, contained in the main Stream, un-editable in V6. Thus, loaded 
+in Visu mode.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="API"></a>API to manage Loading Mode</h2>
+<p>The current loading mode of a Product Rep Ref is determined by calling the
+<code>ComputeLoadingMode</code> method of the <i>CATIPsiRepresentationLoadMode</i> 
+interface. </p>
+<p>For example, here's how to get the current loading mode of a Rep Ref and switch 
+it to Edit Mode if necessary.</p>
+<pre class="code"> #include &quot;CATIPsiRepresentationReference.h&quot;
+#include &quot;CATIPsiRepresentationLoadMode.h&quot;
+...
+CATIPsiRepresentationReference *piPsiRepRef = NULL;
+CATIPsiRepresentationLoadMode *pilPsiRepLoadMode = NULL;
+CATIPsiRepresentationLoadMode::LoadingMode currentLoadingMode;
+...
+HRESULT hr = piPsiRepRef-&gt;QueryInterface(IID_<b>CATIPsiRepresentationLoadMode</b>,
+                                         &amp;pilPsiRepLoadMode);
+...
+hr = pilPsiRepLoadMode-&gt;<b>ComputeLoadingMode</b>(currentLoadingMode);
+if (CATIPsiRepresentationLoadMode::EditMode != currentLoadingMode) {
+  hr = pilPsiRepLoadMode-&gt;<b>ChangeLoadingMode</b>(CATIPsiRepresentationLoadMode::EditMode);
+...</pre>
+<p>Please note that the concept of &quot;Loading Mode&quot; is associated with the 
+session. In other words, though a Rep Ref could be saved in the database, its loading 
+mode in the current session, at the time of saving, is not persistent, implying 
+the loading mode is not saved in the database.</p>
+<p>It's also possible to switch from one loading mode to another using the <code>
+ChangeLoadingMode</code> method. However not all transitions are allowed, the possible 
+ones are outlined in the next section, <a href="#Transitions">Loading 
+Mode Transitions</a>. </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Default"></a>Default Loading Mode</h2>
+<p>A PLM Representation Reference is opened with the <code>CompleteAndOpen</code> 
+method of the <em>CATAdpOpener</em> class. This method can open the PLM Representation 
+Reference as stand-alone, or as part of a Product Structure. Whatever the context 
+(stand-alone or coming with a Product Reference openning), <code>CompleteAndOpen</code> 
+loads with the same way the PLM Representation Reference:</p>
+<table class="fill">
+	<tr>
+		<th>Type of PLM Rep Ref</th>
+		<th>CompleteAndOpen</th>
+	</tr>
+	<tr>
+		<td>NON CATIA- txt,xls ...</td>
+		<td>PLMMode</td>
+	</tr>
+	<tr>
+		<td>NON CATIA- gif, jpeg ... (image file) </td>
+		<td>EditMode</td>
+	</tr>
+	<tr>
+		<td>NON CATIA- model V4..</td>
+		<td>VisuMode</td>
+	</tr>
+	<tr>
+		<td>NON CATIA- cgr</td>
+		<td>VisuMode</td>
+	</tr>
+	<tr>
+		<td>Structured Contents 3DShape</td>
+		<td>VisuMode</td>
+	</tr>
+	<tr>
+		<td>Structured Contents CATSimulation</td>
+		<td>EditMode</td>
+	</tr>
+	<tr>
+		<td>Technological Contents (Techno Rep)</td>
+		<td>EditMode</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Transitions"></a>Loading Mode Transitions</h2>
+<p>The possible loading mode transitions depends on two factors:</p>
+<ul>
+	<li>The main stream type.</li>
+	<li>The current loading mode.</li>
+</ul>
+<p>For each main stream type, there will be a table detailing the possible transitions 
+where:</p>
+<ul>
+	<li>The left-most column represents the current loading mode.</li>
+	<li>The top-most row represents the target loading mode.</li>
+	<li>The inner cells indicates one of the following:<ul>
+		<li><span class="keyword">Possible</span> (the change is allowed).</li>
+		<li><span class="comment">Another loading mode</span> (the change is allowed 
+			but with a degraded mode).</li>
+		<li><span class="sample">Impossible</span> (the change is not allowed).</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3>3D Shape Loading Modes</h3>
+<table class="fill">
+	<caption>Table 2 - Possible Changes for a 3D Shape Loading Mode </caption>
+	<tr>
+		<td colspan="2" rowspan="2">&nbsp;</td>
+		<th colspan="4">Target Loading Mode</th>
+	</tr>
+	<tr>
+		<th>PLMMode</th>
+		<th>VisuMode</th>
+		<th>LinkableMode</th>
+		<th>EditMode</th>
+	</tr>
+	<tr>
+		<td rowspan="4">
+		<p><b>Current<br />
+		Loading<br />
+		Mode</b></p>
+		</td>
+		<th>PLMMode</th>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+	</tr>
+	<tr>
+		<th>VisuMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+	</tr>
+	<tr>
+		<th>LinkableMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+	</tr>
+	<tr>
+		<th>EditMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3>V4 Model Loading Modes</h3>
+<table class="fill">
+	<caption>Table 3- Possible Changes for a V4 model Loading Mode </caption>
+	<tr>
+		<th colspan="2" rowspan="2">&nbsp;</th>
+		<th colspan="4">Target Loading Mode</th>
+	</tr>
+	<tr>
+		<th>PLMMode</th>
+		<th>VisuMode</th>
+		<th>LinkableMode</th>
+		<th>EditMode</th>
+	</tr>
+	<tr>
+		<td rowspan="4">
+		<p><b>Current<br />
+		Loading<br />
+		Mode</b></p>
+		</td>
+		<th>PLMMode</th>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="comment">LinkableMode</span></td>
+	</tr>
+	<tr>
+		<th>VisuMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="comment">LinkableMode</span></td>
+	</tr>
+	<tr>
+		<th>LinkableMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="keyword">Possible</span></td>
+		<td>unchanged</td>
+		<td><span class="sample">Impossible</span></td>
+	</tr>
+	<tr>
+		<th>EditMode</th>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3>CGR Loading Modes</h3>
+<table class="fill">
+	<caption>Table 4- Possible Changes for a main stream CGR Loading Mode
+	</caption>
+	<tr>
+		<td colspan="2" rowspan="2">&nbsp;</td>
+		<th colspan="4">Target Loading Mode</th>
+	</tr>
+	<tr>
+		<th>PLMMode</th>
+		<th>VisuMode</th>
+		<th>LinkableMode</th>
+		<th>EditMode</th>
+	</tr>
+	<tr>
+		<td rowspan="4">
+		<p><b>Current<br />
+		Loading<br />
+		Mode</b></p>
+		</td>
+		<th>PLMMode</th>
+		<td>unchanged</td>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="comment">VisuMode</span></td>
+		<td><span class="comment">VisuMode</span></td>
+	</tr>
+	<tr>
+		<th>VisuMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td>unchanged</td>
+		<td><span class="comment">VisuMode</span></td>
+		<td><span class="comment">VisuMode</span></td>
+	</tr>
+	<tr>
+		<th>LinkableMode</th>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+		<td><span class="sample">Impossible</span></td>
+	</tr>
+	<tr>
+		<th>EditMode</th>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3>Non 3D Geometry Loading Modes, CATDrawing, CATMaterial and Techno Rep</h3>
+<p>A non 3D geometry Loading Mode (a NON CATIA Rep Ref like &quot;txt&quot;, &quot;doc&quot;... 
+), for a drawing Loading Mode (&quot;CATDrawing&quot; Rep Ref), for a Material Loading 
+Mode (&quot;CATMaterial&quot; RepRef), and for a technological representation.</p>
+<table class="fill">
+	<caption>Table.5 Others ...</caption>
+	<tr>
+		<td colspan="2" rowspan="2">&nbsp;</td>
+		<th colspan="4">Target Loading Mode</th>
+	</tr>
+	<tr>
+		<th>PLMMode</th>
+		<th>VisuMode</th>
+		<th>LinkableMode</th>
+		<th>EditMode</th>
+	</tr>
+	<tr>
+		<td rowspan="4">
+		<p><b>Current<br />
+		Loading<br />
+		Mode</b></p>
+		</td>
+		<th>PLMMode</th>
+		<td>unchanged</td>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="keyword">Possible</span></td>
+	</tr>
+	<tr>
+		<th>VisuMode</th>
+		<td style="height: 16px"><span class="sample">Impossible</span></td>
+		<td style="height: 16px">unchanged</td>
+		<td style="height: 16px"><span class="sample">Impossible</span></td>
+		<td style="height: 16px"><span class="sample">Impossible</span></td>
+	</tr>
+	<tr>
+		<th>LinkableMode</th>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+		<td><span class="sample">Impossible</span></td>
+	</tr>
+	<tr>
+		<th>EditMode</th>
+		<td><span class="keyword">Possible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td><span class="sample">Impossible</span></td>
+		<td>unchanged</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has presented the different loading modes for a Product Representation 
+Reference. Then you are invited to play with an interactive command presented by 
+the use case "Working with Product Representation Reference Loading Mode&quot; [<a href="#References">2</a>] 
+to have a better idea of the different loading modes, and their implication in a 
+3D viewer.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm">
+		Understanding PLM Representation Reference</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPstUcSelectiveLoading.htm">Working with Product Representation 
+		Reference Loading Mode</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

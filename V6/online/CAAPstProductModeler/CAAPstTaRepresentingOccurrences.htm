@@ -1,0 +1,256 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Representing Product Components Textually</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Representing Product Components Textually</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>In this article, we will present three interfaces that can be used to 
+		display Product components and discuss the purpose of each one.</p>
+		<ul>
+			<li><a href="#Part1">Introduction</a></li>
+			<li><a href="#Part2">CATIAlias</a></li>
+			<li><a href="#Part3">CATINavigateObject</a></li>
+			<li><a href="#Part4">CATIPLMIdentifierSet</a></li>
+			<li><a href="#InShort">In short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Introduction</h2>
+<p>The need to represent a Product component using text, either for information 
+or identification purposes, arises quite often. There are three interfaces that 
+fit the job: <em>CATIAlias</em>, <em>CATINavigateObject</em> or <em>CATIPLMIdentifierSet</em>.
+</p>
+<p>They all share the property of being implemented on all Product components (except
+<em>CATIPLMIdentifierSet</em>), to produce a text string based on the component's 
+attributes. Besides this similarity, these interfaces are very different in the 
+way the string is generated, as the rest of the article will show.</p>
+<p>Notes:</p>
+<ul>
+	<li>The scope of the article is on the text generating capability of these interfaces. 
+		The other functionalities will not be covered.</li>
+	<li>There is a use case [<a href="#References">1</a>] that calls all three interfaces 
+		on a Product structure to illustrate their output.</li>
+</ul>
+<p>To illustrate the examples in this article, we will use components as created 
+by the PLMProductDS [2] customization: a Reference <code>(CAAPstSkateboard)</code> 
+and an Instance <code>(Axle.1</code> from the <code>CAAPstAxle</code> Reference). 
+Each component attributes are presented in this table:<br />
+</p>
+<table class="fill">
+	<tr>
+		<td rowspan="2">&nbsp;</td>
+		<th colspan="3">Attributes</th>
+	</tr>
+	<tr>
+		<th>PLM_External ID</th>
+		<th>V_version</th>
+		<th>V_maturity</th>
+	</tr>
+	<tr>
+		<th><a name="pstreference"></a>Reference</th>
+		<td><code>CAAPstSkateboard</code></td>
+		<td><code>---</code></td>
+		<td><code>IN_WORK</code></td>
+	</tr>
+	<tr>
+		<th>Reference</th>
+		<td><code>CAAPstAxle</code></td>
+		<td><code>---</code></td>
+		<td><code>IN_WORK</code></td>
+	</tr>
+	<tr>
+		<th><a name="pstinstance"></a>Instance<br />
+		of CAAPstAxle</th>
+		<td><code>Axle.1</code></td>
+		<td>N/A</td>
+		<td>N/A</td>
+	</tr>
+</table>
+<p><a name="Table1"></a>Table 1 - The attributes of the components used in the examples</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>CATIAlias</h2>
+<p><em>CATIAlias</em> belongs to the ObjectModelerBase framework and is implemented 
+on all the Product component types. The related string of each component is obtained 
+by calling the <code>GetAlias</code> method.</p>
+<p>The format of this string is not hard-coded but can be changed via the Tools/Options/PLM 
+Attributes dialog (see <a href="#Fig1">Fig. 1</a>.) In the lower part of this dialog, 
+you can indicate for a given component type, the attributes to be used in the resulting 
+string. Additional text and the order of the attributes can be specified as well.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1 - PLM Attributes Dialog (the lower part is 
+	for <em>CATIAlias</em>)</caption>
+	<tr>
+		<td>
+		<img alt="PLM Attributes Dialog" height="394" src="images/PLMAttributesDialog1.jpg" width="529"/></td>
+	</tr>
+</table>
+<p><em>CATIAlias</em> default format is the following:</p>
+<ul>
+	<li>For a Reference, it's the concatenation of the PLM_ExternalID, V_version 
+		and V_maturity attributes. The CAAPstSkateboard Reference (<a href="#pstreference">Table 
+		1</a>) will yield <code><strong>CAAPstSkateboard---IN_WORK</strong></code>.</li>
+	<li>For a first-level Instance, it's the PLM_ExternalID attribute. For the Axle.1 
+		Instance (<a href="#pstinstance">Table 1</a>), one would obtain.<code>
+		<strong>Axle.1</strong></code></li>
+	<li>All higher level Instances get the same string as their related first-level 
+		Instance.</li>
+</ul>
+<p>A note on the <code>SetAlias</code> method of <em>CATIAlias</em>: this method should 
+never be called. The proper way to change a component's attributes is to use the
+<em>CATCkeObjectAttrWriteServices</em> class (knowledgeInterfaces framework) interface 
+[<a href="#References">3</a>].</p>
+<p>You will notice that the dialog in <a href="#Fig1">Fig. 1</a> presents NLS version 
+of the attribute name (like <em>Name)</em> instead of internal one (like <em>PLM_ExternalID)</em>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>CATINavigateObject</h2>
+<p><em>CATINavigateObject</em> also from the ObjectModelerBase framework, is quite 
+different from the two others:</p>
+<ul>
+	<li>It returns a list of strings instead of a single one (via its <code>GetIdentificators</code> 
+		method). This is to allow multiple line text, where each line correspond 
+		to an element of the list.</li>
+	<li>It calls <a href="#Part2">CATIAlias</a> to generate its own result.</li>
+</ul>
+<p>Like <em>CATIAlias</em>, <em>CATINavigateObject</em> is implemented on all Product 
+component types and its format can be modified using the same PLM Attributes
+<a href="#Fig1">dialog</a>. This time however, the format does not involve the attributes 
+but the results of <em>CATIAlias</em> for an Instance and its related Reference. It 
+is specified using the upper part of the <a href="#Fig1">dialog</a>.</p>
+<table>
+	<caption>Fig.2 - PLM Attributes Dialog (CATINavigateObject customization part)</caption>
+	<tr>
+		<td>
+		<img alt="PLM Attributes Dialog" height="394" src="images/PLMAttributesDialog2.jpg" width="529"/></td>
+	</tr>
+</table>
+<p>The format by default is the <em>CATIAlias</em> of the Reference followed by the
+<em>CATIAlias</em> of the Instance enclosed in parenthesis: &quot;<em>ReferenceCATIAlias</em> 
+(<em>InstanceCATIAlias</em>)&quot;.</p>
+<ul>
+	<li>For a Reference, it's identical to <em>CATIAlias</em> since there is no Instance. 
+		The CAAPstSkateboard Reference (<a href="#pstreference">Table 1</a>) will 
+		yield <code><strong>CAAPstSkateboard---IN_WORK</strong></code>.</li>
+	<li>For a first-level Instance, there is now the related Reference in addition 
+		to the Instance. The Axle.1 Instance (<a href="#pstinstance">Table 1</a>) 
+		will generate <code><strong>CAAPstAxle---IN_WORK (Axle.1)</strong></code>.</li>
+	<li>All higher level Instances get the same string as their related first-level 
+		Instance.</li>
+</ul>
+<p>This is the interface that is used to display the Product structure:</p>
+<table>
+	<caption>Fig.3 - A Product Structure</caption>
+	<tr>
+		<td>
+		<img alt="Product Structure" height="277" src="images/SkateboardStructure.jpg" width="327"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part4"></a>CATIPLMIdentifierSet</h2>
+<p><em>CATIPLMIdentifierSet</em> (from the CATPLMComponentInterfaces framework) differs 
+with <em>CATIAlias</em> and <em>CATINavigateObject</em> on several points:</p>
+<ul>
+	<li>Since only PLM Product References and Representation References can have 
+		an identifier set, only these PLM Components should implement this interface. 
+		Nevertheless the PLM Instance implements too.</li>
+	<li>Its format which cannot be changed, is simply the concatenation of the all 
+		attributes belonging to the identifier set.</li>
+</ul>
+<p>The <code>GetIdentifierSet</code> method returns the following:</p>
+<ul>
+	<li>For a Reference the PLM_ExternalID and V_version attributes. The CAAPstSkateboard 
+		Reference (<a href="#pstreference">Table 1</a>) will generate CAAPstSkateboard---
+		<br />
+		Again this is specific to the PLMProductDS customization example. Other 
+		customizations will not necessarily define their identifier set with the 
+		same attributes.</li>
+	<li>For a first-level Instance the PLM_ExternalID attribute. The Axle.1 Instance 
+		(<a href="#pstinstance">Table 1</a>) will produce <code><strong>Axle.1</strong></code>.</li>
+	<li>For a higher level Instance an error code since this interface is not implemented.</li>
+</ul>
+<p>With this interface, you obtain a name that can be used to identify a component 
+of given type, but take care with this string, read the referenced article to compare 
+two PLM Components [<a href="#References">4</a>]. At last, unlike <em>CATIAlias</em> 
+and <em>CATINavigateObject</em>, the result is not impacted by the Tools/Options preferences.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>We have presented three interfaces that can be used to represent Product components:</p>
+<ul>
+	<li><em>CATIAlias</em> and <em>CATINavigateObject</em> are highly customizable and 
+		are used wherever user interface is involved. <em>CATIAlias</em> is the simplest 
+		of the two while <em>CATINavigateObject</em> provides the possibility of combining
+		<em>CATIAlias</em> on both the Reference and the Instance.</li>
+	<li><em>CATIPLMIdentifierSet</em> format cannot be changed and is guaranteed to 
+		return a unique string that can identify any component of a given type.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPstUcDisplayingOccurrences.htm">Obtaining Product Model 
+		Occurrences' Names</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPstTaProductModelIntro.htm">Product Model Structure</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPstUcModifyingProperties.htm">Modifying Product Properties</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPlmServerAccess/CAACor2TaIdentificationPLMComp.htm">
+		PLM Component Identification and Comparison</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Aug 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

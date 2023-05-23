@@ -1,0 +1,388 @@
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Receive Sample from 3DEXPERIECNE Platform</title>
+ <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1>Receive Sample from 3DEXPERIECNE Platform</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use-Case</td>
+	</tr>
+</table>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td >
+      <h2><a name="Top"></a>Abstract</h2>
+       <p>This article illustrates about processing of remote events in MyX-PDM.This 
+		events are received from 
+		<strong>3D</strong>EXPERIENCE Platform by 
+		using event exchange services.This functionality is implemented in 
+		MyX-CAD and MyX-PDM application. This applications are only sample application.Here it is 
+		important to understand user could create or use their own application 
+		to achieve this functionality. </p> 
+		<ul> 
+		<li> <a href="#What">What you will learn with this Use?</a></li>
+		<li> <a href="#How">How does this usecase work?</a></li>
+		<li> <a href="#Usecase">Usecase Implementation</a></li>
+		<li> <a href="#Inshort">InShort</a></li>
+		<li> <a href="#References">References</a></li>
+		</ul>
+      </td>
+  </tr>
+  
+  </table>
+
+<!---------------------------------comment------------------------------------->
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2> <a name="What"> </a> What you will learn with this Usecase</h2>
+<p>This usecase is intended to show the usage of events web services in 
+receiving 
+and processing of events sent from <strong>3D</strong>EXPERIENCE gateway via simple scenario.This scenario is called as 
+export scenario.</p>
+<p>User will be able to understand about how to receive the event and process it 
+in our MyX-PDM application. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="How"> </a> How does this usecase work?</h2>
+<p><strong>&quot;Receive Sample from 3DEXPERIECNE Platform&quot;</strong> 
+functionality is provided in MyX-PDM addins which are required to be loaded in 
+MyX-CAD application. This functionality will be automatically invoked without 
+any user interaction. Events which require processing will be retrieved 
+periodically. User will be notified about status of this processing.</p>
+<p>This execution of&nbsp; MyX-PDM is mentioned in <a href="#References">How to 
+use MyX-PDM ? [1]</a>.</p>
+<p>This usecase is packaged in <strong>CAAVIXPDMIntegration.edu
+</strong>framework, which illustrates about processing events of MyX-PDM gateway.Refer 
+to <a href="#References">Integration of MyX-PDM with the <strong>3D</strong>EXPERIENCE Platform[2]</a> .</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2> <a name="Check"></a> Before Launching the usecase</h2>
+<p> For details about this section please refer to <a href="#References">
+Description[3]</a>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Usecase"> </a>Usecase implementation</h2>
+<p> 
+
+This usecase is split into different java files : <em>&nbsp;<strong>Receive_Sample_From_EV6.java and AdapterEventReceive.java</strong></em></p>
+<p> 
+
+This usecase will be invoked automatically after some fixed period. If some 
+events are present at XPDM gateway which are waiting for processing then this 
+usecase will be executed.Control of the 
+application will be transferred to MyX-PDM.</p>
+<p> 
+
+Remaining processes are completed at MyX-PDM and status of execution will be 
+sent to MyX-CAD.Communication between MyX-CAD and MyX-PDM is achieved with 
+socket programming. Execution involves multiple steps which are mentioned as 
+follows :</p>
+<p> 
+
+In 
+
+<em>Receive_Sample_From_EV6.java</em>,following operations will be performed :</p>
+
+<ol> <li> Create the directory in local shadow with name which can be uniquely 
+	identified. Here,we are appending current time and date to folder name.</li>
+	<li> Invoke to AdapterEventReceive.</li>
+	
+</ol>
+
+<p>AdapterEventReceive requires XPDM Gateways URL, path of Gateway and Local shadow 
+directory.</p>
+
+<pre class="code"> ...
+XPGEventServices event = new XPGEventServices(_XPDMGatewayUrl, _adapterShadowDir, _localShadowDir);
+List&lt;XPGEventServices&gt; eventsToProcess = event.receive();
+if(eventsToProcess != null)
+{
+  for(int i=0; i&lt;eventsToProcess.size();i++)
+  {
+       process(eventsToProcess.get(i));
+  }
+}
+...
+</pre>
+<p> Constructor of <strong>XPGEventServices</strong> internally calls to <em><strong>init</strong></em> method of <em>XPGEventWebServicesWrapper 
+is given below:</em></p>
+<pre class="code">
+ ListOfSitesType sites = this.getListOfSites();
+ for (SiteType site :  sites.getItem())
+{
+    if (site.getType().equals(SiteLocationType.LOCAL)) // searching for local site
+        _localSiteId = site.getId();
+    else // getting a target site id;, taking first one that is configured
+        _targetSiteId = site.getId();
+...
+}
+...
+</pre>
+
+
+<p> <em><strong>init</strong></em> method internally calls to <code><em>getListOfSites</em> </code>method ,which gives the 
+details of local and target site ID . This information is required while 
+exchanging data between two sites.</p>
+<p> Implementation of <code><em><strong>receive</strong></em> </code>method of <strong>XPGEventServices</strong> 
+is given below:</p>
+<pre class="code">
+public static List<XPGEventServices> receive()
+{
+   int iNumberRequested = 5;
+   List<XPGEventServices> events = null;
+   try 
+    {
+      EventsForProcessing eventsToProcess = _eventWS.getNextEventsForProcessing(iNumberRequested);
+	  if(eventsToProcess.getEventsForProcessing() != null)
+	  {
+ 		for (EventForProcessingType eventToProcess :  eventsToProcess.getEventsForProcessing())
+		{
+		  addEventsToProcess(stackReceivedEvent(eventToProcess));
+		}
+	   }
+	   ...	
+	   if (_eventsToProcess != null &amp;&amp;  _eventsToProcess.size() !=0)
+	    {
+		  System.out.println(" ==&gt;" + _eventsToProcess.size() + " event to process in stack");
+		  events = new ArrayList<XPGEventServices>();
+				
+		  for(int i=0; i &lt; _eventsToProcess.size();i++)
+		  {
+		     events.add(_eventsToProcess.get(i));
+		     ...
+		  }
+              }
+	  ...
+		
+      } catch (Exception e) {...}
+    return events;
+}
+...
+</pre>
+<p> 
+
+Here,<code> _eventWS</code> is an object of <code> 
+XPGEventWebServicesWrapper</code>. We use <code> getNextEventsForProcessing</code> method
+
+of to retrieve the next event processing.Implementation of this method is given 
+below:</p>
+<pre class="code">
+public EventsForProcessing getNextEventsForProcessing(int iNumberRequested) 
+{	 
+   EventsForProcessing oEvents = new EventsForProcessing();
+   try 
+  {
+    ...		
+    Holder&lt;ListOfEventsForProcessingType&gt; oHDelegatedEvents = new Holder&lt;ListOfEventsForProcessingType&gt;();
+    Holder&lt;Integer&gt; oHNumberleft = new Holder&lt;Integer&gt; ();
+    
+    //getting the events
+    _eventPort.getNextEventsForProcessing(iNumberRequested, oHNumberleft, oHDelegatedEvents);
+   oEvents.setONumberLeft(oHNumberleft.value);
+    
+   System.out.println("oNumberLeft= " + oHNumberleft.value);
+      	
+   //if the delegated events array is not empty assign them all to a processing job
+   int nbNewEvents = oHDelegatedEvents.value.getItem().size();
+    if ( nbNewEvents != 0) 
+     {
+        	System.out.println("new Events to process nb=" + nbNewEvents);
+        	oEvents.setEventsForProcessing(oHDelegatedEvents.value.getItem());
+     }
+    else //the array is empty, therefore there's nothing to do 
+     {
+       	System.out.println("No Available Events to process");
+     }	
+     }catch (GetNextEventsForProcessingErrorType err) {...}
+      catch (Exception e) {...}
+    return oEvents;
+}
+...
+</pre>
+<p> This method calls to <code> getNextEventsForProcessing </code> of <code>IXPGEventsService </code> which 
+returns the number of events and events remain to process. If all the events are 
+processd then it retuns zero.In such case we no any action is required. If 
+method returns non-zero then we have to retrieve the event from <code> oHDelegatedEvents </code> and set it for processing 
+by using <code> setEventsForProcessing </code>method of <code> EventsForProcessing </code> class.</p>
+<p>This method returns <code> oEvents </code> of <code> EventsForProcessing</code>. This object has the list of type <code> EventsForProcessingType</code>. 
+<code> stackReceivedEvent</code> method is used as follows :</p>
+<pre class="code">
+private static  XPGEventServices stackReceivedEvent(EventForProcessingType eventToProcess )
+{
+   XPGEventServices oEvent = new XPGEventServices();
+   try 
+   {
+      _eventWS.dumpProcessingEvent(eventToProcess);
+      
+      String eventName = eventToProcess.getEventName().getValue();
+      oEvent._event = _eventWS.isSupportedEvent(eventName);
+      oEvent._eventUID = eventToProcess.getEventId();
+      oEvent._shadow = new XPGShadowUtils(XPGShadowUtils.getAdapterShadowDir(),XPGShadowUtils.getLocalShadowDir() );
+      oEvent._isRemote = (eventToProcess.getQueueType().equals(QueueTypeType.REMOTE));  
+  ...    </pre>
+  <p> Here, We have called to <code> dumpProcessingEvent</code> method, which retrieves the information about the event name,UID,QueueType,QueueName and event state.  
+	We have retieved object of type <code> AttachmentContentType</code> and <code> ListOfProcessingArgsType</code> which gives the information about 
+	event path,processing arguments, and bulkdata references.</p>
+<p> We will check if the event is supported by gateway by using the method <code> isSupportedEvent</code>. 
+We check for the event is Remote or local by using <code> getQueueType</code> method.</p>
+<p> Next we retrieve the attachmentcontent and check for event has bulkdata or 
+metadata.If event has bulkdata associated with it,then we check if this file is 
+present in event path. </p>
+<pre class="code">
+... 
+if (oEvent._event.getEventConfig().isHasBulkdata())
+ {
+   for (FileReferenceType reference : oEvent._attachment.getBulkDatareferences().getItem())
+    {
+     	oEvent.addAttachmentFileList(reference.getFileName());
+	    if (! oEvent._shadow.attachementExist(XPGShadowUtils.getAdapterShadowDir(),  reference.getFileName()))
+        throw new Exception("File " + reference.getFileName() + " does not exists in event path");
+     }
+ }
+...</pre>
+<p> If event has metadata associated with it, then we will check for name of 
+metadata file in <code>fileReference</code> choice of the <code>xpgxml</code> element. 
+Check if this file is present in event path if not then it will give the 
+exception.</p>
+	               
+
+<pre class="code">
+...
+ if (oEvent._event.getEventConfig().isHasMetadata())
+ {
+   FileReferenceType xpdmxml = (eventToProcess.getAttachmentContent().getXpgxml().getFileReference());
+   if (! oEvent._shadow.attachementExist(XPGShadowUtils.getAdapterShadowDir(), xpdmxml.getFileName()))
+   throw new Exception("File " + xpdmxml.getFileName() + " does not exists in event path");
+  }
+...</pre>
+<p>  Once list of events is successfully retrieved <code> eventsToProcess </code>, 
+Next is processing this events. We have combined all processing steps in once 
+local funciton <code> process</code>. Implementation of this function are detailed below :</p>
+<pre class="code">
+public static void process(XPGEventServices event)
+{
+   event.dump();
+   String eventName = event.getSupportedEvent().getName().getValue();
+   List&lt;String&gt; attachmentFileList = event.getAttachmentFileList();
+  
+   event.getMetadataFile();
+   event.getAttachmentFiles();       
+
+   //sending the success processing feedback 
+   EventStateType state = event.getState();
+   if (state != null) System.out.println("\t Now Event state is : " + state.value());
+   event.sendFeedback(true);
+   ...
+}
+</pre>
+<p> In <code> dump</code> method all the parameters about the event are 
+retrieved and displayed,event related parameters include 
+Name,Provider,Processing Location, metadata or bulkdata references,details about 
+attachements. </p>
+<p> In <code> getSupportedEvent </code>method,we retrieve the name of received 
+event.This method also checks for if this event is supported by gateway.</p>
+<p> In <code> getAttachmentFileList</code> method,we have retrieved the object 
+for holding the list of attachment files. Method <code> getMetadataFile</code> is used to copy the 
+metadata file which is metioned in <code>fileReference</code> choice of the <code>xpgxml</code> element.  
+This mehtod copies XPDMXML file from event path to local shadow.</p>
+<pre class="code">public void getMetadataFile()
+{	
+    String XPDMMXLfile = this._attachment.getXpgxml().getFileReference().getFileName();
+	_shadow.copyFromShadow(XPDMMXLfile, XPDMMXLfile);
+}
+</pre>
+<p>Method <code> getAttachmentFiles </code> is used for copying other files 
+attached with event to local shadow. In our application,3DExperience Platform server exports 
+data with <code> .cgr</code> files.</p>
+<p><code> sendFeedback</code> method is used for sending the processing 
+feedback. Feedback is either Success or Failure. This method calls to <code> sendEventProcessingFeedback </code>of <code> XPGEventWebServicesWrapper</code> class.This 
+is implemented as follows :</p>
+<pre class="code">public void sendEventProcessingFeedback(EventUIDType  iEventId, EventProcessFeedbackType iFeedback, AttachmentContentType iProcessedAttachmentContent)
+{
+  ...
+  _eventPort.sendEventProcessingFeedback(iEventId, iFeedback, iProcessedAttachmentContent,a1,eventDescription);  
+ ...
+}	
+</pre>
+<p> This method requires the UID of event, EventProcessFeedbackType and 
+AttachmentContentType. Finally,this invokes to <code>IXPGEventsService::sendEventProcessingFeedback</code>. While invoking this method, 
+it requires description of the event(String) and integer for return code. If 
+there is any error then it is of type <code> SendEventProcessingFeedbackErrorType</code>.</p>
+<p> All this steps and role of adapter is explained in <a href="#References">
+Sample bus adapter for MyX-PDM[5]</a>. Also refer to <a href="#References">
+Integration Architecture[6]</a> for details about scenario.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Inshort"></a>In Short</h2>
+<p>This article gives details about receiving the data sent from <strong>3D</strong>EXPERIENCE Platform to 
+MyX-PDM. 
+User will come to know about event exchange web services for receiving the data.This article deals with how to 
+retrieve the events for processing,how to retrieve the data attached with 
+received event using web services.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="References"></a>References    </h2>
+ <table>
+ 
+    
+     <tr>
+       <td >[1]</td>
+        <td ><a href="CAAMy-XPDMApplication.htm">How to Use MyX-PDM ?</a></td>
+       </tr>
+         <tr>
+    
+       <td >[2]</td>
+       <td >
+		<a href="CAAMy-XPDMImpl.htm">Integration of MyX-PDM with the <strong>3D</strong>EXPERIENCE Platform - An Overview</a></td>
+	    </tr>  
+       <tr>
+       <td >[3]</td>
+       <td ><a href="CAAUsecaseDesc.htm">Description</a></td>
+     </tr>
+ 
+       <tr>
+       <td >[4]</td>
+       <td ><a href="CAAXPDMAddin.htm">X-PDM Addins</a></td>
+     </tr>
+     <tr>
+       <td >[5]</td>
+       <td ><a href="CAAXPDMSampleBusXPDMAdapter.htm">Sample bus adapter for MyX-PDM</a></td>
+     </tr>
+     <tr>
+       <td >[6]</td>
+       <td ><a href="CAAX-PDMArchitecture.htm">Integration Architecture</a></td>
+     </tr>
+
+  </table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History </h2> <table><tr>
+    <td valign="top"><strong>Version</strong>: [Mar 2014]</td>
+    <td valign="top">Document created</tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop();</script>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+

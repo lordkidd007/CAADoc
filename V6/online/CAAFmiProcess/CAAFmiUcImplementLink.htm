@@ -1,0 +1,360 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Managing Product and Process Occurrences</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Managing Product and Process Occurrences</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes an example of use of Framework DELPPRProcessItf</p>
+		<p>This usecase shows how to assign a product occurrence to a process occurrence; 
+		and how to navigate along occurrences linked by this relationship.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAFmiImplementLink Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAAFmiImplementLink Do</a></li>
+				<li><a href="#How">How to Launch CAAFmiImplementLink</a></li>
+				<li><a href="#Where">Where to Find the CAAFmiImplementLink Code</a>
+				</li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>In this use case, you will learn how to use the DELIPPRProcessAuth and DELIPPRProcessNav 
+interfaces in order to:</p>
+<ul>
+	<li>Assign a product occurrence to a process occurrence, creating an underlying 
+	implement link [<a href="#References">2</a>] between them.</li>
+	<li>Navigate on assignation relations from Process to Product or from Product 
+	to Process.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAFmiImplementLink Use Case</h2>
+<p>CAAFmiImplementLink is a use case of the CAAPPRProcessItf.edu framework that 
+illustrates DELPPRProcessItf framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAFmiImplementLink Do</h3>
+<ul>
+	<li>Query root product and process references.</li>
+	<li>Inserts them into the Bag.</li>
+	<li>Get Root product and process occurnences from references single child (expect 
+	the the reference&#39;s got one child instance only but implementation is provided: 
+	CAAFmiOccurrenceServices::GetOccurrenceFromSingle[Process|Product]Child).</li>
+	<li>Creates an implement link between both.</li>
+	<li>Navigates from Process to Product and from Product to Process Occurrences 
+	following this assigned relationship.
+	</li>
+</ul>
+<p><strong>Implement link creation behaviors</strong></p>
+<p>The differents behaviors of the implement link creation will be analyzed through 
+the use of the following model:</p>
+<table>
+	<caption>Fig. 1: Model Structure of this Use Case</caption>
+	<tr>
+		<td>
+		<img src="images/CAAFmiImplementLink_Structure_0.png" width="800px" alt="Model Structure"/>
+		</td>
+	</tr>
+</table>
+<p>The creation fails if the scope crosses an existing scope. If Implement links 
+(assignments) preexist, they are impacted by the scope creation as such.</p>
+<p><strong>Implementation link creation in respect to the scope position</strong><br />
+Product is assigned to a process instance in respect with the first upward scope. 
+The ability to assign is checked before implement link creation.</p>
+<p>For an implement link between the Process Occurrence = Pcs1.1\Pcs2.1\Provide3.1 
+ProductOccurrence = Prod1.1/Prod2.1/Prod3.1/Prod4.1 the assignment <strong>is possible</strong> 
+in respect with &quot;scope1&quot;.
+For an implement link between the Process Occurrence = Pcs1.1\Pcs2.1\Provide3.1 ProductOccurrence 
+= Prod5.1 the assignment <strong>is not possible</strong> in respect with &quot;scope1&quot;.</p>
+<table>
+	<caption>Fig. 2: Implement Link Creation</caption>
+	<tr>
+		<td>
+		<img src="images/CAAFmiImplementLink_Structure_1.png" width="800px" alt="Model structure"/>
+		</td>
+	</tr>
+</table>
+<p><strong>Implementation link creation in respect with another one</strong><br />
+The creation of &quot;Assignment2&quot; caused the destruction of &quot;Assignment1&quot;.In CHECK_ONLY 
+mode the user is informed about the downer assignment that they will be removed 
+during the creation of &quot;Assignment1&quot;.</p>
+<table>
+	<caption>Fig. 3: Implement Link Creation and Auto-Deletion</caption>
+	<tr>
+		<td>
+		<img src="images/CAAFmiImplementLink_Structure_2.png" width="800px" alt="Model structure"/>
+		</td>
+	</tr>
+</table>
+<p><strong>Implementation link creation with a Create Assembly</strong><br />
+For a &quot;Create Assembly&quot; process the creation, is slightly different. The works made 
+by this method is more important because it creates also a &quot;Provide&quot; or a &quot;Fasten&quot; 
+process and aggregate it under the reference of the object where you have 
+negotiated the interface.<br  />
+Imagine you negotiate the interface on Pcs1.1/Create_Assembly2.1 and you assign 
+Prod1.1/Prod2.1/Prod3.1.<br />
+The method performs the following steps:</p>
+<ol>
+	<li>Truncate the product occurrence path in respect with scope1. We get Prod2.1/Prod3.1.</li>
+	<li>Creation of the reference &quot;Provide3&quot;.</li>
+	<li>Aggregation of this one under &quot;Create Assembly2&quot;.</li>
+	<li>Creation of &quot;Assignment1&quot; between Prod2.1/Prod3.1 and Provide3.1.</li>
+</ol>
+<p><strong>Use case Objects: </strong><code>CAAFmiImplementLink</code></p>
+<p><strong>Expected Result: </strong>The result is a return code, its value is:</p>
+<ul>
+	<li>0 on successful completion</li>
+	<li>1 if execution failed.</li>
+</ul>
+<table>
+	<caption>Fig. 4: Creation of an Implement Link on a Create Assembly</caption>
+	<tr>
+		<td>
+		<img src="images/CAAFmiImplementLink_Structure_3.png" width="800px" alt="Model structure"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAFmiImplementLink</h3>
+<p>To launch CAAFmiImplementLink, you will need to set up the build time environment, 
+then compile CAAFmiImplementLink along with its prerequisites, set up the run time 
+environment, and then execute the use case [<a href="#References">1</a>].</p>
+<p><strong>Additional instructions:</strong></p>
+<p>This use case is using data created by another use case [<a href="#References">3</a>], 
+that you should run first. mkrun -c &quot;CAAFmiImplementLink Repository Server User 
+Password SecurityCtx Environment&quot;</p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Parameter</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td>Repository</td>
+		<td>The name of the repository (or provider)</td>
+	</tr>
+	<tr>
+		<td>Server</td>
+		<td>The name and port of the server</td>
+	</tr>
+	<tr>
+		<td>User</td>
+		<td>The user identifier</td>
+	</tr>
+	<tr>
+		<td>Password</td>
+		<td>The user password</td>
+	</tr>
+	<tr>
+		<td>SecurityCtx</td>
+		<td>A string representing the security context (Role.Organization.Project)</td>
+	</tr>
+	<tr>
+		<td>Environment</td>
+		<td>A PLM Environment containing a modeler customization</td>
+	</tr>
+</table>
+<p><strong>Example:</strong> <code>mkrun -c &quot;CAAFmiImplementLink PLM1 ve4al10dsy:8090 uxodtipt 
+Ovb2pcds VPMADMIN.ADMIN.DEFAULT VPM&quot;</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAFmiImplementLink Code.</h3>
+<p>The CAAFmiImplementLink use case is made of a file located in the CAAFmiImplementLink.m 
+module of the CAAPPRProcessItf.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAPPRProcessItf.edu\CAAFmiImplementLink.m</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p><em>Main files:</em></p>
+<pre class="code">CAAPPRProcessItf.edu/CAAFmiImplementLink.m/src/CAAFmiImplementLink.cpp</pre>
+<pre class="code">CAAPPRProcessItf.edu/ProtectedInterfaces/CAAFmiSessionServices.h
+CAAPPRProcessItf.edu/ProtectedInterfaces/CAAFmiFindServices.h
+CAAPPRProcessItf.edu/ProtectedInterfaces/CAAFmiReleaseServices.h
+CAAPPRProcessItf.edu/ProtectedInterfaces/CAAFmiOccurrenceServices.h
+CAAPPRProcessItf.edu/CAAFmiServices.m/src/CAAFmiSessionServices.cpp
+CAAPPRProcessItf.edu/CAAFmiServices.m/src/CAAFmiFindServices.cpp
+CAAPPRProcessItf.edu/CAAFmiServices.m/src/CAAFmiReleaseServices.cpp
+CAAPPRProcessItf.edu/CAAFmiServices.m/src/CAAFmiOccurrenceServices.cpp</pre>
+<pre class="code">CAAPLMClientAdapter.edu/PublicInterfaces/CAAAdpCreateCloseSession.h</pre>
+<p><em>CAA files :</em></p>
+<pre class="code"><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'class', 'CATAdpDictionaryServices');return false;">/PublicInterfaces/CATAdpDictionaryServices.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'class', 'CATAdpQueryServices');return false;">/PublicInterfaces/CATAdpQueryServices.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'class', 'CATAdpOpenSaveServices');return false;">/PublicInterfaces/CATAdpOpenSaveServices.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'class', 'CATAdpIdentificationSet');return false;">/PublicInterfaces/CATAdpIdentificationSet.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'class', 'CATLISTP(CATAdpQueryResult)');return false;">/PublicInterfaces/CATLISTP_CATAdpQueryResult.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIdentificationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIdentificationAccess', 'interface', 'CATIAdpType');return false;">/PublicInterfaces/CATIAdpType.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIdentificationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIdentificationAccess', 'interface', 'CATIAdpPLMIdentificator');return false;">/PublicInterfaces/CATIAdpPLMIdentificator.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess');return false;">CATPLMIntegrationAccess</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMIntegrationAccess', 'interface', 'CATIAdpEnvironment');return false;">/PublicInterfaces/CATIAdpEnvironment.h</a></pre>
+<p><em>Documented Framework:</em></p>
+<pre class="code"><a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf');return false;">DELPPRProcessItf</a><a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf', 'function', 'GetPPRProcessAuth');return false;">/PublicInterfaces/DELPPRProcessAuthAccess.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf');return false;">DELPPRProcessItf</a><a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf', 'interface', 'DELIPPRProcessAuth');return false;">/PublicInterfaces/DELIPPRProcessAuth.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf');return false;">DELPPRProcessItf</a><a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf', 'function', 'GetPPRProcessNav');return false;">/PublicInterfaces/DELPPRProcessNavAccess.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf');return false;">DELPPRProcessItf</a><a href="#" onclick="javascript:CAAlink('CPP', 'DELPPRProcessItf', 'interface', 'DELIPPRProcessNav');return false;">/PublicInterfaces/DELIPPRProcessNav.h</a></pre>
+<pre class="code"><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">
+CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'interface', 'CATIPLMNavReference');return false;">/PublicInterfaces/CATIPLMNavReference.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'interface', 'CATIPLMNavOccurrence');return false;">/PublicInterfaces/CATIPLMNavOccurrence.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'interface', 'CATIPLMNavInstance');return false;">/PublicInterfaces/CATIPLMNavInstance.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'interface', 'CATIPLMNavEntity');return false;">/PublicInterfaces/CATIPLMNavEntity.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'class', 'CATListPtrCATIPLMNavInstance');return false;">/PublicInterfaces/CATListPtrCATIPLMNavInstance.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces');return false;">CATPLMComponentInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'CATPLMComponentInterfaces', 'class', 'CATListPtrCATIPLMNavEntity');return false;">/PublicInterfaces/CATListPtrCATIPLMNavEntity.h</a></pre>
+<pre class="code"><a href="#" onclick="javascript:CAAlink('CPP', 'ObjectModelerBase');return false;">ObjectModelerBase</a><a href="#" onclick="javascript:CAAlink('CPP', 'ObjectModelerBase', 'class', 'CATOmbLifeCycleRootsBag');return false;">/PublicInterfaces/CATOmbLifeCycleRootsBag.h</a></pre>
+<pre class="code"><a href="#" onclick="javascript:CAAlink('CPP', 'ProductStructureInterfaces');return false;">ProductStructureInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'ProductStructureInterfaces', 'function', 'CATPrdGetOccurrenceMngt');return false;">/PublicInterfaces/CATPrdGetOccurrenceMngt.h</a>
+<a href="#" onclick="javascript:CAAlink('CPP', 'ProductStructureInterfaces');return false;">ProductStructureInterfaces</a><a href="#" onclick="javascript:CAAlink('CPP', 'ProductStructureInterfaces', 'interface', 'CATIPrdOccurrenceMngt');return false;">/PublicInterfaces/CATIPrdOccurrenceMngt.h</a></pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are five logical steps in CAAFmiImplementLink:</p>
+<ol>
+	<li><a href="#Step1">Retrieving the DELIPPRProcessAuth and DELIPPRProcessNav Interfaces</a></li>
+	<li><a href="#Step2">Querying Root Process and Root Product References in the Database</a></li>
+	<li><a href="#Step3">Retrieving Process and Product Occurrences</a></li>
+	<li><a href="#Step4">Assigning the Product Occurrence to the Process Occurrence</a></li>
+	<li><a href="#Step5">Browsing Assigned Product and Process Occurrences</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Retrieving the DELIPPRProcessAuth and DELIPPRProcessNav Interfaces</h3>
+<pre class="code">DELIPPRProcessAuth_var hPPRProcessAuth;
+rc = ::GetPPRProcessAuth(hPPRProcessAuth);
+DELIPPRProcessNav_var hPPRProcessNav;
+rc = ::GetPPRProcessNav(hPPRProcessNav);</pre>
+<p>The DELIPPRProcessAuth interface will later be used to create relation between 
+Product and Process and the DELIPPRProcessNav interface to navigate along it.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Querying Root Process and Root Product References in the Database</h3>
+<pre class="code">CATOmbLifeCycleRootsBag Bag;
+CATAdpAttributeSet AttributeSetProcess;
+AttributeSetProcess.AddAttribute(&quot;PLM_ExternalID&quot;,&quot;Assemble.1&quot;); 
+AttributeSetProcess.AddAttribute(&quot;V_version&quot;,&quot;---&quot;); 
+CATIType_var spTypeProcess;
+rc = CATCkePLMNavPublicServices::RetrieveKnowledgeType(&quot;DELFmiFunctionReference&quot;,spTypeProcess);
+
+CATIPLMNavReference * piRootProcess = NULL;
+int ret = CAAFmiFindServices::FindReference(piEnv, Bag, AttributeSetProcess,
+                                            spTypeProcess, 
+                                            IID_CATIPLMNavReference, 
+                                            (void **)&amp;piRootProcess);
+                                            
+CATAdpAttributeSet AttributeSetProduct;
+AttributeSetProduct.AddAttribute(&quot;PLM_ExternalID&quot;,&quot;Product.1&quot;); 
+AttributeSetProduct.AddAttribute(&quot;V_version&quot;,&quot;---&quot;); 
+CATIType_var spTypeProduct;
+rc = CATCkePLMNavPublicServices::RetrieveKnowledgeType(&quot;VPMReference&quot;,spTypeProduct);
+
+CATIPLMNavReference * piRootProduct = NULL;
+ret = CAAFmiFindServices::FindReference(piEnv,Bag,AttributeSetProduct, 
+                                        spTypeProduct, 
+                                        IID_CATIPLMNavReference,
+                                        (void **)&amp;piRootProduct);</pre>
+<p>The DELIPPRProcessAuth interface will be later used to create relation between 
+Product and Process and to navigate along it.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Retrieving Process and Product Occurrences</h3>
+<pre class="code">CATIPLMNavOccurrence_var hNavOccOnProcessInst;
+rc = CAAFmiOccurrenceServices::GetOccurrenceFromSingleProcessChild(hNavRefOnRootProcess, hNavOccOnProcessInst);
+CATIPLMNavOccurrence_var hNavOccOnProductInst;
+rc = CAAFmiOccurrenceServices::GetOccurrenceFromSingleProductChild(hNavRefOnRootProduct, hNavOccOnProductInst);</pre>
+<p>The custom service &quot;CAAFmiOccurrenceServices::GetOccurrenceFromSingle[Product|Process]Child(..)&quot; 
+is used to retrieve single occurence of Process and Product.<br />
+See next step for some explanations.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Assigning the Product Occurrence to the Process Occurrence</h3>
+<pre class="code">rc = hPPRProcessAuth-&gt;AssignProduct(hNavOccOnProcessInst, hNavOccOnProductInst);</pre>
+<p>DELIPPRProcessAuth performs &quot;Implent Link&quot;[<a href="#References">2</a>] creation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Browsing Assigned Product and Process Ocurrences</h3>
+<pre class="code">CATListPtrCATIPLMNavOccurrence listProductOcc;
+rc = hPPRProcessNav-&gt;GetListOfAssignedProducts(hNavOccOnProcessInst, hNavRefOnRootProduct, listProductOcc);
+CATListPtrCATIPLMNavOccurrence listProcessOcc;
+rc = hPPRProcessNav-&gt;GetListOfAssignedProcesses(hNavOccOnProductInst,
+                                                hNavRefOnRootProcess, 
+                                                hNavRefOnRootProcess, 
+                                                listProcessOcc);</pre>
+<p>Using the DELIPPRProcessNav interface, occurrences are navigated in both direction, 
+from the Process to the Product and then in the other direction.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Products may be assigned to a Process occurrence via Implements Links and navigating 
+between them is made possible through the DELIPPRProcessNav Class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPilPhysImplLink/CAAPilPhysImplLinkUseItfToc.htm');return false;">
+		Implement Links</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="CAAFmiUcCreateStructure.htm">Creating a Process Structure</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTcPLMProductStructureNavigationToc.htm');return false;">
+		Product Structure Navigation</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jun 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

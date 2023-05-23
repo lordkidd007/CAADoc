@@ -1,0 +1,826 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Querying PLM Object by Attributes</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+<style>
+<!--
+div.Section1
+	{page:Section1;}
+.style5 {
+	font-family: Verdana, Helvetica, "sans serif";
+}
+-->
+</style>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Querying PLM Object by Attributes</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>This article discusses the <code><b>CAAAdpQueryPLMComponent</b></code> use
+      case.&nbsp; The Use Case shows how to retrieve one or more PLM Objects
+      of a specified type from the database through a set of attribute-values
+      specified by the user as a search criteria. It thus details the steps
+      involved during the invocation of the API which runs this query on the
+      database.
+      <ul>
+        <li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+        <li><a href="#UseCase">The CAAAdpQueryPLMComponent Use Case</a>
+          <ul>
+            <li><a href="#What">What does the CAAAdpQueryPLMComponent do</a></li>
+            <li><a href="#How">How to launch CAAAdpQueryPLMComponent </a></li>
+            <li><a href="#Where">Where to find the CAAAdpQueryPLMComponent
+              code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+        <li><a href="#CAAAdpGetPLMObjectsFromAttrAndFromType">CAAAdpGetPLMObjectsFromAttrAndFromType</a> </li>
+        <li><a href="#CAARetrieveIDofUniquePLMObject"> CAARetrieveIDofUniquePLMObject</a></li>
+        <li><a href="#CAAAdpRetreiveAdpTypeFromClassType">
+        CAAAdpRetreiveAdpTypeFromClassType</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+
+<p>The use case helps us learn the steps involved in querying a database for PLM 
+Objects. This query is based on a search criteria which user learns to define
+before invoking the Query API.</p>
+
+<p>The search criteria is a combination of</p>
+<ul>
+  <li>The type of the PLM Object one is seeking.&nbsp;
+    <ul>
+      <li>We retrieve a list of usable custos [<a href="#References">1</a>], not
+        necessarily the authoring custo.&nbsp;</li>
+      <li>Type&nbsp; for query is one from the above list. We retrieve the CATIType Interface on this type.</li>
+    </ul>
+  </li>
+  <li>A combination of Attribute-value set
+    <ul>
+      <li>Create an <code><b>AttributeSet</b></code> object with the Attribute-value pairs
+        input&nbsp;</li>
+    </ul>
+  </li>
+</ul>
+<p>You would realize a few important characteristics of the Query APIs. These
+include</p>
+<ul>
+  <li>The Attribute-value sets are combined through an &quot;<b>AND</b>&quot;
+    condition for the query, thus enabling a search for all objects whose
+    attribute values match all those specified in the search criteria</li>
+  <li>Query fails for Non-String Attribute types in input.&nbsp;</li>
+  <li>Wild-Card expressions can be specified as the search criteria for query</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="UseCase"></a>The CAAAdpQueryPLMComponent Use Case</h2>
+<p> <code><b>CAAAdpQueryPLMComponent</b></code> is a use case of the <code><b> CAAPLMClientAdapter.edu</b></code>
+framework that
+illustrates the <code><b>CATPLMIntegrationAccess</b></code>  framework capabilities.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAAAdpQueryPLMComponent Do</h3>
+
+<p>The sample data for the Use Case is as listed below.&nbsp; [<a href="#Fig. 1">Fig.
+1</a>]</p>
+<table border="0" width="100%">
+  <caption>
+    <p align="left"><a name="Fig. 1"></a><b>Fig. 1 List of PLM References (Input
+    Data)</b></p>
+  </caption>
+  <tr>
+    <td width="100%">
+    <img border="0" src="images/CAAAdpQueryPLMComp_Fig.jpg" width="696" height="199"></td>
+  </tr>
+</table>
+
+<p>A few important points to note are:</p>
+<ul>
+  <li>
+
+<p>CAR_MODEL_* has description Auto</p>
+  </li>
+  <li>
+
+<p>PLANE_MODEL_*&nbsp; has description Aero</p>
+  </li>
+  <li>
+
+<p>The Car models belong to the Auto category (<code><b>V_description</b></code>
+= <b>Auto</b>) while the Plane models belong to the Aero category (<code><b>V_discription</b></code>
+= <b>Aero</b>). These properties are displayed&nbsp; in the UI above, and viewed while editing the 
+PLM Object properties.</p>
+  </li>
+</ul>
+<p>With these components in the database, we list below the response of the 
+Query API, for a variety of inputs. </p>
+<ul>
+  <li>We query the database for information of all PLM Objects whose <code><b>V_description</b></code>
+    = <code>Auto</code>.&nbsp; The output is seen in [<a href="#Fig. 2">Fig. 2</a>].
+    <table border="0" width="100%">
+      <caption>
+        <p align="left"><a name="Fig. 2"></a><b>Fig.2  Simple Query Results</b></p>
+      </caption>
+      <tr>
+        <td width="100%">Results of the Query: <b>3 components retrieved</b><br>
+          Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b> CAR_MODEL_1</b><br>
+          <br>
+          Attribute Name : <b> V_description</b><br>
+          Attribute Value: <b>Auto</b><br>
+          <br>
+          Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b> CAR_MODEL_2</b><br>
+          <br>
+          Attribute Name :<b> V_description</b><br>
+          Attribute Value: <b>Auto</b><br>
+          <br>
+          Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b>CAR_MODEL_3</b><br>
+          <br>
+          Attribute Name : <b> V_description</b><br>
+          Attribute Value: <b>Auto</b><br>
+          &nbsp;</td>
+      </tr>
+    </table>
+  </li>
+</ul>
+<ul>
+  <li>Here we leverage the capability of the Query API to accept the input
+    criteria as a wild card expression.&nbsp; It also lets a combination of
+    input criteria.&nbsp;&nbsp; For eg., the input criteria for this scenario is
+    (<code><b>PLM_ExternalID</b></code>= *_Model_3 <code><b>V_description</b></code>
+    = <code>Auto</code>). All Model_3 models with description Auto are output in [<a href="#Fig. 3">Fig.
+    3</a>] below.&nbsp;
+    <table border="0" width="100%">
+      <caption>
+        <p align="left"><a name="Fig. 3"></a><b>Fig. 3 Query as a Wild Card
+        expression and a combination of input criteria</b></p>
+      </caption>
+      <tr>
+        <td width="100%">Results of the Query:<b> 1 component retrieved<br>
+          </b>Attribute Name :<b> PLM_ExternalID<br>
+          </b>Attribute Value:<b> CAR_MODEL_3<br>
+          <br>
+          </b>Attribute Name :<b> V_description<br>
+          </b>Attribute Value:<b> Auto</b></td>
+      </tr>
+    </table>
+  </li>
+</ul>
+<ul>
+  <li>A slightly complex search criteria involves a wild-card expression
+    (<code><b>PLM_ExternalID</b></code>= PLANE* <code><b>V_descrption</b></code>&nbsp; = A*o ). It results in
+    the output as seen in&nbsp; [<a href="#Fig. 4">Fig. 4</a>] below.
+    <table border="0" width="100%">
+      <caption>
+        <p align="left"><a name="Fig. 4"></a><b>Fig. 4 Slightly complex wild card
+        search</b></p>
+      </caption>
+      <tr>
+        <td width="100%">Results of the Query:<b> 3 components retrieved<br>
+          </b>Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b> PLANE_MODEL_1</b><p>Attribute Name :<b> 
+        V_description<br>
+          </b>Attribute Value:<b> Aero</b><br>
+          &nbsp;<p>Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b> PLANE_MODEL_2</b></p>
+        <p>Attribute Name :<b> V_description<br>
+          </b>Attribute Value:<b> Aero</b><br>
+          &nbsp;<p>Attribute Name : <b> PLM_ExternalID</b><br>
+          Attribute Value: <b> PLANE_MODEL_3</b></p>
+        <p>Attribute Name :<b> V_description<br>
+          </b>Attribute Value:<b> Aero</b></td>
+      </tr>
+    </table>
+  </li>
+	<li>For a case where none of the components in the database satisfy the input
+    criteria, the Query returns a <code><b>S_FALSE</b></code>. The Use Case
+    output reflects this&nbsp; is as seen in [<a href="#Fig. 5">Fig. 5</a>]
+    below. The input criteria could be (<code><b>V_description</b></code>
+    = <code>Ship</code>).
+    <table border="0" width="100%" height="18">
+		<caption>
+		<p align="left"><a name="Fig. 5"></a><b>Fig. 5 Query result if no component
+        is retrieved from database</b></p>
+		</caption>
+		<tr>
+			<td width="100%" height="14">Query API returns S_FALSE.<br>
+          No component retrieved from database matching input criteria</td>
+		</tr>
+	</table>
+	</li>
+	<li>There could be a case where the database is queried with an invalid input.
+    An invalid input could be an AttributeSet which is&nbsp;
+	<ul>
+		<li>empty&nbsp;</li>
+		<li>Holds at least
+    one Non-String attribute (<code><b>V_supplier</b></code> of type <code><b>boolean</b></code>)</li>
+		<li style="height: 16px">Has an Attribute which is invalid for the current PLM Object
+        type.&nbsp; (<code><b>V_RepKind</b></code> for <code><b>PLMReference</b></code>)</li>
+	</ul>
+	<p>&nbsp;The Query API returns an <code><b>E_INVALIDARG</b></code> for such
+    cases. The Use Case reflects this return as seen in [<a href="#Fig. 6">Fig.
+    6</a>] below, for all the three invalid cases listed above.</p>
+	<table border="0" width="100%">
+		<caption>
+		<p align="left"><a name="Fig. 6"></a><b>Fig. 6 Query result on invalid
+        AttributeSet input</b></p>
+		</caption>
+		<tr>
+			<td width="100%">Query API returns E_INVALIDARG. AttributeSet input is empty or invalid</td>
+		</tr>
+	</table>
+	</li>
+	<li>So far we had scenarios where we queried only for <code><b>PLM Product
+    References</b></code>. The results are equally valid for a <code><b>PLM</b></code>
+	<code><b>Representation</b></code> <code><b>Reference</b></code> as
+    well.&nbsp; We can also query the database for a <code><b>PLMProductInstanceDS
+    </b></code>(a customization of the PLM Product Instance).&nbsp;<table border="0" width="100%">
+		<caption>
+		<p align="left"><a name="Fig. 7"></a><b>Fig. 7 Results of Query for a
+        PLM Product Instance</b></p>
+		</caption>
+		<tr>
+			<td width="100%"><b>Results of the Query: 1 components retrieved<br>
+			</b>Attribute Name : <b>PLM_ExternalID<br>
+			</b>Attribute Value: <b>CAAAdpSaveProduct1.1</b></td>
+		</tr>
+	</table>
+	</li>
+	</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="How"></a>How to Launch CAAAdpQueryPLMComponent</a>
+</h3>
+<p>To launch <code><b>CAAAdpQueryPLMComponent</b></code> , you will need to set up the build time
+environment, then compile <code><b>CAAAdpQueryPLMComponent</b></code> along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">2</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p><code><b> <a>mkrun -c &quot;</a><i>CAAAdpQueryPLMComponent</i></b></code><i>
+</i><a><code><b><i>Repository Server User Password SecurityCtx &nbsp;PLMType AttrName AttrValue [Attr Name] [Attr Value] ...</i>&quot;</b></code></a> </p>
+<p>where:</p>
+
+<table class="border1"  id="table13" height="331" >
+  <tr>
+    <th height="17"><b>Repository</b></th>
+     <td height="17"><script type="text/javascript">insertRepository();</script></td>
+  </tr>
+  <tr>
+     <th height="19"><b>Server</b></th>
+    <td height="19">The name and port of the server as <i>name</i>:<i>port_number</i></td>
+  </tr>
+  <tr>
+    <th height="19" ><b>User</b></th>
+    <td height="19">The user name</td>
+  </tr>
+  <tr>
+    <th height="19" ><b>Password</b></th>
+    <td height="19" >The user password to authenticate the user</td>
+  </tr>
+  <tr>
+
+    <th height="38"><b>SecurityCtx</b></th>
+    <td height="38">a string representing the security context (Role.Organization.Project).
+      Choose Role as Reviewer (since we only browse the PLM Data, no
+      modifications)</td>
+  </tr>
+  <tr>
+    <th height="19">PLMType</th>
+    <td height="19">A PLMType </td>
+  </tr>
+   
+	<tr>
+	<th height="19"> <b>AttrName&nbsp;</b></th>
+	<td height="19">Represents an Attribute Name to define input search
+      criteria for PLM Objects</td>
+    </tr>
+    	<tr>
+	<th height="19"> <b>AttrValue</b></th>
+	<td height="19">Represents an Attribute Value to define input search
+      criteria for PLM Objects</td>
+    </tr>
+   
+	<tr>
+	<th height="15"> <b>[AttrName]</b></th>
+	<td height="15">Represents any more Attribute Names to define input search criteria for
+      PLM Objects</td>
+    </tr>
+  
+	<tr>
+	<th height="19"> <b>[AttrValue]&nbsp;</b></th>
+	<td height="19">Represents any more Attribute Values to define input search criteria for
+      PLM Objects</td>
+    </tr>
+</table>
+
+<p>for the examples querying Product References, the input&nbsp;data are retrieved by importing <code><b><a>CAAAdpQueryPLMComponent_*</a></b></code><a><code><b>.</b></code></a><code><b>3dxml</b></code>
+files for corresponding six different Root products from the <a><code><b> CAAPLMClientAdapter.edu</b></code></a> 
+fwk.&nbsp;Where &quot;<code><b><a>*</a></b></code>&quot; represents the model
+
+of the corresponding 3dxml files , for example&nbsp; <code><b><a>
+CAAAdpQueryPLMComponent_CAR_MODEL1</a></b></code>.<code><b><a>3dxml</a></b></code>
+ file , represents a CAR_MODEL_1 model. For the example querying a Product 
+Instance, the inout data is retrieved by impoorting the <code>CAAAdpSave.3dxml</code> 
+file; All these 3dxml files are inside: </p>
+<table id="table15">
+    <tr>
+      <td><code>InstallRootDirectory\CAADoc\CAAPLMClientAdapter.edu\InputData\</code></td>
+    </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">2</a>] is the directory where the CAA CD-ROM
+is installed.</p>
+<p align="left"><b>Attention</b>:  Please refer to the document [<a href="#References">2</a>]
+for how to import and re-import such a 3D XML file in your PLM repository.&nbsp;Please
+note that the output depicted for this Use Case (<a href="#What">What does the
+Use Case do</a> section) is the result of the query run exclusively on the data imported
+from this 3D XML file.&nbsp;So just in case your database already consists of components,
+the results of the query are likely to differ based on the exact contents of
+your database, after 3D XML file import.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Where"></a>Where to Find the CAAAdpQueryPLMComponent&nbsp; Code</h3>
+<p>The <code><b>CAAAdpQueryPLMComponent</b></code> use case is located in the <code><b>CAAAdpQueryPLMComponent</b></code><a><code><b>.m</b></code></a> module of the
+<a><code><b>CAAPLMClientAdapter</b><b>.edu</b></code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAADoc\CAAPLMClientAdapter</code>.<code>edu</code><code>\CAAAdpQueryPLMComponent.m\</code></td>
+  </tr>
+</table>
+<p>where <code><a><b>InstallRootDirectory</b></a></code>  [<a href="#References">2</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code><b>CAAAdpQueryPLMComponent</b></code> :</p>
+<ol>
+  <li><a href="#Prolog">Prolog</a></li>
+  <li><a href="#Retrieve a CATIType">Retrieve a CATIType*</a></li>
+	<li>
+	<a href="#Create a list of attribute-value pairs (AttributeSet) for query">Create a list of attribute-value pairs (AttributeSet) for query</a></li>
+	<li>
+	<a href="#Query the database for components with &quot;AttributeSet + Usable Custo&quot;">Query the database for components with "AttributeSet"</a></li>
+	<li>
+	<a href="#Display the Attribute names and Values for each component returned by the Query">Display the Attribute names and Values for each component returned by the Query</a>
+	<ol>
+		<li type="a">
+		<a href="#Retrieve the Identifier of the PLM Component  from the current query result">Retrieve the Identifier of the 
+		PLM Object&nbsp; from the current
+        query result</a></li>
+		<li type="a">
+		<a href="#Retrieve the Identifier of the PLM Component  from the current query result">Retrieve the IdentificationSet of this component</a></li>
+		<li type="a">
+		<a href="#Retrieve the Identifier of the PLM Component  from the current query result">Display PLM_ExternalID value of the component</a></li>
+		<li type="a">
+		<a href="#Display the Attribute+value sets of the component">Display the Attribute+value sets of the component</a></li>
+	</ol>
+	</li>
+	<li><a href="#CAAAdpGetPLMObjectsFromAttrAndFromType">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code><b>CAAAdpQueryPLMComponent</b></code> use case begins by creating a session
+and connecting to the Input Repository.&nbsp; This,
+being the most fundamental prerequisite for all batch use cases, it is the first
+step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with the Reviewer Role
+(since we ain't modifying PLM data but only retrieving it from the database). There are other parameters as well,
+details of which can be found in the&nbsp; &quot;<b>Creating a Basic PLM Batch</b>&quot;
+use case article [<a href="#References">3</a>].
+This article primarily deals with Opening and Closing a PLM session.</p><script type="text/javascript">insertLinkToTop();</script>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Retrieve a CATIType"></a>Retrieve
+a CATIType</h3>
+
+<p><a name="Confirm if the &quot;usable custo&quot; input is one among the valid types"></a>
+Here we Retrieve the CATIType</p>
+
+<table class="code">
+  <tr>
+    <td >
+      	<pre>
+      
+      const char* strPLMType = iArgv[6];
+	
+      CATBoolean CustoCase = FALSE ;
+      CATIType_var spCATType;
+      hr= CATCkePLMNavPublicServices::RetrieveKnowledgeType(strPLMType,spCATType);
+      if  (  NULL_var ==  spCATType ) 
+      {
+            hr= CATCkePLMNavCustoAccessPublicServices::RetrieveCustoType(strPLMType,spCATType);
+            CustoCase = TRUE ;
+            if  (  NULL_var ==  spCATType )
+            {
+                  ::CAAAdpCloseSession();
+                  return 1 ;
+            }
+      }
+
+      if ( FALSE == CustoCase )
+      {
+            cout  &lt;&lt; "   It is successfull to find knowledge type ( non custo) :"  ;  
+      }else
+      {
+            cout  &lt;&lt; "   It is successfull to find knowledge type (custo) :" ;  
+      }
+      cout &lt;&lt;spCATType-&gt;Name().ConvertToChar() &lt;&lt;endl;
+
+      	</pre>
+    </td>
+  </tr>
+  <tr>
+    <td width="904">
+      &nbsp;</td>
+  </tr>
+</table>
+
+<p><a name="Retreive the CATIAdpType* type of input &quot;usable custo&quot; from the above list"></a></p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Create a list of attribute-value pairs (AttributeSet) for query"></a>Create a list of attribute-value pairs (AttributeSet) for query</h3>
+
+<p>The <code><b>AttributeSet</b></code> is the other criteria for the query we
+run on the database. User inputs the attribute-value sets to precisely define
+the criteria for the search in the database.&nbsp;</p>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre><b>	CATAdpAttributeSet </b>iAttributeSet;
+	if (<b>FALSE == EmptyQuery</b>)
+	{
+		for (int AttrIndex=7; AttrIndex &lt;= (7+((NbAttributes-1)*2)); AttrIndex++)
+		{
+			const CATString Attribute(iArgv[AttrIndex]);
+			const CATUnicodeString Value(iArgv[AttrIndex+1]);
+<b>			</b>hr =<b> iAttributeSet.AddAttribute</b>(Attribute,Value);
+			AttrIndex++;
+		}
+...</pre>
+    </td>
+  </tr>
+</table>
+
+<p>An <code><b>AttributeSet</b></code> object holds these attribute-value sets
+and thus effectively acts as a filter/criteria for database query/search. The if
+condition is to ensure that attribute-value sets were input.&nbsp; Else, the <code><b>AttributeSet</b></code>
+is kept empty assuming the query is to be run with an empty AttributeSet<code><b>.</b></code></p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Query the database for components with &quot;AttributeSet + Usable Custo&quot;"></a>Query the database for components with "AttributeSet"</h3>
+
+<p>We launch a search in the database to retrieve information of PLM Objects
+conforming the following criteria</p>
+<blockquote>
+  <ul>
+    <li type="circle"></li>
+    <li type="circle">Attribute-value sets input&nbsp; (<a href="#Create a list of attribute-value pairs (AttributeSet) for query"><code><b>iAttributeSet</b></code></a>)</li>
+  </ul>
+</blockquote>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre><b>	CATListPtrCATAdpQueryResult </b>oQueryResults<b>;
+	</b>hr = <b>CATAdpPLMQueryServices::GetElementsFromAttributes</b>(<font SIZE="2">spCATType</font>,iAttributeSet,
+      	                                                    oQueryResults);<b>
+</b>...</pre>
+    </td>
+  </tr>
+</table>
+
+<p>The return of this query is a list of <code><b>CATAdpQueryResult</b></code>
+objects. These objects contain information of the PLM Objects. Thus its only
+the information of the PLM Objects which is sought and not the actual
+components.&nbsp;</p>
+
+<p>So if the components are to be loaded/opened in the current session,&nbsp;
+we'll have to seek their Identification&nbsp; from the <code><b>CATAdpQueryResult</b></code>
+object and explicitly load them in the&nbsp; session.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Display the Attribute names and Values for each component returned by the Query"></a>Display the Attribute names and Values for each component returned by the Query</h3>
+
+<p><a name="Retrieve the Identifier of the PLM Component  from the current query result"></a>The
+<code><b>AttributeSets</b></code> returned by the query results have only those
+attribute-value pairs input for the query. Thus, if an Identifier attribute is
+not a component of your search criteria the output carries little significance
+for us, since the identify of the PLM Object would never be known. A bypass
+for this is explained below. But please note that this bypass isn't applicable
+for a <code><b>PLM</b></code> <code><b>Instance</b></code> or&nbsp; <code><b>PLM
+Rep Instances</b></code>, since there are no <code><b>IdentifyingSet</b></code>
+attributes associated with Instances. The output depicted by [<a href="#Fig. 7">Fig.
+7</a>] confirms this behavior.</p>
+
+<p>For the References, here is the bypass, if none of the <code><b>Identifying</b></code>
+attributes occur in the search criteria. The <code><b>QueryResult</b></code>
+object allows us to retrieve a session object implementing the <code><b><i>CATIAdpPLMIdentificator</i></b></code>
+Interface&nbsp; which has information to uniquely identify the PLM Object in
+the database.[<a href="#References">5</a>] From this session object we can seek the <code><b>IdentifyingSet</b></code>
+Attribute values&nbsp; of the PLM Object, whose display adds enormous
+significance to the query output.&nbsp; We choose the&nbsp; <code><b>PLM_ExternalID</b></code>
+attribute value&nbsp; since that serves our purpose reasonably well here.</p>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre>...<b>
+</b>	<b>for</b> (int k=1; <b>k&lt;=QueryResSize</b>; k++)
+	{
+		CATAdpQueryResult* pCurrentResult = NULL;
+<b>		pCurrentResult = oQueryResults[k];
+</b>		CATIAdpPLMIdentificator * oIdentifier = NULL;
+<b>		</b>hr =<b> pCurrentResult-&gt;GetIdentifier</b>(oIdentifier);<b>
+</b>		CATAdpIdentificationSet oIdentifyingSet;
+<b>		</b>hr = <b>CATAdpQueryServices::GetIdentificationSet</b>(oIdentifier,
+      						oIdentifyingSet);
+		if (S_OK == hr)
+		{
+			int current=0;
+			CATString AttributeName;
+			CATUnicodeString AttrValue;
+<b>			CATString PLMExtID(&quot;PLM_ExternalID&quot;);
+</b>			while (S_OK == (<b>oIdentifyingSet.NextAttribute</b>(current,
+      								AttributeName,
+      								AttrValue)))
+			{
+<b>				if </b>(<b>PLMExtID == AttributeName</b>)
+				{
+<b>					cout &lt;&lt; &quot;Attribute Name : &quot;</b>
+      <b>					&lt;&lt; AttributeName.getUnicodeString() </b>&lt;&lt; endl;	
+<b>					cout &lt;&lt; &quot;Attribute Value: &quot;</b>
+      <b>				        &lt;&lt; AttrValue.ConvertToChar() </b>&lt;&lt; endl &lt;&lt; endl;
+      									}
+			}
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>The <code><b>IdentificationSet</b></code> might have a set of attributes
+which enable us identify a component. But in this case, <code><b>PLM_ExternalID</b></code>
+seems to serve our purpose reasonably well.</p>
+
+<p>Ofcourse, if the <code><b>PLM_ExternalID</b></code> attribute was provided as
+a query criteria, we run the risk of displaying that attribute-value, yet again
+in the next step.</p>
+
+<p><a name="Display the Attribute+value sets of the component"></a>Here we
+display the values of the attributes for PLM Objects returned by the
+query.&nbsp; At first glance, the output attribute-values might appear to be
+exactly similar to those input and hence irrelevant.&nbsp;</p>
+
+<p>But its important that one realizes that these attribute-values are those
+actually sought from the database. Hence they are more real, more accurate and
+more reliable than those input.&nbsp;</p>
+
+<table class="code" width="912">
+  <tr>
+    <td width="904">
+      <pre>...<b>
+</b><b>	CATAdpAttributeSet </b>oAttrSet<b>;
+	</b>hr =<b> pCurrentResult-&gt;GetAttributeSet</b>(oAttrSet);<b>
+</b>	if (SUCCEEDED(hr))
+	{
+		CATString AttrName;
+		CATUnicodeString AttrValue;
+		int current = 0;
+		while (S_OK == (<b>oAttrSet.NextAttribute</b>(current,AttrName,
+      						  AttrValue)))
+		{
+<b>			cout &lt;&lt; &quot;Attribute Name : &quot;</b>
+      <b>			&lt;&lt; AttrName.getUnicodeString() </b>&lt;&lt; endl<b>;	
+			cout &lt;&lt; &quot;Attribute Value: &quot;</b>
+      <b>			&lt;&lt; AttrValue.ConvertToChar() </b>&lt;&lt; endl
+						&lt;&lt; endl<b>;	
+</b>		}
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>Be cautious. The <code><b>CATAdpAttributeSet</b></code>::<code><b>NextAttribute</b><b>
+</b></code>increments the index (<code><b>current</b></code>) and hence user
+does not have to exclusively do an increment operation (++) on <code><b>current</b></code>
+within the while loop.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code><b>CAAAdpQueryPLMComponent</b></code> use case ends by simply closing the PLM
+session. Since all PS use cases&nbsp; necessarily conclude by closing the PLM
+session, we have a dedicated article on this topic viz.&nbsp; &quot;<b>Creating a
+Basic PLM Batch</b>&quot; [<a href="#References">3</a>].&nbsp;</p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="CAAAdpGetPLMObjectsFromAttrAndFromType"></a>Global Method 
+CAAAdpGetPLMObjectsFromAttrAndFromType</h2>
+<p>In earlier section we have seen </p>
+<ul>
+  <li>Building an attribute set&nbsp; from given set of Attribute-value pairs[<a href="#Create a list of attribute-value pairs (AttributeSet) for query">#</a>]</li>
+  <li>Launch a query to retrieve list of QueryResult objects [<a href="#Query the database for components with &quot;AttributeSet + Usable Custo&quot;">#</a>]</li>
+</ul>
+<p>Since all these services are frequently required in CAA Use Cases we have 
+provided a global routine <code><b>CAAAdpGetPLMObjectsFromAttrAndFromType</b></code>
+exposed through the CAAAdpUtilities library of the CAAPLMClientAdapter.edu 
+framework.</p>
+
+<table class="code">
+  <tr>
+    <td>
+      <pre><b>...
+      
+      HRESULT CAAAdpGetPLMObjectsFromAttrAndFromType(CATListOfCATString &amp;listOfAttribute,
+				                CATListOfCATUnicodeString &amp;listOfValues ,
+					       const char* &amp;strUsablePLMClassTypeName ,
+			                         CATIType* &amp;opiCATITypeOnPLMType,
+		                                  CATAdpAttributeSet &amp;oAttributeSet,
+				                CATListPtrCATAdpQueryResult &amp;opQueryResults)
+      	</b></pre>
+    </td>
+  </tr>
+</table>
+
+<p>The global routine arguments are:</p>
+<ul>
+  <li>listOfAttributes, List of input Attributes, a CATListOfCATString type 
+  [input]</li>
+  <li>listOfValues<b>, </b>List of Input Attribute values, a 
+  CATListOfCATUnicodeString type [input]</li>
+  <li>strUsablePLMClassTypeName, a usable type,&nbsp; a char* type [input]</li>
+	<li>opiCATITypeOnPLMType, a CATIType<code><span class="style5">* </span>
+	</code>on an input usable type<b><code> </code></b>[input/output], retrieved by a 
+  call to
+<font SIZE="2"><code><b>RetreiveKnowledgeType or RetrieveCustoType</b></code>, a</font> 
+	member function of&nbsp; <font SIZE="2">
+	<p>CATCkePLMNavPublicServices and CATCkePLMNavCustoAccessPublicServices</p>
+	</font></li>
+	<li>oAttributeSet, Set of Attribute-value Identification or otherwise, a 
+  CATAdpAttributeSet type [input/output]</li>
+	<li>opQueryResults, List of Query results, a CATListPtrCATAdpQueryResult type&nbsp; 
+  [input/output]</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+
+
+<h2><a name="CAARetrieveIDofUniquePLMObject"></a>Global Method 
+CAARetrieveIDofUniquePLMObject</h2>
+<p>With all above methods functionality one more functionality is also always 
+required in CAA Use Cases so we have 
+provided a global routine&nbsp; <code><b>CAARetrieveIDofUniquePLMObject</b></code>
+exposed through the CAAAdpUtilities library of the CAAPLMClientAdapter.edu 
+framework.</p>
+<p>This <code><b>CAARetrieveIDofUniquePLMObject</b></code>
+routine returns an <code><b>Identificator</b></code> of a PLM Object instated 
+of&nbsp; list of QueryResult objects, 
+subject to the condition that an Attribute set &nbsp;object built with the input set of attribute-value pairs.</p>
+
+<table class="code" >
+  <tr>
+    <td >
+      <pre><b>...
+      
+      HRESULT CAARetrieveIDofUniquePLMObject (CATListOfCATString &amp;ilistOfAttribute,
+				         CATListOfCATUnicodeString &amp;ilistOfValues ,
+					const char* &amp;iStrPLMType,
+		                          	CATIAdpPLMIdentificator* &amp;opiIdentOnPLMComp )
+
+	 </b></pre>
+    </td>
+  </tr>
+</table>
+
+<p>The global routine arguments are:</p>
+<ul>
+  <li>listOfAttributes, List of input Attributes, a CATListOfCATString type 
+  [input]</li>
+  <li>listOfValues<b>, </b>List of Input Attribute values, a 
+  CATListOfCATUnicodeString type [input]</li>
+  <li>iStrPLMType, a PLM type,&nbsp; a char* type [input]</li>
+	<li>opiIdentOnPLMComp , Identificator of PLM Object output by query, a CATIAdpPLMIdentificator* type [input/output]</li>
+</ul>
+<p> For more details about this global routine refer to "<strong>Query PLM Component with Unique Key</strong>" [<a href="#References">6</a>]</p>
+&nbsp;<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="CAAAdpRetreiveAdpTypeFromClassType"></a></h2>
+<h2><a name="InShort"></a>In Short</h2>
+
+<p>The use case fundamentally queries the database seeking information of PLM 
+Objects which conform to an input criteria.&nbsp;</p>
+
+<p>The criteria for this search is a combination of the attribute-value sets and
+the &quot;<code><b>type</b></code>&quot; input.</p>
+
+<p>The query result is a <code><b>CATAdpQueryResult</b></code> object, which
+contains the information associated with&nbsp; the PLM Objects satisfying our search criteria. This information is restricted to only those
+attribute-values which drove our query on the database. In addition we can also
+retrieve&nbsp; a session object implementing the <code><b><i>CATIAdpPLMIdentificator</i></b></code>
+Interface&nbsp; which has information to uniquely identify the PLM Object in
+the database. From this session object we can seek the 
+Attribute values of the PLM Object, whose display adds enormous significance
+to the query output.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+<h2><a name="References"></a>References</h2>
+
+<table>
+     <tr>
+     <td valign="top">[1]</td>
+     <td>
+       <a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">PLM
+       Environment Overview</a> </td>
+     </tr>
+
+     <tr>
+     <td valign="top">[2]</td>
+     <td>
+       <a href="../CAADocUseCases/CAADocRunSample.htm">
+       Building and Launching a CAA Use Case</a> </td>
+     </tr>
+
+     <tr>
+     <td valign="top">[3]</td>
+     <td>
+     <a href="CAAAdpUcBasicBatch.htm">Creating
+       a Basic PLM Batch</a></td>
+     </tr>
+
+     <tr>
+     <td valign="top">[4]</td>
+     <td>
+     <a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">PLM
+      Core Modeler Overview</a></td>
+     </tr>
+
+     <tr>
+     <td valign="top">[5]</td>
+     <td>
+     <a href="CAAPlmTaCATIAdpPLMIdentificator.htm">Understanding PLM Object Identification</a></td>
+     </tr>
+     
+     <tr>
+     <td valign="top">[6]</td>
+     <td>
+     <a href="CAAAdpUcQueryPLMComponentWithUniqueKey.htm">Query PLM Component with Unique Key</a></td>
+     </tr>
+    
+</table>
+   
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong>     [Nov 2006]</td>
+    <td valign="top">Document created</td>
+  </tr>
+<script type="text/javascript">insertLinkToTop();</script>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

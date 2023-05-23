@@ -1,0 +1,625 @@
+<html>
+	<head>
+		<title>Retrieving Mechanical Import Information using ClientID</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<meta content="Microsoft FrontPage 12.0" name="GENERATOR">
+		<meta content="FrontPage.Editor.Document" name="ProgId">
+		<link href="../CAADocStyleSheets/caav5.css" type="text/css" rel="Stylesheet">
+		<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+        
+        </head>
+		
+	<body >
+
+<body>
+
+	<table class="DocHeader">
+  <tr>
+    <td class="DocHeader1">
+      <h1><a name="Top"></a>Managing a Custom Link</h1>
+  </tr>
+  <tr>
+    <td class="use"><i>Use Case</i></td>
+      </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>The Use Case is an Interactive State Command which 
+		allows CAA customers to manage their own relationships between various 
+		PLM Entities, across different Modelers exposed from within the scope of 
+		the&nbsp; <b>RFLP</b> (Requirement, Functional, Logical, Physical) 
+		editor.&nbsp;&nbsp; </p>
+		<p>This relationship is commonly referred to as a RFLP Agnostic 
+		Relationship or a RFLP Custom Link. The Use Case &quot;<b>Creating a Customer 
+		Link</b>&quot; [<a href="#References">1</a>] details the steps involved in 
+		creating a Customer Link. This Use Case primarily focuses on managing a 
+		Customer Link which fundamentally involves</p>
+		<ul>
+			<li>Listing the Custom Links originating from a Source PLM entity</li>
+			<li>Listing the Custom Links terminating at a Target PLM entity</li>
+			<li>Deletion</li>
+			<li>Retrieving its attribute values</li>
+			<li>Rerouting its target</li>
+		</ul>
+		<p>The Use Case has illustrated this by deploying a <b>
+		State Command</b> [<a href="#References">2</a>] located in the &quot;<b>CustomerLink</b>&quot; toolbar, 
+		a part of the <b>General Workshop AddIn</b> existing within <b>CATIA</b>. The StateCommand aided by the <b>Dialog Boxes</b> [<a href="#References">3</a>] drives this Use 
+		Case through various states associated with its lifecycle.</p>
+		<ul>
+        <li><a href="#Learn"><strong>What You Will Learn With This Use Case</strong></a></li>
+        <li><a href="#UseCase"><strong>The CAACustoLink Manage<b> </b>Use 
+		Case</strong></a>
+          <ul>
+            <li><a href="#What">What Does <b>CAACustoLink Manage</b> Do</a></li>
+            <li><a href="#How">How to Launch <b>CAACustoLink Manage</b>&nbsp;</a></li>
+            <li><a href="#Where">Where to Find the <b>CAACustoLink Manage</b>&nbsp;Code</a></li>
+          </ul>
+        <li><a href="#Step"><strong>Step-by-Step</strong></a></li>
+        <li><a href="#InShort"><strong>In Short</strong></a></li>
+        <li><a href="#References"><strong>References</strong></a></li>
+      </ul>
+      </table>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The Use Case illustrates the capabilities of the <code><b><i>
+PLMCustomLinkInterfaces</i></b></code> CAA APIs for managing a Customerlink. These 
+are</p>
+<ul>
+	<li><code><b>PLMICustomRelationshipManager</b></code>, a Relationship 
+	Manager, offers services to list the Customer Linksoriginating from a source 
+	or terminating at a target</li>
+	<li><code><b>PLMICustomRelationship</b></code>, an Interface implemented by 
+	a Customerlink, which enables retrieval and setting its&nbsp; various 
+	attribute-values</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="UseCase"></a>The <span style="font-weight: 400">CAACustoLinkManage</span>&nbsp;Use Case</h2>
+<p><code><b>CAACustoLinkManage</b></code> is a use case of the <code><b>
+CAACustomLinkItf</b></code>.<code><b>edu</b></code> framework that mainly 
+illustrates <code><b>PLMCustomLinkInterfaces</b></code> frameworks capabilities.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="What"></a>What Does<b>  <span style="font-weight: 400">CAACustoLink</span></b>Manage<b>&nbsp;</b>Do</h2>
+<p>The Use Case is primarily an Interactive State Command to manage Customer 
+Linkswhich occur across product models belonging to the RFLP domain. One such model 
+loaded within the RFLP editor of CATIA, is as seen below [<a href="#Fig. 1">Fig. 
+1</a>]</p>
+<table border="0" width="100%" id="table19">
+	<caption>
+	<p align="left"><span><a name="Fig. 1"></a>Fig.1</span> <b>Input Model (RFLP Editor)</b></p>
+	</caption>
+	<tr>
+		<td>
+        <img border="0" src="images/CAACustoLinkCreate_InputModel.jpg"></td>
+	</tr>
+</table>
+<p>The figure above, is the spec tree representation of 2 
+models viz. a Functional Root Ref viz. <code><b>FuncRootRef</b></code> and a 
+Physical Root Ref viz. <code><b>PhyRootRef</b></code>. <code><b>FuncRootRef</b></code> has a child PLM Inst viz. <code><b>
+FuncChildRef1.1</b></code> and a child Rep Inst viz. <code><b>FuncRep.1</b></code> 
+directly beneath it.<code><b> PhyRootRef</b></code> has a child PLM Inst viz. <code><b>
+PhyChildRef.1</b></code> and a child Rep Inst viz. <code><b>PhyChildRep</b></code> 
+directly beneath it. A set of Custom Links have already been created within as well as across these 
+2 models,&nbsp; in an earlier Use Case &quot;<b>Creating a Customer Link</b>&quot; [<a href="#References">1</a>]. 
+In the current Use Case, we proceed further to list the Custom Links originating 
+from a selected source or terminating at a selected target. This is accomplished 
+thanks to the two commands namely. &quot;<b>List Custom Relations from Source</b>&quot; and &quot;<b>List 
+Custom Relations to Target</b>&quot;, existing within the &quot;<b>Customer Link</b>&quot; toolbar, a General 
+Workshop AddIn, within CATIA.</p>
+<p>The figure below [<a href="#Fig. 2">Fig. 2</a>] depicts this toolbar with the 
+three commands &quot;<b>Create Custom Relation</b>&quot;, &quot;<b>List Customer Relations from Source</b>&quot; and 
+&quot;<b>List Customer Relations To Target</b>&quot;, in that order.</p>
+<table border="0" width="100%" id="table13">
+      <caption>
+        <p align="left"><span><a name="Fig. 2"></a>Fig.2</span> 
+		<b>&quot;Custom Link&quot;<i>
+        </i>Toolbar</b></caption>
+      <tr>
+        <td width="100%">
+		<img border="0" src="images/CAACustoLinkManage_Toolbar.jpg" width="47" height="128"></td>
+      </tr>
+    </table>
+<p>The State Command, as the one depicted below [<a href="#Fig. 3">Fig. 3</a>], drives the Use Case through its 
+various states. </p>
+<table border="0" width="100%">
+  <caption>
+	<p align="left"><span><a name="Fig. 3"></a>Fig. 3</span> 
+	<b>The State Command</b></p>
+  </caption>
+  <tr>
+    <td width="100%">&nbsp;&nbsp;&nbsp;
+	<img border="0" src="images/CAACustoLinkManage_StateCommand.gif" width="267" height="447"></td>
+  </tr>
+</table>
+<p align="left">The Use Case execution through its various states is as detailed 
+below</p>
+<ul>
+	<li>
+	<p align="left">User clicks on &quot;<b>List Custom Relations from Source</b>&quot; 
+	command. <b>CATIA</b> now prompts the user to select the Source (a PLM 
+	entity to be identified in the spec tree). Our interest is to retrieve a 
+	list of relations originating from this Source. The 
+	current state is &quot;<b>Select Source</b>&quot;.</p></li>
+</ul>
+<ul>
+	<li>
+	<p align="left"><a name="Select Source"></a>An incoming transition to the 
+	&quot;<b>Select Source</b>&quot; state implies that the user has an option to identify 
+	the Source indefinitely, the last selection overriding the previous 
+	one, until the selection is confirmed by closing the &quot;<b>Underlying FI or PLM 
+	Reference</b>&quot; dialog box, [<a href="#Fig. 4">Fig. 4</a>] depicted below. This dialog box associated with the &quot;<b>Select Source</b>&quot; 
+	state lets an end-user, to precisely identify if the PLM entity of interest 
+	is the First Instance or an underlying PLM Reference.&nbsp; This is 
+	applicable for a scenario where a PLM Instance (or a Visualized Occurrence, 
+	as well for Modelers based on PRODUCT) is identified as a source by 
+	an end-user. </p>
+	<table border="0" width="100%" id="table21">
+		<caption>
+		<p align="left"><a name="Fig. 4"></a>Fig. 4 <b>Identifying precisely, a 
+		PLM Instance or its Underlying Reference</b></p>
+		</caption>
+		<tr>
+			<td>
+			<img border="0" src="images/CAACustoLinkManage_Fig4.jpg" width="259" height="142"></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+<ul>
+	<li>
+	<p align="left">On having confirmed the source, the State Command proceeds 
+	to the next state &quot;<b>On Hold for user to Reroute Target</b>&quot;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The list of 
+	Custom Links originating from an input source are displayed 
+	within the&nbsp; &quot;<b>Custom Relationship from Source</b>&quot; dialog box, as 
+	seen in [<a href="#Fig. 5">Fig. 5</a>] below.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; At this stage, the following operations are possible on the 
+	relations that are listed</p>
+	<ul>
+	<li>
+	<p align="left">Delete either a single or a set of relations identified in 
+	the list</p></li>
+	<li>
+	<p align="left">Retrieve properties of a relation in the list</p></li>
+	<li>
+	<p align="left">Reroute target of a specific relation in the list (No such 
+	capability for those custom relations listed as a result of query for those 
+	terminating at an input target)</p></li>
+</ul>
+	<p align="left">This is accomplished 
+	thanks to the callbacks associated with the &quot;<b>Click</b>&quot; events on buttons 
+	namely. &quot;<b>Properties</b>&quot;, &quot;<b>Delete Relation</b>&quot; and &quot;<b>Change Target</b>&quot;, 
+	laid out on the  
+	&quot;<b>Custom Relationship from Source</b>&quot; dialog box.</p>
+	<table border="0" width="100%" id="table22">
+		<caption>
+		<p align="left"><a name="Fig. 5"></a>Fig. 5 <b>Listing the Custom Links originating from a Source</b></p>
+		</caption>
+		<tr>
+			<td>
+			<img border="0" src="images/CAACustoLinkManage_Fig5.jpg"></td>
+		</tr>
+	</table>
+	</li>
+</ul>
+<blockquote>
+	<p>Above we listed the relationships originating from a source. </p>
+</blockquote>
+	<ul>
+	<li>
+	<p align="left">Now an end-user can identify a relationship in the list and 
+	choose to reroute its target thanks to the &quot;<b>Change Target</b>&quot; 
+	button click event 
+	subscribed with the StateCommand.&nbsp;&nbsp;&nbsp; 
+	This event triggers a transition to the next state namely. &quot;<b>Select New 
+	Target</b>&quot;, which is fundamentally similar in behavior to an earlier state &quot;<a href="#Select Source">Select 
+	Source</a>&quot;, except that now the user is trying to reroute a specific 
+	Customer Link in the list, to a new target (Possible only for those custo 
+	links listed as a result of a query for those originating from an input 
+	source)</p></li>
+	<li>
+	<p align="left">As soon as the target for the Customer Link is reset, confirmed 
+	by the &quot;<b>Close</b>&quot; button click event on the &quot;<b>Underlying FI or PLM Reference</b>&quot; 
+	dialog box [<a href="#Fig. 4">Fig. 4</a>], a transition occurs from the 
+	&quot;<b>Select New Target</b>&quot; state back to the &quot;<b>On Hold for user to Reroute Target</b>&quot; 
+	state. An action associated with this transition resets the target of the 
+	currently selected relationship to the new target and recomputes the list of relationships, 
+	originating from a source. This list is displayed 
+	in [<a href="#Fig. 5">Fig. 5</a>]</p>
+	</li>
+	<li>
+	<p align="left">We are currently at the &quot;<b>On Hold to&nbsp; Reroute Target</b>&quot; 
+	state, with the &quot;<b>Custom Relationship from Source</b>&quot; dialog box, 
+	displaying the recomputed list of Custom Links. At this stage, an end-user 
+	has yet again the choice to retrieve properties, reroute a target or delete 
+	a Customer Link from the list output.</p></li>
+	<li>
+	<p align="left">It is important to note that, at any stage of this State 
+	Command execution, if the main dialog panel 
+	which lists the relations is closed, it triggers a 
+	transition directly to the FINAL NULL state, irrespective of the current state 
+	of the State Command execution. </p></li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a href="#Where" name="How"></a>How to Launch CAACustoLinkManage</h2>
+<p>To launch <code><b>CAACustoLinkManage</b></code>, you will need to set 
+up the build time environment, then compile <code><b>CAACustoLinkManage</b></code> 
+along with its prerequisites, set up the run time environment, and then execute 
+the use case [<a href="#References">4</a>].</p>
+<p>Launch <b>CATIA</b>, when the application is ready:</p>
+<ul>
+	<li><b>Connect</b> to the database</li>
+	<li>Select your <b>environment</b> </li>
+	<li>On the <b>Tools</b> menu click <b>Customize</b> and check that the <b>
+	Create CustomerRelation</b> toolbar is existing. User can set the visibility of this 
+	toolbar with the <b>View</b>-&gt;<b>Toolbars
+      </b>option</li>
+</ul>
+<p>You may run this use case on an input model retrieved by importing the
+<a><code><b>CAACustoLinkManage.3dxml</b></code></a>
+file (<b>to be provided</b>) from the <a><code><b>CAACustomLinkItf.edu</b></code></a> 
+ fwk, at the location stated below</p>
+<table id="table18" width="974">
+    <tr>
+      <td width="972"><code>InstallRootDirectory\CAACustomLinkItf.edu\InputData</code></td>
+    </tr>
+</table>
+<p align="left">This 3D XML<code> </code>file<code> </code>contains a <b>
+Physical Root Reference </b>with the
+following attributes: </p>
+<ul>
+  <li><a><code><b>PLM_ExternalID</b></code></a>:
+    <code>CAAPhyRootRef</code></li>
+  <li><a><code><b>Version</b></code></a>:
+    ---</li>
+</ul>
+<p align="left">This 3D XML<code> </code>file<code> also </code>contains a <b>
+Functional Root Reference </b>with the
+following attributes:</p>
+<ul>
+  <li><a><code><b>PLM_ExternalID</b></code></a>:
+    <code>CAAFuncRootRef</code></li>
+  <li><a><code><b>Version</b></code></a>:
+    ---</li>
+</ul>
+<p>The <b>3DXML</b> import to <b>CATIA</b> has been further explained in the 
+article [<a href="#References">4</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<b><h2><a name="Addin"></a>Addin Access</h2>
+</b><p>The&nbsp; <b>General Workshop</b>&nbsp; <b>Add-In</b>  
+within <b>CATIA</b>, is available thanks to a data extension of the <code><b>
+CAACustomLinkGeneralWksAddin </b></code>class. This further calls for 
+uncommenting the following 
+entries in the <code><b>CAACustomLinkItf.edu.dico</b></code> 
+file.</p>
+<table class="code" id="table9">
+  <tr>
+    <td>
+      <pre>...
+#CAACustomLinkGeneralWksAddin CATIWorkbenchAddin libCAACustoLinkGeneralWksAddin
+#CAACustomLinkGeneralWksAddin CATIAfrGeneralWksAddin libCAACustoLinkGeneralWksAddin
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>The <code><b>dico</b></code> file entries imply that the Add-in implements <i>
+<code><b>CATIAfrGeneralWksAddin</b></code></i>. and&nbsp; <code> <i><b>
+CATIWorkbenchAddin</b></i></code>.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="Where"></a>Where to Find the CAACustoLinkManage Code</h2>
+<p>The <code><b>CAACustoLinkManage</b></code> use case is made of a Class 
+defined in the <code><b>CAACustoLinkCommands</b></code>.<code><b>m</b></code><code><b> </b></code> 
+module of the
+<code><b>CAACustomLinkItf.edu</b></code> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAACustomLinkItf.edu\CAACustoLinkCommands.m\</code></td>
+  </tr>
+</table>
+<ul>
+	<li><code><b>CAACustoRelFromSrcStateCmd.cpp</b></code> 
+	has the state command implementation for listing relations originating from 
+	a source</li>
+	<li><code><b>CAACustoRelFromTgtStateCmd.cpp</b></code> has the state command 
+	implementation for listing relations terminating at a target</li>
+	<li><code><b>CAACustoRelFromSrcDlg.cpp </b></code>implements the dialog box 
+	which lists the relations originating from the source</li>
+	<li><code><b>CAACustoRelFromTgtDlg.cpp </b></code>implements the dialog box 
+	which lists the relations terminating at a target</li>
+	<li><code><b>CAACustoLinkIsPLMRefSoughtDlg.cpp</b></code> implements the 
+	dialog box which lets an end-user identify if the selection is a PLM 
+	Instance or its underlying Reference</li>
+	<li><code><b>CAACustomRelationService.cpp</b></code> implements a common set 
+	of services called by the two state commands above</li>
+	<li><code><b>CAACustoRelFromEntity.cpp</b></code><b><code> </code></b>is the 
+	parent of the two dialog boxes above. It is derived from<b><code> </code>
+	</b><code><b>CATDlgDialog</b></code></li>
+</ul>
+<p>The use case pre-reqs an Add-in module too:</p>
+<table id="table10">
+  <tr>
+    <td><code>InstallRootDirectory\CAAMechanicalModeler.edu\CAACustoLinkGeneralWksAddin.m</code></td>
+  </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">4</a>] is the 
+directory where the CAA CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>The steps in the <code><b>CAACustoLinkManage</b></code> use case are</p>
+<ol>
+	<li><a href="#Build the State Command and Dlg Box">Building the StateCommand, associated Dialog Boxes and 
+	Integrating them within CATIA</a></li>
+	<li><a href="#Managing a Custo Link">Managing a Customer Link</a><ul>
+		<li><a href="#List the Custo Links">List the Customer Link originating from 
+		a Source or terminating at a target</a></li>
+		<li><a href="#Delete a Custo Link0">Delete a Customer Link</a></li>
+		<li><a href="#Retrieve Properties">Retrieve Properties of a Customer Link</a></li>
+		<li><a href="#Reroute target of a custo link">Reroute Target of a 
+		Customer Link</a></li>
+	</ul>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Build the State Command and Dlg Box"></a>Building the StateCommand, associated Dialog Boxes and 
+Integrating them within CATIA</h2>
+<p align="left">A State Command in associated with dialog box drives the Use 
+Case through its various states as explained in the &quot;<b><a href="#What">What does the Use Case 
+do</a></b>&quot; section. The article &quot;<b>Getting Started 
+with State Dialog Commands</b>&quot; [<a href="#References">2</a>] provides further 
+insights into the implementation details of a State Command and the methodology 
+to link it to the events associated with a dialog box.</p>
+<p align="left">A dialog box is built to list the Custom Links origination from 
+and terminating at a target. Another dialog box lets an end-user precisely 
+identify a PLM Instance or its underlying Reference, as the source/target of a 
+relationship. The article &quot;<b>Getting started with Dialog Boxes</b>&quot; [<a href="#References">3</a>] 
+provides implementation details for a dialog box.</p>
+<p align="left">The state command is integrated within a toolbar belonging to 
+the General Workshop in <b>CATIA</b>, the implementation details of which could 
+be found by studying the article &quot;<b>Creating an Add In</b>&quot;&nbsp; [<a href="#References">4</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h2><a name="Managing a Custo Link"></a>Managing a Customer Link</h2>
+<p>Based on the type of management, either a Customer Link manages itself or a 
+dedicated Relationship Manager manages a Customer Link for us.</p>
+<p>A Relationship Manager is a <i><code><b>PLMICustomRelationshipManager</b></code></i> 
+instance, returned by a simple call to <code><i><b>CATInstantiateComponent</b></i></code>, 
+as depicted below. This call occurs in the <code><b>CAACustoRelFromSrcStateCmd</b></code>::<code><b>ComputeRelationsFromSourceAndPopulateMultiList</b></code>, 
+a State Command implementation for listing the relations originating from a 
+source. An equivalent call namely. <code><b>CAACustoRelFromTgtStateCmd</b></code>::<code><b>ComputeRelationsFromSourceAndPopulateMultiList</b></code> 
+exists for listing the relations terminating at a target, as well.</p>
+<table class="code" id="table23">
+  <tr>
+    <td>
+      <pre>	<b>PLMICustomRelationshipManager</b>* _piCustoRelMgr = NULL;
+	hr = ::<b>CATInstantiateComponent</b>(&quot;PLMCustomRelationshipMgr&quot;,
+				    IID_PLMICustomRelationshipManager,
+				   (void**)&amp;<b>_piCustoRelMgr</b>);
+...</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">The <b>Relationship Manager</b> provides us with the following services</p>
+<ul>
+	<li>List the Custom Links originating from a Source</li>
+	<li> List the Custom Links terminating at a target</li>
+	<li> Delete a Customer Link</li>
+</ul>
+<p>The Relationship itself provides us with the following services, thanks to 
+its <code><i><b>PLMICustomRelationship</b></i></code> implementation </p>
+<ul>
+	<li>Retrieve and set its properties</li>
+	<li>Reroute its target</li>
+</ul>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="List the Custo Links"></a>List the Custom Links originating at a 
+Source</h2>
+<p>The Relationship Manager provides a service to list the Custom Links 
+originating from a source or terminating at a target.</p>
+<table class="code" id="table27">
+  <tr>
+    <td>
+      <pre>	hr = _piCustoRelMgr-&gt;<b>GetCustomRelationshipsFromSource</b>(piPLMCompOnSrc,
+							 _oListOfCustomRelationships);
+	hr = _piCustoRelMgr-&gt;<b>GetCustomRelationshipsFromTarget</b>(piPLMCompOnTgt,
+                                                         _oListOfCustomRelationships);
+</pre>
+    </td>
+  </tr>
+</table>
+<p>A simple call to <i><code><b>PLMICustomRelationshipManager</b></code></i>::<code><b>GetCustomRelationshipFromSource</b></code>&nbsp; 
+returns us the list of custom relations originating from a source. This list is displayed 
+in the&nbsp; &quot;<b>Custom 
+Relationship from Source</b>&quot; dialog box [<a href="#Fig. 3">Fig. 5</a>]. An equivalent call to <i><code><b>PLMICustomRelationshipManager</b></code></i>::<code><b>GetCustomRelationshipFromTarget</b></code>&nbsp; 
+returns us the list of custom relations terminating at a target. </p>
+<p>These calls occur in the <code><b>ComputeRelationsFromSourceAndPopulateMultiList</b></code> 
+implementation of the state command <code><b>CAACustoRelFromSrcStateCmd</b></code> 
+and <code><b>CAACustoRelFromTgtStateCmd</b></code> respectively. This routine is 
+an action triggered as soon as an end user identifies a source or a target in 
+the spec tree within <b>CATIA</b>.<code><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+_piCustoRelMgr</b></code> is a <i><code><b>
+PLMICustomRelationshipManager</b></code></i> * on a Relationship Manager, a data 
+member of the <code><b>CAACustoRelFromSrcStateCmd (</b></code>and <code><b>CAACustoRelFromTgtStateCmd),
+</b></code>a State Command class.<code><b> _piPLMCompOnSrc</b></code>, is a
+<i><code><b>CATIPLMComponent</b></code></i> * on the source.&nbsp; It is 
+valuated by the routine <code><b>CAACustoRelFromSrcStateCmd</b></code>::<code><b>IsSelectionAPLMInstance</b></code>, 
+a State Command action which is invoked repeatedly, in response to an end-user 
+identifying a source in the spec tree within CATIA.</p>
+<p>On similar lines, <code><b>_piPLMCompOnTgt</b></code> is a <i><code><b>
+CATIPLMComponent</b></code></i> * on the target. It is valuated by the routine <code><b>CAACustoRelFromTgtStateCmd</b></code>::<code><b>IsSelectionAPLMInstance</b></code>, 
+a State Command action which is invoked repeatedly, in response to an end-user 
+identifying a target in the spec tree within CATIA.<code><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _oListOfCustomRelationships</b></code>, is a list of Relationship 
+handlers output.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="Delete a Custo Link0"></a>Delete a Customer Link</h2>
+<p>The Relationship Manager provides a service to delete a Customer Link. </p>
+<table class="code" id="table28">
+  <tr>
+    <td>
+      <pre>hr = _piCustoRelManager-&gt;<b>DeleteCustomRelationship</b>(spRel);</pre>
+    </td>
+  </tr>
+</table>
+<p>A simple call to <i><code><b>PLMICustomRelationshipManager</b></code></i>::<code><b>DeleteCustomRelationship</b></code> 
+deletes a Customer Link. This link for deletion is identified (selected) by an end 
+user from the list displayed by the &quot;<b>Customer Relationship from 
+Source</b>&quot; [<a href="#Fig. 3">Fig. 5</a>] or the &quot;<b>Customer Relationship 
+to Target</b>&quot; dialog box [<a href="#Fig. 5">Fig. 5</a>].</p>
+<p>This call occurs in the <code><b>CAACustoRelFromSrcDlg</b></code>::<code><b>OnBtnDelRelnPushBActivateNotification</b></code> 
+implementation, an action associated with the &quot;<b>Delete Relation</b>&quot; button 
+click event of the&nbsp; &quot;<b>Customer Relationship from 
+Source</b>&quot; dialog box [<a href="#Fig. 5">Fig. 
+5</a>]</p>
+<p><code><b>_piCustoRelManager</b></code> is a <i><code><b>
+PLMICustomRelationshipManager</b></code></i> * on a Relationship Manager, a data 
+member of the &quot;<b>Custom Relationship from 
+Source</b>&quot; dialog box [<a href="#Fig. 3">Fig. 5</a>] class. It 
+is valuated by the <code><b>CAACustoRelFromSrcStateCmd</b></code>::<code><b>ComputeRelationsFromSourceAndPopulateMultiList,</b></code>&nbsp;a 
+State Command implementation.&nbsp;
+</p>
+<p><code><b>spRel</b></code> is a <i><code><b>PLMICustomRelationship</b></code></i> 
+* on the Customer Link, identified (selected) by an end user for deletion in the 
+list displayed by the &quot;<b>Custom Relationship from Source</b>&quot; dialog 
+box [<a href="#Fig. 3">Fig. 5</a>]</p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<h2><a name="Retrieve Properties"></a>Retrieve Properties of a Customer Link</h2>
+<p>The Customer Link itself, thanks to its <code><i><b>PLMICustomRelationship</b></i></code> 
+implementation, provides us with various services to retrieve and set its 
+properties. </p>
+<table class="code" id="table24">
+  <tr>
+    <td>
+      <pre>CATUnicodeString RelName;
+hr = spRel-&gt;<b>GetName</b>(RelName);
+
+CATUnicodeString RelType;
+hr = spRel-&gt;<b>GetRelationTypeName</b>(RelType);
+
+CATUnicodeString RelDesc;
+hr = spRel-&gt;<b>GetDescription</b>(RelDesc);</pre>
+    </td>
+  </tr>
+</table>
+<p>In the code extract above,&nbsp; <code><i><b>spRel</b></i></code> is a <code>
+<i><b>PLMICustomRelationship</b></i></code> * type on a <b>Customer Link</b>.&nbsp;&nbsp; 
+This link is identified (selected) by an end-user from the list displayed by the&nbsp; 
+&quot;<b>Custom Relationship from Source</b>&quot; dialog box [<a href="#Fig. 3">Fig. 
+5</a>] </p>
+<p>The call to <code><b><i>PLMICustomRelationship</i></b></code> APIs namely. <code>
+<b>GetName</b></code>, <code><b>GetRelationTypeName</b></code> and <code><b>
+GetDescription</b></code> returns the relation name, its type name and an 
+associated description. These calls occur in the <code>
+<b>CAACustoRelFromSrcDlg</b></code>::<code><b>OnBtnPropPushBActivateNotification</b></code> 
+implementation, an action associated with the &quot;<b>Properties</b>&quot; button click 
+event of the &quot;<b>Custom Relationship from Source</b>&quot; dialog box&nbsp;&nbsp;&nbsp; [<a href="#Fig. 3">Fig. 
+5</a>]</p>
+<h2><a name="Reroute target of a custo link"></a>Reroute Target of a Customer Link</h2>
+<p>The <i><code><b>PLMICustomRelationship</b></code></i> implementation on a 
+Customer Link also provides a service to reroute its target. It involves a single 
+call to <i><code><b>PLMICustomRelationship</b></code></i>::<code><b>RerouteTargetObject</b></code>, 
+as depicted below, which occurs in the <code><b>RerouteTarget </b></code>
+implementation of the state commands <code><b>CAACustoRelFromSrcStateCmd </b></code>
+and<code><b> CAACustoRelFromTgtStateCmd.</b></code></p>
+<table class="code" id="table26">
+  <tr>
+    <td>
+      <pre>	hr = spSelectedRelation-&gt;<b>RerouteTargetObject</b>(_piPLMCompOnNewTgt);</pre>
+    </td>
+  </tr>
+</table>
+<p>In the code extract above, <code><b>spSelectedRelation</b></code> is a <i>
+<code><b>PLMICustomRelationship</b></code></i> * type on a Customer Link. This link 
+is identified (selected) by an end-user from the list displayed by the&nbsp; &quot;<b>Custom 
+Relationship from Source</b>&quot; dialog box [<a href="#Fig. 3">Fig. 5</a>]</p>
+<p><code><b>_piPLMCompOnNewTgt</b></code> is a <i><code><b>CATIPLMComponent</b></code></i> * 
+type on the new target. It is valuated by the <code><b>
+IsSelectionAPLMInstance</b></code> implementation of the&nbsp; State Commands <code><b>CAACustoRelFromSrcStateCmd </b></code>
+and<code><b> CAACustoRelFromTgtStateCmd, </b></code>which occurs in response to 
+a new target selected by an end-user in the spec tree within <b>CATIA</b>.<code><b> </b></code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+      <p>The Use Case is an Interactive State Command which 
+		allows CAA customers to manage their own relationships between various 
+		PLM entities, across different Modelers exposed from within the scope of 
+		the&nbsp; <b>RFLP</b> (Requirement, Functional, Logical, Physical) 
+		editor.&nbsp;&nbsp; </p>
+<p>A Customer Linkis managed fundamentally using the following two methodologies 
+namely.</p>
+<ul>
+	<li>A <b>Relationship Manager</b>, whose <i><code><b>
+	PLMICustomRelationshipManager</b></code></i> implementation provides 
+	services to 
+	<ul>
+		<li>List the Customer Linksoriginating from a source or terminating at a 
+		target</li>
+		<li>Delete a CustomerLink</li>
+	</ul>
+	</li>
+	<li>The <b>Customer Lin</b>kitself, whose <i><code><b>PLMICustomRelationship</b></code></i> 
+	implementation provides services to<ul>
+		<li>Retrieve its properties (Relation Name, its type name and 
+		description)</li>
+		<li>Reroute its target</li>
+	</ul>
+	</li>
+</ul>
+		<p>The Use Case accomplishes this by deploying a <b>
+		State Command</b> [<a href="#References">2</a>] located in the &quot;<b>Customer Link</b>&quot; toolbar, 
+		a part of the <b>General Workshop AddIn</b> existing within <b>CATIA</b>. The State Command aided by the <b>Dialog Boxes</b> [<a href="#References">3</a>] drives this Use 
+		Case through various states associated with its lifecycle.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+		<h2><a name="References"></a>References</h2>
+		<table id="table30">
+			<colgroup>
+				<col valign="top" span="1">
+			</colgroup>
+			<tr>
+				<td>[1]</td>
+				<td>
+                <a href="CAAClnkUcCreation.htm">Creating a Custom Link</a></td>
+			</tr>
+			<tr>
+				<td>[2]</td>
+				<td>
+				<a href="../CAADegDialogEngine/CAADegTaGettingStarted.htm">Getting started with State Dialog Commands</a></td>
+			</tr>
+			<tr>
+				<td>[3]</td>
+				<td>
+				<a href="../CAADlgDialog/CAADlgUcSampleGettingStarted.htm">Getting started with Dialog Boxes</a></td>
+			</tr>
+			<tr>
+				<td>[4]</td>
+				<td>
+                <a href="../CAAAfrApplicationFrame/CAAAfrUcSampleAddin.htm">Creating an Add-In</a></td>	
+			</tr>
+			<tr>
+				<td>[5]</td>
+				<td>
+                <a href="../CAADocUseCases/CAADocRunSample.htm">Building and Launching a CAA Use Case</a></td>
+			</tr>
+			</table>
+
+		<!---------------------------------comment------------------------------------->
+		<h2><a name="History0"></a>History</h2>
+		<table id="table31">
+			<tr>
+				<td>Version: <strong>1</strong> [Feb 2008]</td>
+				<td>Document created</td>
+			</tr>
+			</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+</body>
+
+</html>
+

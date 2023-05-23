@@ -1,0 +1,155 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Installing a CAA Partner Product</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Installing a CAA Partner Product</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>CAA applications developed either by CAA partners or in-house can be 
+		installed as products by customers to be used with Dassault Syst&#232;mes products. 
+		This article describes the basics of their installation and environment 
+		setup.</p>
+		<ul>
+			<li><a href="#Installation">How to Define a Partner Product Installation 
+			Procedure</a></li>
+			<li><a href="#Environment">How to Set up Environments</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Installation"></a>How to Define a Partner Product Installation Procedure</h2>
+<p>The installation procedure:</p>
+<ul>
+	<li>The CD-ROM must contain at least the file tree created using
+	<pre>mkCreateRuntimeView -s -t DestDir -d</pre>
+	</li>
+	<li>The installation procedure must retrieve the installation directory using 
+	either a dialog with UNIX, or by reading the registry key <code>&lt;HKLM&gt:\SOFTWARE\DassaultSystemes\V6\&lt;Bxxx&gt;\Desktop\&lt;Install_Id&gt;\Path</code> 
+	with Windows<br />
+	where:
+	<ul>
+		<li><code>HKLM</code> stands for <code>HKEY_LOCAL_MACHINE</code></li>
+		<li><code>Bxxx</code> is the installed release level, such as B417 for R2015x</li>
+		<li><code>Install_Id</code> is a string identifying the installation. For a given level
+		the first installation is automatically identified as '!', then, when performing a new separate
+	       	installation of code of the same level, the administrator is requested to provide his own identifier.</li>
+	</ul>
+	</li>
+	<li>The installation procedure must check that the installed release level matches 
+	its own prerequisites by using the CAA global functions <code>CATGetGALevel</code> 
+	and <code>CATGetHFXLevel</code></li>
+	<li>The installation directory to be proposed by default should be similar to:<br />
+	<code>/usr/partner/B41</code>7 or <code>C:\Program Files\partner\B417</code><br />
+	where <code>partner</code> is the partner name.</li>
+	<li>The installation procedure must check that the installation directory chosen 
+	by the customer is empty and is not the installation directory. This will avoid 
+	future naming space and uninstallation problems</li>
+	<li>At the end of the installation, the installation procedure must create an 
+	environment that concatenates the Dassault Syst&#232;mes and the partner installed 
+	products. Use the <code>setcatenv</code> command to do this:
+	<pre>setcatenv -e PartnerProduct -p DS_InstallPath:Partner_InstallPath</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Environment"></a>How to Set up Environments</h2>
+<p>Sample scenario: Two partner add-ons are installed, Prod1 and Prod2. The customer 
+may want to use 3DEXPERIENCE alone, 3DEXPERIENCE with Prod1, 3DEXPERIENCE with Prod2, and 3DEXPERIENCE with 
+both products. An environment dedicated to each of these cases must be defined.
+</p>
+<ul>
+	<li>Using 3DEXPERIENCE alone:
+	<pre>setcatenv -e 3DEXPERIENCE_Alone</pre>
+	</li>
+	<li>Using 3DEXPERIENCE and Prod1:
+	<pre>setcatenv -e 3DEXPERIENCE_And_Prod1 -p 3DEXPERIENCE_InstallPath;Prod1_InstallPath</pre>
+	</li>
+	<li>Using 3DEXPERIENCE and Prod2:
+	<pre>setcatenv -e 3DEXPERIENCE_And_Prod2 -p 3DEXPERIENCE_InstallPath;Prod2_InstallPath</pre>
+	</li>
+	<li>Using 3DEXPERIENCE, Prod1 and Prod2:
+	<pre>setcatenv -e 3DEXPERIENCE_And_Prods -p 3DEXPERIENCE_InstallPath;Prod1_InstallPath;Prod2_InstallPath</pre>
+	</li>
+</ul>
+<p><strong>Notes</strong>:</p>
+<ul>
+	<li>With UNIX, replace ; with:</li>
+	<li>Using <code>setcatenv</code>/<code>catiaenv</code>
+	<ul>
+		<li>UNIX: <code>catstart_fullpath -run &quot;setcatenv catenv_options&quot;</code>
+		</li>
+		<li>Windows: <code>setcatenv_fullpath catenv_options</code></li>
+	</ul>
+	</li>
+</ul>
+<p>Desktop access: Double clicking the 3DEXPERIENCE icon starts 3DEXPERIENCE and gives access 
+to the resources defined by the concatenation referred to.</p>
+<p>Access from the command line (either located in the appropriate directory or 
+by typing the full path name):</p>
+<ul>
+	<li>UNIX:
+	<pre>catstart -env used_product_env -d env_path -run my_appli</pre>
+	</li>
+	<li>Windows:
+	<pre>my_appli -env used_product-env [-dir env_path]</pre>
+	</li>
+</ul>
+<p>This works with Windows and UNIX, with 3DEXPERIENCE or any application. With Windows, 
+using an application other than 3DEXPERIENCE requires to set the <code>Path</code> environment 
+variable using the file tree/code/bin directory.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="PostInstall"></a>Post Installation Procedure for Site Administrator</h2>
+<p>The administrator of the site where the product is installed should</p>
+<ul>
+<li>declare the app as a native Third Party App in the 3DEXPERIENCE Platform 3DCompass service as described in the <quote>Adding Third Party App</quote> article of the <quote>3DEXPERIENCE 
+Platform Administration</quote> guide. For that purpose the App documentation should provide all the needed information (Short Name, Icon, ...).</li>
+<li>to enable correct lauch of the app from 3DDashboard compass, the default environment file created at the 3DEXPERIENCE Platform Native Client installation, meaning the <code>Env.txt</code> file located
+ in the <code>CATEnv</code> folder of this installation, should be replaced by an environment file containing the concatenation of:
+ <ul>
+	 <li>the 3DEXPERIENCE Platform Native Client installation path</li>
+	 <li>the paths of all the partners/customer CAA Native Apps installed on the station</li>
+ </ul>
+ it is highly recommended to keep a copy of the original <code>Env.txt</code> file. 
+ </li>
+</ul>  
+<script type="text/javascript">insertCopyright();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1.0</strong> [Aug 2001]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+
+</body>
+
+</html>

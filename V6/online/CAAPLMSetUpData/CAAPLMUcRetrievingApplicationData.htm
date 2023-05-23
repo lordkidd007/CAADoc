@@ -1,0 +1,456 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Retrieving Application Resource Data</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Retrieving Application Resource Data</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes an example of retrieving the resource data associated 
+		with a CAA application.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPLMResourceDataRetrieval Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAPLMResourceDataRetrieval Do</a></li>
+					<li><a href="#How">How to Launch CAAPLMResourceDataRetrieval</a></li>
+					<li><a href="#Where">Where to Find the CAAPLMResourceDataRetrieval 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show how a CAA Application having defined a Resource 
+Set [<a href="#References">1</a>] can retrieve its resource data to work with. You 
+will learn besides:</p>
+<ul>
+	<li>The Resource Table, created by an administrator, must be first associated 
+		with a project. Indeed, the API retrieving the data only works if the Resource 
+		Table has been linked to the current P&amp;0 project. The API retrieves 
+		the data of the project where you are connected.</li>
+	<li>How to handle the retrieved data.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPLMResourceDataRetrieval Use Case</h2>
+<p>CAAPLMResourceDataRetrieval is a use case of the CAAPLMSetupDataInterfaces.edu 
+framework that illustrates PLMSetupDataInterfaces framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAPLMResourceDataRetrieval Do</h3>
+<p>CAAPLMResourceDataRetrieval primarily simulates the application whose resource 
+set is specified in the referenced article [<a href="#References">2</a>]. This table 
+sums up its contents:</p>
+<table class="fill">
+	<tr>
+		<th>Resource Identifier</th>
+		<th>Resource Type</th>
+	</tr>
+	<tr>
+		<td>CAAResource1</td>
+		<td>Catalog</td>
+	</tr>
+	<tr>
+		<td>CAAResource2</td>
+		<td>Chapter</td>
+	</tr>
+	<tr>
+		<td>CAAResource3</td>
+		<td>PLMReference</td>
+	</tr>
+	<tr>
+		<td>CAAResource4</td>
+		<td>PLMRepReference</td>
+	</tr>
+	<tr>
+		<td>CAAResource5</td>
+		<td>PowerCopy</td>
+	</tr>
+	<tr>
+		<td>CAAResource6</td>
+		<td>UserDefinedFeature</td>
+	</tr>
+	<tr>
+		<td>CAAResource7</td>
+		<td>Sheet</td>
+	</tr>
+	<tr>
+		<td>CAAResource8</td>
+		<td>TXTDocument</td>
+	</tr>
+	<tr>
+		<td>CAAResource9</td>
+		<td>XMLDocument</td>
+	</tr>
+</table>
+<p>The use case retrieves the data associated with these resource identifiers for 
+the Resource table [<a href="#References">2</a>] associated with the current P&amp;O 
+project (the one of your connection). The scenario of the executable is as follows:</p>
+<ul>
+	<li>Retrieves the Setupdata finder object.</li>
+	<li>Retrieves the data according to the input resource identifier.</li>
+	<li>Handles the data with the appropriate API:
+		<ul>
+			<li>For Catalog and Chapter we use the API of PLMLibraryNavUseItf to 
+				display name of the Catalog/Chapter (*).</li>
+			<li>For PLMReference, PLMReference, we use CATIPLMNavEntity to display 
+				the PLM_ExternalID value of the PLM Object.</li>
+			<li>For Sheet, we use <em>CATICkeSheet</em> to display the contents 
+				of the first cell.</li>
+			<li>For the TXTDocument, we display the contents of the txt file.</li>
+			<li>For XMLDocument, we just display the tag name of the root element.</li>
+			<li>For PowerCopy and UserDefinedFeature, we just display a cout.</li>
+		</ul>
+	</li>
+</ul>
+<ul>
+	<li>Releases the Setupdata finder object</li>
+</ul>
+<p>(*) Using PLMLibraryNavUseItf requires pre-req that are not possible for DS internal 
+reason. In order to test:</p>
+<ul>
+	<li>Add the pre-req for PLMLibraryNavUseItf in the IdentityCard.</li>
+	<li>Add PLMLibraryNavUseItf and PLMLibraryNavUseImpl in the module&#39;s Imakefile.mk 
+		file. </li>
+	<li>Remove the comments in the use case code.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAPLMResourceDataRetrieval</h3>
+<p>To launch CAAPLMResourceDataRetrieval, you will need to set up the build time 
+environment, then compile CAAPLMResourceDataRetrieval along with its prerequisites, 
+set up the run time environment, and then execute the use case [<a href="#References">3</a>].</p>
+<p><code>mkrun -c CAAPLMResourceDataRetrieval Repository Server User Password SecurityCtx 
+ResourceID</code></p>
+<p>where:</p>
+<table class="fill">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The server as host::<em> name</em>:<em>port_number/RootURI</em></td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context ( Role. Organization.
+		<strong>Project</strong>)</td>
+	</tr>
+	<tr>
+		<th>ResourceID</th>
+		<td>The identifier of the resource. Valid strings are: <code>CAAResource1</code>,
+		<code>CAAResource2</code>, <code>CAAResource3, CAAResource4, CAAResource5, 
+		CAAResource6, CAAResource7, CAAResource8, CAAResource9</code></td>
+	</tr>
+</table>
+<p><strong>But previously</strong></p>
+<ul>
+	<li><strong>Set the</strong> <code>CAAMyApplicationResourceSet.xml</code> file 
+		in the CNext directory
+		<p>The <code>CAAMyAppSetUpData.xml</code> is here:</p>
+		<p><code>InstallRootFolder\CAADoc\CAAPLMSetupDataInterfaces.edu\InputData\CAAMyApplicationResourceSet.xml</code></p>
+		<p>you set in the following directory:</p>
+		<p><code>InstallRootFolder\CAADoc\CAAPLMSetupDataInterfaces.edu\CNext\resources\knowledge\AppResourceSetDescriptions</code></p>
+		<p>when you will setup the runtime environment, the file will be here:</p>
+		<p><code>win_b64\resources\knowledge\AppResourceSetDescriptions</code></p>
+		<p>The CATNls and CATRsc files are already in the CNext directory.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAPLMSetupDataInterfaces.edu\CNext\resources\msgcatalog</code></p>
+	</li>
+	<li><strong>Launch V6 and Import</strong> the <a><code>CAAMyApplicationResourceTable.3dxml</code></a>
+		<p>A resource table containing data is available with this <a><code>CAAMyApplicationResourceTable.3dxml</code></a> 
+		file from the <a><code>CAAPLMSetupDataInterfaces.edu</code></a> framework.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAPLMSetupDataInterfaces.edu\InputData\CAAMyApplicationResourceTable.3dxml</code></p>
+		<p>Where <code>InstallRootFolder</code> [<a href="#References">3</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+		<p>The <a><code>CAAMyApplicationResourceTable.3dxml</code></a> contains 
+		a PLM Resource Set object (a Resource Table) with the following attributes:</p>
+		<ul>
+			<li>
+				<p><strong>PLM_ExternalID</strong>: <a><code>CAAMyApplicationResourceTable</code></a></p>
+			</li>
+		</ul>
+	</li>
+	<li><strong>Quit</strong> V6</li>
+	<li><strong>Launch</strong> <code>CAAPLMResourceDataRetrieval</code> with any 
+		resource ID. It does not fail, but the Resource Table contained in the
+		<a><code>CAAMyApplicationResourceTable.3dxml</code></a> is not linked to 
+		a P&amp;0 project.</li>
+	<li><strong>Launch V6</strong></li>
+	<li>Launch the &quot;<strong>Project Resource Management</strong>&quot; workbench</li>
+	<li><strong>Link</strong> the Resource Table below &quot;<strong>My Application 
+		Resource Set&quot;</strong> to a<strong> project</strong> (drag and drop)</li>
+	<li><strong>Propagate</strong> all</li>
+	<li><strong>Quit</strong> V6</li>
+	<li><strong>Launch</strong> <code>CAAPLMResourceDataRetrieval</code> with the 
+		same project, and try with any resource ID.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPLMResourceDataRetrieval Code</h3>
+<p>The CAAPLMResourceDataRetrieval use case is made of a single file located in 
+the CAAPLMResourceDataRetrieval.m module of the CAAPLMSetupDataInterfaces.edu framework:
+<code>InstallRootFolder\CAADoc\CAAPLMSetupDataInterfaces.edu\CAAPLMResourceDataRetrieval.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">3</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are eight logical steps in CAAPLMResourceDataRetrieval:</p>
+<ol>
+	<li><a href="#Step1">Retrieving the SetupData Finder</a></li>
+	<li><a href="#Step2">Retrieving a Catalog, Chapter</a></li>
+	<li><a href="#Step3">Retrieving a PLM Reference, PLM Rep Reference</a></li>
+	<li><a href="#Step4">Retrieving a Power Copy, User feature</a></li>
+	<li><a href="#Step5">Retrieving a Sheet</a></li>
+	<li><a href="#Step6">Retrieving a Text File</a></li>
+	<li><a href="#Step7">Retrieving an XML File</a></li>
+	<li><a href="#Step8">Releasing SetUpData Finder</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Retrieving the SetupData Finder</h3>
+<pre class="code">...
+CATUnicodeString SetupDataFinderID = &quot;MyFinder&quot;;
+PLMISetupDataFinder_var setupDataFinder = <strong>PLMSetupDataGlobalFunctions::GetPLMSetupDataFinder</strong>(SetupDataFinderID);
+...</pre>
+<p>Now we are ready to use <code>setupDataFinder</code> to retrieve data for our 
+application. The resource id further used is:</p>
+<pre class="code">...
+CATUnicodeString ResourceId = &quot;<strong>CAAMyApplicationResourceSet</strong> |&quot; + CATUnicodeString(iArgv[6]) ;
+...</pre>
+<p>The criteria, the second argument of the method of <em>PLMISetupDataFinder,</em> 
+is always NULL, since no criteria is still not possible.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving a Catalog, Chapter</h3>
+<pre class="code">...
+CATBaseUnknown_var spCatalogAsCBU ; 
+hr = setupDataFinder-&gt;<strong>FindPointedResource</strong>(ResourceId,NULL_var,spCatalogAsCBU);
+...</pre>
+<p>First you use <code>FindPointedResource</code> of the <em>PLMISetupDataFinder</em> 
+interface. But for these two resources type, the returned pointer is not the object 
+implementing the <em>PLMICLGLibrary</em> or <em>PLMICLGClass</em> interfaces. So 
+first you must retrieve their <em>CATIAdpPLMIdentificator</em> interface pointer.</p>
+<pre class="code">...
+<strong>CATIPLMComponent_var</strong> spPLMComp = spCatalogAsCBU ;
+...
+<strong>CATIAdpPLMIdentificator</strong> *pAdp = NULL ;
+hr = spPLMComp-&gt;<strong>GetAdpID</strong>(pAdp);
+...</pre>
+<p>Then you use the appropriate API to retrieve the Catalog (a Library modeler object):</p>
+<pre class="code">...
+<strong>PLMICLGLibrary</strong> *oLibrary=NULL;
+hr= <strong>PLMCLGPublicLibraryNavServices</strong>::<strong>GetLibrary</strong>(pAdp, oLibrary);
+...
+CATUnicodeString LibraryName ;
+hr = oLibrary-&gt;<strong>GetName</strong>(LibraryName) ;
+...
+</pre>
+<p>Same thing for the Chapter (a Class modeler object):</p>
+<pre class="code">...
+<strong>PLMICLGClass</strong> *oChapter=NULL;
+hr= PLMCLGPublicLibraryNavServices::<strong>GetClass</strong>(pAdp, oChapter);
+...
+CATUnicodeString ClassName ;
+hr = oChapter-&gt;<strong>GetName</strong>(ClassName) ;
+...
+</pre>
+<p><em>PLMCLGPublicLibraryNavServices</em>, <em>PLMICLGClass</em> and <em>PLMICLGLibrary</em> 
+are APIs of PLMLibraryNavUseItf framework.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Retrieving a PLM Reference, PLM Rep Reference</h3>
+<pre class="code">...
+CATBaseUnknown_var spPLMReferenceAsCBU ; 
+hr = setupDataFinder-&gt;<strong>FindPointedResource</strong>(ResourceId,NULL_var,spPLMReferenceAsCBU);
+...</pre>
+<p>First you use <code>FindPointedResource</code> of the<em> PLMISetupDataFinder</em> 
+interface. Do not set the returned PLM Object in a Bag [<a href="#References">4</a>]. 
+While the SetupData Finder &quot;MyFinder&quot; is in session (see 
+<a href="#Step8">Releasing SetUpData Finder</a>), the PLM object is kept in session.</p>
+<pre class="code">...
+<strong>CATIPLMNavEntity_</strong>var spEntityOnPLMReference = spPLMReference ;
+CATListOfCATUnicodeString ListAttr;
+ListAttr.Append(&quot;PLM_ExternalID&quot;);
+CATListOfCATUnicodeString ListValue;
+spEntityOnPLMReference-&gt;<strong>GetPublicAttributes</strong>(ListAttr,ListValue);
+...</pre>
+<p>Then you use the appropriate API to handle the PLM entity. Here we have used 
+the &quot;generic&quot; API to retrieve the <code>PLM_ExternalID</code> value.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Retrieving a Power Copy, User feature</h3>
+<pre class="code">...
+CATBaseUnknown_var spPCAsCBU ; 
+hr = setupDataFinder-&gt;<strong>FindPointedResource</strong>(ResourceId,NULL_var,spPCAsCBU);
+...</pre>
+<p>The API to handle a power copy or a user feature (also named a user defined feature) 
+are inside the CATRepTemplateUseItf framework [<a href="#References">5</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Retrieving a Sheet</h3>
+<pre class="code">...
+ CATICkeSheet_var oSheet;
+ hr = setupDataFinder-&gt;<strong>FindSheet</strong>(ResourceId,NULL_var,oSheet);
+...</pre>
+<p>First you use <code>FindSheet</code> of the <em>PLMISetupDataFinder</em> interface.</p>
+<pre class="code">...
+CATUnicodeString TheCellContents = oSheet-&gt;<strong>Cell</strong>(1,1);
+...</pre>
+<p>Then you use the <em>CATICkeSheet</em> interface to handle the sheet.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Retrieving a Text File</h3>
+<pre class="code">...
+hr = setupDataFinder-&gt;<strong>FindDocument</strong>(ResourceId,NULL_var,oTextDocument);
+...</pre>
+<p>The txt data is retrieved with <code>FindDocument</code>. This method returns 
+the complete file path of the txt file on your computer.</p>
+<pre class="code">...
+ unsigned int oFileDescriptor = 0;
+ hr = <strong>CATFOpen</strong>(&amp;oTextDocument, &quot;r&quot;, &amp;oFileDescriptor);
+ char line[1000];
+ while ( SUCCEEDED(hr)  &amp;&amp; <strong>CATFEof</strong> (oFileDescriptor) != S_OK)
+ {
+    hr = <strong>CATFGets</strong> ( line, 1000, oFileDescriptor );
+    ...
+ }
+ hr = <strong>CATFClose</strong> (oFileDescriptor);
+...</pre>
+<p>Then we use the function of the <em>CATStdIO</em> header to scan to txt file.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Retrieving an XML file</h3>
+<pre class="code">...
+CATUnicodeString oXMLDocument = &quot;&quot;;
+hr = setupDataFinder-&gt;<strong>FindDocument</strong>(ResourceId,NULL_var,oXMLDocument);
+...</pre>
+<p>The xml data is retrieved with <code>FindDocument</code>. This method returns 
+the complete file path of the XML file on your computer. To scan it, use the API 
+of the XMLParserItf framework.</p>
+<pre class="code">...
+ <strong>CATIXMLDOMDocumentBuilder_var</strong> builder;
+ hr = ::<strong>CreateCATIXMLDOMDocumentBuilder</strong>(builder);
+ CATListOfCATUnicodeString readOptions;
+ readOptions.Append(&quot;CATDoValidation&quot;);
+ CATListOfCATUnicodeString readOptionValues;
+ readOptionValues.Append(&quot;false&quot;);
+
+ <strong>CATIDOMDocument_var</strong> DOMdocument;
+ hr = builder-&gt;<strong>Parse</strong>(<strong>oXMLDocument</strong>, DOMdocument, readOptions, readOptionValues);
+ <strong>CATIDOMElement_var</strong> TheRootElement;
+ DOMdocument-&gt;<strong>GetDocumentElement</strong>(TheRootElement) ;
+  
+ CATUnicodeString TagName ;
+ hr = TheRootElement-&gt;<strong>GetTagName</strong>(TagName);
+...</pre>
+<p>Here a simple piece of code using DOM protocol. Have a look to the technical 
+article to understand XML domain [<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step8"></a>Releasing SetUpData Finder</h3>
+<pre class="code">...
+ hr = <strong>PLMSetupDataGlobalFunctions::RemovePLMSetupDataFinder</strong>(SetupDataFinderID);
+...</pre>
+<p>After this call, the downloaded files (txt, xml) are still accessible till the 
+end of the session, but all PLM data retrieved by the &quot;finder&quot; object 
+are no more accessible.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to retrieve resource data for a CAA application.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPLMTaProjectResourcePrinciples.htm">V6 Application Resource</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPLMTaAppResourceSetDefinition.htm">Defining Application 
+		Resource Set</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbUcPLMCompLifeCycle.htm')">
+		Managing PLM Component Lifecycle</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAMcaUserFeatPowerCopy/CAAMcaTaPowerCopyAndUserFeatures.htm')">
+		An Overview of Power Copies and User Features</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAXmlParser/CAAXmlTaIntroduction.htm')">
+		Introduction to XML</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Dec 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

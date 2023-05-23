@@ -1,0 +1,701 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating Temporary Components</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating Temporary Components</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A temporary component is a component which is not integrated into the 
+		data model. In most cases it is a simple component to help the understanding 
+		of an interactive command. This article shows how to create a such object 
+		depending on its usage.</p>
+		<p>To take full advantage of this article, you can first read the technical 
+		article about the Interactive Set of Objects and the temporary components 
+		[<a href="#References">1</a>].</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAVisTemporaryObjects Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAVisTemporaryObjects Do</a></li>
+					<li><a href="#How">How to Launch CAAVisTemporaryObjects</a></li>
+					<li><a href="#Where">Where to Find the CAAVisTemporaryObjects 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how create temporary components depending 
+on their usage:</p>
+<ul>
+	<li>A component which only needs to be visualized but not to be selected
+		<p>It is simple instance of the <em>CATModelForRep3D</em> class</p>
+	</li>
+	<li>A component which needs to be visualized and to be selected
+		<p>It is a component which derives from the <em>CATModelForRep3D</em> component. 
+		Consequently, it already implements <em>CATI3DGeoVisu.</em> So you have 
+		only to create and implement a specific interface which will be the discriminant 
+		interface for the agent of selection.</p>
+	</li>
+	<li>A component whose the graphic representation can be modified while it is 
+		always in the ISO
+		<p>The usage of the <em>CATModelForRep3D</em> is not recommended for this 
+		last case. Refer you to the referenced article [<a href="#References">1</a>] 
+		for details about the reason. So, the component is a simple component which 
+		implements <em>CATI3DGeoVisu</em> and an interface of type. A such interface 
+		sets and gets the &quot;intrinsic&quot; data of the component, and enables 
+		us to build the graphic representation.</p>
+	</li>
+</ul>
+<p>These temporary components are visualized thanks the Interactive Set of Objects. 
+The &quot;Visualizing Temporary Components&quot; article [<a href="#References">2</a>] 
+details how to insert, remove, update a component of the ISO.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAVisTemporaryObjects Use Case</h2>
+<p>CAAVisTemporaryObjects is a use case of the CAADialogEngine.edu and CAAVisualization.edu 
+frameworks that illustrates DialogEngine, ApplicationFrame, and Visualization frameworks 
+capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAVisTemporaryObjects Do</h3>
+<p>CAAVisTemporaryObjects creates three temporary components. There are used in 
+the <strong>Clipping By Box</strong> command of the CAAGeometry data model [<a href="#References">3</a>]. 
+The referenced article [<a href="#References">2</a>] details the state chart of 
+this command. But to sum up, this command is a state command to remove all the 
+points of the current model outside a given box. This clipping box is defined by the end user: 
+first, he/she defines its location by selecting an existing point. Then, from the 
+selected point a first clipping box is displayed, and he/she can move the mouse 
+to increase or decrease the size of the box. Now, let us see how the temporary components 
+are used in this command.</p>
+<p>At the beginning of the command, the following text is displayed in (0,0,0):</p>
+<p>
+<img alt="ISO Text" height="62" src="images/CAAVisSampleTmpObjectISOText.jpg" width="146"/></p>
+<p>Once the text is selected, the end user must select a point to define the center 
+of the wire box. At this point location, a trihedral is displayed</p>
+<p>
+<img alt="Normal ISO" height="64" src="images/CAAVisSampleTmpObjectTrihedral.jpg" width="63"/></p>
+<p>and a wire box is drawn in the furtive ISO:</p>
+<p>
+<img alt="Furtive ISO" height="193" src="images/CAAVisSampleTmpObjectWireBox.jpg" width="322"/></p>
+<p>The <a href="#Text">text</a>, the
+<a href="#Trihedral">trihedral</a> and the
+<a href="#WireBox">wire box</a> are three temporary components. Now, lets 
+explain the internal data:</p>
+<p><strong><a name="Trihedral"></a>The trihedral</strong></p>
+<p>
+<img alt="Trihedral UML Diagram" height="180" src="images/CAAVisSampleTmpObjectOMTTrihedral.jpg" width="353"/></p>
+<p>The trihedral is an instance of the CATModelForRep3D component. This component 
+implements <em>CATI3DGeoVisu</em>, that allows you to set the component instance 
+in the ISO.</p>
+<p><strong><a name="Text"></a>The text</strong></p>
+<p>
+<img alt="Text UML Diagram" height="366" src="images/CAAVisSampleTmpObjectOMTText.jpg" width="496"/></p>
+<p>The trihedral is an instance of the CAAVisTextModel component. This component 
+Object Modeler and C++ derives from the CATModelForRep3D component. Consequently, 
+implementing the <em>CATI3DGeoVisu</em> interface, any instance of the CAAVisTextModel 
+component can be visualized in the ISO.</p>
+<p>The CAAVisTextModel component implements the <em>CAAIVisTextModel</em> interface 
+to enable us selecting without ambiguity an instance of this component. This interface 
+will be the filter of the agent of selection, a <em>CATPathElementAgent</em> class 
+[<a href="#References">4</a>]. However, without this interface, the trihedral is 
+nevertheless selectable, but the only one interface you can use is <em>CATI3DGeoVisu</em>. 
+This interface being implemented by all visualized components, it is not a discriminant 
+interface.</p>
+<p>At last, the CAAVisTextModel component implements the <em>CATICreateInstance
+</em>interface to avoid to export the component implementation class.</p>
+<p><strong><a name="WireBox"></a>The wire box</strong></p>
+<p>
+<img alt="Wire Box UML Diagram" height="333" src="images/CAAVisSampleTmpObjectOMTWireBox.jpg" width="498"/></p>
+<p>The wire box is an instance of the CAAVisWireBox component. Unlike the first 
+two components, the CAAVisWireBox is not a CATModelForRep3D component. The reason 
+comes from that the graphic representation will change during the life time of the 
+state command. To sump up, once a component is into the ISO, you should not use/modify 
+its graphic representation. The construction must be controlled by the <em>CATVisManager</em>. 
+Refer to the technical article [<a href="#References">1</a>] for details about the 
+life cycle of the graphic representation.</p>
+<p>The CAAVisWireBox component implements the <em>CAAIVisWireBox</em> to set and 
+retrieve the size and location of the wire box.</p>
+<p>The CAAVisWireBox component implements the <em>CATI3DGeoVisu</em> to build the 
+graphic representation in taken into account the values returned by the <em>CAAIVisWireBox</em> 
+interface.</p>
+<p>At last, the CAAVisWireBox component implements the <em>CATICreateInstance
+</em>interface to avoid to export the component implementation class.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAVisTemporaryObjects</h3>
+<p>See the section entitled &quot;How to Launch the CAAGeometry Use Case&quot; in 
+[<a href="#References">3</a>] for a detailed description of how this use case should 
+be launched. For the specific scenario:</p>
+<p>Launch 3DEXPERIENCE. When the application is ready:</p>
+<ul>
+    <li>Click on <strong>3D</strong>, the west quadrant of Compass.</li>
+    <li>In the <strong>3D Modeling apps</strong> section, select <strong>&quot;CAA: Create Geom&quot;</strong> app. </li>
+    <li>Launch the <strong>Point</strong> command in <strong>&quot;CAA Geometry Creation Section&quot;</strong> 
+    of the action bar, and create some points.</li>
+	<li>Launch the <strong>Clipping By Box</strong> 
+	<img alt="Clipping By Box Icon" height="28" src="images/CAAVisClipByBoxIcon.jpg" width="27"/>command 
+		in the <strong>Tools</strong> section of action bar.</li>
+	<li>Select the <strong>ISO Selection</strong> text located at the origin of 
+		the model (0,0,0)
+		<p>After the selection, the text disappears.</p>
+	</li>
+	<li>Select a point as clipping box center.
+		<p>After the selection, the trihedral is displayed.</p>
+	</li>
+	<li>Move the mouse, and click left to stop 
+		the command.
+		<p>All points outside the clipping box are removed from the current 
+		CAAGeometry model.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAVisTemporaryObjects Code</h3>
+<p>The CAAVisTemporaryObjects use case is made of several classes located:</p>
+<ul>
+	<li>In the CAADegGeoCommands.m module of the CAADialogEngine.edu framework:
+		<p><code>InstallRootFolder\CAADoc\CAADialogEngine.edu\CAADegGeoCommands.m\</code></p>
+		<p>The <em>CAADegClippingByBoxCmd</em> class contains the creation of the 
+		trihedral component.</p>
+	</li>
+	<li>In the CAAVisModelForRep.m module of the CAAVisualization.edu framework:
+		<p><code>InstallRootFolder\CAADoc\CAAVisualization.edu\CAAVisModelForRep.m\</code></p>
+		<p>This module contains the creation of the text component. The <em>CAADegClippingByBoxCmd</em> 
+		class contains the code which creates its graphic representation.</p>
+	</li>
+	<li>In the CAAVisWireBoxComp.m module of the CAAVisualization.edu framework:
+		<p><code>InstallRootFolder\CAADoc\CAAVisualization.edu\CAAVisWireBoxComp.m\</code></p>
+		<p>This module contains the creation of the &quot;wire box&quot; component.</p>
+	</li>
+</ul>
+<p>where <code>InstallRootFolder</code> [<a href="#References">7</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are three logical steps in CAAVisTemporaryObjects:</p>
+<ol>
+	<li><a href="#Step1">Creating the Trihedral Component</a></li>
+	<li><a href="#Step2">Creating the Text Component</a></li>
+	<li><a href="#Step3">Creating the Wire Box Component</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating the Trihedral Component</h3>
+<p>The Trihedral component is a simple <em>CATModelForRep3D</em> class instance. 
+In the <em>CAADegClippingByBoxCmd</em> class constructor you have the following 
+instruction:</p>
+<pre class="code">...
+_pCenterBoxModel     = new CATModelForRep3D(); 
+...</pre>
+<p>Where <code>_pCenterBoxModel</code> is a data member of the <em>CAADegClippingByBoxCmd</em> 
+class.</p>
+<p>Once a Point is selected, the trihedral is set in the ISO. Its graphic representation 
+must be first defined according to the position of the selected point. Here it is 
+the code to build the graphic representation, and associate it with the trihedral 
+component.</p>
+<pre class="code">...
+HRESULT CAADegClippingByBoxCmd::CreateRepForCenterBox()
+{
+...
+   CAT3DCustomRep * pRepForCenter = new <strong>CAT3DCustomRep</strong>();
+
+   <strong>CATGraphicAttributeSet</strong>  CenterGa ;
+
+   float coord[3] ;
+   coord[0] = _CenterBox.GetX() ;
+   coord[1] = _CenterBox.GetY() ;
+   coord[2] = _CenterBox.GetZ();
+
+   CATMathPointf StartPoint = _CenterBox ;
+   CATMathDirectionf DirX (1.f,0.f,0.f);
+   CATMathDirectionf DirY (0.f,1.f,0.f);
+   CATMathDirectionf DirZ (0.f,0.f,1.f);
+
+   int LengthIn_mm      = 5;
+   int ArrowHeadHeight  = 1;
+   int BaseLength       = 0 ;
+
+   CAT3DFixedArrowGP * pCenterGpX = new <strong>CAT3DFixedArrowGP</strong>(StartPoint,
+                                                       DirX,LengthIn_mm,ArrowHeadHeight,
+                                                       BaseLength);
+   CAT3DFixedArrowGP * pCenterGpY = new CAT3DFixedArrowGP(StartPoint,
+                                                       DirY,LengthIn_mm,ArrowHeadHeight,
+                                                       BaseLength);
+   CAT3DFixedArrowGP * pCenterGpZ = new CAT3DFixedArrowGP(StartPoint,
+                                                       DirZ,LengthIn_mm,ArrowHeadHeight,
+                                                       BaseLength);
+   
+   pRepForCenter-&gt;<strong>AddGP</strong>(pCenterGpX,CenterGa);
+   pRepForCenter-&gt;AddGP(pCenterGpY,CenterGa);
+   pRepForCenter-&gt;AddGP(pCenterGpZ,CenterGa);
+
+   CAT3DBoundingSphere be(coord,0.f,1.f) ;
+   pRepForCenter-&gt;<strong>SetBoundingElement</strong>(be) ;
+   
+   _pCenterBoxModel-&gt;<strong>SetRep</strong>(pRepForCenter) ;
+...</pre>
+<p>The graphic representation, <code>pRepForCenter</code>, of the trihedral is composed 
+of three <em>CAT3DFixedArrowGP</em> class instances. Each one is fixed 
+at the center of the clipping box. <code>_CenterBox</code> is a data member of the
+<em>CAADegClippingByBoxCmd</em> class initialized from the value of the agent of 
+selection. Refer to the <em>CAADegClippingByBoxCmd</em> class code for more details.</p>
+<p>The <code>SetRep</code> method of the <em>CATModelForRep3D</em> class enables 
+you to associate with the component the graphic representation. You do not have 
+to release the <code>pRepForCenter</code> pointer.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating the Text Component</h3>
+<p>The text (ISO Selection) component, named CAAVisTextModel, is a component which 
+derives from the <em>CATModelForRep3D</em> component. There are six sub-steps:</p>
+<ol>
+	<li><a href="#Step21">Creating the CAAIVisTextModel Interface</a></li>
+	<li><a href="#Step22">Creating the CAAVisTextModel Component and Implementing the CAAIVisTextModel 
+		Interface</a></li>
+	<li><a href="#Step23">Implementing the CATICreateInstance Interface</a></li>
+	<li><a href="#Step24">Updating the Interface Dictionary</a></li>
+	<li><a href="#Step25">Instantiating the Component</a></li>
+	<li><a href="#Step26">Creating the Graphic Representation</a></li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step21"></a>Creating the CAAIVisTextModel Interface</h4>
+<p>Here it is the CAAIVisTextModel.h file that you retrieve in the PublicInterfaces 
+of the CAAVisualization.edu framework.</p>
+<pre class="code">...
+class ExportedByCAAVisModelForRep <strong>CAAIVisTextModel</strong>: public CATBaseUnknown
+{
+  CATDeclareInterface;
+
+  public:
+      virtual HRESULT <strong>SetGraphicRepresentation</strong>(CATRep * iRep) = 0;
+};
+...</pre>
+<p>This interface will be used in the <em>CAADegClippingByBoxCmd</em> state command 
+as filter for an agent of selection. Refer to the &quot;Defining the State Chart 
+Diagram&quot; step of the referenced article [<a href="#References">2</a>].</p>
+<p>This interface contains the <code>SetGraphicRepresentation</code> method to associate 
+the graphic representation with the component. The next section,
+<a href="#Step22">
+Creating the CAAVisTextModel Component and Implementing the CAAIVisTextModel Interface</a> 
+details the reason of this method.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step22"></a>Creating the CAAVisTextModel Component and Implementing the CAAIVisTextModel 
+Interface</h4>
+<p>Here it is the CAAVisTextModel.h <code></code>file.</p>
+<pre class="code">... 
+class CAAVisTextModel : public <strong>CATModelForRep3D</strong>
+      
+{
+         CATDeclareClass;
+
+ public:
+         CAAVisTextModel() ;
+         virtual ~CAAVisTextModel();
+
+         virtual HRESULT <strong>SetGraphicRepresentation</strong>(CATRep *iRep) ;
+
+ private:
+         CAAVisTextModel(const CAAVisTextModel &amp;iObjectToCopy);
+         CAAVisTextModel &amp; operator = (const CAAVisTextModel &amp;iObjectToCopy);
+};</pre>
+<p>The <em>CAAVisTextModel</em> class derives from the <em>CATModelForRep3D</em>
+class. The <code>CATDeclareClass</code> macro declares that the <em>CAAVisTextModel</em> 
+class belongs to a component. Note that the copy constructor and the assignment 
+operator are set as private, and are not implemented in the source file. This prevents 
+the compiler from creating them as public without you know. The <code>SetGraphicRepresentation</code> 
+method is the only one method of the <em>CAAIVisTextModel</em> interface.</p>
+<p>Here it is now the source file, CAAVisTextModel.cpp</p>
+<pre class="code">#include &quot;CAAVisTextModel.h&quot;
+
+#include &quot;TIE_CAAIVisTextModel.h&quot;
+TIE_<strong>CAAIVisTextModel</strong>(CAAVisTextModel);
+
+<strong>CATImplementClass</strong>(CAAVisTextModel,Implementation ,<strong>CATModelForRep3D</strong> , CATNull);
+
+CAAVisTextModel::CAAVisTextModel():CATModelForRep3D()  {}
+
+CAAVisTextModel::~CAAVisTextModel() {}</pre>
+<p>The <em>CAAVisTextModel</em> class states that it implements the <em>CAAIVisTextModel</em>
+interface thanks to the <code>TIE_CAAIVisTextModel</code> macro.</p>
+<p>The <code>CATImplementClass</code> macro declares that the <em>CAAVisTextModel</em> 
+class is a component main class thanks the <code>Implementation</code> keyword, 
+and OM-derives [<a href="#References">5</a>] from <em>CATModelForRep3D</em>. The 
+third argument must always be set as <em>CATBaseUnknown</em> or <em>CATNull</em> 
+for any kind of extension.</p>
+<p>The implementation of the <code>SetGraphicRepresentation</code> method is as 
+follows:</p>
+<pre class="code">HRESULT CAAVisTextModel::<strong>SetGraphicRepresentation</strong>(CATRep *iRep)
+{
+    <strong>SetRep</strong>(iRep);
+
+    return S_OK ;
+}</pre>
+<p>This method uses the <code>SetRep</code> method of the <em>CATModelForRep3D</em> 
+class. Refer to the <a href="#Step26">Creating the 
+Graphic Representation</a> step for its usage.</p>
+<p>Note: If you do not instantiate the CAAVisTextModel component with the <em>CATICreateInstance</em> 
+interface, the <code>SetGraphicRepresentation</code> method is useless, since you 
+have a direct access to a <em>CATModelForRep3D</em> class instance.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step23"></a>Implementing the CATICreateInstance Interface</h4>
+<p>Refer to &quot;Creating a Component&quot; article [<a href="#References">6</a>] 
+for details about the creation of the <em>CAAEVisCreateInstanceForTextModel</em> 
+class.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step24"></a>Updating the Interface Dictionary</h4>
+<p>Do not forget to update the interface dictionary, here it is an extract of the 
+CAAVisualization.edu.dico file located in the CAAVisualization.edu/CNext/code/dictionary 
+directory.</p>
+<pre class="code">CAAVisTextModel        CAAIVisTextModel         libCAAVisModelForRep
+CAAVisTextModel        CATICreateInstance       libCAAVisModelForRep</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step25"></a>Instantiating the Component</h4>
+<p>It is an extract of the <em>CAADegClippingByBoxCmd</em> state command. The CAAVisTextModel 
+component is created in the constructor class as such that:</p>
+<pre class="code">...
+::<strong>CATInstantiateComponent</strong>(&quot;CAAVisTextModel&quot;,IID_CAAIVisTextModel,
+                                 (void**)&amp;_pITextToSelectModel);
+...</pre>
+<p><code>_pITextToSelectModel</code> is a data member of the <em>CAADegClippingByBoxCmd</em> 
+class. It will be used to handle the CAAVisTextModel component instance.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step26"></a>Creating the Graphic Representation</h4>
+<p>Once an instance of the CAAVisTextModel component is created, to visualize it, 
+its graphic representation must be created and associated with the component.
+</p>
+<p>Here it is an extract of the <em>CAADegClippingByBoxCmd</em> state command.</p>
+<pre class="code">...
+HRESULT CAADegClippingByBoxCmd::<strong>CreateRepForText</strong>()
+{      
+   <strong>CAT3DCustomRep</strong> * pRepForText= new <strong>CAT3DCustomRep</strong>();
+
+   <strong>CATGraphicAttributeSet</strong>   TextGa ;
+   
+   CATMathPointf  TextPos(0.f,0.f,0.f);
+  
+   CATUnicodeString TextValue =&quot;ISO Selection&quot; ;
+   CAT3DAnnotationTextGP   *pTextGP = new <strong>CAT3DAnnotationTextGP</strong>(TextPos,TextValue);
+ 
+   pRepForText-&gt;AddGP(pTextGP,TextGa);
+
+  _pITextToSelectModel-&gt;<strong>SetGraphicRepresentation</strong>(pRepForText) ;
+...</pre>
+<p>The graphic representation of the CAAVisTextModel component, <code>pRepForText,</code> 
+is a <em>CAT3DCustomRep</em> class instance with only one graphic primitive, a
+<em>CAT3DAnnotationTextGP</em> class instance.</p>
+<p><code>pRepForText</code>, is associated with the CAAVisTextModel component thanks 
+the <code>SetGraphicRepresentation</code> method of the <em>CAAIVisTextModel</em> 
+interface. Once done, the graphic representation is &quot;hold&quot; by the CATModelForRep3D 
+component (upper component of the CAAVisTextModel component). You do not have to 
+release the <code>pRepForText</code> pointer.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Creating the Wire Box Component</h3>
+<p>The &quot;Wire box&quot; component is named CAAVisWireBox. There are six sub-steps 
+to define it:</p>
+<ol>
+	<li><a href="#Step31">Creating the CAAVisWireBox Component</a></li>
+	<li><a href="#Step32">Creating CAAIVisWireBox Interface</a></li>
+	<li><a href="#Step33">Implementing CATICreateInstance Interface</a></li>
+	<li><a href="#Step34">Implementing CAAIVisWireBox Interface</a></li>
+	<li><a href="#Step35">Implementing CATI3DGeoVisu Interface</a></li>
+	<li><a href="#Step36">Updating the Interface Dictionary</a></li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step31"></a>Creating the CAAVisWireBox Component</h4>
+<p>Here it is the CAAVisWireBox.h file.</p>
+<pre class="code">#include &quot;CATBaseUnknown.h&quot;
+
+class  <strong>CAAVisWireBox</strong> : public CATBaseUnknown
+{
+  CATDeclareClass;
+
+  public :
+    CAAVisWireBox();
+    virtual ~CAAVisWireBox();
+
+  private:
+    CAAVisWireBox(const CAAVisWireBox &amp;iObjectToCopy);
+    CAAVisWireBox &amp; operator = (const CAAVisWireBox &amp;iObjectToCopy);
+ 
+};</pre>
+<p>The <em>CAAVisWireBox</em> class derives from the <em>CATBaseUnknown</em> class. 
+The <code>CATDeclareClass</code> macro declares that the <em>CAAVisWireBox</em>
+class belongs to a component. Note that the copy constructor and the assignment 
+operator are set as private, and are not implemented in the source file. This prevents 
+the compiler from creating them as public without you know.</p>
+<p>Here it is the CAAVisWireBox.cpp file</p>
+<pre class="code">#include &quot;CAAVisWireBox.h&quot;
+
+<strong>CATImplementClass</strong>(CAAVisWireBox,Implementation,CATBaseUnknown,CATNull);
+
+CAAVisWireBox::CAAVisWireBox(){}
+
+CAAVisWireBox::~CAAVisWireBox(){}</pre>
+<p>The <code>CATImplementClass</code> macro declares that the <em>CAAVisWireBox
+</em>class is a component main class thanks the <code>Implementation</code> keyword, 
+and OM-derives from <em>CATBaseUnknown</em>. The third argument must always be set 
+as <em>CATBaseUnknown</em> or <em>CATNull</em> for any kind of extension.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step32"></a>Creating CAAIVisWireBox Interface</h4>
+<p>Here it is the CAAIVisWireBox.h file that you retrieve in the PublicInterfaces 
+of the CAAVisualization.edu framework.</p>
+<pre class="code">...
+class ExportedByCAAVisWireBoxComp <strong>CAAIVisWireBox</strong> : public CATBaseUnknown
+{
+  CATDeclareInterface;
+
+  public:
+  virtual HRESULT <strong>SetDimBox</strong> ( const float iDimBox ) = 0;
+  virtual HRESULT <strong>GetDimBox</strong> (float * oDimBox ) = 0;
+
+  virtual  HRESULT  <strong>SetCenterBox</strong>(const CATMathPoint &amp; iCenter)  =0 ;
+  virtual  HRESULT  <strong>GetCenterBox</strong>(CATMathPoint &amp; oCenter) const  =0 ;
+};
+...</pre>
+<p>The CAAIVisWireBox is an interface of &quot;type&quot;, it enables you to define 
+or retrieve the characteristics of the wire box:</p>
+<ul>
+	<li>Its <strong>size</strong>: <code>SetDimBox</code> and <code>GetDimBox</code> 
+		are the methods to valuate or retrieve the size of the wire box.</li>
+	<li>Its <strong>location</strong>: <code>SetCenterBox</code> and <code>GetCenterBox</code> 
+		are the methods to valuate or retrieve the position of the wire box in the 
+		model.</li>
+</ul>
+<p>This interface will be used:</p>
+<ul>
+	<li>In the <em>CAADegClippingByBoxCmd</em> state command to set the values depending 
+		on the end user interactions. Refer to the &quot;Managing Wire Box Component&quot; 
+		step of the referenced article [<a href="#References">2</a>].</li>
+	<li>
+		<p>In the <em>CATI3DGeoVisu</em> implementation, to retrieve the values 
+		and build the graphic representation depending on them. Refer to the
+		<a href="#Step35">Implementing CATI3DGeoVisu Interface</a> step.</p>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step33"></a>Implementing CATICreateInstance Interface</h4>
+<p>Refer to &quot;Creating a Component&quot; article [<a href="#References">6</a>] 
+for details about the creation of the <em>CAAEVisCreateInstanceForWireBox</em> class.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step34"></a>Implementing CAAIVisWireBox Interface</h4>
+<p>The CAAEVisWireBox class is the implementation of the
+CAAIVisWireBox interface for 
+the <em>CAAVisWireBox</em> component. Refer to the code itself.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step35"></a>Implementing CATI3DGeoVisu Interface</h4>
+<p>Since the CAAVisWireBox component does not derive from the CATModelForRep3D component, 
+you must implement the <em>CATI3DGeoVisu</em> interface to set the component into 
+the ISO.</p>
+<p>Here it is the CAAEVisVisuWireBox.h file:</p>
+<pre class="code">#include &quot;CATExtIVisu.h&quot;   // Need to derive from
+
+class CAAEVisVisuWireBox : public CATExtIVisu 
+{
+  CATDeclareClass;
+
+  public:
+    CAAEVisVisuWireBox();
+    virtual ~CAAEVisVisuWireBox();
+
+    virtual  CATRep * <strong>BuildRep</strong>();
+
+  private:
+  CAAEVisVisuWireBox(const CAAEVisVisuWireBox &amp;iObjectToCopy);
+  CAAEVisVisuWireBox &amp; operator = (const CAAEVisVisuWireBox &amp;iObjectToCopy);
+};</pre>
+<p>The <em>CAAEVisVisuWireBox</em> class derives from the <em>CATExtIVisu</em> class. 
+The <code>CATDeclareClass</code> macro declares that the <em>CAAEVisVisuWireBox</em> 
+class belongs to a component. Note that the copy constructor and the assignment 
+operator are set as private, and are not implemented in the source file. This prevents 
+the compiler from creating them as public without you know. Only the <code>BuildRep</code> 
+method of the <em>CATI3DGeoVisu</em> interface is overwritten.</p>
+<p>Here it is the CAAEVisVisuWireBox.cpp file:</p>
+<pre class="code">...
+#include &quot;TIE_CATI3DGeoVisu.h&quot;
+<strong>TIE_CATI3DGeoVisu</strong>(CAAEVisVisuWireBox);
+
+CATImplementClass(CAAEVisVisuWireBox, DataExtension, CATBaseUnknown, <strong>CAAVisWireBox</strong>);
+
+CAAEVisVisuWireBox::CAAEVisVisuWireBox() {}
+
+CAAEVisVisuWireBox::~CAAEVisVisuWireBox() {}</pre>
+<p>The <em>CAAEVisVisuWireBox</em> class states that it implements the <em>CATI3DGeoVisu</em> 
+interface thanks to the <code>TIE_CATI3DGeoVisu</code> macro. This extension class 
+is dedicated to this component, and the <code>CATImplementClass</code> macro declares 
+that the <em>CAAEVisVisuWireBox</em> class is data extension class, thanks to the
+<code>DataExtension</code> keyword, and that it extends the component whose main 
+class is <em>CAAVis</em>WireBox. The third parameter must always be set to <em>CATBaseUnknown</em>, 
+makes no sense, and is unused for extensions.</p>
+<p>The <code>BuildRep</code> method builds the graphic representation of the wire 
+box depending on its size and its location.</p>
+<pre class="code">...
+CATRep * CAAEVisVisuWireBox::<strong>BuildRep</strong>()
+{
+   CAT3DCustomRep         * pWireBoxRep = NULL ;
+ 
+   <strong>CAAIVisWireBox</strong> * piVisWireBox = NULL;                
+   HRESULT rc = QueryInterface(IID_CAAIVisWireBox, (void**)&amp;piVisWireBox);
+   if (SUCCEEDED(rc))
+   {
+       float DimBox = .2f ;
+       piVisWireBox-&gt;<strong>GetDimBox</strong>(&amp;DimBox) ;    
+
+       CATMathPoint CenterBox ;
+       piVisWireBox-&gt;<strong>GetCenterBox</strong>(CenterBox) ;
+
+       piVisWireBox-&gt;Release();
+       piVisWireBox = NULL ;
+
+       pWireBoxRep = new <strong>CAT3DCustomRep</strong>();
+
+       CATGraphicAttributeSet   BoxGa ;
+
+       float Cx = CenterBox.GetX() ;
+       float Cy = CenterBox.GetY() ;
+       float Cz = CenterBox.GetZ() ;
+
+       float Tab1[12] ;
+       
+       Tab1[0] = Cx + DimBox; Tab1[1]  = Cy - DimBox; Tab1[2]  = Cz + DimBox ;
+       Tab1[3] = Cx - DimBox; Tab1[4]  = Cy - DimBox; Tab1[5]  = Cz + DimBox ;
+       Tab1[6] = Cx - DimBox; Tab1[7]  = Cy + DimBox; Tab1[8]  = Cz + DimBox ;
+       Tab1[9] = Cx + DimBox; Tab1[10] = Cy + DimBox; Tab1[11] = Cz + DimBox ;
+       ...
+       CAT3DLineGP * pPolyline1 = new <strong>CAT3DLineGP</strong> (Tab1, 4,ALLOCATE, LINE_LOOP);
+       ...
+       CAT3DLineGP * pPolyline2 = new <strong>CAT3DLineGP</strong> (Tab2, 4,ALLOCATE, LINE_LOOP);
+       ...
+       CAT3DLineGP * pPolyline3 = new <strong>CAT3DLineGP</strong> (Tab3, 8,ALLOCATE, LINE);
+
+       pWireBoxRep-&gt;<strong>AddGP</strong>(pPolyline1,BoxGa);
+       pWireBoxRep-&gt;<strong>AddGP</strong>(pPolyline2,BoxGa);
+       pWireBoxRep-&gt;<strong>AddGP</strong>(pPolyline3,BoxGa);
+
+       ...
+     
+       CAT3DBoundingSphere be(CenterBox,Radius) ;
+       pWireBoxRep-&gt;<strong>SetBoundingElement</strong>(be);
+   }
+
+   return pWireBoxRep;
+} 
+...</pre>
+<p>The CAAIVisWireBox enables us to retrieve the size and the location of the wire 
+box. From these values, three polylines are created. The following schema explains 
+the code:</p>
+<table>
+	<tr>
+		<td>
+		<img alt="Wire Box Size" height="319" src="images/CAAVisSampleTmpObjectBuildWireBox.jpg" width="464"/></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4><a name="Step36"></a>Updating the Interface Dictionary</h4>
+<p>Do not forget to update the interface dictionary, here it is an extract of the 
+CAAVisualization.edu.dico file located in the CAAVisualization.edu/CNext/code/dictionary 
+directory.</p>
+<pre class="code">CAAVisWireBox CAAIVisWireBox         libCAAVisModelForRep
+CAAVisWireBox CATICreateInstance     libCAAVisModelForRep
+CAAVisWireBox CATI3DGeoVisu          libCAAVisModelForRep</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The use case has detailed how to create three kinds of temporary components depending 
+on their usage:</p>
+<ul>
+	<li>A simple CATModelForRep3D instance, for only displayable component.</li>
+	<li>A component deriving from CATModelForRep3D, for displayable and selectable 
+		component.</li>
+	<li>A component deriving from CATBaseUnknown and implementing <em>CATI3DGeoVisu</em>, 
+		for a component whose the graphic representation can change while the component 
+		is into the ISO.</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAVisTaISO.htm">Interactive Set of Objects</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAVisUcSampleISO.htm">Visualizing Temporary Components</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAAfrApplicationFrame/CAAAfrUcCAAGeometryOverview.htm">
+		The CAAGeometry Sample</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="../CAADegDialogEngine/CAADegTaGraph.htm">How to 
+		Implement the Command Statechart Diagram</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMCreatingComponent.htm">
+		Creating Components</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysUcOMCreatingCmp.htm">
+		Creating Components</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Fev 2004]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

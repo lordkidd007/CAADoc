@@ -1,0 +1,637 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>How to Add an App Preferences Tab</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Add an App Preferences Tab</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>The <kbd>Preferences</kbd> command enables an end user to customize persistent properties 
+		for each app. When the command is launched, a dialog box is displayed 
+		containing a list of apps and their associated properties, organized in 
+		tabs.&nbsp; This article explains how to add your own tab into the <kbd>Preferences</kbd> dialog box.
+		</p>
+		<ul>
+			<li><a href="#100000">What is the Preferences Command?</a> </li>
+			<li><a href="#Property">Property Access</a> </li>
+			<li><a href="#200000">Creating Your Preferences Tab</a> </li>
+		    <ul>
+			  <li><a href="#210000">Creating the Preferences Tab Editor Factory</a></li>
+			  <li><a href="#220000">Creating the Preferences Tab Editor</a> </li>
+			  <li><a href="#PPTitle">Setting a Title to the Preferences Tab</a></li>
+			  <li><a href="#PPPS">How to Integrate a Preferences 
+				Tab in the Preferences Dialog Box</a>&nbsp;</li>
+		    </ul>
+		    <li><a href="#230000">Creating the Preferences Tab Dialog</a></li>
+		    <ul>
+		    <li><a href="#231000">A preferences tab divided in sections</a></li>
+		    <li><a href="#232000">Administrator management</a></li>
+		    <li><a href="#233000">AThe Preferences Tab Dialog Resource Files</a></li>
+		    <li><a href="#234000">The XML Setting File</a></li>
+		    </ul>
+			<li><a href="#PPDoc">Creating a Preferences Tab Documentation</a></li>
+			<li><a href="#InShort">In Short</a> </li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="100000"></a>What is the Preferences command?</h2>
+<p>The Preferences command gathers in one single dialog box all the 
+app properties that can be customized and made persitent in the user's settings 
+files. The command is launched from the <kbd>Me Services->Preferences</kbd> menu 
+in the top bar, as shown in the picture below: </p>
+<img alt="" src="images/CAACafPreferencesCmd.png" width="189" height="175"/>
+
+<p>The <kbd>Preferences</kbd> dialog box is organized in two parts, on the right 
+hand side are displayed the apps classified by category, and on the left hand 
+side are the preferences tabs associated with each app. When an app is selected 
+in the list of apps, the tabs associated with that app are displayed on the 
+right. Each tab displays controls to set parameter values or working options 
+for a given property. </p>
+<p>As you can see on the picture below, the first item in the list of apps is 
+named &quot;General&quot; , it gathers preferences tabs common to all apps. </p>
+
+<p>
+<img alt="" src="images/CAACafToolsOpt1.jpg" width="648" height="480"/>&nbsp;</p>
+<p>The next picture shows&nbsp; the preferences tab associated with the 
+Sketcher app : as you can see, there is only one tab for this app. </p>
+
+<p>
+<img alt="" src="images/CAACafToolsOpt2.jpg" width="654" height="483"/></p>
+<p>&nbsp;</p>
+<p>The dialog box works as follows:</p>
+<ul>
+	<li>Clicking <kbd>OK</kbd> commits all the changed values in all the 
+	preferences 
+	tabs, that is saves the 
+	setting repository objects with these values, and closes the <kbd>Preferences</kbd> 
+		dialog box.</li>
+	<li>Clicking <kbd>Cancel</kbd> cancels all the modifications and closes the Preferences dialog 
+		box.</li>
+	<li>The Reset icon enables to reset all the values to the default ones<br />
+		<img alt="" src="images/CAACafToolsOptReset.jpg" width="369" height="252"/><br />
+		</li>
+</ul>
+
+
+<p>Remark: There is another type of preferences, those dedicated to a given object and 
+accessed from the <kbd>Properties</kbd> item of the contextual menu triggered 
+from the object. These object property tabs manage parameters or attributes 
+that are stored with the objects in the model.</p>
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Property"></a>Property Access</h2>
+<p>Properties displayed in a preferences tab are stored in a setting file. A 
+preferences 
+tab can use several setting files, but a setting file cannot be used for several 
+tabs. This enables the reset of preferences by tab (the first option in 
+the reset panel above).</p>
+<p>In memory the setting file is represented by a setting repository. Setting repositories 
+are made up of three different parts:</p>
+<ol>
+	<li>A setting metadata XML file</li>
+	<li>A setting file</li>
+	<li>Two setting memory areas at run time</li>
+</ol>
+<p>Setting repositories are first defined in XML files [<a href="#References">5</a>]. 
+There is an XML file for each setting repository which contains the setting 
+repository and attributes metadata. Setting repositories are end-user and 
+environment dependent. A set of setting files exists for each environment an end 
+user accesses from his/her machine. A setting file has a <strong>CATSettings</strong> extension. 
+Once the session is launched 
+and a setting repository accessed, the setting attributes are read from the setting 
+file and stored in a memory area. If the setting file does not exist, it is created 
+from the XML file. </p>
+<p>A setting repository is handled using a setting repository controller, either 
+the generic controller <em>CATSysSettingRepository</em> [<a href="#References">1</a>], 
+or a dedicated controller when the generic one cannot apply. This setting 
+controller manages and controls the access to the setting repository. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Creating Your Preferences Tab</h2>
+<p>You can refer to the example given in the use case &quot;Creating a Tab for App Preferences&quot;[<a href="#References">2</a>]. </p>
+<p>To create a preference tab, you need to create:</p>
+<ul>
+	<li>A preferences tab <strong>editor</strong><br />
+		It manages the setting repository operations (save, commit, rollback) and 
+		displays the tab dialog.</li>
+	<li>A preferences tab <strong>dialog</strong><br />
+		It gathers the different controls that enable the end user to see and edit 
+		the different parameters.</li>
+</ul>
+<p>You need first to create a <strong>factory interface </strong>and then 
+implement it to create the preferences tab factory. This factory creates the&nbsp; tab editor.</p>
+<p>Let's detail the tasks to do to create a preferences tab.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="210000"></a>Creating the Preferences Tab Editor Factory</h3>
+<p>You need:</p>
+<ul>
+	<li>To create a preferences tab editor factory interface<br />
+		The <em>CAAIPPEdtFactory</em> interface derives from the <em>CATIGenericFactory</em> 
+		interface.
+		<p>
+		<img alt="Property Page Editor Factory" height="129" src="images/CAACafEditPropFactory1.gif" width="379"/></p>
+	</li>
+</ul>
+<ul>
+	<li>To create the preferences tab editor factory<br />
+		The factory class can be created using macros in the header and source files.
+		<p>
+		<img alt="Property Page Editor Factory" height="99" src="images/CAACafEditPropFactory2.gif" width="413"/></p>
+	</li>
+	<li>To update the interface dictionary and the factory dictionary.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="220000"></a>Creating the Preferences Tab Editor</h3>
+<p>You'll now create the class for the preferences tab. This class derives from the
+<em>CATEditor</em> class, implements the <em>CATIUserSettings</em> interface and 
+overrides the methods shown in the diagram below.</p>
+<p>
+<img alt="Property Page Editor" height="261" src="images/CAACafToolsOptObjects.jpg" width="633"/></p>
+<p>These methods are those of the <em>CATIUserSettings</em> interface and are either 
+pure virtual or empty in their <em>CATEditor</em> implementation. You should provide 
+their body to make them play the following role:</p>
+<ul>
+	<li><code>BuildEditor</code> instantiates the associated dialog class</li>
+	<li><code>SetUserSettingValue</code> sets the values and options in the preferences 
+	tab</li>
+	<li><code>ResetUserSettingValue</code> resets the values and options in the 
+	preferences tab using the default ones. These default values are those set 
+		in the code in none administrator environment.</li>
+	<li><code>CommitModification</code> saves in the setting file the 
+	modifications made to values and options in the preferences tab.</li>
+	<li><code>CancelModification</code> cancels the modifications made to values 
+	and options in the preferences tab and restore the previous ones</li>
+</ul>
+<p>The methods <code>BuildEditor</code>, and <code>SetUserSettingValue</code> are 
+executed in this order when instantiating the preferences tab. The methods <code>ResetUserSettingValue</code>,
+<code>CancelModification</code>, and <code>CommitModification</code> are executed 
+when the end user clicks Reset, OK, and Cancel respectively.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PPTitle"></a>Setting a Title to the Preferences Tab</h3>
+<p>To set a NLS title to the preferences tab, you have to create a CATNls file 
+whose prefix is the preferences tab editor class name, here <code>CAAPPEdt.CATNls</code> for 
+the editor of the previous example. This file contains:</p>
+<pre class="code">TabPage.<strong>Title</strong> = &quot;xxx&quot; ;</pre>
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>TabPage</code></td>
+		<td>A required keyword for preferences tabs</td>
+	</tr>
+	<tr>
+		<td><code>Title</code></td>
+		<td>The keyword for titles</td>
+	</tr>
+</table>
+<p>For example, in the following picture, the title for the tab is "Elements".</p>
+<pre class="code">TabPage.<strong>Title</strong> = &quot;Elements&quot; ;</pre>
+<p>
+<img alt="" src="images/CAACafToolsOptTitle.jpg" width="353" height="160"/></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PPPS"></a>How to Integrate your Preferences Tab in the Preferences Dialog 
+Box</h3>
+<p>To integrate a preferences tab, you have to create a CATRsc file whose prefix 
+is the preferences tab editor class name, here <code>CAAPPEdt.CATRsc</code> 
+for the editor of the previous example.</p>
+<p>The preferences tab can be integrated for a category or an app. It can be 
+integrated at several places. You can also precise a priority of the tab among 
+the active tabs.</p>
+<ul>
+	<li><strong>The preferences tab for a category</strong>
+		<pre class="code">TabPage.<strong>SolutionName</strong>= &quot;xxx&quot; </pre>
+	</li>
+
+<p>where:</p>
+<table>
+	<tr>
+		<td><code>TabPage</code></td>
+		<td>A required keyword for preferences tabs</td>
+	</tr>
+	<tr>
+		<td><code>SolutionName</code></td>
+		<td>The submenu of where your app appears. This name is defined in the CATRsc file of your 
+		app within the keyword <code>Category</code>. The list of the categories 
+		is given at the end of the document &quot;How to Create Resources for Apps&quot; <code>[<a href="#References">3</a>]</code></td>
+	</tr>
+</table>
+<p>For example, in the following picture, the category name is &quot;Infrastructure&quot;.</p>
+<pre class="code">TabPage.<strong>SolutionName</strong>= &quot;Infrastructure&quot; </pre>
+<p>
+<img alt="" src="images/CAACafToolsOptSolution.jpg" width="546" height="186"/></p>
+
+	<li><strong>The preferences tab for an app</strong><pre class="code">TabPage.<strong>SolutionName</strong>= &quot;xxx&quot; 
+TabPage.<strong>WorkbenchName</strong>= &quot;yyy&quot;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td><code>TabPage</code></td>
+				<td>A required keyword for preferences tabs</td>
+			</tr>
+			<tr>
+				<td><code>SolutionName</code></td>
+				<td>The submenu of where your app appears in the list of apps. This name is defined in the CATRsc file of 
+				your app within the keyword <code>Category</code>. The list of 
+				the categories is given at the end of the document &quot;How to Create 
+				Resources for Apps&quot; <code>[<a href="#References">3</a>]</code></td>
+			</tr>
+			<tr>
+				<td><code>WorkbenchName</code></td>
+				<td>The identifier of your app, set using the
+				<code>NewAccess</code> macro in the <code>CreateWorkbench</code> method [<a href="#References">1</a>]</td>
+			</tr>
+		</table>
+		<p>For example, in the following picture, the app &quot;CAA Create Geom&quot; 
+		belongs to the sub-menu of &quot;Infrastructure&quot; category :</p>
+		<pre class="code">TabPage.<strong>SolutionName</strong>= &quot;Infrastructure&quot; 
+TabPage.<strong>WorkbenchName</strong>= &quot;CAAAfrGeoCreationWkb&quot;</pre>
+		<p>
+		<img alt="" src="images/CAACafToolsOptWB.jpg" width="430" height="202"/></p>
+	</li>
+	<li><strong>To indicate extra property sheet for the property page</strong>
+		<p>It is possible to set the preferences tab&nbsp; in several places. To 
+		indicate the number of extra page</p>
+		<pre class="code">TabPage.<strong>ExtraOccurrenceNb</strong>= &quot;N&quot;</pre>
+		<p>Where N is an integer larger than or equal to 1.<br />
+		</p>
+	</li>
+	<li><strong>Set the extra preferences tab in an another category</strong>
+		<pre class="code">TabPage.<strong>SolutionName.Extra.N</strong>= &quot;xxx&quot;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td><code>TabPage</code></td>
+				<td>A required keyword for preferences tabs</td>
+			</tr>
+			<tr>
+				<td><code>SolutionName</code></td>
+				<td>The submenu of where your app appears. This name is defined in the CATRsc file of 
+				your app within the keyword <code>Category</code>. The list of 
+				categories is given at the end of the document &quot;How to 
+				Create 
+				Resources for Apps&quot; <code>[<a href="#References">3</a>]</code></td>
+			</tr>
+			<tr>
+				<td>Extra</td>
+				<td>A required keyword for extra tabs</td>
+			</tr>
+			<tr>
+				<td>N</td>
+				<td>The number of the extra tabs</td>
+			</tr>
+		</table>
+	</li>
+	<p></p>
+	<li><strong>Set the extra preferences tab in an another app</strong>
+		<pre class="code">TabPage.<strong>SolutionName.Extra.N</strong>= &quot;xxx&quot;
+TabPage.<strong>WorkbenchName.Extra.N</strong>= &quot;yyy&quot;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td><code>TabPage</code></td>
+				<td>A required keyword for preferences tabs</td>
+			</tr>
+			<tr>
+				<td><code>SolutionName</code></td>
+				<td>The submenu of where your app appears. This name is defined in the CATRsc file of 
+				your app within the keyword <code>Category</code>. The list of 
+				categories is given at the end of the document &quot;How to 
+				Create 
+				Resources for Apps&quot; <code>[<a href="#References">3</a>]</code></td>
+			</tr>
+			<tr>
+				<td><code>WorkbenchName</code></td>
+				<td>The identifier of your app, set using the
+				<code>NewAccess</code> macro in the <code>CreateWorkbench</code> method [<a href="#References">1</a>]</td>
+			</tr>
+			<tr>
+				<td>Extra</td>
+				<td>A required keyword for extra tabs</td>
+			</tr>
+			<tr>
+				<td>N</td>
+				<td>The number of the extra tabs</td>
+			</tr>
+		</table>
+	</li>
+	<p></p>
+	<li><strong>Indicating a priority between preferences tabs </strong>
+		<p>By default, the preferences tabs are displayed in alphanumeric order 
+		on the NLS title. To be independant of the language, you can specify a 
+		priority for a preferences tab.</p>
+		<pre class="code">TabPage.<strong>PriorityNb</strong>= &quot;N&quot; ;</pre>
+		<p>Where N is an integer larger than or equal to 0. If two tabs of the 
+		same category or app have the same priority, the alphanumeric order 
+		between these two tabs is taken into account.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="230000"></a>Creating the Preferences Tab Dialog</h2>
+
+<h3><a name="231000"></a>A preferences tab divided in sections</h3>
+<p>This dialog is a class that derives from <em>CATDlgFrame</em>. A preferences 
+tab 
+is divided in sections. Each section has a title, a separator and eventually an 
+icon.</p>
+<table>
+	<tr>
+		<td>
+		<img alt="" src="images/CAACafToolsOptDialogFrames.jpg" width="230" height="432"/></td>
+		<td>This preferences tab contains 5 sections, only the first doesn't have 
+		an icon.</td>
+	</tr>
+</table>
+<p>Each section is an instance of the <em>CATDlgToolsOptionsFrame</em> class. A 
+section is a frame. The constructor to use is the following: <em>CATDlgToolsOptionsFrame 
+(CATDialog * iParent, const CATString &amp; iFrameName, const CATString &amp; iIconName, 
+CATDlgSTyle iStyle =NULL) </em>where:</p>
+<ul>
+	<li><code>iParent</code> is the preferences tab dialog</li>
+	<li><code>iFrameName</code><em> </em>is the internal name of the frame (section) 
+		used for the NLS</li>
+	<li><code>iIconName </code>is the name of the icon
+		<p>It is the icon bmp image file name without the bmp extention. If in a 
+		CNext/resources/graphic/icons/normal directory you have the <code>I_CAAIconeName.bmp</code> 
+		file, set I_CAAIconeName for <code>iIconName</code></p>
+	</li>
+	<li><code>iStyle </code>the style of the frame (section)
+		<ul>
+			<li>NULL
+				<table>
+					<tr>
+						<td>
+						<img alt="" src="images/CAACafToolsOptFrameElt2.jpg" width="160" height="62"/></td>
+						<td>The section contains a visible icon and a bottom invisible 
+						separator.</td>
+					</tr>
+				</table>
+			</li>
+			<li>CATDlgToolsOptionsInvisibleIcon
+				<table>
+					<tr>
+						<td>
+						<img alt="" src="images/CAACafToolsOptFrameElt1.jpg" width="163" height="133"/></td>
+						<td>The section doesn't contain any icon but all dialog 
+						objects inside this frame (here 3 radio buttons) are shifted 
+						as if there were an icon.<br />
+						</td>
+					</tr>
+				</table>
+			</li>
+			<li>CATDlgToolsOptionsNoIcon
+				<table>
+					<tr>
+						<td>
+						<img alt="" src="images/CAACafToolsOptFrameView.jpg" width="122" height="124"/></td>
+						<td>The preferences tab doesn't contain any frame with icon. 
+						Notice the shorter space between the radio button of this 
+						image and the image above.<br />
+						</td>
+					</tr>
+				</table>
+			</li>
+			<li>CATDlgToolsOptionsBottomFrame
+				<p>This style must be mixed with the previous styles for the 
+				last section of the preferences tab.</p>
+			</li>
+		</ul>
+	</li>
+</ul>
+<p>In each section you integrate dialog objects, <em>CATDlgRadioButton</em>, <em>
+CATDlgSlider</em>, etc. These objects are inside a frame inside the section<em>.
+</em>This intermediate frame is retrieved thanks to the <code>GetOptionsFrame()</code> 
+method of the <em>CATDlgToolsOptionsFrame</em> class.</p>
+
+<h3><a name="232000"></a>Administrator management</h3>
+<p>A preferences tab dialog is a special dialog box. It displays parameters which 
+can be controlled by an administrator. The setting file enables this type of management. 
+An administrator can :</p>
+<ul>
+	<li>prevent the parameters modification</li>
+	<li>give default values</li>
+</ul>
+<p>To introduce administration in a dialog box, you use <em>CATDlgLock</em> 
+objects. Consider this preferences tab:</p>
+<ul>
+	<li>You are an administrator of first level
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptLockAdmin.jpg" width="261" height="475"/></td>
+				<td>If the lock is green, the end user could modify the 
+				parameter. If you select the lock, you prevent the modification 
+				for the parameter. For example, here, we have selected the lock 
+				for <kbd>Max Points/Curve</kbd> section.</td>
+			</tr>
+		</table>
+	</li>
+	<li>You are an end user in administrator mode
+		<table>
+			<tr>
+				<td>
+				<img alt="" src="images/CAACafToolsOptLockEndUser.jpg" width="267" height="473"/></td>
+				<td>The lock in front of a blocked parameter is red, otherwise 
+				the lock is grayed. Seeing we had prevented modification in the <kbd>Max Points/Curve</kbd> section, the lock 
+				appears in red. </td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<p>Each section must have at least one <em>CATDlgLock</em> but a section which contains 
+several parameters can have several <em>CATDlgLock. </em>In the two cases, it is 
+important:</p>
+<ul>
+	<li>To link all the dialog objects with their lock by 
+		using the <code>AddAssociatedDialog</code> method of the <em>CATDlgLock</em> 
+		class.</li>
+	<li>In the constructor of the <em>CATDlgLock</em> class, you pass each <em>CATSettingInfo</em> 
+		instance class of all the setting attributes, which are the internal data, 
+		for one or several parameters controlled by it.</li>
+</ul>
+<h3><a name="233000"></a>The Preferences Tab Dialog Resource Files</h3>
+<p>In the CATNls file dedicated to the preferences tab dialog you will find:</p>
+<ul>
+	<li>The title of each frame
+		<br />
+		<pre class="code">IdFrame.HeaderFrame.Global.Title =&quot;xxx&quot;;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td>IdFrame</td>
+				<td>Identifier of the frame, the second argument of the CATDlgToolsOptionsFrame 
+				method</td>
+			</tr>
+			<tr>
+				<td>HeaderFrame.Global.Title</td>
+				<td>A required keyword</td>
+			</tr>
+		</table>
+		<p></p>
+	</li>
+	<li>For each object inside a frame
+		<pre class="code">IdFrame.IconAndOptionsFrame.OptionsFrame.IdWidget.Title = &quot;xxx&quot;;</pre>
+		<p>where:</p>
+		<table>
+			<tr>
+				<td>IdFrame</td>
+				<td>Identifier of the frame, the second argument of the CATDlgToolsOptionsFrame 
+				method</td>
+			</tr>
+			<tr>
+				<td>IconAndOptionsFrame.OptionsFrame</td>
+				<td>A required keyword</td>
+			</tr>
+			<tr>
+				<td>IdWidget</td>
+				<td>Identifier of the dialog object inside de frame</td>
+			</tr>
+			<tr>
+				<td>Title</td>
+				<td>A required keyword</td>
+			</tr>
+		</table>
+	</li>
+</ul>
+<h3><a name="234000"></a>The XML Setting File</h3>
+<p>In the CNext\resources\SettingsMetadata directory of the appropriate framework, 
+you find a file named with the name of the setting repository it describes. This 
+file represents your setting repositories and describes each setting attribute. 
+For more informations on the xml setting file refer to the technical article 
+&quot;Settings Creation Guidelines&quot;[<a href="#References">5</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="PPDoc"></a>Creating a Preferences Tab Documentation</h2>
+<p>When you click F1 in a property page, a documentation is displayed if you have 
+set the TabPage.<strong>LongHelpId</strong> keyword in the CATRsc file of the property 
+page editor.</p>
+<pre class="code">TabPage.<strong>LongHelpId</strong>= &quot;<strong>ToolsOptions</strong>.xxx.[yyy.]zzz&quot; ;</pre>
+<p>where:</p>
+<ul>
+	<li>ToolsOptions: is mandatory</li>
+	<li>xxx: English name of the category. (A::Z, a::z)</li>
+	<li>yyy: English name of the app.(A::Z, a::z)]</li>
+	<li>zzz: English name of the preferences tab. (A::Z, a::z)</li>
+</ul>
+<p>Example:</p>
+<pre class="code">TabPage.<strong>LongHelpId</strong>=&quot;<strong>ToolsOptions</strong>.Infrastructure.CAAGeometricalCreation.Elements&quot;;</pre>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3>How to create a documentation page ?</h3>
+<p>In the documentation directory [<a href="#References">4</a>], create an html 
+document and in the <strong>xxxId2url.</strong>CATNls, where xxx represents the 
+product line, add the following line:</p>
+<pre class="code"><strong>ToolsOptions</strong>.xxx.[yyy.]zzz=&quot;ppp&quot;;</pre>
+<p>where:</p>
+<ul>
+	<li>xxx: English name of the solution. (A::Z, a::z),</li>
+	<li>yyy: English name of the app.(A::Z, a::z)],</li>
+	<li style="height: 19px">zzz: English name of the property page. (A::Z, a::z),</li>
+	<li>ppp is the relative path, from the <code>online</code> directory, of the 
+		html document.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>To create a new tab in the Preferences command dialog box, you will need to 
+create a preferences tab editor factory, a preferences tab editor class 
+instantiated by this factory, and to supply a preferences tab dialog class that 
+gathers the controls to access the parameters you are exposing to the end user for modification.</p>
+<p>The preferences tab uses a setting controller, dedicated to a setting repository, 
+to read and save these parameters and their values.</p>
+<p>Associated with the preferences tab editor, two resource files must be created:</p>
+<ul>
+	<li>a CATNls file for the title of the preferences tab</li>
+	<li>a CATRsc file to define
+		<ul>
+			<li>Where to insert your tab in the preferences dialog box, that is 
+			to say to which category or app it should be associated.</li>
+			<li>The priority of the tab among the other tabs of the app or 
+			category</li>
+			<li>The key for a help online page</li>
+		</ul>
+	</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidSettingHowTo.htm">
+		How to Use Settings</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAACafUcSampleToolsOptions.htm">Creating an App Preferences 
+		Tab</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAfrTaI18NWorkshop.htm">How to Create Resources for Apps </a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAAfrTaHelpOnLine.htm">Contextual Help</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAACppTechArticles/CAADocSettingXML.htm">
+		Settings Creation Guidelines</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Jul 2007]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Feb 2014]</td>
+		<td>Migration to 3DEXPERIENCE platform </td>
+	</tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

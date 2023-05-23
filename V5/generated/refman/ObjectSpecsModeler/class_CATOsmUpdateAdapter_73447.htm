@@ -1,0 +1,182 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us"> 
+ <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+ <meta name="Generator" content="CppGene v1.1">
+ <meta http-equiv="Expires" content="Tue, 04 Dec 1993 21:29:02 GMT">
+ <title>ObjectSpecsModeler Class CATOsmUpdateAdapter</title>
+<link rel="Stylesheet" type="text/css" href="../../../caav5.css">
+</head>
+<body>
+<pre><a href="../main.htm">All Frameworks</a>  <a href="../tree.htm">Class Hierarchy</a>  <a href="../ObjectSpecsModeler.htm">This Framework</a>  <a href="class_CATOsmExtensionServices_111246.htm">Previous</a>  <a href="class_CATSpecLifeCycleObjectExt_124799.htm">Next</a>  <a href="../HomeIdx.htm">Indexes</a></pre>
+<hr>
+<h1>ObjectSpecsModeler Class CATOsmUpdateAdapter</h1>
+<pre>
+<a href="../System/interface_IUnknown_14460.htm">System.IUnknown</a>
+  |
+  +---<a href="../System/interface_IDispatch_17333.htm">System.IDispatch</a>
+    |
+    +---<a href="../System/class_CATBaseUnknown_40786.htm">System.CATBaseUnknown</a>
+      |
+      +---<a href="../ObjectSpecsModeler/interface_CATIOsmUpdate_33737.htm">ObjectSpecsModeler.CATIOsmUpdate</a>
+        |
+        +---CATOsmUpdateAdapter
+ </pre>
+<p><b>Usage: you can derive this class.</b></p>
+<hr>
+<p>
+ public class <b>CATOsmUpdateAdapter</b>
+</p>
+<p>
+<b><i>  Adapter class for the </i></b><br>
+<a href="../ObjectSpecsModeler/interface_CATIOsmUpdate_33737.htm">CATIOsmUpdate</a> interface. <br><b>Role</b>:
+ This is the base class from which you should derive if you have to
+ <ul><li>overload the standard update mechanism, by redefining the Update 
+ and possibly the IsUpToDate and SetUpToDate methods</li>
+ <li>allow your object to be ignored by the update mechanism
+ by implementing the IsInactive method.</li></ul>
+ It is strongly advised not to implement this interface on features
+ that derive from startups defined by Dassault Systemes because the
+ update behaviour of these features is often specialised.
+</p>
+<hr>
+</dl>
+ <h2>Method Index</h2> <br>
+<dl>
+ <dt> o 
+    <a href="#IsInactive()"><b>IsInactive</b></a>()
+<dd>  Indicates whether the object must be ignored by the update mechanism.
+ <dt> o 
+    <a href="#IsUpToDate()"><b>IsUpToDate</b></a>()
+<dd>  Returns the status of the object concerning the update mechanism.
+ <dt> o 
+    <a href="#SetUpToDate(CATBoolean)"><b>SetUpToDate</b></a>(CATBoolean)
+<dd>  Modifies the object update status.
+ <dt> o 
+    <a href="#Update()"><b>Update</b></a>()
+<dd>    Rebuilds the feature.
+</dl>
+<dl>
+</dl>
+<dl>
+</dl>
+ <h2>Methods</h2> <br>
+<a name="IsInactive"></a><a name="IsInactive()"></a> <dt> o <b>IsInactive</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>IsInactive</b>(<td>)const  </table></dt>
+<dl>
+  <dd>
+ Indicates whether the object must be ignored by the update mechanism.
+ <br><b>Role</b>:
+ If you want to allow inactivation of your
+ object, you must store that information somehow and implement this
+ method to return S_OK when inactivated. Inactivated objects no
+ longer update themselves even if they are inputs of other objects.
+ Thus, inactive objects will never be called on 
+<a href="../ObjectSpecsModeler/interface_CATIBuild_15609.htm#Build">CATIBuild.Build</a> . <b>Note</b>: This method returns S_FALSE.
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>  S_OK if the object is to be ignored by the update mechanism,         S_FALSE otherwise.
+</dl>
+</dl>
+<a name="IsUpToDate"></a><a name="IsUpToDate()"></a> <dt> o <b>IsUpToDate</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>IsUpToDate</b>(<td>)const  </table></dt>
+<dl>
+  <dd>
+ Returns the status of the object concerning the update mechanism.
+ <p>
+ If you overload this method and when you want to return S_FALSE, in 
+ addition to your own computation, you must also call 
+<a href="#SetUpToDate">SetUpToDate</a> (FALSE).<br>
+ If you don't want to force the S_FALSE result, you must call 
+ 
+<a href="../ObjectSpecsModeler/class_CATOsmUpdateAdapter_73447.htm#IsUpToDate">CATOsmUpdateAdapter.IsUpToDate</a> in order for other dependencies to be checked properly. This method will check that all inputs are
+ up to date and that this feature has been updated after the update of
+ its inouts. <br>
+ For example:
+ <pre>
+   Example::IsUpToDate()
+   {
+     if (something())
+     {
+       SetUpToDate(FALSE);
+       return S_FALSE;
+     }
+     return CATOsmUpdateAdapter::IsUpToDate();
+   }
+ </pre>
+ Make sure your IsUpToDate implementation is consistent with 
+<a href="#Update">Update</a> . </p>
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>     <ul><li>S_OK: the object has been updated.</li>
+    <li>S_FALSE : the object has to be updated.</li></ul>
+</dl>
+</dl>
+<a name="SetUpToDate"></a><a name="SetUpToDate(CATBoolean)"></a> <dt> o <b>SetUpToDate</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>SetUpToDate</b>(<td><a href="../System/typedef_CATBoolean_20142.htm">CATBoolean</a> <td><tt>iflag</tt>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+ Modifies the object update status.
+ <br><b>Role</b>:
+ This method changes the up to date status of the object. It is
+ called every time the object's status changes. The status may change
+ either because an input of the object changes, or because the object
+ is updated (or someone directly calls 
+<a href="../ObjectSpecsModeler/interface_CATISpecObject_38576.htm#SetUpToDate">CATISpecObject.SetUpToDate</a> ). <p>
+ You must always call 
+<a href="../ObjectSpecsModeler/class_CATOsmUpdateAdapter_73447.htm#SetUpToDate">CATOsmUpdateAdapter.SetUpToDate</a> if you overload this method.
+ </p>
+ 
+<dl>
+  <dt> <b>Parameters:</b>
+  <dd>
+    <dl>
+    <dt><tt>  iflag</tt>
+   <dd> The new status.<br>       <ul>
+       <li><tt>TRUE</tt> : the object has just been updated.</li>
+       <li><tt>FALSE</tt>: the object needs to be rebuild.</li>
+       </ul></dd>
+</dl>
+</dl>
+</dl>
+<a name="Update"></a><a name="Update()"></a> <dt> o <b>Update</b>
+
+<dt>  <table><tr><td>  public virtual <a href="../System/typedef_HRESULT_8345.htm">HRESULT</a>  <b>Update</b>(<td>)<a href="../DNBSystem/struct__0.htm"></a>  </table></dt>
+<dl>
+  <dd>
+   Rebuilds the feature.
+ <br><b>Role</b>:
+ This method will be called internally by 
+<a href="../ObjectSpecsModeler/interface_CATISpecObject_38576.htm#Update">CATISpecObject.Update</a> if the startup implements <tt>CATIOsmUpdate</tt>. It allows the default 
+ method mechanism to be overriden.<br>
+ This method can throw exceptions.
+ <p>
+ You must always call 
+<a href="../ObjectSpecsModeler/class_CATOsmUpdateAdapter_73447.htm#Update">CATOsmUpdateAdapter.Update</a> inside  your implementation if you overload this method, except when you know
+ the update will fail in which case you may return E_FAIL before calling
+ it. Doing this will allow the standard update mechanism to kick in: This
+ method detects all features that have been modified upstream from a 
+ feature, rebuilds all the feature impacting the updated feature, and finally rebuilds
+ the final feature thanks to the 
+<a href="../ObjectSpecsModeler/interface_CATIBuild_15609.htm">CATIBuild</a> interface.<br> Make sure your Update implementation is consistent with 
+<a href="#IsUpToDate">IsUpToDate</a> . </p>
+ 
+<dl>
+  <dt> <b>Returns:</b> 
+  <dd>  S_OK if update succeeded, E_FAIL otherwise (the update process is then aborted).
+</dl>
+</dl>
+<hr>
+ This object is included in the file: <b>CATOsmUpdateAdapter.h</b><br>
+If needed, your Imakefile.mk should include the module: <b>CATObjectSpecsModeler</b>
+
+</body>
+<hr><p><i>
+Copyright &#169; 2003, Dassault Syst&#232;mes. All rights reserved.</i></p>
+</html>

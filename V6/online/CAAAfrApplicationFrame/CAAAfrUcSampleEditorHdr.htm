@@ -1,0 +1,717 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Creating Editors in a Command</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Creating Editors in a Command</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case explains how to create a specialized command header. 
+		This command header has a customized graphic representation where the graphic representation is 
+		made of two editors.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAAfrEltCountHeaderRep Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAAfrEltCountHeaderRep Do</a></li>
+					<li><a href="#How">How to Launch CAAAfrEltCountHeaderRep</a></li>
+					<li><a href="#Where">Where to Find the CAAAfrEltCountHeaderRep 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case illustrates the creation of a customized command header. In the 
+specific &quot;Tools Palette&quot; toolbar[<a href="#References">4</a>], 
+its graphic representation is made of two editors in stead of a simple check item, the default 
+representation. You will learn how to:</p>
+<ul>
+	<li>Create the component representing the command header
+		<p>It is a component which must implement the <em>CATIAfrCommandHeaderRep</em> 
+		class and which instantiates a <em>CATDlgEditor</em> instance.</p>
+	</li>
+	<li>Create the component instantiating the graphic representation
+		<p>It is a component which must derive from the <em>CATAfrCommandHeaderRep</em> 
+		class and which instantiates two <em>CATDlgEditor</em> instances.</p>
+	</li>
+	<li>Create the component controlling the data used by the graphic representation
+		<p>The data used by the the graphic representation is the count of lines 
+		and points in the model. This data is dependent of the instance of a model.</p>
+	</li>
+</ul>
+<p>You can also read:</p>
+
+<p>CAAAfrComboColorHeader use case [<a href="#References">1</a>] which presents 
+		another customized command header. In this case, the graphic representation 
+		is a combo.</p> 
+	
+<p>To take full advantage of this article, you can first read &quot;The Command 
+Headers&quot; technical article [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAAfrEltCountHeader Use Case</h2>
+<p>CAAAfrEltCountHeader is a use case of the CAAApplicationFrame.edu framework that 
+illustrates AfrFoundation framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAAfrEltCountHeader Do</h3>
+<p>CAAAfrEltCountHeader creates a command header with a graphic representation 
+made of two editors. This command is inserted in a specific toolbar called&nbsp; 
+&quot;Tools Palette&quot;[<a href="#References">4</a>] </p> 
+<p>The following picture shows the command header in the &quot;Tools 
+Palette&quot; toolbar :</p>
+<table>
+	<caption style="width: 381px"><a name="Fig.1"></a>Fig.1: The Two Editors in Tools Palette</caption>
+	<tr>
+		<td>
+		<img alt="" src="images/CAAAfrPaletteWkb2.jpg" width="385" height="321"/></td>
+	</tr>
+</table>
+<p>There is a command header displaying the count of points and lines created in 
+the CAAGeometry model [<a href="#References">5</a>].</p>
+<p>CAAAfrEltCountHeader includes the following:</p>
+<ul>
+	<li>
+		<p>The <strong><em>CAASysGeomCont</em></strong> component controls the data 
+		used by the graphic representation. It manages the list of elements in the 
+		CAAGeometry model through the <em>CAAISysCollection</em> interface.</p>
+		<table>
+			<caption><a name="Fig.2"></a>Fig.2: Point and Line List Manager - UML 
+			Diagram</caption>
+			<tr>
+				<td>
+				<img alt="EltCount Header Graphic Representation UML Diagram" src="images/CAAAfrEltCountCmdHdrUMLModel.png"/></td>
+			</tr>
+		</table>
+		<p>The <em>CAASysGeomCont</em> component plays the role of the controller 
+		[<a href="#References">3</a>]. When a line or a point is created (or deleted), 
+		the <em>CAAISysCollection</em> interface is used, and the <em>CAAEAfrCollection</em> 
+		class sends a notification, a <em>CAASysCollectionModifNotif</em> class 
+		instance.</p>
+	</li>
+	<li>
+		<p>The specialized command header</p>
+		<table>
+			<caption><a name="Fig.3"></a>Fig.3: Specialized Command Header - UML 
+			Diagram</caption>
+			<tr>
+				<td>
+				<img alt="EltCount Header  UML Diagram" height="143" src="images/CAAAfrEltCountCmdHdrUMLHdr.png" width="516"/></td>
+			</tr>
+		</table>
+		<p><em>CAAAfrEltCountHeaderRep</em> is C++ class, declared as a data extension 
+		of the <em>CATAfrDialogHeaderRepEltCountHdr</em> OM component. It must implement 
+		the <em>CATIAfrCommandHeaderRep </em>interface to provide the customized 
+		graphic representation. This interface contains three methods:</p>
+		<ul>
+			<li><code>CreateCtxMenuRep</code>: to create the command header representation 
+				in a contextual menu. It is dummy in this use case.</li>
+			<li><code>CreateMenuRep</code>: to create the command header representation 
+				in a menu. It is dummy in this use case.</li>
+			<li><code>CreateToolbarRep</code>: to create the command header representation 
+				in a toolbar. It instantiates the <em>CAAAfrEltCountRep</em> class.</li>
+		</ul>
+		<p>The specialized command header is inserted in an add-in of the CAAGeometry model.</p>
+	</li>
+	<li>The specialized command header representation, a command class encapsulating 
+		the editors<table>
+			<caption><a name="Fig.4"></a>Fig.4: Specialized Command Header Graphic 
+			Representation UML Diagram</caption>
+			<tr>
+				<td>
+				<img alt="Class Instantiating the Graphic Representation UML Diagram" height="275" src="images/CAAAfrEltCountCmdHdrUMLRep.png" width="411"/></td>
+			</tr>
+		</table>
+		<p>The <em>CAAAfrEltCountRep</em> class creates <em>CATDlgEditor</em> [<a href="#References">6</a>] 
+		class instances and sets a callback to be informed when lines or points 
+		are created or deleted. </p>
+		<p>The specialized command header is instantiated in the Tools Palette for 
+		apps of the CAAGeometry model [<a href="#References">4</a>].</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAAfrEltCountHeaderRep</h3>
+<p>See the section entitled &quot;How to Launch CAAAfrPaletteOptions&quot; in the 
+use case [<a href="#References">4</a>] for a detailed description of how this use 
+case should be launched.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAAfrEltCountHeaderRep Code</h3>
+<p>The CAAAfrEltCountHeader use case is made of several classes mainly located in 
+modules of the CAAApplicationFrame.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAApplicationFrame.edu\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">2</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<ul>
+	<li>The <code>CAAAfrCustomizedCommandHeader.m</code> module contains classes 
+		to define the specialized command header and its graphic representation.
+		<ul>
+			<li>CAAAfrEltCountRep.h (LocalInterfaces) and CAAAfrEltCountRep.cpp 
+				(src) </li>
+			<li>CAAEAfrCommandHeaderRepForEltCount.h (LocalInterfaces) and CAAEAfrCommandHeaderRepForEltCount.cpp 
+				(src)</li>
+			<li>CAAAfrEltCountHeaderRep.cpp (src), CAAAfrEltCountHeaderRep.h (PrivateInterfaces)</li>
+		</ul>
+	</li>
+	<li>The <code>CAAAfrGeoModel.m</code> module contains:
+		<ul>
+			<li>CAAEAfrCollection.h (LocalInterfaces) and CAAEAfrCollection.cpp 
+				(src)
+				<p>It is the data extension of the <em>CAAISysCollection</em> interface 
+				implemented on the CAASysGeomCont component. Both ( component+interface) 
+				are defined in the CAASystem.edu framework. [<a href="#References">5</a>]</p>
+			</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are three logical steps in CAAAfrEltCountHeaderRep:</p>
+<ol>
+	<li><a href="#Step1">Creating the Component Providing Data</a></li>
+	<li><a href="#Step2">Creating the Editor Specialized Command Header</a></li>
+	<li><a href="#Step3">Creating the Component Instantiating the Graphic Representation</a>.</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Creating Component Providing Data</h3>
+<p>Count of lines and points are kept by the CAASysGeomCont component which implements 
+the <em>CAAISysCollection</em> interface (<a href="#Fig.2">Fig.2</a>). When a point/Line 
+is created/deleted in the current CAAGeometry model, a <em>CAASysCollectionModifNotif</em> 
+notification is sent by the callback mechanism [<a href="#References">7</a>].</p>
+<p>Here the <em>CAAISysCollection</em> interface such as you can see it in the PublicInterfaces 
+directory of the CAASystem.edu framework. Refer to the Creating an Interface use 
+case [<a href="#References">8</a>] for more details on its creation.</p>
+<pre class="code">...
+class ExportedByCAASysGeoModelInf CAAISysCollection : public CATBaseUnknown
+{
+  CATDeclareInterface;
+
+  public:
+    virtual HRESULT GetNumberOfObjects(int * oCount) = 0;
+    virtual HRESULT GetObject    (int iRank,
+                                  CATBaseUnknown ** oObject) = 0;
+    virtual HRESULT <strong>AddObject</strong>    (CATBaseUnknown * iObject) = 0;
+    virtual HRESULT RemoveObject (CATBaseUnknown * iObject) = 0;
+    virtual HRESULT Empty  () =0 ;
+};
+...</pre>
+<p>This interface is implemented by the CAASysGeomCont component thanks to the
+<em>CAAEAfrCollection</em> class extension.</p>
+<pre class="code">...
+#include &quot;<strong>TIE_CAAISysCollection</strong>.h&quot;
+TIE_CAAISysCollection(CAAEAfrCollection);
+
+CATBeginImplementClass(CAAEAfrCollection,<strong>DataExtension</strong>,CATBaseUnknown,<strong>CAASysGeomCont</strong>);
+CATAddClassExtension(CAASysSampCont) ;
+CATEndImplementClass(CAAEAfrCollection);
+...</pre>
+<p>The <em>CAAEAfrCollection</em> class states that it implements the <em>CAAISysCollection</em> 
+interface thanks to the <code>TIE_</code><code>CAAISysCollection</code> macro. This 
+extension class is dedicated to this component, and the <code>CATBeginImplementClass</code> 
+macro declares that the <em>CAAEAfrCollection</em> class is data extension class, 
+thanks to the <code>DataExtension</code> keyword, and that it extends the component 
+whose main class is CAASysGeomCont. The third parameter must always be set to
+<em>CATBaseUnknown</em>, makes no sense, and is unused for extensions.</p>
+<p>The <code>AddObject</code> adds an element in the CAAGeometry model. <code>_pListe</code> 
+is a data member of the <em>CAAEAfrCollection</em> class.</p>
+<pre class="code">...
+HRESULT CAAEAfrCollection::AddObject (CATBaseUnknown * iObject)
+{
+...
+   _pListe-&gt;Append(iObject);
+...</pre>
+<p>and sends a notification:</p>
+<pre class="code">...
+    CAASysCollectionModifNotif * pNotifModif = new <strong>CAASysCollectionModifNotif</strong>();
+
+    ::GetDefaultCallbackManager(this)-&gt;DispatchCallbacks(pNotifModif,this);
+      
+    pNotifModif-&gt;Release() ;
+    pNotifModif = NULL ;
+...</pre>
+<p>The <code>AddObject</code> method publishes the notification that states the 
+list of element in the model is modifying. To do this, the global function <code>
+GetDefaultCallbackManager</code> retrieves the callback manager associated by default 
+with the <em>CAAEAfrCollection</em> class instance, and this callback uses its
+<code>DispatchCallbacks</code> method to inform its subscribers or listeners that 
+liste is modifying by means of the <em>CAASysCollectionModifNotif</em> notification 
+created.</p>
+<p>Refer to the callback use case [<a href="#References">9</a>] which explains in 
+detail the callback mechanism, and how the <em>CAASysCollectionModifNotif</em><strong>
+</strong>must be created. You will learn why the <em>CAASysCollectionModifNotif</em><strong>
+</strong>class instance is deleted just after the <code>DispatchCallbacks</code> 
+call. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating the Editor Specialized Command Header</h3>
+<p>The specialized command header is a component which must Object Modeler and C++ 
+derive from <em>CATBaseUnknown</em> and must extend the
+<a href="#CATIAfrCommandHeaderRep">CATIAfrCommandHeaderRep</a> interface 
+(<a href="#Fig.3">Fig.3</a>). This paragraph is divided in two parts:</p>
+<ol>
+	<li><a href="#Combo">Component Creation</a></li>
+	<li><a href="#CATIAfrCommandHeaderRep">CATIAfrCommandHeaderRep Implementation</a></li>
+</ol>
+<h4><a name="Combo"></a>Component Creation</h4>
+<p>Here the CAAAfrEltCountHeaderRep header file:</p>
+<pre class="code">...
+class ExportedByCAAAfrCustomizedCommandHeader CAAAfrEltCountHeaderRep : public <strong>CATBaseUnknown</strong> 
+{ 
+  <strong>CATDeclareClass</strong>; 
+
+  public:
+    CAAAfrEltCountHeaderRep();
+    ~CAAAfrEltCountHeaderRep();
+
+    HRESULT <strong>CreateToolbarRep</strong> (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep);
+    HRESULT <strong>CreateMenuRep</strong>    (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep);
+    HRESULT <strong>CreateCtxMenuRep</strong> (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep);
+};  
+</pre>
+<p>As any OM class, <em>CAAAfrEltCountHeaderRep</em> C++ derives from <em>CATBaseUnknown</em>.</p>
+<p>The <code>CATDeclareClass</code> macro declares that <em>CAAAfrEltCountHeaderRep</em> 
+belongs to an OM component. <code>CreateToolbarRep</code>, <code>CreateMenuRep</code>, 
+and <code>CreateCtxMenuRep</code> are the methods of <em>CATIAfrCommandHeaderRep</em>.</p>
+<p>Here the <em>CAAAfrEltCountHeaderRep</em> source file:</p>
+<pre class="code">...
+CATImplementClass (CAAAfrEltCountHeaderRep,
+                   DataExtension,
+                   CATBaseUnknown,
+                   CATAfrDialogHeaderRepEltCountHdr); 
+
+#include &quot;TIE_CATIAfrCommandHeaderRep.h&quot; 
+TIE_CATIAfrCommandHeaderRep(CAAAfrEltCountHeaderRep); 
+
+CAAAfrEltCountHeaderRep::CAAAfrEltCountHeaderRep()
+                        :CATBaseUnknown() 
+{ cout &lt;&lt;&quot; CAAAfrEltCountHeaderRep::CAAAfrEltCountHeaderRep&quot; &lt;&lt; endl; }
+
+CAAAfrEltCountHeaderRep::~CAAAfrEltCountHeaderRep()
+{ cout &lt;&lt;&quot; CAAAfrEltCountHeaderRep::CAAAfrEltCountHeaderRep&quot; &lt;&lt; endl; }
+...</pre>
+<p>This source file shows that:</p>
+<ul>
+	<li>The <code>CATImplementClass</code> macro completes the OM declaration. It 
+		adds to the <code>CATDeclareClass</code> macro already seen above when looking 
+		at the header file that the <em>CAAAfrEltCountHeaderRep</em> class is a 
+		data extension, thanks to the <code>DataExtension</code> keyword, that extends 
+		the <em>CATAfrDialogHeaderRepEltCountHdr</em> OM component. The third argument 
+		must always be set as <em>CATBaseUnknown</em> or <em>CATNull</em> for any 
+		kind of extensions implementing interfaces using TIEs. </li>
+	<li>The OM component<strong> </strong><em>CATAfrDialogHeaderRepEltCountHdr</em><strong>
+		</strong>is created at run time when the command header is inserted in the 
+		add-in. Its name must begin with <em>CATAfrDialogHeaderRep</em>. <em>EltCountHdr</em> 
+		is dedicated to the command header of this use case, and is the character 
+		string passed as the third argument of the <code>CATAfrDialogCommandHeaderFactory::CATCreateDialogCommandHeader</code> 
+		static method that concatenates it to <em>CATAfrDialogHeaderRep</em>.
+	</li>
+	<li>The <em>CAAAfrEltCountHeaderRep</em> class states that it implements the
+		<em>CATIAfrCommandHeaderRep</em> interface thanks to the <code>TIE_CATIAfrCommandHeaderRep</code> 
+		macro. </li>
+	<li>The class constructor and the class destructor are empty. </li>
+</ul>
+<h4><a name="CATIAfrCommandHeaderRep"></a>CATIAfrCommandHeaderRep Implementation</h4>
+<pre class="code">...
+HRESULT CAAAfrEltCountHeaderRep::<strong>CreateToolbarRep</strong> (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep)
+{
+  HRESULT rc = E_FAIL ;
+  if ( oHdrRep != NULL )
+  {
+    CATString Name = &quot;CAAAfrEltCountRepId&quot; ;
+    CAAAfrEltCountRep * pEltCountRep = new <strong>CAAAfrEltCountRep</strong>(iParent,Name);
+
+    *oHdrRep = (CATAfrCommandHeaderRep *) pEltCountRep ;
+    rc = S_OK ;
+  }
+  return rc ;
+}
+...</pre>
+<p>The <code>CreateToolbarRep</code> method provides the class instantiating the 
+graphic representation of the editor header. This method is called each time the 
+header command must be represented in a toolbar.</p>
+<p>The <em>CAAAfrEltCountRep</em> class is a <em>CATCommand</em> class (<a href="#Fig.4">Fig.4</a>) 
+which instantiates the graphic representation of the editor header (a <em>CATDlgEditor</em> 
+instance). It is detailed in the <a href="#Step3">Creating the Component Instantiating 
+the Graphic Representation</a> section, just below.</p>
+<p><code>iParent</code> is a <em>CATDialog</em> component. It will be the dialog 
+parent of the <em>CATDlgEditor</em> instance. <code>Name</code> is the command name 
+of the <em>CAAAfrEltCountRep</em> class. You can set the same identifier for all
+<em>CAAAfrEltCountRep</em> class instances.</p>
+<p>You do not have to take care of the <em>CAAAfrEltCountRep</em> class instance, 
+the returned value, <code>oHdrRep</code> is kept by the frame application, and the 
+deletion of this pointer is automatically done.</p>
+<pre class="code">...
+HRESULT CAAAfrEltCountHeaderRep::<strong>CreateMenuRep</strong> (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep)
+{
+  return <strong>E_FAIL</strong>;
+}
+
+HRESULT CAAAfrEltCountHeaderRep::<strong>CreateCtxMenuRep</strong> (const CATDialog * iParent, CATAfrCommandHeaderRep ** oHdrRep)
+{
+  return <strong>E_FAIL</strong>;
+}</pre>
+<p>The editor command header has no representation in the menu bar or in a contextual 
+menu, so <code>CreateMenuRep</code> and <code>CreateCtxMenuRep</code> return E_FAIL.</p>
+<p>Do not forget to declare in the dictionary file CAAAplicationFrame.edu.dico that 
+the newly created OM component implements <em>CATIAfrCommandHeaderRep</em> with 
+the following line:</p>
+<pre class="code">CATAfrDialogHeaderRepEltCountHdr CATIAfrCommandHeaderRep libCAAAfrCustomizedCommandHeader</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Step3"></a>Creating the Component Instantiating the Graphic Representation</h3>
+<p>This class is the <em>CAAAfrEltCountRep</em> class. Its main roles are:</p>
+<ul>
+	<li>Set a callback to be informed when a modification occurs in the list of 
+		elements controlled by the <em>CAASysGeomCont</em> component.</li>
+	<li>Create two <em>CATDlgEditor</em> instances.</li>
+	<li>Change the contents of the <em>CATDlgEditor</em> instances when a notification 
+		is sent by the <em>CAASysGeomCont</em> component.</li>
+</ul>
+<p>Here the <em>CAAAfrEltCountRep</em> header file:</p>
+<pre class="code">...
+class CAAAfrEltCountRep : public CATAfrCommandHeaderRep
+{
+public:
+  CAAAfrEltCountRep(const CATDialog * iParent, CATString &amp; iCommandName);
+  virtual ~CAAAfrEltCountRep();
+  
+  HRESULT <strong>Build</strong>();
+
+private:
+  void <strong>ModifiedCB</strong>(CATCallback       iEvent, 
+                  void            *       , 
+                  CATNotification * iNotification, 
+                  CATCallbackEvent  iData,
+		          CATSubscriberData iCallBack);
+  HRESULT <strong>ValuateEditors</strong>() ;
+
+  CAAAfrEltCountRep(const CAAAfrEltCountRep &amp;iObjectToCopy);
+  CAAAfrEltCountRep &amp; operator = (const CAAAfrEltCountRep &amp;iObjectToCopy);
+
+private:
+
+     CATDlgEditor      * _pEdtPoint;
+     CATDlgEditor      * _pEdtLine;
+     CAAISysCollection * _piSysCollection ;
+};
+</pre>
+<ul>
+	<li>The <em>CAAAfrEltCountRep</em> class derives from the <em>CATAfrCommandHeaderRep</em> 
+		class (<a href="#Fig.4">Fig.4</a>)</li>
+	<li>The <code><a href="#Build">Build</a></code> method is a method 
+		of the <em>CATAfrCommandHeaderRep</em> class. You must overwrite this method. 
+		In the <em>CATAfrCommandHeaderRep</em> class it is a pure virtual method. 
+		This method is called by the frame application just after the <em>CAAAfrEltCountRep</em> 
+		class instantiation, in other words just after the <code>
+		<a href="#CATIAfrCommandHeaderRep">CreateToolbarRep</a></code> method call.</li>
+	<li>In private methods:
+		<ul>
+			<li>The <code><a href="#ModifyCB">ModifiedCB</a></code> method 
+				is a callback method called when the CAASysGeomCont component sends 
+				a <em>CAASysCollectionModifNotif</em> notification.</li>
+			<li>The <code><a href="#ValuateEditors">ValuateEditors</a></code> is 
+				called by <code><a href="#Build">Build</a></code> and
+				<code><a href="#ModifyCB">ModifiedCB</a></code> methods 
+				to modify the current value of _<code>pEdtPoint</code> and <code>
+				_pEdtLine</code>, the data members</li>
+		</ul>
+	</li>
+	<li>In data members
+		<ul>
+			<li>_<code>pEdtPoint</code> and <code>_pEdtLine</code>, two <em>CATDlgEditor</em> 
+				class instance created in the <code><a href="#Build">
+				Build</a></code> method</li>
+			<li><code>_piSysCollection</code> a <em>CAAISysCollection</em> interface 
+				pointer on the CAASysGeomCont component of the current CAAGeometry 
+				model.</li>
+		</ul>
+	</li>
+</ul>
+<p>Here the CAAAfrEltCountRep source file:</p>
+<ul>
+	<li><a name="ConstructorClass"></a>The <strong>constructor</strong>
+		<p>The First step consists in to retrieve the CAASysGeomCont component. 
+		Refer to the code file for details about <code>pContainer</code>. It is 
+		useless for the use case to detail this part of code.</p>
+		<pre class="code">...
+CAAAfrEltCountRep::CAAAfrEltCountRep(const CATDialog * iParent,CATString &amp; iCommandName): 
+                 CATAfrCommandHeaderRep(iParent,iCommandName),
+                 _piSysCollection(NULL),_pEdtPoint(NULL),_pEdtLine(NULL)
+{
+   ...
+   rc = pContainer-&gt;QueryInterface(IID_CAAISysCollection, (void**)&amp;<strong>_piSysCollection</strong>);
+
+...</pre>
+		<p>The second and last step consists in to set a callback method to be informed 
+		when the CAASysGeomCont component will send a <em>CAASysCollectionModifNotif</em> 
+		notification.</p>
+		<pre class="code">...
+   if ( NULL != _piSysCollection )
+   {
+      ::AddCallback(this,
+               _piSysCollection,
+	           &quot;CAASysCollectionModifNotif&quot;,
+	            (CATSubscriberMethod)&amp;CAAAfrEltCountRep::<a href="#ModifyCB">ModifiedCB</a>,
+	            NULL);
+   }
+}</pre>
+		<p><code>AddCallback</code> is a static global function whose the parameters 
+		are:</p>
+		<ul>
+			<li><code>this:</code> The subscriber</li>
+			<li><code>_piSysCollection</code>: The publisher</li>
+			<li><code>CAASysCollectionModifNotif</code><code>:</code>The notification 
+				class sent by the publisher</li>
+			<li><code>ModifiedCB:</code>The method of this which is called when 
+				a <em>CAASysCollectionModifNotif</em> notification is sent</li>
+			<li><code>NULL<strong>:</strong></code>No parameters for the callback 
+				method<br />
+			</li>
+		</ul>
+	</li>
+	<li>
+		<p>The <strong>Destructor</strong></p>
+		<pre class="code">...
+CAAAfrEltCountRep::~CAAAfrEltCountRep()
+{
+    if ( NULL != _piSysCollection )
+    {
+       ::<strong>RemoveSubscriberCallbacks</strong>(this, _piSysCollection);
+
+        _piSysCollection-&gt;Release();
+        _piSysCollection = NULL ;
+    }
+    if ( NULL != _pEdtPoint )
+    {
+       _pEdtPoint-&gt;<strong>RequestDelayedDestruction</strong>();
+       _pEdtPoint = NULL ;
+    }
+    if ( NULL != _pEdtLine )
+    {
+       _pEdtLine-&gt;<strong>RequestDelayedDestruction</strong>();
+       _pEdtLine = NULL ;
+    }
+
+}...</pre>
+		<p>At the end, the callback set in the constructor must be removed from 
+		the callback manager [<a href="#References">9</a>], and the <em>CATDlgEditor</em> 
+		instances must be released.</p>
+	</li>
+	<li><a name="Build"></a>The <strong>Build</strong> method
+		<p>You must overwrite this method. The goal of this method is to create 
+		the graphic representation and to initialize it.</p>
+		<pre class="code">...
+HRESULT  CAAAfrEltCountRep::Build()
+{
+   // Creation of the dialog object
+   const CATDialog * pParent = NULL ;
+   <strong>GetDialogParent</strong>(&amp;pParent);
+
+   _pEdtPoint = new CATDlgEditor((CATDialog *)pParent, &quot;CAAAfrEdtPoint&quot;, 
+                                 CATDlgEdtReadOnly);
+   _pEdtLine  = new CATDlgEditor((CATDialog *)pParent, &quot;CAAAfrEdtLine&quot;, 
+                                 CATDlgEdtReadOnly);
+   
+   // Sets the value in the editors
+   <code><a href="#ValuateEditors">ValuateEditors</a></code>();
+
+   return S_OK ;
+}
+...</pre>
+		<p>The first step consists in to retrieve the Dialog parent of the graphic 
+		representation to create. This information is kept by the <em>CATAfrCommandHeaderRep</em> 
+		class, and retrieved by its <code>GetDialogParent</code> method. Then you 
+		can create <em>CATDlgEditor</em> class instance using, <code>pParent</code>, 
+		the Dialog parent. The second argument of the <em>CATDlgEditor</em> class 
+		is the identifier of the dialog object, and the last one is the type of 
+		editor (<code>CATDlgEdtReadOnly</code>). Then, you call <code>
+		<a href="#ValuateEditors">ValuateEditors</a></code> to initialize the contents 
+		of the editors.</p>
+	</li>
+	<li><a name="ModifyCB"></a>The <strong>ModifyCB</strong> method
+		<p>The <code>ModifyCB</code> method is called when the CAASysGeomCont component 
+		sends the <em>CAASysCollectionModifNotif</em> notification. It informs the
+		<em>CAAAfrEltCountRep</em> class instance, that the count of lines/points 
+		on the CAASysGeomCont component has been changed by someone. It is done 
+		thanks to the <code><a href="#ValuateEditors">ValuateEditors</a></code> 
+		method.</p>
+		<pre class="code">...
+void CAAAfrEltCountRep::ModifiedCB(CATCallback, 
+                              void *, 
+                              CATNotification * iNotification,
+			                  CATCallbackEvent, 
+                              CATSubscriberData)
+{
+   <code><a href="#ValuateEditors">ValuateEditors</a></code>();
+}
+...</pre>
+	</li>
+	<li><a name="ValuateEditors"></a>The <strong>ValuateEditors</strong> method
+		<p>This method consists in to retrieve the list of elements into the CAAGeometry 
+		model, and modify, thanks to the <code>SetText</code> method, the current 
+		value on <code>_pEdtPoint</code> and <code>_pEdtLine</code>, the two data 
+		members of the <em>CAAAfrEltCountRep</em> class.</p>
+		<pre class="code">...
+HRESULT CAAAfrEltCountRep::ValuateEditors()
+{
+ ...
+       int nbeltcont = 0 ;
+       _piSysCollection-&gt;<strong>GetNumberOfObjects</strong>(&amp;nbeltcont);
+   
+       int NbPoint = 0 ;
+       int NbLine  = 0 ;
+
+       for (int i=1 ; i &lt;=  nbeltcont ; i++)
+       { 
+          CATBaseUnknown * pObject = NULL ;
+          rc = _piSysCollection-&gt;<strong>GetObject</strong>(i,&amp;pObject);
+          if (SUCCEEDED(rc))
+          {
+              <strong>CAAISysPoint</strong> * piSysPoint  = NULL;                
+              rc = pObject -&gt;QueryInterface(IID_CAAISysPoint, (void**)&amp;piSysPoint);
+              if (SUCCEEDED(rc))
+              {
+                 // it's a point
+                 NbPoint ++ ;
+                 piSysPoint -&gt; Release();
+                 piSysPoint = NULL ;
+              } 
+              <strong>CAAISysLine</strong> * piSysLine  = NULL;                
+              rc = pObject -&gt;QueryInterface(IID_CAAISysLine, (void**)&amp;piSysLine);
+              if (SUCCEEDED(rc))
+              {
+                    // it's a line
+                    NbLine ++ ;
+ ...
+       CATUnicodeString stNbPoint ;
+       stNbPoint.<strong>BuildFromNum</strong>(NbPoint) ;
+       CATUnicodeString stNbLine ;
+       stNbLine.BuildFromNum(NbLine) ;
+
+       _pEdtPoint-&gt;<strong>SetText</strong>(stNbPoint);
+       _pEdtLine -&gt;SetText(stNbLine);
+...</pre>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case has explained how to create a specialized command header with a 
+specific graphic representation:</p>
+<ul>
+	<li>The specialized command header is a component the type of which, <em>CATAfrDialogHeaderRepEltCountHdr</em>, 
+		is built at run time and which implements <em>CATIAfrCommandHeaderRep</em>.</li>
+	<li>Its customized graphic representation is a class which derives from <em>
+		CATAfrCommandHeaderRep</em>.</li>
+</ul>
+<p>The component controlling the data used by the graphic representation is dependent 
+of the model.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAAfrUcSampleComboHdr.htm">Creating a Combo Command Header</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAfrTaCommandHeaders.htm">Understanding the Command Headers</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAAfrUcSamplePaletteWkb.htm">Using the &quot;Tools Palette&quot; 
+		Toolbar for an App</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAAfrUcCAAGeometryOverview.htm">The CAAGeometry Sample</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="../CAADlgDialog/CAADlgQrCATDlgEditor.htm">CATDlgEditor</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidCallbacks.htm">
+		The Callback Mechanism</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysUcOMCreatingInt.htm">
+		Creating Interfaces</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysUcMidCallbacks.htm">
+		Using Callbacks</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td>
+		<a href="../CAASysObjectModeler/CAASysTaOMInheritance.htm">
+		Object Modeler Inheritances</a></td>
+	</tr>
+	
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Fev 2004]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Oct 2006]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

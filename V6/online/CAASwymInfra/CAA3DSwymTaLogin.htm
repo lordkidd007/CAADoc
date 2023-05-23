@@ -1,0 +1,278 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<meta http-equiv="Content-Language" content="en-us" />
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+	<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+	<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+	<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+	<title>3DSwym Login</title>
+</head>
+
+<body onload="createToc();highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>3DSwym Login</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article describes 3DSwym login and logout request flow performed in client applications.</p>
+		<div id="toc"></div>
+		</td>
+	</tr>
+</table>
+
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="overview"></a>Overview</h2>
+<!-- [<a href="#References">1</a>] -->
+<p>
+3DSwym relies on 3DPassport, the official Dassault Systèmes Identity Manager, for log in.
+3DPassport provides SSO (Single Sign On) for the <b>3D</b>EXPERIENCE platform [<a href="#References">1</a>].
+Log in to 3DSwym is actually more log in to 3DPassport.
+Therefore 3DSwym login/logout requires exchanges between three actors:</p>
+<ul>
+	<li>A client which wants to log in to 3DSwym.</li>
+	<li>A 3DSwym server that provides login and logout web services for 3DSwym.</li>
+	<li>A 3DPassport server that provides login and logout web services for 3DPassport.</li>
+</ul>
+<p>This article <b>describes request flow</b> performed in client applications in order to log in to 3DSwym.
+</p>
+<p>This article <b>do not answer the <em>why</em></b> question of called requests.
+To get explanations on why is this request flow followed and not another please refer to this article [<a href="#References">5</a>].
+</p>
+<p><b>Reminder:</b> Requests are made using the standard HTTPS protocol.
+The client application performs automatic redirection on status code 302.
+Request flow can be seen thanks to a network traffic analyser
+Please refer to this article for details [<a href="#References">2</a>].
+</p>
+<p><b>Note:</b> This article assumes the client is not already logged in to any services of the <b>3D</b>EXPERIENCE platform when log in to 3DSwym.
+</p>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="Caption"></a>Diagram Caption</h3>
+<p>A common diagram pattern is used to illustrate each request flow between client and server(s).
+</p>
+<p>The default pattern is:
+</p>
+<!--crop is 6.4-->
+<p><img alt="Login Sequence Diagram" height="156" width="600" onclick="showImg('images/CAAloginEG.png', 998, 3839)" onmouseover="this.style.cursor='pointer'" src="images/CAAloginEG.png" title="Sequence Diagram Example.
+Click to enlarge"/>
+</p>
+<p>Where:
+<ul>
+	<li>Labels:
+		<ul>
+			<li>red labels are cookies creation or edition</li>
+			<li>orange labels are important input data</li>
+			<li>green labels are important output data</li>
+		</ul>
+	</li>
+	<li>Numbered Request arrows:
+		<ul>
+			<li><b>bold</b> solid arrows represent client application explicit calls</li>
+			<li>solid arrows represent automatic redirections</li>
+			<li>dotted arrows represent server response</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="Login"></a>Login</h2>
+<p>Login to 3DSwym can be divided into 4 steps:
+</p>
+<ul>
+	<li><a href="#Step0">Step 0 - Get 3DPassport server address</a></li>
+	<li><a href="#Step1">Step 1 - Get a login ticket</a></li>
+	<li><a href="#Step2">Step 2 - Login</a></li>
+	<li><a href="#Step3">Step 3 - Get a CSRF token</a></li>
+</ul>
+<h3><a name="Step0"></a>Step 0 - Get 3DPassport server address</h3>
+<p>This step gets the <em>missing</em> address of 3DPassport server for login. 
+If the 3DPassport server address is already known, this step can be ignored.
+</p>
+<!-- 7.5 -->
+<p><img alt="Step 0 - Get 3DPassport server address" height="364" width="600" onclick="showImg('images/CAALogin0.png', 2732, 4501)" onmouseover="this.style.cursor='pointer'" src="images/CAALogin0.png" title="Step 0 - Get 3DPassport server address. Click to enlarge"/>
+</p>
+<p><strong>1</strong> request: 
+The client application calls the 3DSwym login web service which path is <code>api/passport/login</code>.
+</p>
+<p><strong>2</strong> response: 
+As the user is not logged in neither to 3DSwym nor to 3DPassport, the web service redirect to 3DPassport login web service [<a href="#References">4</a>].
+The query parameter <em>service</em> indicates to 3DPassport that the request comes from 3DSwym.
+</p>
+<p><strong>3</strong> request: 
+The client application is redirected to 3DPassport login web service.
+</p>
+<p><strong>4</strong> response: 
+Automatic redirection to 3DSwym login web service.
+</p>
+<p><strong>5</strong> request: 
+The 3DSwym login web service is called a second time.
+</p>
+<p><strong>6</strong> response: 
+This time it redirects to another 3DPassport web service.
+</p>
+<p><strong>7</strong> request: 
+The redirection to 3DPassport is performed.
+</p>
+<p><strong>8</strong> response: 
+It returns the 3DPassport login HTML page.
+</p>
+<p>The request flow ends up on 3DPassport server.
+Therefore 3DPassport server address can easily be retrieved by getting the URL issued from redirection..
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="Step1"></a>Step 1 - Get a login ticket</h3>
+<p>This step gets a login ticket, mandatory for the 3DSwym login.</p>
+<!-- 7.47 -->
+<p><img alt="Step 1 - Get a login ticket" height="129" width="600" onclick="showImg('images/CAALogin1.png', 964, 4482)" onmouseover="this.style.cursor='pointer'" src="images/CAALogin1.png" title="Step 1 - Get a login ticket. Click to enlarge"/>
+</p>
+<p><strong>1</strong> request: 
+It consumes the login <b>3DPassport</b> web service [<a href="#References">4</a>].
+The quey parameter <em>action</em> is described in the web service.
+The <em>service</em> query parameter goal is to tell 3DPassport that the login ticket is for 3DSwym login web service.
+A login ticket is always linked to a web service (e.g. .../api/passport/login).
+</p>
+<p><strong>2</strong> response: 
+The web service returns a JSON containing the login ticket inside the <em>lt</em> key.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="Step2"></a>Step 2 - Login</h3>
+<p>This step actually performs the login.</p>
+<!-- 7.5 -->
+<p><img alt="Step 2 - Login" height="301" width="600" onclick="showImg('images/CAALogin2.png', 2257, 4501)" onmouseover="this.style.cursor='pointer'" src="images/CAALogin2.png" title="Step 2 - Login. Click to enlarge"/>
+</p>
+<p><strong>1</strong> request: 
+Logs in to 3DPassport.
+It requires as input parameters: a username, a password and a login ticket.
+Once logged in to 3DPassport the CASTGC (CAS Ticket Granted Cookie) Cookie is set [<a href="#References">1</a>].
+</p>
+<p><strong>2</strong> response: 
+Automatic redirection to 3DSwym login web service.
+A <b>service ticket</b> [<a href="#References">1</a>] is given in the query parameters.
+</p>
+<p><strong>3</strong> request: 
+Calling 3DSwym login web service with a service ticket performs 3DSwym login.
+</p>
+<p><strong>4</strong> response: 
+Automatic redirection to 3DSwym login web service.
+This time <b>without</b> service ticket.
+</p>
+<p><strong>5</strong> request: 
+It calls the 3DSwym login web service.
+</p>
+<p><strong>6</strong> response: 
+As user is logged the web service returns a success message in a HTML page.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h3><a name="Step3"></a>Step 3 - Get a CSRF token</h3>
+<p>This step finishes login process by requesting a CSRF Token [<a href="#References">2</a>].</p>
+<!-- 7.47-->
+<p><img alt="Step 3 - Get a CSRF token" height="133" width="600" onclick="showImg('images/CAALogin3.png', 995, 4482)" onmouseover="this.style.cursor='pointer'" src="images/CAALogin3.png" title="Step 3 - Get a CSRF token. Click to enlarge"/>
+</p>
+<p><strong>1</strong> request:
+The CSRF token is retrieved from the <code>api/index/tk</code> web service [<a href="#References">3</a>]. 
+It gives multiple information on the 3DSwym server.
+</p>
+<p><strong>2</strong> response:
+The web service returns a JSON containing among other things a CSRF Token.
+The CSRF Token is also present in the response header.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="Logout"></a>Logout</h2>
+<p>Logout is performed in a single step (step 4).
+</p>
+<h3><a name="Step4"></a>Step 4 - Logout</h3>
+<p>This step logs client out of 3DSwym and therefore of 3DPassport.
+</p>
+<p>Any client (either a human or an application) should always log out of 3DSwym once it has finished consuming web services.
+</p>
+<!-- 7.5 -->
+<p><img alt="Step 4 - Logout" height="284" width="600" onclick="showImg('images/CAALogin4.png', 2132, 4501)" onmouseover="this.style.cursor='pointer'" src="images/CAALogin4.png" title="Step 4 - Logout. Click to enlarge"/>
+</p>
+<p><strong>1</strong> request:
+The client application calls the <code>api/passport/logout</code> web service [<a href="#References">3</a>].
+It does not require any input parameters.
+</p>
+<p><strong>2</strong> response: 
+Automatic redirection to 3DPassport logout web service [<a href="#References">4</a>].
+</p>
+<p><strong>3</strong> request: 
+3DPassport logout web service performs the logout from 3DPassport.
+The CASTGC cookie is set to null as logout from 3DPassport is effective.
+</p>
+<p><strong>4</strong> response: 
+3DPassport redirects to 3DSwym login web service, inviting the client to log in again.
+</p>
+<p><strong>5</strong> request: 
+Automatic redirection to <code>api/passport/login</code> 3DSwym web service [<a href="#References">3</a>].
+</p>
+<p><strong>6</strong> response: 
+The web service returns the login HTML page.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article describes 3DSwym login and logout request flow performed in client applications.
+It details interactions between a Java client application [<a href="#References">6</a>], 3DSwym and 3DPassport service providers when log in to 3DSwym.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="../CAAiamPassport/CAAiamPassportCASProtocol.htm">3DPassport and CAS Protocol</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAA3DSwymTaAboutWS.htm">About 3DSwym web services</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAA3DSwymTcSSO.htm">SSO Web Services Reference</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="../CAAiamPassport/CAATciamPassportWSRefCASToc.htm">CAS Web Services Reference</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAA3DSwymUcGettingStarted.htm">Getting Started</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAA3DSwymUcJavaClientApp.htm">Creating Java Client Based Applications</a></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [June 2014]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- ========== ========== ========== ========== ========== ========== ========== ========== ========== ========== -->
+<script type="text/javascript">insertCopyright();</script>
+</body>
+</html>

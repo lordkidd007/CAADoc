@@ -1,0 +1,448 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>New API for Product Modeler Object Creation</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>New API for Product Modeler Object Creation</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>Since V6R2012, the API to create a PLM Product Reference, a PLM Product 
+		Representation Reference or a PLM Product Publication have been changed. 
+		This article gives the new APIs, what are the changes, and the path of migration. 
+		The previous one are deprecated with the usual protocol of deprecation.</p>
+		<ul>
+			<li><a href="#What">What Has Changed</a></li>
+			<li><a href="#Change">Change Description</a><ul>
+				<li><a href="#IdCard">IdentityCard and Imakefile</a></li>
+				<li><a href="#Conversion">Factory Conversion</a></li>
+				<li><a href="#PLM">PLM Object Factories Conversion</a></li>
+				<li><a href="#Include">Include</a></li>
+				</ul>
+			</li>
+			<li><a href="#Examples">Examples of Migration</a><ul>
+				<li><a href="#Reference">Creating a PLM Product Reference with Explicit 
+					APIs</a></li>
+				<li><a href="#3DPart">Creating a 3DPart with Implicit APIs</a></li>
+				<li><a href="#RepReference">Creating a PLM Product Representation 
+					Reference with Implicit APIs</a></li>
+				<li><a href="#Publications">Creating a PLM Publication</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What"></a>What Has Changed?</h2>
+<p>The API to create PLM Product object were based on two kinds:</p>
+<ul>
+	<li>Implicit: The PLM attributes of the newly created object are valuated by 
+		the method.</li>
+	<li>Explicit: The PLM attributes of the newly created object are only valuated 
+		by your inputs.</li>
+</ul>
+<p>Each one has its pros and cons. So, now we propose new APIs based on an unique 
+model. They are all based on at least these 2 arguments:</p>
+<ul>
+	<li><strong>A pointer to an environment</strong> - the pointer can be NULL, 
+		and the current environment will be used.</li>
+	<li><strong>A list of PLM attributes</strong> - As of today the list must be 
+		empty (except for publication see <a href="#Publications">example</a>) 
+		because the PLM Attributes will be valuated by the <strong>initialization 
+		Business logic</strong> inside the routine. If you need to valuate some 
+		attributes, use the <em>CATCkeObjectAttrWriteServices</em> API <strong>after</strong> 
+		the PLM Object creation.</li>
+</ul>
+<p>If there are others arguments, there are specific to the PLM object to create.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Change"></a>Change Description</h2>
+<h3><a name="IdCard"></a>IdentityCard and Imakefile</h3>
+<p>The new APIs are within the <strong>ProductStructureUseItf</strong> framework. 
+But to use the new APIs your framework must pre-req <strong>ProductStructureUseItf</strong>, 
+and <strong>KnowledgeInterfaces</strong> as well. So each module creating a PLM 
+Product object must include the following modules: <strong>CATProductStructureUseItf</strong>
+and <strong>KnowledgeItf</strong>.</p>
+<p>Two frameworks, and their respective module can be useless:</p>
+<ul>
+	<li>The PLMSessionInterfaces framework (module PLMPSISessionInterfaces) can 
+		be useless if only used for <em>CATPsiPLMFactory</em>.</li>
+	<li>The PLMModelerBaseInterfaces framework (module CATPLMModelerBaseInterfaces) 
+		can be useless if only used for <em>CATPatternFactory</em>.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Conversion"></a>Factory Conversion</h3>
+<p>The first change is about the class to retrieve the factory. Before you had:</p>
+<ul>
+	<li><em>CATPsiPLMFactory</em> inside PLMPSISessionInterfaces.</li>
+	<li><em>CATPatternFactory</em> inside PLMModelerBaseInterfaces.</li>
+</ul>
+<p>Now the factory class is unique: <em>CATPrdFactory</em> inside ProductStructureUseItf.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="PLM"></a>PLM Object Factories Conversion</h3>
+<p>We have divided the migration path in four tables, one for each kind of created 
+object:</p>
+<ul>
+	<li><a href="#Tab1">Tab.1</a>: Table for API to create PLM Product Reference</li>
+	<li><a href="#Tab2">Tab.2</a>: Table for API to create 3D Part</li>
+	<li><a href="#Tab3">Tab.3</a>: Table for API to create PLM Product Representation 
+		Reference</li>
+	<li><a href="#Tab4">Tab.4</a>: Table for API to create PLM Product Publication</li>
+</ul>
+<p>First, let us present the methods to create a <strong>PLM Product Reference</strong>.</p>
+<table>
+	<caption><a name="Tab1">Tab.1</a>: API to create PLM Product Reference</caption>
+	<tr>
+		<th>Old Interface</th>
+		<th>Old Method</th>
+		<th>Type of Creation</th>
+		<th>New Interface</th>
+		<th>New Method</th>
+	</tr>
+	<tr>
+		<td>CATIPLMPrdFactory</td>
+		<td>CreateProductReference</td>
+		<td>Explicit</td>
+		<td>CATIPrdReferenceFactory</td>
+		<td>CreatePrdReference</td>
+	</tr>
+	<tr>
+		<td>CATIPrdFactory</td>
+		<td>CreateProductReference</td>
+		<td>Implicit</td>
+		<td>CATIPrdReferenceFactory</td>
+		<td>CreatePrdReference</td>
+	</tr>
+	<tr>
+		<td>CATIPrdFactory</td>
+		<td>CreateCATPartReference</td>
+		<td>Implicit</td>
+		<td>CATIPrd3DPartReferenceFactory </td>
+		<td>Create3DPart (*)</td>
+	</tr>
+</table>
+<p>For the first two cases (CreateProductReference), the created structure is the 
+same, for the last case, there is a difference in the created structure.</p>
+<ul>
+	<li>CATIPrdFactory::CreateCATPartReference create a PLM Product Reference, a 
+		PLM Product Representation Reference whose the stream in a CATPart, and 
+		an instance of this PLM Product Representation Reference aggregated by the 
+		PLM Product Reference. The PLM Product Representation Reference is multi-instantiable.</li>
+	<li>CATIPrd3DPartReferenceFactory::Create3DPart creates a 3DPart: a PLM Product 
+		Reference, a PLM Product Representation Reference whose the stream in a 
+		3DShape, and an instance of this PLM Product Representation Reference aggregated 
+		by the PLM Product Reference. The PLM Product Representation Reference is 
+		mono-instantiable.</li>
+</ul>
+<p>Then, about the <strong>3DPart </strong>structure.</p>
+<table>
+	<caption><a name="Tab2">Tab.2</a>: API to create 3D Part</caption>
+	<tr>
+		<th>Old Interface</th>
+		<th>Old Method</th>
+		<th>Type of Creation</th>
+		<th>New Interface</th>
+		<th>New Method</th>
+	</tr>
+	<tr>
+		<td>CATIPrd3DPartFactory</td>
+		<td>Create3DPart</td>
+		<td>Explicit</td>
+		<td>CATIPrd3DPartReferenceFactory</td>
+		<td>Create3DPart</td>
+	</tr>
+	<tr>
+		<td>CATIPrd3DPartFactory</td>
+		<td>CreateImplicit3DPart</td>
+		<td>Implicit</td>
+		<td>CATIPrd3DPartReferenceFactory</td>
+		<td>Create3DPart</td>
+	</tr>
+</table>
+<p>Then, let us present the methods to create a <strong>PLM Product Representation 
+Reference</strong>.</p>
+<table>
+	<caption><a name="Tab3">Tab.3</a> API to create PLM Product Representation Reference</caption>
+	<tr>
+		<th>Old Interface</th>
+		<th>Old Method</th>
+		<th>Type of Creation</th>
+		<th>New Interface</th>
+		<th>New Method</th>
+	</tr>
+	<tr>
+		<td>CATIPsiPLMRepRefFactory</td>
+		<td>CreateRepresentationReferenceWithAuthoring </td>
+		<td>Explicit</td>
+		<td>CATIPrdRepresentationReferenceFactory</td>
+		<td>Create3DShape (*1)</td>
+	</tr>
+	<tr>
+		<td>CATIPsiPLMRepRefFactory</td>
+		<td>CreateRepresentationReferenceWithAuthoringInitializedWithContentOf</td>
+		<td>Explicit</td>
+		<td>CATIPrdRepresentationReferenceFactory</td>
+		<td>CreateNonCATIA</td>
+	</tr>
+	<tr>
+		<td>CATIPsiPLMRepRefFactory</td>
+		<td>CreateTechnologicalRepresentationReference</td>
+		<td>Explicit</td>
+		<td colspan="2">No Replacement(*2)</td>
+	</tr>
+	<tr>
+		<td>CATIPsiRepRefFactory</td>
+		<td>CreateRepresentationReferenceWithAuthoring</td>
+		<td>Implicit</td>
+		<td>CATIPrdRepresentationReferenceFactory</td>
+		<td>Create3DShape (*1)</td>
+	</tr>
+	<tr>
+		<td>CATIPsiRepRefFactory</td>
+		<td>CreateRepresentationReferenceWithAuthoringInitializedWithContentOf</td>
+		<td>Implicit</td>
+		<td>CATIPrdRepresentationReferenceFactory</td>
+		<td>CreateNonCATIA</td>
+	</tr>
+	<tr>
+		<td>CATIPsiRepRefFactory</td>
+		<td>CreateTechnologicalRepresentationReference</td>
+		<td>Implicit</td>
+		<td colspan="2">No Replacement (*2)</td>
+	</tr>
+	<tr>
+		<td>CATIPLMRepresentations</td>
+		<td>AddRepresentation</td>
+		<td>Explicit</td>
+		<td>CATIPrdAggregatedRepresentations</td>
+		<td>Add3DShape (*1)</td>
+	</tr>
+	<tr>
+		<td>CATIPLMRepresentations</td>
+		<td>AddRepresentationInitializedWithContentOf</td>
+		<td>Explicit</td>
+		<td>CATIPrdAggregatedRepresentations</td>
+		<td>AddNonCATIA</td>
+	</tr>
+	<tr>
+		<td>CATIPLMRepresentations</td>
+		<td>Count/Iterator/RemoveRepresentation</td>
+		<td>NA</td>
+		<td>CATIPrdAggregatedRepresentations</td>
+		<td>Same method's</td>
+	</tr>
+</table>
+<p>(*1) The new API limits the creation to a 3D Shape. You have dedicated application 
+API to create the other cases like a drawing.</p>
+<p>(*2) For the PLM Representation Reference with technological contents, the API 
+has been removed from the Use level.</p>
+<p>Finally, let us present the methods to create a <strong>PLM Publications</strong>.</p>
+<table>
+	<caption><a name="Tab4">Tab.4</a>: API to create PLM Publications</caption>
+	<tr>
+		<th>Old Interface</th>
+		<th>Old Method</th>
+		<th>Type of Creation</th>
+		<th>New Interface</th>
+		<th>New Method</th>
+	</tr>
+	<tr>
+		<td>CATIPrdPublications</td>
+		<td>AddExplicitPublication</td>
+		<td>Explicite</td>
+		<td>CATIPrdPublications</td>
+		<td>AddPrdPublication</td>
+	</tr>
+	<tr>
+		<td>CATIPrdPublications</td>
+		<td>AddPublication</td>
+		<td>Implicite</td>
+		<td>CATIPrdPublications</td>
+		<td>AddPrdPublication</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Include"></a>Include</h3>
+<p>You have to remove the useless include, one of them:</p>
+<ul>
+	<li>CATIPLMPrdFactory</li>
+	<li>CATIPrdFactory</li>
+	<li>CATIPrd3DPartFactory</li>
+	<li>CATIPsiRepRefFactory</li>
+	<li>CATIPsiPLMRepRefFactory</li>
+	<li>CATIPLMRepresentations</li>
+</ul>
+<p>to replace by one of them:</p>
+<ul>
+	<li>CATIPrdReferenceFactory</li>
+	<li>CATIPrd3DPartReferenceFactory </li>
+	<li>CATIPrdRepresentationReferenceFactory</li>
+	<li>CATIPrdAggregatedRepresentations</li>
+</ul>
+<p>+ always #include "CATListValCATICkeParm.h" </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Examples"></a>Examples of Migration</h2>
+<p>Following you have the main examples of migration. </p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Reference"></a>Creating a PLM Product Reference with Explicit APIs</h3>
+<p><strong>Then</strong></p>
+<pre class="code">CATIAdpEnvironment* CurrentEnv = NULL;
+HR = CATAdpDictionaryServices::<strong>GetEnvironment</strong>(repository,EnvToUse,&amp;CurrentEnv);
+...
+CATListValCATICkeParm_var iAttrListProduct .....; // fill in previously
+...
+<strong>CATIPLMPrdFactory</strong>* pPrdFactory=NULL;
+HR = CATPsiPLMFactory::<strong>CreateFactoryObject</strong>(IID_CATIPrdReferenceFactory, (void**)&amp;pPrdFactory);
+...
+CATIPLMProducts * pPLMProduct = NULL;
+CATListValCATICkeParm_var iEmptyListAttr;
+HR = pPrdFactory-&gt;<strong>CreateProductReference</strong>(iAttrListProduct, iEmptyListAttr, pPLMProduct, CurrentEnv);</pre>
+<p><strong>Now</strong></p>
+<pre class="code">CATIAdpEnvironment* CurrentEnv = NULL;
+HR = CATAdpDictionaryServices::<strong>GetEnvironment</strong>(repository,EnvToUse,&amp;CurrentEnv);
+...
+<strong>CATIPrdReferenceFactory</strong>* pPrdFactory=NULL;
+HR = CATPrdFactory::<strong>CreatePrdFactory</strong>(IID_CATIPLMPrdFactory, (void**)&amp;pPrdFactory);
+...
+CATIType_var spRefType;
+CATCkePLMNavPublicServices::RetrieveKnowledgeType("VPMReference", spRefType);
+CATIPLMProducts * pPLMProduct = NULL;
+CATListValCATICkeParm_var iEmptyListAttr;
+HR = pPrdFactory-&gt;<strong>CreatePrdReference</strong>(spRefType, iEmptyListAttr, pPLMProduct, CurrentEnv);</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="3DPart"></a>Creating a 3DPart with Implicit APIs</h3>
+<p><strong>Then</strong>:</p>
+<pre class="code">...
+<strong>CATIPrd3DPartFactory</strong>* pPrdFactory=NULL;
+HR = <span class="style3">CATPatternFactory</span>::<strong>CreatePatternFactory</strong>(IID_CATIPrd3DPartFactory, (void**)&amp;pPrdFactory);
+...
+CATIPLMProducts * pPLMProduct = NULL;
+HR = pPrdFactory-&gt;<strong>CreateImplicit3DPart</strong>(pPLMProduct);
+</pre>
+<p><strong>Now</strong>:</p>
+<pre class="code">...
+<strong>CATIPrd3DPartReferenceFactory</strong>* pPrdFactory=NULL;
+HR = CATPrdFactory::<strong>CreatePrdFactory</strong>(IID_ CATIPrd3DPartReferenceFactory, (void**)&amp;pPrdFactory);
+...
+CATIPLMProducts * pPLMProduct = NULL;
+CATListValCATICkeParm_var iEmptyListAttr;
+HR = pPrdFactory-&gt;<strong>Create3DPart</strong>(NULL, iEmptyListAttr, iEmptyListAttr, pPLMProduct);</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="RepReference"></a>Creating a PLM Product Representation Reference with 
+Implicit APIs</h3>
+<p><strong>Then</strong></p>
+<pre class="code">...
+<strong>CATIPsiRepRefFactory</strong>* pRepRefFactory=NULL;
+HR = CATPsiPLMFactory::<strong>CreateFactoryObject</strong>(IID_CATIPsiRepRefFactory, (void**)&amp;pRepRefFactory);
+...
+CATIPsiRepresentationReference* pRepRef = NULL;
+HR = pRepRefFactory-&gt;<strong>CreateRepresentationReferenceWithAuthoring</strong>("CATPart",pRepRef);</pre>
+<p><strong>Now</strong></p>
+<pre class="code">...
+<strong>CATIPrdRepresentationReferenceFactory</strong>* pPrdFactory=NULL;
+HR = CATPrdFactory::<strong>CreatePrdFactory</strong>(IID_CATIPrdRepresentationReferenceFactory, (void**)&amp;pPrdFactory);
+...
+CATIType_var spRepType;
+CATCkePLMNavPublicServices::RetrieveKnowledgeType(&quot;3DShape&quot;, spRepType);
+CATListValCATICkeParm_var iEmptyListAttr;
+CATIPsiRepresentationReference *pRepRef = NULL;
+HR = pPrdFactory-&gt;<strong>Create3DShape</strong>(spRepType, iEmptyListAttr, pRepRef, pIAdpEnvironment);</pre>
+<p>In the second case, the PLM Product Representation Reference is a real 3D Shape, 
+not just a PLM Representation Reference with a Part stream.</p>
+<p>The list of PLM Attributes must be empty. If you want to valuate some attributes, 
+use the <em>CATCkeObjectAttrWriteServices</em> APIs after the creation.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Publications"></a>Creating a PLM Publications</h3>
+<p><strong>Then</strong></p>
+<pre class="code">...
+<strong>CATIPrdPublications</strong>* pPublicationsOnRoot= ...;
+rc = pProductReference-&gt;QueryInterface(IID_CATIPrdPublications,(void**)&amp;pPublications);  
+CATIPrdPublication_var oIPublication;
+CATUnicodeString PubName =...;
+CATOmbObjectInContext *pObjectInContext= .... ;
+rc = pPublicationsOnRoot-&gt;<strong>AddPublication</strong>(PubName ,pObjectInContext,oIPublication);
+...</pre>
+<p><strong>Now</strong></p>
+<pre class="code"><strong>CATIPrdPublications</strong>* pPublicationsOnRoot= ...;
+rc = pProductReference-&gt;QueryInterface(IID_CATIPrdPublications,(void**)&amp;pPublications);  
+CATIPrdPublication_var oIPublication;
+CATUnicodeString PubName =...;
+CATOmbObjectInContext *pObjectInContext= .... ;
+CATIAdpPLMEnvironment * pEnv = NULL ;
+
+CATListValCATICkeParm_var ListAttrWithName;
+CATICkeParmFactory_var spCkeParmFactory  =  <strong>CATCkeGlobalFunctions::GetVolatileFactory</strong>(); 
+if ( NULL_var != spCkeParmFactory )
+{
+  CATICkeParm_var spParm;    
+  spParm = spCkeParmFactory-&gt;<strong>CreateString</strong>("<strong>V_FunctionalName</strong>", PubName );  
+  ListAttrWithName.Append(spParm);
+}
+rc = pPublicationsOnRoot-&gt;<strong>AddPrdPublication</strong>(pEnv,ListAttrWithName,pObjectInContext,oIPublication);
+...</pre>
+<p>The main change is to create a list of PLM Attributes containing the name of 
+the publication. The environment interface pointer can be NULL since previously 
+your code was implicit, so you are sure that a current environment already exists. 
+The last two arguments (the context and the output) are the same.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In order to simplify and correct some defaults, we have changed the API to create 
+PLM Product Objects.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

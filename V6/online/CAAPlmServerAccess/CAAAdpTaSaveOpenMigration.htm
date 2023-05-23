@@ -1,0 +1,436 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>New API for Opening and Saving PLM Object</title>
+<style type="text/css">
+.style2 {
+	border-style: solid;
+	border-width: 1px;
+}
+.style3 {
+	border: 1px solid #000000;
+}
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>New API for Opening and Saving PLM Object</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>In V6R2012 new API are exposed to Open and Save a PLM Object. This 
+		article gives the new APIs, what are the changes, and the path of 
+		migration. The previous one are deprecated with the usual protocol of 
+		deprecation.&nbsp; </p>
+		<ul>
+			<li><a href="#What has Changed">What has Changed?</a></li>
+			<li><a href="#Change Description">Change Description</a><ul>
+				<li><a href="#Open">Open APIs</a><ul>
+					<li><a href="#Bag Management">Bag Management</a></li>
+					<li><a href="#Option Management">Options Management</a></li>
+					<li><a href="#Consistency Behavior">Consistency Behavior</a></li>
+				</ul>
+				</li>
+				<li><a href="#Save">Save API</a></li>
+			</ul>
+			</li>
+			<li><a href="#Remarks">Remarks</a></li>
+			<li><a href="#Code Example">Code Example</a><ul>
+      <li><a href="#ExpandAndOpen in Authoring mode">ExpandAndOpen in Authoring Mode</a></li>
+<li><a href="#ExpandAndOpen in Navigation mode">ExpandAndOpen in Navigation Mode</a></li>
+<li><a href="#OpenRepresentation for a 3D Shape">OpenRepresentation for a 3D Shape</a></li>
+<li><a href="#OpenRepresentation otherwise">OpenRepresentation otherwise</a></li>
+		<li><a href="#Save method">Save</a></li>
+            </ul>
+              </li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="What has Changed"></a>What has Changed?</h2>
+<p>The <em>CATAdpOpenSaveServices</em> class containing two methods for Open,
+<code>OpenRepresentation </code>for a PLM Representation Reference and <code>ExpandAndOpen</code> for a PLM Reference, has been deprecated for many reasons:</p>
+<ul>
+	<li><strong>Secure</strong> Open operation : The bag [<a href="#References">1</a>] is 
+	now an input of the Open operation. By this way we ensure a best life cycle 
+	management of the opened PLM objects. But, it is always your responsibility, 
+	to create the Bag, and to remove the PLM Components from the bag when they 
+	become useless. </li>
+	<li><strong>Increase</strong> the Open options: As of today, there is an 
+	enumerate to choose the <code>ExpandAndOpen</code> method mode ( <code>ShortNavigation</code>,
+	<code>Navigation</code>, <code>Authoring</code>). They still persist, but 
+	another option, independent of those was required. So we decide to change 
+	the process to set options.</li>
+	<li><strong>Make consistent</strong> the Open operation: The selective loading mode of a PLM 
+	Representation Reference loaded by was different between <code>ExpandAndOpen</code> and <code>Open</code>. 
+	Now we have the same behavior.</li>
+</ul>
+<p>The <code>Save</code> method of <em>CATAdpOpenSaveServices</em> 
+has been deprecated to be replaced by another method, but there is no functional 
+change. </p>
+<p>Lets us described in details the new APIs. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Change Description"></a>Change Description</h2>
+
+<h3><a name="Open"></a>Open APIs</h3>
+<p>The previous APIs were
+<code>OpenRepresentation </code>for a PLM Representation Reference, and <code>ExpandAndOpen</code> 
+for a PLM Reference, two methods of the <em>CATAdpOpenSaveServices</em> class. 
+Now there is only one method, <code>CompleteAndOpen<em></em></code>, of the <em>
+<strong>CATAdpOpener</strong></em> class. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h4><a name="Bag Management"></a>Bag Management</h4>
+<p>First you have to create a <em>
+<strong>CATAdpOpener</strong></em> class instance. The two constructor class contains 
+a <strong>Bag</strong>, a <em>CATOmbLifeCycleRootsBag</em> class instance  as input. 
+The Bag is created by your code, and each time the <code>CompleteAndOpen method 
+</code>will be called, the root PLM Component will be added to it. The PLM 
+Component is added even if it is already in session. If it was already in your 
+bag, the addition will be not effective, as it was previously the case in your 
+code. </p>
+<p>For your code, there is no functional change about the bag:&nbsp; </p>
+<p>Then to do:</p>
+<ul>
+	<li>Create a Bag</li>
+	<li>call <code>ExpandAndOpen</code> 
+	or
+<code>OpenRepresentation</code></li>
+	<li> Add the newly open element in the bag</li>
+	<li> ....</li>
+	<li> Empty / Remove some elements of the&nbsp; bag when useless .</li>
+</ul>
+<p>Now you do:</p>
+<ul>
+	<li>Create a Bag</li>
+	<li>Create a <em>
+	CATAdpOpener</em> class with the bag as input, </li>
+	<li>call <code>CompleteAndOpen</code></li>
+	<li>....</li>
+	<li>Empty / Remove some elements of the&nbsp; bag when useless .</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Option Management"></a>Option Management</h4>
+<p>When you use <code>ExpandAndOpen</code> method an option specifies how to 
+open the PLM Reference. </p>
+<ul>
+	<li>ShortNavigation : only the root PLM Reference and its aggregating PLM 
+	Instance, with their PLM Reference. </li>
+	<li>Navigation : All the&nbsp; PLM Reference/PLM Instance from top-down</li>
+	<li>Authoring: All the structure : PLM Reference/PLM Instance/PLM Rep 
+	Reference/ PLM Rep Instance/PLM Port/ PLM Connection.</li>
+</ul>
+<p>You still have these options but they are defined by the <em><strong>CATAdpOpenParameters</strong> </em>class. 
+By the constructor class you define the expand mode:</p>
+<pre class="code">CATAdpOpenParameters(CATAdpExpandParameters::ExpandMode iMode=CATAdpExpandParameters::Authoring);
+</pre>
+<p><em>CATAdpExpandParameters</em> is an enum with three values:
+<code>Navigation</code>, <code>Authoring</code>, and <code>OneLevelNavigation</code> (for 
+<code>ShortNavigation</code>)</p>
+<p>The novelties is that you can have another option: load or not the material 
+PLM object thanks the <code>SetMaterialLoadingMode</code> method of the <em>CATAdpOpenParameters</em> class. 
+Later another options could be added with new methods.</p>
+
+<p>Lets us come back to the <em>
+CATAdpOpener</em> class. This class can be built with two constructors: one with 
+and one without a <em>CATAdpOpenParameters</em> class instance, without meaning 
+the default <em>CATAdpOpenParameters</em> class instance. Each time the <code>CompleteAndOpen 
+</code>method will be called, the <em>CATAdpOpener </em>class constructor parameters will be used.</p>
+<p>When you use the <code>OpenRepresentation</code> method of <em>CATAdpOpenSaveServices,</em> 
+you have to use the constructor without&nbsp; <em>CATAdpOpenParameters</em> 
+class instance since all options do not, as of today, matter with the PLM 
+Representation reference openness. But if you use the <code>ExpandAndOpen</code> 
+method create a <em>CATAdpOpenParameters </em> class instance can be useful. It 
+will be fully detailed in the <a href="#Code Example">Code Example</a> section.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Consistency Behavior"></a>Consistency Behavior</h4>
+<p>The section is important especially if you work with the Product modeler. The 
+following array details the loading mode of the PLM Representation Reference 
+according to the methods.</p>
+<table class="style2" >
+	<caption>PLM Representation Reference Loading Mode</caption>
+	<tr>
+		<th>Method</th>
+		<th>Behavior</th>
+	</tr>
+	<tr>
+		<td class="style3"> <code>ExpandAndOpen</code> </td>
+		<td class="style3">It can be Edit mode, Visu mode or PLM mode. Each modeler defines 
+		what we call the &quot;preferred&quot; loading mode of its PLM Representation 
+		Reference&nbsp; </td>
+	</tr>
+	<tr>
+		<td class="style3">
+<code>OpenRepresentation</code></td>
+		<td class="style3">Edit Mode</td>
+	</tr>
+</table>
+<p>For <code>CompleteAndOpen</code> the behavior is the same whatever the opened 
+root 
+PLM object: PLM Representation References are always opened with the &quot;preferred&quot; 
+loading mode. </p>
+<p>So, the change is for the application using
+<code>OpenRepresentation.</code> If you are opening a <strong>3DShape</strong>, 
+a <strong>NON CATIA</strong> with txt, xls, or <strong>V4 </strong>model, you 
+may have to change you code to perform a loading model switching. </p>
+<ul>
+	<li><strong>3DShape</strong> was opened in Edit Mode, now it is Visu Mode</li>
+	<li><strong>NON CATIA</strong> with txt, xls was opened in Edit Mode, 
+	now it is PLM Mode</li>
+	<li><strong>V4 </strong>model was opened in Linkable Mode, now it is Visu Mode</li>
+</ul>
+<p>The section <a href="#Code Example">Code Example</a> section details the 
+3DShape case. The switch is not always mandatory. If your application only needs 
+a simple access to the PLM Attributes, the switch is not required.</p>
+<p>But <code>CompleteAndOpen</code> have still the same behavior as <code>
+ExpandAndOpen</code> 
+or
+<code>OpenRepresentation:</code> The selective loading mode of a PLM 
+Representation Reference already loaded in session does not change after calling 
+one of these three methods. In other words, if a PLM Representation Reference 
+already exists in the session with a given loading mode, if you call <code>
+CompleteAndOpen</code> (or previously <code>OpenRepresentation/ExpandAndOpen</code> 
+), it will not switch the loading mode of the PLM Representation Reference to 
+the &quot;preferred&quot; loading mode, the call will be without effect.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Save"></a>Save API</h3>
+<p>The previous APIs was <code>Save</code> of the <em>CATAdpOpenSaveServices</em> class. 
+Now there is only one method, <code>Save<em>, </em></code>of the <em>
+<strong>CATAdpSaver </strong></em>class. </p>
+<p>There is no change in term of functionality, the <code>Save</code> method of
+<em>CATAdpOpenSaveServices</em> class has exactly the same arguments as the <code>Save </code>
+method of 
+<strong><em>CATAdpSaver</em></strong> class. The example of migration is 
+detailed in the <a href="#Code Example">Code Example Section</a></p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3>IdentityCard and Imakefile</h3>
+<p>The New APIs are inside the framework <code>CATPLMIntegrationUse</code>, the module exporting the new classes are: 
+<code>CATPLMIntegrationUse </code> </p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Remarks"></a>Remarks</h2>
+<p>In a <strong>command</strong> you need to open a PLM Reference or a PLM 
+Representation Reference, and then you would like to instantiate it to be 
+aggregated beneath one PLM Reference managed by an editor. The Bag to put as 
+input of the <code>CompleteAndOpen</code> method will be a &quot;local&quot; Bag. Once the 
+instantiation is done, you can remove the loaded PLM Object from your &quot;local&quot; 
+bag. You don't need the bag of the editor.</p>
+<p>The same <em>CATAdpOpener class </em>instance can be used to open a PLM 
+Reference, and then&nbsp; a PLM Representation Reference. The open parameters, 
+valid for a PLM Reference, are without impact on the PLM Representation 
+Reference openness. </p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="Code Example"></a>Code Example</h2>
+<p>This section details the migration path.</p>
+<h3><a name="ExpandAndOpen in Authoring mode"></a>ExpandAndOpen in Authoring Mode</h3>
+<p><strong>Then</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag  Bag;
+...
+CATIPLMNavReference  *piNavRefOnComp  =  NULL;
+hr= CATAdpOpenSaveServices::<strong>ExpandAndOpen</strong>(oIdentifier,IID_CATIPLMNavReference,
+                                         (void**)  &amp;piNavRefOnComp,
+                                         CATAdpOpenSaveServices::<strong>Authoring</strong>);
+...
+hr= Bag.<strong>InsertRoot</strong>(piNavRefOnComp);
+...
+</pre>
+<p><strong>Now</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag Bag;
+...
+<strong>CATAdpOpener</strong> opener(Bag)
+CATIPLMNavReference  *piNavRefOnComp  =  NULL;
+hr= <strong>opener::CompleteAndOpen</strong>(oIdentifier,IID_CATIPLMNavReference, (void**) &amp;piNavRefOnComp);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="ExpandAndOpen in Navigation mode"></a>ExpandAndOpen in Navigation Mode</h3>
+<p>This time using the CATAdpOpenParameters will be mandatory.</p>
+<p><strong>Then</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag  Bag;
+...
+CATIPLMNavReference  *piNavRefOnComp  =  NULL;
+hr= CATAdpOpenSaveServices::<strong>ExpandAndOpen</strong>(oIdentifier,IID_CATIPLMNavReference,
+                                         (void**)  &amp;piNavRefOnComp,
+                                         CATAdpOpenSaveServices::<strong>Navigation</strong>);
+...
+hr= Bag.<strong>InsertRoot</strong>(piNavRefOnComp);
+...
+</pre>
+<p><strong>Now</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag Bag;
+...
+<strong>CATAdpOpenParameters</strong> params(CATAdpExpandParameters::Navigation);
+<strong>CATAdpOpener</strong> opener(Bag,params)
+CATIPLMNavReference  *piNavRefOnComp  =  NULL;
+hr= <strong>opener::CompleteAndOpen</strong>(oIdentifier,IID_CATIPLMNavReference, (void**) &amp;piNavRefOnComp);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="OpenRepresentation for a 3D Shape"></a>OpenRepresentation for a 3D Shape</h3>
+<p>As of today, the 3D shape is the unique PLM Representation Reference 
+requiring a switch after its open. </p>
+<p><strong>Then</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag  Bag;
+...
+<strong>CATIPsiRepresentationReference</strong> *piRepRefOn3DShape  =  NULL;
+hr= CATAdpOpenSaveServices::<strong>OpenRepresentation</strong>(oIdentifier,IID_CATIPsiRepresentationReference,(void**)  &amp;piRepRefOn3DShape  )
+...
+hr= Bag.<strong>InsertRoot</strong>(piRepRefOn3DShape  );
+...
+</pre>
+<p><strong>Now</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag Bag;
+...
+<strong>CATAdpOpener</strong> opener(Bag)
+CATIPsiRepresentationLoadMode *piLoadModeOn3DShape  =  NULL;
+hr= <strong>opener::CompleteAndOpen</strong>(oIdentifier,IID_CATIPsiRepresentationLoadMode, (void**) &amp;piLoadModeOn3DShape);
+...
+hr= piLoadModeOn3DShape-&gt;<strong>ChangeLoadingMode</strong>(CATIPsiRepresentationLoadMode::<strong>EditMode</strong>);
+...
+CATIPsiRepresentationReference *piRepRefOn3DShape  =  NULL;
+hr = piLoadModeOn3DShape-&gt;<strong>QueryInterface</strong>(IID_CATIPsiRepresentationReference ,(void**)&amp;piRepRefOn3DShape );
+...
+piLoadModeOn3DShape-&gt;Release();
+piLoadModeOn3DShape = NULL ;
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="OpenRepresentation otherwise"></a>OpenRepresentation otherwise</h3>
+<p>The migration is easier since no switch is required after the open (when you 
+migrate).&nbsp; </p>
+<p><strong>Then</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag  Bag;
+...
+<strong>CATIPLMNavRepresentationReference </strong>*piOnRepRef  =  NULL;
+hr= CATAdpOpenSaveServices::<strong>OpenRepresentation</strong>(oIdentifier,IID_CATIPLMNavRepresentationReference,(void**)  &amp;piOnRepRef)
+...
+hr= Bag.<strong>InsertRoot</strong>(piOnRepRef);
+...
+</pre>
+<p><strong>Now</strong></p>
+<pre class="code">...
+CATIAdpPLMIdentificator*  oIdentifier= .... ;
+...
+CATOmbLifeCycleRootsBag Bag;
+...
+<strong>CATAdpOpener</strong> opener(Bag)
+CATIPLMNavRepresentationReference *piOnRepRef  =  NULL;
+hr= <strong>opener::CompleteAndOpen</strong>(oIdentifier,IID_CATIPLMNavRepresentationReference, (void**) &amp;piOnRepRef);
+...
+</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Save method"></a>Save method</h3>
+<p>The migration is as follows:</p>
+<p><strong>Then</strong></p>
+<pre class="code">...
+hr  =  <strong>CATAdpOpenSaveServices</strong>::<strong>Save</strong>();
+...</pre>
+
+<p><strong>Now</strong></p>
+<pre class="code">...
+<strong>CATAdpSaver</strong> saver;
+hr  =  saver.<strong>Save</strong>();
+...</pre>
+
+<p>or with arguments</p>
+<p><strong>Then</strong></p>
+<pre class="code">...
+CATListPtrCATBaseUnknown ListOfElement ....;
+CATIAdpPLMErrorReviewer *pError ....;
+hr  =  <strong>CATAdpOpenSaveServices</strong>::<strong>Save</strong>(ListOfElement,pError);
+...</pre>
+
+<p><strong>Now</strong></p>
+<pre class="code">...
+CATListPtrCATBaseUnknown ListOfElement ....;
+CATIAdpPLMErrorReviewer *pError ....;
+
+<strong>CATAdpSaver</strong> saver;
+hr  =  saver.<strong>Save</strong>(ListOfElement,pError);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h2><a name="InShort"></a>In Short</h2>
+<p>In order to secure, to make consistent the Open APIs, and increase the Open 
+options, a new Open API has been delivered. There is a new Save method, because 
+we have split <em>CATAdpOpenSaveServices</em> class, but it is a one to one 
+migration. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm')">Understanding PLM Component Life Cycle</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

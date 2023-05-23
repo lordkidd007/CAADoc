@@ -1,0 +1,315 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Implement Link between Product and Logical</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Implement Link between Product and Logical</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article mainly talks about Implement Relation Link and its type.</p>
+		<ul>
+			<li><a href="#Part1">Implement Link Modeler</a></li>
+			<li><a href="#Part2">Source and Targets</a></li>
+			<li><a href="#Part3">What Is the Implement Link Object</a></li>
+			<li><a href="#Part4">Types of Implement Links</a>
+				<ul>
+					<li><a href="#Part41">Reference to Reference Implement link</a>	</li>
+					<li><a href="#Part42">Instance to Instance Implement Link</a></li>
+				</ul>
+			</li>
+			<li><a href="#Part5">Implement Link Manager</a></li>
+			<li><a href="#Part6">How to Create Implement Relation Link</a></li>
+			<li><a href="#Part7">Difference between Interactive Behavior and Batch 
+				Behavior for Instance to Instance Implement Link Creation</a></li>
+			<li><a href="#Part8">Loading Conditions of Implement Relation Link</a>
+				<ul>
+					<li><a href="#Part81">How to Retrieve Source Object from Target 
+						Object</a></li>
+					<li><a href="#Part82">How to Retrieve Target 0bject From Source 
+						Object</a></li>
+				</ul>
+			</li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Implement Link Modeler</h2>
+<p>An implement link is the unique object of the Implement Link Modeler. This object 
+enables us link two objects: a source and a target. We said that the Source &#8220;implements/realizes&#8221; 
+the target object according to a &#8220;contract&#8221;.</p>
+<ul>
+	<li>&quot;implement/realize&quot; : the target can be seen as the &#8220;specification&#8221; 
+		view, and the Source the &quot;implement&quot; view</li>
+	<li>A &quot;contract&quot; could be applicative, but as of today this contract 
+		is only a core contract. In others word, in the impact graph, you can see 
+		the targets of any source, and conversely.</li>
+</ul>
+<p>In our case, the source is always a Product object and the target is always a 
+Logical object.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Source and Targets</h2>
+<p>The source and the target of a link can be either a Reference or an occurrence 
+(a path of instances), but if the source is a reference, the target is also a reference, 
+and if the source is an occurrence, the target is an occurrence too.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: Source and Target of Implement Link</caption>
+	<tr>
+		<td>
+		<img alt="Implement Link" src="images/CAAPilTaImplLink_image5.jpg"/></td>
+	</tr>
+</table>
+<p>ImplLink1 is an implement between two References, while ImplLink2 is an implemented 
+between 2 path of instances (inst3/inst4 for Logical, and Inst2 for Product). You 
+can see that an implement link is built with 2 objects: either something pointing 
+two References, or pointing two occurrences (i.e a Path of instances).</p>
+<p>The Object is a CATOmbObjectInContext class instance</p>
+<ul>
+	<li>When the object represents a Reference:
+		<ul>
+			<li>Path of instance = empty.</li>
+			<li>Object = reference.</li>
+			<li>Rep Instance = empty.</li>
+		</ul>
+	</li>
+</ul>
+<p>The sample code of Object in context for reference (Logical/ Product) shown below.</p>
+<pre class="code">...
+   CATOmbObjectInContext * piOmbObjCtxOnProdRoot = NULL;
+   CATListPtrCATIPLMComponent ComponentList; 
+   hr = CATOmbObjectInContext::<strong>CreateObjectInContext</strong>(ComponentList, NULL, piPLMCompOnProdRoot, piOmbObjCtxOnProdRoot);
+...</pre>
+<ul>
+	<li>When the object represents an occurrence
+		<ul>
+			<li>Path of instance = not empty.</li>
+			<li>Object = empty.</li>
+			<li>Rep Instance = empty.</li>
+		</ul>
+	</li>
+</ul>
+<p>The sample code for creating object in context for Instance (Logical/Product) 
+is shown below.</p>
+<pre class="code">...
+   CATOmbObjectInContext * piOmbObjCtxOnProdInst = NULL;
+   hr = CATOmbObjectInContext::<strong>CreateObjectInContext</strong>(ListComponentProdPathOfInst, NULL, NULL, piOmbObjCtxOnProdInst);
+...</pre>
+<p>In this Implement link we are implementing relation in between Product And Logical 
+modeler objects. So here we consider Product Reference or Instance as Source object 
+which implements relation and the logical Reference or Instance which implements 
+relation is called as Target Object.</p>
+<p>Example as above [<a href="#Fig1">Fig.1</a>] shows Source objects of implement 
+Link1 are as follows</p>
+<ul>
+	<li>ProdRef1 (Product Reference ) source object.</li>
+	<li>LogRef1 (Logical Reference) target object.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>What Is the Implement Link Object</h2>
+<p>The unique object of the Implement Link modeler is a PLM Connection which is 
+aggregated by the Product Reference (root of the source object).</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2 Implement Link Object</caption>
+	<tr>
+		<td>
+		<img alt="Implement Link Object" src="images/CAAPilTaImplLink_image4.jpg"/></td>
+	</tr>
+</table>
+<p>You can see that the two ImplLink objects are 2 PLM Connections aggregated by 
+a Product Reference - When the source is a Reference it is itself, and when the 
+source is an occurrence, it is the root of the path instances.</p>
+<p>This implementation by PLM Connection is important to know when using the API 
+to retrieve the implement link object from a source or a target. If the Product 
+is loaded without its existing PLM Connection (those already in DB), the API returning 
+the list of implement link return an empty list, or a partial list.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part4"></a>Types of Implement Link</h2>
+<p>Basically there are two types of Implement links:</p>
+<ul>
+	<li>Reference to reference Implement Link.</li>
+	<li>Instance to instance Implement Link.</li>
+</ul>
+<p><strong>Note</strong>: Before creating an implement link between two instances, 
+check that an implement link exists between their respective root references.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part41"></a>Reference to Reference Implement link</h3>
+<p>The Implement relation established in between Product reference to Logical reference 
+is called as Reference to Reference Implement Link.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part42"></a>Instance to Instance Implement Link</h3>
+<p>The Implement Relation established between Product Instance to Logical Instance 
+is called as Instance to Instance Implement Link.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part5"></a>Implement Link Manager</h2>
+<p>Mainly <em>CATIPhysicalImplementLinkManager</em> Interface used for the Physical 
+to Logical Implement Link Management.</p>
+<pre class="code">...
+    CATIPhysicalImplementLinkManager* piImplementLinkManager = NULL;
+    hr = CATPhysicalImplementLinkProvider::<strong>GetImplementLinkManager</strong>(piImplementLinkManager);
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part6"></a>How to Create Implement Relation Link</h2>
+<p>To create Implement relation object we need to follow two steps:</p>
+<ul>
+	<li>Retrieve Implement Link Manager [#].</li>
+	<li>create Object in context (OIC) for source as well for target object, earlier 
+		step [#] we have seen how to create OIC for Reference as well for Instance.</li>
+</ul>
+<p>Then we create Implement Link between Source and Target OIC object.</p>
+<pre class="code">...
+hr =  piImplementLinkManager-&gt;<strong>CreateImplementRelation</strong>(NULL_var, NULL, EmptyList, piOmbObjCtxOnProdRoot,piOmbObjCtxOnLogicalRoot);
+...</pre>
+<p>Here we give OIC objects of source and target as an input.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part7"></a>Difference between Interactive Behavior and Batch Behavior 
+for Instance to Instance Implement Link Creation</h2>
+<p>In the batch session we could able to create Instance to Instance Implement link 
+without following condition</p>
+<ul>
+	<li>The aggregating Reference should have Reference to Reference Implement link 
+		relation.</li>
+</ul>
+<p>For example as below Fig.3 shows that we could create Implement relation through 
+batch using <code>CATOmbObjectInContext::CreateObjectInContext</code>.</p>
+<p>The Implement link (ImplLink5) between Inst2 of Product model and Inst1 of Logical 
+model is established. This is link is established without existence of Reference 
+to reference Implement link between aggregating Product Reference ProdRef1 and Logical 
+Reference LogRef1.</p>
+<p>In the similar line we could create ImplLink6 between Product instance Inst1 
+and Logical instance Inst3. On same line ImplLink2 between Product Instance Inst2 
+and Logical Instance Inst3 is possible.</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3 Creation Of Instance to Instance Implement 
+	Relation through Batch</caption>
+	<tr>
+		<td>
+		<img alt="Instance to Instance Implement Relation" src="images/CAAPilTaImplLink_InstToInst_image2.jpg"/></td>
+	</tr>
+</table>
+<p>In the Interactive session we will not able to create Instance to Instance Implement 
+link unless the aggregating Roots establish Reference to reference Implement relation 
+between them</p>
+<p>In the interactive session above Implement relations ImplLink5 , ImplLink6 and 
+ImpleLink2 are not possible unless we create Implement link between aggregating 
+Product Reference ProdRef1 and Logical reference LogRef1.</p>
+<p>For example in interactive session as we try to create Inst-Inst Implement link 
+between CAAPilCrateInstToInstImplLink_LogChild1 and CAAPilCrateInstToInstImplLink_LogChild1 
+we will not able to select target Instance since it is blocked to create Implement 
+link without Reference ( CAAPilCrateInstToInstImplLink_ProdRoot) to Reference ( 
+CAAPilCrateInstToInstImplLink_LogRoot) implement link . The following tool tip message 
+clearly indicates about the behavior.</p>
+<table>
+	<caption><a name="Fig4"></a>Fig.4 Interactively Creation of Instance to Instance 
+	Implement Link Without Ref-Ref ImplLink</caption>
+	<tr>
+		<td>
+		<img alt="Instance to Instance Implement Link" height="324" src="images/CAAPilTaImplLink_InstToInst_image3.jpg" width="655"/></td>
+	</tr>
+</table>
+<p>Please note that we can load the same objects those we have created in the batch 
+case. Here although no Implement link exist between ref-Ref then also Inst to Inst 
+link will exist.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part8"></a>Loading Conditions of Implement Relation Link</h2>
+<p>Here we have few basic conditions to load the Implement relation in the Session[2].</p>
+<ul>
+	<li>Implement link is a PLM Connection core type object so it loads in the Authoring 
+		mode along with its aggregating Product Root Reference Object</li>
+	<li>To load the implement relation established between source and target both 
+		the source and Target Objects must be loaded in session.</li>
+</ul>
+<p>Please note that usually PLM Connection object is used for the internal use. 
+It is not possible to reach this Implement relation object through browsing APIs.
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part81"></a>How to Retrieve Source Object from Target Object</h3>
+<p>To retrieve the list of source objects associated with Target object we need 
+to use <code>CATIPhysicalImplementLinkManager::GetImplementRelationTargets</code> 
+APIs. Please note the it will follow loading condition mentioned below and will 
+list only those object which will satisfy condition.</p>
+<pre class="code">...
+   CATLISTP(CATOmbObjectInContext) ListOfTargetsBeforeNewImpliLinkCreation;
+   CATLISTP(CATIPhysicalImplementLink) ListOfImplementLinks ;
+   rc = piImplementLinkManager-&gt;GetImplementRelationTargets(piOmbObjCtxOnProdRoot,ListOfTargetsBeforeNewImpliLinkCreation,ListOfImplementLinks );
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part82"></a>How to Retrieve Target 0bject From Source Object</h3>
+<p>To retrieve the list of Target objects associated with the source object we need 
+to use <code>CATIPhysicalImplementLinkManager::GetImplementRelationSources</code> 
+API.</p>
+<pre class="code">...
+   CATLISTP(CATOmbObjectInContext) ListOfSourcesBeforeNewImpliLinkCreation;
+   CATLISTP(CATIPhysicalImplementLink) ListOfImplementLinks ;
+   rc = piImplementLinkManager-&gt;GetImplementRelationSources(piOmbObjCtxOnLogicalRoot,ListOfSourcesBeforeNewImpliLinkCreation,ListOfImplementLinks );
+...	</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPilUcRetrieveImplLink.htm">Retrieving Source and Targets 
+		of Implement Relation</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAPilUcCreateInstToInstImplLink.htm">Creating Instance to 
+		Instance Implement Relation Link</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPilUcCreateRefToRefImplLink.htm">Creating Reference to Reference 
+		Implement Relation Link</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,1049 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Retrieving Errors Occurring During PLM Server Access Operations</title>
+<script language="JavaScript" src="../CAADocJavaScript/submit.js">
+		</script>
+<style type="text/css">
+.style1 {
+
+}
+</style>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Retrieving PLM Error</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td  >
+      <h2><a name="Top"></a>Abstract</h2>
+      <p>The Use case illustrates the deployment of Error management strategy 
+		for all PLM Server access operations using primarily an ErrorStack CAA 
+		component (<em>CATIAdpPLMErrorReviewer</em> type)<p>In the process it also 
+		depicts the typical feature of the Error stack component, listed in 
+		Technical Article [<a href="#References">1</a>]<ul>
+        <li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+        <li><a href="#Where">The CAAAdpPLMServerAccessErrorManagement Use Case</a>
+          <ul>
+            <li><a href="#What">What does the CAAAdpPLMServerAccessErrorManagement do</a></li>
+            <li><a href="#How">How to launch CAAAdpPLMServerAccessErrorManagement</a></li>
+            <li><a href="#Where">Where to find the CAAAdpPLMServerAccessErrorManagement 
+              code</a></li>
+          </ul>
+        </li>
+        <li><a href="#Step">Step-by-Step</a></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#History">References</a></li>
+      </ul>&nbsp;
+    </td>
+  </tr>
+</table>
+
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+      <p>The user learns the deployment of Error management strategy 
+		for all PLM Server access operations using primarily the following CAA 
+		components<ul>
+	<li>an ErrorStack (a <em>CATIAdpPLMErrorReviewer</em> type), which contains a list of 
+	PLM errors</li>
+	<li>a factory method (a <em>CATAdpPLMErrorReviewerFactory</em> type) responsible for creating an Error Stack&nbsp; 	</li>
+	<li>an Iterator (a <em>CATIAdpPLMErrorIterator</em> type) to parse through the contents of the Error Stack</li>
+	<li>a <em>CATIAdpPLMError</em> handle, to access the content of each unitary Error Cell 
+	stored within an Error Stack</li>
+</ul>
+<p>In the process the user also learns the typical feature of the Error stack component, 
+also listed in 
+		Technical Article [<a href="#References">1</a>]. These are 
+<ul>
+	<li>An ErrorStack can be passed to several calls to PLM Server Access 
+	Operations in sequence. The errors raised then are appended to the same 
+	ErrorStack</li>
+	<li>An Error Stack cannot be cleaned up and reused. A new Error Stack is 
+	required to be created for a new context </li>
+	<li>On update of the contents of the ErrorStack, the old Iterator is 
+	rendered useless. A new Iterator has to be retrieved to scan through the 
+	updated contents</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="UseCase"></a>The CAAAdpPLMServerAccessErrorManagement Use Case</h2>
+<p> <code>CAAAdpPLMServerAccessErrorManagement</code> is a use case of the <code>CAAPLMClientAdapter.edu</code>
+framework that
+illustrates the <code>CATPLMIntegrationAccess</code>  framework capabilities.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="What"></a>What Does CAAAdpPLMServerAccessErrorManagement Do</h3>
+<p>The Use case illustrates the deployment of Error management strategy for all 
+PLM Server access operations using primarily an Error Stack CAA component (<em>CATIAdpPLMErrorReviewer</em> 
+type)</p>
+<p>In the process it is also depicts the typical feature of the Error stack.</p>
+<p>The steps involved are as follows</p>
+<ul>
+	<li>Illustrates appending a sequence of PLM Error to an Error stack
+	and validity of its Iterators<ul>
+		<li>Create a new error stack 1</li>
+		<li>Open PLM reference 1 with error stack 1 as input. PLM reference 1 
+		loaded in session</li>
+		<li>VersionUp PLM reference 1. returns failure since component loaded in 
+		session. Error stack populates with 1st error (Error1) (VersionUp 
+		Failure 1)</li>
+		<li>Retrieves Iterator1 on error stack 1 to retrieve the first VersionUp error</li>
+		<li>VersionUp PLM Reference1 yet again. Returns failure, for the same 
+		reason as above. Error Stack populated with 2nd error (Error2) (VersionUp 
+		Failure2)</li>
+		<li>Retrieve Iterator2 on Error Stack1 to illustrate the new Iterator 
+		allows access to both errors (VersionUp failure1, VersionUp failure2)</li>
+		<li>Rewind Iterator1 to scan it once again, to illustrate the old 
+		Iterator still has access only to the first VersionUp Failure</li>
+	</ul>
+	</li>
+	<li>Illustrates cleanup and reuse of error stack is not possible&nbsp;&nbsp; 	
+	<ul>
+		<li>Delete error stack1 </li>
+		<li>Create a new error stack 2</li>
+		<li>VersionUp PLM Reference1 yet again. Returns failure,</li>
+		<li>Retrieve new Iterator (Iterator3) on error stack 2. This Iterator3 
+		allows us to access the only Error3 retrieved last.</li>
+	</ul>
+	</li>
+	<li>Retrieve error from error stack and output its relevant data<ul>
+		<li>Each error contained in error stack is accessed. Data related to it, 
+		particularly the PLM Component identificator associated with it is 
+		displayed in the format as below. (to be modified)</li>
+	</ul>
+	</li>
+</ul>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+ Iterator1 Error No. :1
+   No component associated to this PLM error: this is a global system error.
+Error details :
+   ---------------------------------------------------
+   Id         : 4294967295
+   MsgId      :
+   MsgCatalog : CATAdpErrorCell.cat
+   Name       : ?Invalid Id?
+   MessageText: No entry found for error id 0xffffffff
+   NLSMessage : <CATAdpErrorCell -1 >
+   raised by  :
+   line No.   : 0
+   -------------------------------------------------
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p><br>
+</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="How"></a>How to Launch AAAdpPLMServerAccessErrorManagement</a> </h3>
+
+<p>To launch <code>CAAAdpPLMServerAccessErrorManagement</code> , you will need to set up the build time
+environment, then compile <code>CAAAdpPLMServerAccessErrorManagement</code> along with its prerequisites,
+set up the run time environment, and then execute the use case [<a href="#References">2</a>].</p>
+<p>To
+launch the use case execute the command:</p>
+<p><code> <a>mkrun -c &quot;</a><i>CAAAdpPLMServerAccessErrorManagement</i></code><i>
+</i><a><code><i>Repository Server User Password SecurityCtx PLMType PLMExternalID1 
+ V_version1 </i>&quot;</code></a> </p>
+<p>where:</p>
+
+<table class="border1"  id="table13"  >
+  <tr>
+    <th><b>Repository</b></th>
+     <td><script type="text/javascript">insertRepository();</script></td>
+  </tr>
+  <tr>
+     <th><b>Server</b></th>
+    <td >The server as Host::<i> name</i>:<i>port_number/RootURI</i></td>
+  </tr>
+  <tr>
+    <th ><b><br>
+	User</b></th>
+    <td  >The user name</td>
+  </tr>
+  <tr>
+    <th ><b>Password</b></th>
+    <td >The user password to authenticate the user</td>
+  </tr>
+  <tr>
+
+    <th ><b>SecurityCtx</b></th>
+    <td >a string representing the security context (Role.Organization.Project).
+      Choose role as Designer&nbsp; ( as the use case try to modify the PLM Data) </td>
+  </tr>
+  <tr>
+	<th  > <b>PLMType</b></th>
+	<td  >A string representaing PLMType</td>
+    </tr>
+  	<th> PLMExternalID1 </th>
+	<td>PLMExternalID value of the PLM Reference1 (PLM Reference, which will 
+	open in session)</td>
+    <tr>
+    <th> V_version1 </th>
+	<td>V_version value of the PLM Reference1</td>
+    </tr>
+	
+  	
+</table>
+
+
+<!---------------------------------comment------------------------------------->
+
+	<p>The input&nbsp;data is retrieved by importing <a>
+<code>CAAAdpPLMServerAccessErrorManagement.3dxml</code>
+file for  Root product from the <a><code>CAAPLMClientAdapter.edu</code></a> 
+fwk.</p>
+<table id="table15">
+    <tr>
+      <td><code>InstallRootDirectory\CAADoc\CAAPLMClientAdapter.edu\InputData\</code></td>
+    </tr>
+</table>
+<p>where <code>InstallRootDirectory</code>  [<a href="#References">2</a>] is the directory where the CAA CD-ROM
+is installed.</p>
+<p>This 3D xml file contains a PLM Reference, a PLMProductDS type (included 
+within the PLMProductDS custo type of the PRODUCT Modeler), whose the PLM 
+Identification Attributes 
+ 
+are valuated such as follows:</p>
+<ul>
+  <li>PLM_ExternalID1 = CAAAdpPLMServerAccessErrorManagement_Component1</li>
+  <li>V_version1 =&nbsp; ---</li>
+</ul>
+
+<p align="left"><b>Attention</b>:  Please refer to the document [<a href="#References">2</a>]
+for how to import and reimport such a 3D XML file in your PLM repository.&nbsp;</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Where"></a>Where to Find the CAAAdpPLMServerAccessErrorManagement Code</h3>
+<p>The <code>CAAAdpPLMServerAccessErrorManagement</code> use case is located in the <code>CAAAdpPLMAttributes</code><a><code>.m</code></a> module of the
+<a><code>CAAPLMClientAdapter.edu</code></a> framework:</p>
+<table>
+  <tr>
+    <td><code>InstallRootDirectory\CAADoc\CAAPLMClientAdapter</code>.<code>edu</code><code>\CAAAdpPLMServerAccessErrorManagement.m\</code></td>
+  </tr>
+</table>
+<p>where <code><a>InstallRootDirectory</a></code>  [<a href="#References">2</a>]
+is the directory where the CAA CD-ROM
+is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code>CAAAdpPLMServerAccessErrorManagement</code> :</p>
+<ol>
+  <li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Retrieve identification attributes from user inpu">Retrieve 
+	identification attributes from user input</a></li>
+	<li><a href="#ErrorReviewer populated with multiple errors">ErrorReviewer populated with multiple errors</a><ol>
+		<li><a href="#PLMErrorReviewer1">Create&nbsp; PLMErrorReviewer1</a></li>
+		<li><a href="#Open the PLM Reference1 with PLMErrorReviewer1 as Input">
+		Open the PLM Reference1 </a></li>
+		<li>
+		<a href="#VersionUp PLM Reference1 (Failure Expected, since Reference1 loaded in Session)">VersionUp PLM Reference1 (First Failure, Expected since Reference1 
+		loaded in Session) </a>
+		</li>
+		<li class="style1">
+		<a href="#Retrieve New Iterator1 on PLMErrorReviewer1 to retrieve the Versioning Error">Retrieve Iterator1 on PLMErrorReviewer1 to retrieve the only VersionUp 
+		Error</a></li>
+		<li class="style1"><a href="#VersionUp Ref1. (Second failure)">VersionUp PLM Reference1 (Second Failure, Expected 
+		since Reference1 loaded in Session)</a></li>
+		<li><a href="#Reparse old iterator"><span class="style1">Reparse</span> <span class="style1">Old 
+		Iterator (Iterator1) to parse the only First VersionUp Error contained</span></a></li>
+		<li class="style1"><a href="#Retrieve Iterator2">Retrieve Iterator2 on PLMErrorReviewer1 to retrieve 
+		the two VersionUp Errors</a></li>
+	</ol>
+	</li>
+	<li><a href="#Dedicated ErrorReviewer for each PLM Server Access Service">Dedicated ErrorReviewer for each PLM Server Access Service</a><ol>
+		<li><a href="#Create PLMErrorReviewer2">Create PLMErrorReviewer2</a></li>
+		<li >
+		<a href="#NewVersionUp3">
+		New version of PLM Reference1 (failure expected)</a></li>
+		<li>
+				<a href="#Retrieve New Iterator (Iterator3) on PLMErrorReviewer2">Retrieve New Iterator (Iterator3) on PLMErrorReviewer2 to retrieve Only Last 
+Error contained</a></li>
+	</ol>
+	</li>
+	<li><a href="#DisplayError Global Routine">DisplayError Global Routine</a></li>
+  <li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code>CAAAdpPLMServerAccessErrorManagement</code> use case begins by creating a session
+and connecting to the input Repository.&nbsp; This,
+being the most fundamental prerequisite for all batch use cases, it is the first
+step in their execution.</p>
+<p>In this case, we create a session and connect to Repository with the Designer Role
+(since we are trying to version up PLM data). There are other parameters as well,
+details of which can be found in the&nbsp; &quot;<b>Creating a Basic PLM Batch</b>&quot;
+use case article [<a href="#References">3</a>].
+This article primarily deals with Opening and Closing a PLM session.</p>
+<p>Also on success of loading a PLM Component in session, please ensure that we 
+deploy a BAG to handle the lifecycle of these components in session. Details of 
+BAG and its deployment could be found in the Tech article [<a href="#References">6</a>] and UC [<a href="#References">7</a>]</p>
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Retrieve identification attributes from user inpu"></a>
+Retrieve identification attributes from user input </h3>
+
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...			
+   CATListOfCATString ilistOfAttribute;
+   ilistOfAttribute.Append(&quot;PLM_ExternalID&quot;);
+   ilistOfAttribute.Append(&quot;V_version&quot;);
+   
+   CATListOfCATUnicodeString ilistOfValues;
+   const CATUnicodeString strValue_PLM_ExternalID1(comp_externalId);
+   ilistOfValues.Append(strValue_PLM_ExternalID1);
+   const CATUnicodeString strValue_V_version1(comp_version);
+   ilistOfValues.Append(strValue_V_version1);
+   CATIAdpPLMIdentificator* opiIDComp = NULL;
+   const char* istrPLMType = iargv[6];
+
+    hr =  CAARetrieveIDofUniquePLMObject(ilistOfAttribute,ilistOfValues,
+			              iStrPLMType,opiIDComp);
+
+
+</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+The UC arguments include two sets of <span class="style1">PLM_ExternalID</span> and 
+<span class="style1">V_version</span>. These are essentially the Identification 
+Attributes for a PLM Reference.</p>
+<p>
+A call to CAARetrieveIDofUniquePLMObject , further detailed in [<a href="#References">5</a>], retrieves the Identificator ( a
+<em>CATIAdpPLMIdentificator</em>* type) of the input PLM References namely. 
+<span class="style1">opiIDComp</span> (PLMReference1). The Component 
+Identificator is retrieved with the Identification Attribute Set and the PLMType, as input.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="ErrorReviewer populated with multiple errors"></a>
+ErrorReviewer populated with multiple errors</h3>
+<p>This section primarily illustrates the deployment of an ErrorStack&nbsp; 
+passed as a parameter, to a series of PLM Server Access Operations. The errors 
+occurring progressively get appended to this Error Stack. </p>
+<p>To simulate this, we initially load a PLM Reference in session, with 
+ErrorReviewer1 as input, followed by a call to the NewVersion service. The 
+VersionUp fails, since the Component is loaded in session, thus resulting in the 
+first error getting appended to the ErrorStack.</p>
+<p>Then we do another New version.</p>
+<p>ErrorReviwer1 thus has two errors, and we use Iterators (<em>CATIAdpPLMIterator</em> 
+type) to retrieve these errors from this Stack. It also illustrates that on 
+update of the Error Stack, the old iterator is rendered useless and we have to 
+retrieve a new Iterator to scan the updated contents of the stack.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="PLMErrorReviewer1"></a>
+Create&nbsp; PLMErrorReviewer1</h4>
+
+
+
+<p>
+A Factory method creates a new Error Stack.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATIAdpPLMErrorReviewer * piErrorReviewer1 = NULL;
+    hr = <strong>CATAdpPLMErrorReviewerFactory::CreateErrorReviewer</strong>(<strong>piErrorReviewer1</strong>);
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATAdpPLMErrorReviewerFactory</span>::<span class="style1">CreateErrorReviewer</span> takes following 
+arguments</p>
+<ul>
+	<li><span class="style1">piErrorReviewer1</span>, a <em>CATIAdpPLMErrorReviewer*</em> 
+	type, on the Error Stack</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Open the PLM Reference1 with PLMErrorReviewer1 as Input"></a>
+Open the PLM Reference1</h4>
+
+
+
+<p>
+We load PLMReference1 in session. We expect a SUCCESS here, since this is 
+followed by a VersionUp, which is expected to FAIL. </p>
+<p>
+Hence, on FAILURE of this Open, we terminate the UC execution.</p>
+
+
+
+<table class="code">
+  <tr>
+    <td > <pre>...
+    CATOmbLifeCycleRootsBag Bag;
+    <strong>CATAdpOpener</strong> opener(Bag);
+
+    CATIPLMComponent *piCompOnPLMRef1 = NULL; 
+    hr = opener.<strong>CompleteAndOpen</strong>(opiIDComp,IID_CATIPLMComponent,(void**) &amp;piCompOnPLMRef1,piErrorReviewer1);		
+    if (FAILED(hr) || (NULL == piCompOnPLMRef1)) return 1;   
+ ...
+</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>It is important to note that on SUCCESS of this call, the ErrorReviewer 
+(piErrorReviewer1), though NON-NULL, would still have no Errors contained in it. 
+Its only on failure of a PLM Server Access Operation, that the ErrorStack gets 
+populated with the PLM Errors.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>
+<a name="VersionUp PLM Reference1 (Failure Expected, since Reference1 loaded in Session)">
+</a>VersionUp PLM Reference1 (First Failure, Expected since Reference1 loaded in Session) </h4>
+
+
+
+<p>
+We now attempt to VersionUp PLM Reference1, loaded in the session in the 
+previous step, with an Error Stack1 input. The error stack gets updated with a 
+single error, associated with this VersionUp failure.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATTime TimeVersion = CATTime::GetCurrentLocalTime();
+    CATIAdpPLMIdentificator* piNewIdentificatorOnVersionedComp = NULL;
+    hr = <strong>CATAdpVersioningServices::NewVersion</strong>(<strong>opiIDComp</strong>,
+                                              TimeVersion,
+                                              piNewIdentificatorOnVersionedComp,
+                                              <strong>piErrorReviewer1</strong>);
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<ul>
+  <li>A call to&nbsp; <code>CATTime</code>::<code>GetCurrentLocalTime</code> 
+	returns current local time, an input for version up of PLM Reference1<ul>
+  <li><code>TimeVersion</code>, a <i>CATTime</i> which holds current local time, 
+	an output of the call</li>
+</ul>
+  </li>
+  <li>Next a call to <span class="style1">CATAdpVersioningServices</span>::<span class="style1">NewVersion</span> creates a new version 
+  of input PLM Reference1. The arguments are as follows.<ul>
+    <li><code>opiIDComp</code>, a <i>CATIAdpPLMIdentificator</i>* 
+	type on PLM Reference1 for version up.</li>
+    <li><code>TimeVersion</code>, a <i>CATTime</i> which holds current local time</li>
+    <li><code>piNewIdentificatorOnVersionedComp</code>, a <i>CATIAdpPLMIdentificator</i>* type of 
+	the VersionedUp 
+    new PLM reference [output].</li>
+	<li><span class="style1">piErrorReviewer1</span>,a <em>CATIAdpPLMErrorReviewer*</em> 
+	type, on the Error stack (the same as the one used in the previous step)</li>
+  </ul>
+  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>
+<a name="Retrieve New Iterator1 on PLMErrorReviewer1 to retrieve the Versioning Error">
+</a>Retrieve Iterator1 on PLMErrorReviewer1 to retrieve the only VersionUp Error</h4>
+
+
+
+<p>
+The VersionUp of PLM Reference1 in the previous step is expected to FAIL, since 
+the Reference1 is loaded in the current session.</p>
+<p>
+The resulting error is appended to Error Reviewer1. We retrieve an Iterator 
+associated with Error Reviewer1, to parse through the Stack contents and 
+subsequently display the elementary data, associated with the only VersionUp PLM Error.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATIAdpPLMErrorIterator* piErrorIterator1 = NULL;   
+    hr = <strong>piErrorReviewer1-&gt;GetPLMErrorIterator</strong>( <strong>piErrorIterator1</strong>);
+    
+    CATIAdpPLMError* piPLMError1 = NULL;
+    int ErrorCountIterator1 =1;
+    <strong>while(S_OK == (piErrorIterator1-&gt;Next(piPLMError1)))</strong>
+    {
+         hr = <strong>DisplayError</strong>(<strong>piPLMError1</strong>);
+         ...  
+         	ErrorCountIterator1++;
+}
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATIAdpPLMErrorReviewer</span>::<span class="style1">GetPLMErrorIterator</span> on piErrorReviewer1, returns an Iterator, the 
+argument to this is as follows</p>
+<ul>
+	<li><span class="style1">piErrorIterator1</span>, a <em>CATIAdpPLMErrorIterator</em>* type, on the Iterator to 
+	scan the list of PLM Errors stored by the ErrorReviewer1</li>
+</ul>
+<p>Next we parse through the error list, a call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">Nex</span>t 
+on <span class="style1">piErrorIterator1</span>, 
+takes following argument</p>
+<ul>
+	<li><span class="style1">piPLMError1</span>, a <em>CATIAdpPLMError</em>* type, to access each unitary PLM Error 
+	stored by ErrorReviewer1 (an output)</li>
+</ul>
+<p>Then we display error details&nbsp; by call to <span class="style1">DisplayError</span> which takes 
+following argument, this is global method defined further below in this UC [<a href="#DisplayError Global Routine">#</a>] </p>
+<ul>
+	<li><span class="style1">piPLMError1</span>, a <em>CATIAdpPLMError</em>* type, retrieved earlier, on 
+	each error in stack</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="VersionUp Ref1. (Second failure)"></a>VersionUp PLM Reference1 (Second Failure, Expected since Reference1 loaded in Session) </h4>
+
+
+
+<p>
+We now attempt to yet again VersionUp PLM Reference1, loaded in the session in 
+the previous step, with an Error Stack1 input. The error stack gets updated with 
+a second error, associated with this VersionUp failure, which obviously is the 
+same as the previous error.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATTime TimeVersion1 = CATTime::GetCurrentLocalTime();
+    CATIAdpPLMIdentificator* piNewIdentificatorOnVersionedComp1 = NULL;
+    hr = <strong>CATAdpVersioningServices::NewVersion</strong>(<strong>opiIDComp</strong>,
+                                              TimeVersion1,
+                                              piNewIdentificatorOnVersionedComp1,
+                                              <strong>piErrorReviewer1</strong>);
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<ul>
+  <li>A call to&nbsp; <code>CATTime</code>::<code>GetCurrentLocalTime</code> 
+	returns current local time, an input for version up of PLM Reference1<ul>
+  <li><code>TimeVersion</code>, a <i>CATTime</i> which holds current local time, 
+	an output of the call</li>
+</ul>
+  </li>
+  <li>Next a call to <span class="style1">CATAdpVersioningServices</span>::<span class="style1">NewVersion</span> creates a new version 
+  of input PLM Reference1. The arguments are as follows.<ul>
+    <li><code>opiIDComp</code>, a <i>CATIAdpPLMIdentificator</i>* 
+	type on PLM Reference1 for version up.</li>
+    <li><code>TimeVersion1</code>, a <i>CATTime</i> which holds current local time</li>
+    <li><code>piNewIdentificatorOnVersionedComp1</code>, a <i>CATIAdpPLMIdentificator</i>* type of 
+	the VersionedUp 
+    new PLM reference [output].</li>
+	<li><span class="style1">piErrorReviewer1</span>,a <em>CATIAdpPLMErrorReviewer*</em> 
+	type, on the Error stack (the same as the one used in the previous step)</li>
+  </ul>
+  </li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4>
+<a name="Reparse old iterator"></a>Reparse Old Iterator (Iterator1) to parse the only First VersionUp Error 
+contained</h4>
+
+
+
+<p>
+It is significant to note that though the Error Reviewer1 is now updated with 
+two errors, the Iterator1 that we retrieved earlier, lets us scan only through a 
+single error, associated with the first VersionUp failure. So, it is effectively 
+rendered useless, as illustrated by the code extract below.</p>
+
+
+
+<table class="code">
+  <tr>
+    <td > <pre>...
+    hr = <strong>piErrorIterator1-&gt;Rewind</strong>();
+    ...
+    CATIAdpPLMError* piPLMError_OnReparse = NULL;
+    int ErrorCountIterator_OnReparse =1;
+    while(S_OK == (<strong>piErrorIterator1-&gt;Next</strong>(piPLMError_OnReparse)))
+    {
+         hr = DisplayError(piPLMError_OnReparse);
+         ...
+         ErrorCountIterator_OnReparse++;
+    }   
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">Rewind</span> 
+on <span class="style1">piErrorIterator1</span>, resets the Iterator, so that 
+the entire list of errors can be parsed from start</p>
+<p>Next we parse through the error list again, a call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">Next</span> 
+on <span class="style1">piErrorIterator1</span>, takes following argument</p>
+<ul>
+	<li><span class="style1">piPLMError_OnReparse</span> , a <em>CATIAdpPLMError</em>* type, 
+	a handle on each unitary PLM Error 
+	stored in an ErrorReviewer1</li>
+</ul>
+<p>Then we display error details&nbsp; by call to <span class="style1">DisplayError</span> which takes 
+following argument, this is global method defined further down in this UC [<a href="#DisplayError Global Routine">#</a>] </p>
+<ul>
+	<li><span class="style1">piPLMError_OnReparse</span>, a <em>CATIAdpPLMError</em>* 
+	type, on each Error in the Stack</li>
+</ul>
+<h4>
+<a name="Retrieve Iterator2"></a>Retrieve Iterator2 on PLMErrorReviewer1 to retrieve the two VersionUp Errors</h4>
+
+
+
+<p>
+Since Iterator1 was rendered useless, we now seek a new Iterator2 associated 
+with Error Reviewer1, to parse through the Stack contents and subsequently 
+display the elementary data, associated with the two VersionUp PLM Errors.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATIAdpPLMErrorIterator* piErrorIterator2 = NULL;   
+    hr = <strong>piErrorReviewer1-&gt;GetPLMErrorIterator</strong>( <strong>piErrorIterator2</strong>);
+    
+    CATIAdpPLMError* piPLMError2 = NULL;
+    int ErrorCountIterator2 =1;
+    <strong>while(S_OK == (piErrorIterator2-&gt;Next(piPLMError2)))</strong>
+    {
+         hr = <strong>DisplayError</strong>(<strong>piPLMError2</strong>);
+         ...  
+         	ErrorCountIterator2++;
+}
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATIAdpPLMErrorReviewer</span>::<span class="style1">GetPLMErrorIterator</span> on piErrorReviewer1, returns an Iterator2, the 
+argument to this is as follows</p>
+<ul>
+	<li><span class="style1">piErrorIterator2</span>, a <em>CATIAdpPLMErrorIterator</em>* type, on the Iterator to 
+	scan the list of PLM Errors stored by the ErrorReviewer1</li>
+</ul>
+<p>Next we parse through the error list, a call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">Nex</span>t 
+on <span class="style1">piErrorIterator2</span>, 
+takes following argument</p>
+<ul>
+	<li><span class="style1">piPLMError2</span>, a <em>CATIAdpPLMError</em>* type, to access each unitary PLM Error 
+	stored by ErrorReviewer1 (an output)</li>
+</ul>
+<p>Then we display error details&nbsp; by call to <span class="style1">DisplayError</span> which takes 
+following argument, this is global method defined further below in this UC [<a href="#DisplayError Global Routine">#</a>] </p>
+<ul>
+	<li><span class="style1">piPLMError2</span>, a <em>CATIAdpPLMError</em>* type, retrieved earlier, on 
+	each error in stack</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Dedicated ErrorReviewer for each PLM Server Access Service"></a>
+Dedicated ErrorReviewer for each PLM Server Access Service</h3>
+<p>An ErrorStack cannot be cleaned up and reused. In a different context (PLM 
+Server Access service) user might prefer to use a new Error Stack. The steps in 
+this section, illustrate this scenario. In terms of code explanation, it is the 
+same as step 3a. The UC only repeats those steps, to illustrate the scenario, 
+which could be a possibility in the client application.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="Create PLMErrorReviewer2"></a>
+Create PLMErrorReviewer2</h4>
+<p>
+Yet again, we use a Factory to create a new ErrorReviewer2. </p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+   CATIAdpPLMErrorReviewer * piErrorReviewer2 = NULL;
+   hr = CATAdpPLMErrorReviewerFactory::<strong>CreateErrorReviewer</strong>(<strong>piErrorReviewer2</strong>);
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+AA call to <span class="style1">CATAdpPLMErrorReviewerFactory</span>::<span class="style1">CreateErrorReviewer</span> takes following 
+arguments</p>
+<ul>
+	<li><span class="style1">piErrorReviewer2</span>, a <em>CATIAdpPLMErrorReviewer*</em> 
+	type, on the new Error stack
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<h4><a name="NewVersionUp3"></a>
+VersionUp PLM Reference1 (Failure, Expected since Reference1 loaded in Session) </h4>
+
+
+
+<p>
+We again simulate the failure by a call to NewVersion. The Error Reviewer2 is an input to this call now.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...
+    CATTime TimeVersion2 = CATTime::GetCurrentLocalTime();
+    CATIAdpPLMIdentificator* piNewIdentificatorOnVersionedComp2 = NULL;
+    hr = CATAdpVersioningServices::<strong>NewVersion</strong>(opiIDComp,TimeVersion2,
+					 piNewIdentificatorOnVersionedComp2,piErrorReviewer2);
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<h4><a name="Retrieve New Iterator (Iterator3) on PLMErrorReviewer2"></a>
+Retrieve New Iterator (Iterator3) on PLMErrorReviewer2 to retrieve Only Last 
+Error contained</h4>
+
+
+
+<p>
+The NerVersion failure of PLM Reference1 in the previous step is appended to Error Reviewer2. We retrieve an Iterator 
+associated with Error Reviewer2, to parse through the Stack contents and subsequetly display the elementary data, associated with each PLM Error.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>...   
+   CATIAdpPLMErrorIterator* piErrorIterator3 = NULL;
+   hr = <strong>piErrorReviewer2-&gt;GetPLMErrorIterator</strong>( piErrorIterator3);
+...
+   CATIAdpPLMError* piPLMError3 = NULL;
+   int ErrorCountIterator3 = 1;
+   while(S_OK == (<strong>piErrorIterator3-&gt;Next</strong>(piPLMError3)))
+   {
+      hr = DisplayError(piPLMError3);
+      ...				
+      ErrorCountIterator3++;
+      ...
+   }
+...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">GetPLMErrorIterator</span> on 
+<span class="style1">piErrorReviewer2</span>, returns a new Iterator (<span class="style1">piErrorIterator3</span> 
+), the 
+argument to this is as follows</p>
+<ul>
+	<li><span class="style1">piErrorIterator3</span>, a <em>CATIAdpPLMErrorIterator</em>* type, a handle on the new 
+	Iterator</li>
+</ul>
+<p>Next we parse through the error list with a call to <span class="style1">CATIAdpPLMErrorIterator</span>::<span class="style1">Next</span> 
+on piErrorIterator3, which 
+takes following argument</p>
+<ul>
+	<li><span class="style1">piPLMError3</span>, a <em>CATIAdpPLMError</em>* type, a handle on each unitary PLM Error 
+	stored in&nbsp; ErrorReviewer2 (only last error )</li>
+</ul>
+<p>Then we display error details&nbsp; by call to <span class="style1">DisplayError</span> which takes 
+following argument, this is global method defined further down in this UC [<a href="#DisplayError Global Routine">#</a>] </p>
+<ul>
+	<li><span class="style1">piPLMError3</span>, a <em>CATIAdpPLMError</em>* type, on error in the stack</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="DisplayError Global Routine"></a>
+DisplayError Global Routine</h3>
+
+
+
+<p>
+The <span class="style1">DisplayError</span> Global routine retrieves elementary data associated with each 
+PLM Error, contained within the stack. Since we deal with PLM Server Access 
+Operations, the errors would normally be associated with a PLM Component 
+Identificator. So, most importantly, it is this Identicator which is retrieved 
+from the error, and through it get access to the IdentificationSet 
+attribute-values.</p>
+
+
+
+<table class="code" >
+  <tr>
+    <td > <pre>HRESULT DisplayError(CATIAdpPLMError* piPLMError)
+{
+    ...
+    CATIAdpPLMIdentificator*  piAdpIdentificator =NULL ;
+    hr = piPLMError-&gt;<strong>GetPLMComponentIdentifier</strong> (piAdpIdentificator);
+    ...
+	hr	hr = DisplayIdentifierSet(piAdpIdentificator) ;
+    ...
+    CATError * iError =NULL ;
+    hr = piPLMError-&gt;<strong>GetError</strong>(&amp;iError);
+    ...
+
+    char** FileName = new char*[500];
+    hr =iError-&gt;<strong>GetSourceFileName</strong>(FileName) ;
+    ...				
+
+    int FileLine ;
+    hr =iError-&gt;<strong>GetSourceLineNumber</strong>(&amp;FileLine) ;
+    ...	
+	
+    iError-&gt;GetId()
+    iError-&gt;GetMsgId()
+    iError-&gt;GetMsgCatalog()
+    iError-&gt;GetName()
+    iError-&gt;GetMessageText()
+    iError-&gt;GetNLSMessage()
+}...</pre>
+	</td> 
+  </tr>
+</table>
+
+
+
+
+
+
+<p>
+A call to <span class="style1">CATIAdpPLMError</span>:: <span class="style1">GetPLMComponentIdentifier</span> on 
+<span class="style1">piPLMError</span>, an input 
+to this global routine, takes the argument</p>
+<ul>
+	<li><span class="style1">piAdpIdentificator</span>, a <em>CATIAdpPLMIdentificator</em>* type, on the PLM 
+	Component Identificator, associated with the error raised</li>
+</ul>
+<p>The user can identify the PLM Component by its IdentificationSet 
+attribute-values. Now that we have the Component Identificator with us, we 
+simply call the routine <span class="style1">DisplayIdentifierSet</span>, to retrieve the IDSet attributes 
+from the input Component Identificator. The implementation details of this 
+routine have been explained in the UC [<a href="#References">5</a>].</p>
+<p>Next a call to <span class="style1">CATIAdpPLMError</span>::<span class="style1">GetError</span> the argument is as follows</p>
+<ul>
+	<li><span class="style1">iError</span>, a <em>CATError</em> * type, which has other elementary error details</li>
+</ul>
+<p>These elementary error details are extracted from error as follows</p>
+<ul>
+	<li>A call to CATError::GetSourceFileName on iError, returns <ul>
+		<li>&nbsp;FileName, a char** type, which stores the source file path 
+		name where the error occurred</li>
+	</ul>
+	</li>
+	<li>next a call to CATError::GetSourceLineNumber on iError, returns<ul><li>FileLine, an int type, it store a line number in the source file 
+		where the error occurs</li>
+	</ul>
+	</li>
+	<li>Then a call to <span class="style1">CATError</span>::<span class="style1">GetId</span> on iError returns the error identifier, a 
+	CATErrorId* type</li>
+	<li>A call to <span class="style1">CATError</span>::<span class="style1">GetMsgId</span> returns the error message key, a const 
+	char* type</li>
+	<li>A call to <span class="style1">CATError</span>::<span class="style1">GetMsgCatalog</span> returns the error message catalog file 
+	name, a const char* type</li>
+	<li>A call to <span class="style1">CATError</span>::<span class="style1">GetName</span> returns a char* type</li>
+	<li>A call to <span class="style1">CATError</span>::<span class="style1">GetMessageText</span>, returns a const char* type</li>
+	<li>A call to <span class="style1">CATError</span>::<span class="style1">GetNLSMessage</span> returns the error message, a 
+	<em>CATUnicodeString</em> type.&nbsp; The three parts Request, Diagnostic, and Advice 
+	of the error message are returned concatenated in a single message here.</li>
+</ul>
+
+<script type="text/javascript">insertLinkToTop();</script>
+
+<h3><a name="Epilog"></a>Epilog
+<p>The <code>CAAAdpPLMServerAccessErrorManagement</code> use case ends by simply closing the PLM
+session. Since all use cases&nbsp; necessarily conclude by closing the PLM
+session, we have a dedicated article on this topic viz.&nbsp; &quot;<b>Creating a
+Basic PLM Batch</b>&quot; [<a href="#References">3</a>].</p>
+<p align="right">
+<script type="text/javascript">insertLinkToTop();</script>
+<!---------------------------------comment------------------------------------->
+
+<h2><a name="InShort"></a>In Short</h2>
+      <p>The Use case illustrates the deployment of Error management strategy 
+		for all PLM Server access operations using primarily an ErrorStack (a 
+		<em>CATIAdpPLMErrorReviewer</em> type). 
+		We also deploy 
+<ul>
+	<li>a factory method (a <em>CATAdpPLMErrorReviewerFactory</em>&nbsp; type) responsible for creating an Error Stack&nbsp;
+	</li>
+	<li>an iterator (a <em>CATIAdpPLMErrorIterator</em> type) to parse through the contents of the Error Stack</li>
+	<li>a <em>CATIAdpPLMError</em>&nbsp; handle, to access the content of each unitary Error Cell 
+	stored within an Error Stack</li>
+</ul>
+<p>In the process it is also 
+		illustrates the typical feature of the Error stack component, listed in 
+		Technical Article [<a href="#References">1</a>]. These are 
+<ul>
+	<li>An ErrorStack can be passed to several calls to PLM Server Access 
+	Operations in sequence. The errors raised then are appended to the same 
+	ErrorStack. </li>
+	<li>An Error Stack cannot be cleaned up and reused. A new Error Stack is 
+	required to be created for a new context </li>
+	<li>On update of the contents of the ErrorStack, the old Iterator is 
+	rendered useless. A new Iterator has to be retrieved to scan through the 
+	updated contents</li>
+</ul>
+
+<p>The UC does not show it, but if <code>CompleteAndOpen</code> fails for <code>
+E_INVALIDARG</code>, it does not affect the input Error Stack.</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="References"></a>References
+<table>
+    <tr>
+    <td valign="top">[1]</td>
+    <td>
+       <a href="CAAPlmTaServerAccessErrorMgt.htm">Error Management of PLM Server Access Operations</a> </td>
+    </tr>
+    <tr>
+    <td valign="top">[2]</td>
+    <td>
+       <a href="../CAADocUseCases/CAADocRunSample.htm">
+       Building and Launching a CAA Use Case</a> </td>
+    </tr>
+    <tr>
+    <td valign="top">[3]</td>
+    <td>
+    <a href="CAAAdpUcBasicBatch.htm">Creating
+       a Basic PLM Batch</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[4]</td>
+    <td>
+       <a href="CAAAdpUcQueryOpen.htm">Querying, Expanding and Opening PLM Components</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[5]</td>
+    <td>
+       <a href="CAAAdpUcQueryPLMComponent.htm">Querying PLM Components</a></td>
+    </tr>
+    <tr>
+    <td valign="top">[6]</td>
+    <td>
+      <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAOmbUcManagePLMComponentLC.htm')">Managing PLM Component Life Cycle In Session</a>
+</td>
+    </tr>
+   
+    <tr>
+    <td valign="top">[7]</td>
+    <td>
+       <a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm')">Understanding PLM Component Life Cycle</a></td>
+    </tr>
+
+</table>
+  
+<!---------------------------------comment------------------------------------->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Nov 2008]</td>
+    <td valign="top">Document created</td>
+  </tr>
+<script type="text/javascript">insertLinkToTop();</script>
+</table>
+
+<!---------------------------------comment------------------------------------->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,238 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Understanding Link Concepts</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding Link Concepts</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article explains the information required to represent a link and 
+		the various interfaces that operate on such information.</p>
+		<ul>
+			<li><a href="#Part1">About Links</a><ul>
+				<li><a href="#part11">The PLM Model</a></li>
+				<li><a href="#Part12">Instantiation Context</a></li>
+				<li><a href="#part13">Link Information</a></li>
+				</ul>
+			</li>
+			<li><a href="#Part2">Access to Link Information</a><ul>
+				<li><a href="#part21">At Link Set-up Time</a></li>
+				<li><a href="#part22">On an Existing Link</a></li>
+				<li><a href="#Part23">Understanding Link Resolution Failure</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>About Links</h2>
+<p>The focus of this article is on links that originate exclusively from a Feature 
+stored inside a PLM Representation Reference, or more precisely <strong>external</strong> 
+links.</p>
+<p>The skateboard whose model is shown below will be used to illustrate how a link 
+is established and what kind of information is necessary.</p>
+<p>
+<img alt="Skateboard PLM Model" height="348" src="images/CAAOmbVirtualObject_1.png" width="536"/></p>
+<p>Our link will originate from the right side of the board to the outer plane of 
+the right front wheel, as depicted by the yellow arrow:</p>
+<p>
+<img alt="Link in PLM Model" height="121" src="images/CAAOmbVirtualObject_2.png" width="395"/></p>
+<p>The right side of the board is thus the <strong>source</strong> of the link while 
+the outer plane of the right front wheel is its <strong>target</strong>.</p>
+<p>Let's first see how the skateboard is represented internally, to determine what 
+is needed to represent such a link.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="part11"></a>The PLM Model</h3>
+<p>The skateboard model is made of various PLM components (PLM Reference, PLM Instance, 
+PLM Representation Reference and PLM Representation Instance) as shown in the diagram 
+below (please note that the <code>Axle_Product5</code> is not detailed.)</p>
+<table>
+	<caption><a name="Fig1"></a>Fig. 1: The Skateboard PLM Model (Axle_Product5 
+	are not detailed)</caption>
+	<tr>
+		<td>
+		<img alt="Skateboard PLM Model" height="318" src="images/CAAOmbVirtualObject_4.png" width="600"/></td>
+	</tr>
+</table>
+<p>As our link originates from the right side of the board, it will be stored as 
+an <strong>external</strong> attribute [x] inside a container of the board PLM Representation 
+Reference: <code>Board_Representation2</code>.</p>
+<p>The link target on the other hand, being the outer plane of the wheel, is stored 
+as geometric data inside a container of the wheel PLM Representation Reference:
+<code>Wheel_Representation4</code>.</p>
+<p>The first thing you would notice is that the wheel PLM Representation Reference
+<code>Wheel_Representation4</code> is present only once in the model despite the 
+fact that the skateboard has four wheels. This is because the four wheels are not 
+duplicated but <strong>instantiated</strong> from the <code>Wheel_Product4</code> 
+Reference: as <code>Wheel.Right</code> and <code>Wheel.Left</code> for the axle 
+assembly. This assembly is in turn instantiated for the front as <code>AxleAssembly.Front</code> 
+and for the rear as <code>AxleAssembly.Back</code>.</p>
+<p>If the link information only contains: &quot;outer plane of the wheel&quot; inside 
+container of <code>Wheel_Representation4</code>, that will not be enough because 
+there are four potential wheels where the target can be.</p>
+<p>To represent our link fully, we thus need an additional information to clearly 
+identify the instance of the <code>Wheel_Representation4</code> PLM Representation 
+Reference. How to determine this <strong>instantiation context</strong> is the subject 
+of the next section.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part12"></a>Instantation Context</h3>
+<p>The goal of the <strong>Instantiation Context</strong> is to identify the context 
+in which a PLM Representation Reference is instantiated. In our example, the
+<code>Wheel_Representation4</code> PLM Representation Reference is instantiated 
+four times, but we only want to designate only one of it: the right front one.</p>
+<p>Looking at the diagram of <a href="#Fig1">Fig. 1</a>, you can see that by including 
+a <code>Wheel_Product4</code> instance in our instantiation context: <code>Wheel.Right</code>, 
+we have somewhat narrowed the possibilities for the wheel representation instance. 
+But this is not enough as we still need to differentiate between the right front 
+wheel and the right back one. This time, by adding the <code>AxleAssembly_Product6
+</code>instance to the context: <code>AxleAssembly.Front</code>, we have finally 
+designate unambigously the right front wheel.</p>
+<p>As you can see, the instantation context is thus described by a <strong>Path 
+of First Instances</strong>. It is the list of PLM Instances starting with the root 
+PLM Reference (<code>Skate_Product7</code>) and ending with the PLM Reference (<code>Wheel_Product4</code>) 
+that is aggregating our PLM Representation Instance of our geometry (<code>Wheel_Representation4</code>).</p>
+<p>In the diagram below, the path of first instances for the right front wheel is 
+represented. It consists of <code>AxleAssembly.Front</code> and <code>Wheel.Right</code>.</p>
+<table>
+	<caption>Fig. 2: The Path of First Instances for the Right Front Wheel -
+	<code>AxleAssembly.Front</code>, <code>Wheel.Right</code>.</caption>
+	<tr>
+		<td>
+		<img alt="Path of First Instances" height="234" src="images/CAAOmbVirtualObject_5.png" width="600"/></td>
+	</tr>
+</table>
+<h3><a name="part13"></a>Link Information</h3>
+<p>With the path of first instances, we now have all the information required to 
+represent our link:</p>
+<ul>
+	<li>A target (the outer plane of the wheel).</li>
+	<li>A Representation Instance containing this target (<code>Wheel_Representation4</code>).</li>
+	<li>A path of first instances designating the context of the above Representation 
+		Instance (<code>AxleAssembly.Front</code>, <code>Wheel.Right</code>).</li>
+</ul>
+<p>It must be noted that all three parameters are only required for links that target 
+data stored in a container of a PLM Representation Reference, instantiated in a 
+specific context. For other kinds of target, not all parameters need be present. 
+If the target is a PLM component for example, only the target and the path of first 
+instances should be specified. Moreover, the path of first instances can be omitted 
+if no instantiation context is needed.</p>
+<p>This link information is handled by so called <strong>Context in Object</strong> 
+that are accessed through <em>CATOmbObjectInContext</em> class.</p>
+<p>In the rest of the article, we will see when and where link information is needed 
+or retrieved.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Access to Link Information</h2>
+<p>Link information is needed when a link is about to be established. It is also 
+returned to describe an existing link.</p>
+<h3><a name="part21"></a>At Link Set-up Time</h3>
+<p>Whatever the source, a Product object or a feature's attribute, the way to set 
+up the link is the same, only the API's name changes. You have a method whose one 
+argument is a <em>CATOmbObjectInContext</em> class instance as input.</p>
+<h3><a name="part22"></a>On an Existing Link</h3>
+<p>Whatever the source, a Product object or a feature's attribute, the way to set 
+up the link is the same, only the API's name changes. You have a method whose one 
+argument is a <em>CATOmbObjectInContext</em> class instance as output.</p>
+<h3><a name="Part23"></a>Understanding Link Resolution Failures</h3>
+<p>Things might not happen as expected when a link is resolved in order to retrieve 
+its information. As the link is unidirectional, no change on the target end will 
+be propagated back to the source.</p>
+<p>When a link resolution fails, the error code returned by the method returning 
+the <em>CATOmbObjectInContext</em> class instance is not enough. It must be analyzed 
+by the <code>CATOmbLinkStatusServices </code>class. The error code is input to its
+<code>GetLinkStatusFromRc</code> method which then returns six possible codes, explaining 
+the cause of the failure:</p>
+<table class="fill">
+	<tr>
+		<th>Code returned by<br />
+		GetLinkStatusFromRc</th>
+		<th>Explanation</th>
+	</tr>
+	<tr>
+		<td><code>Target_Found</code></td>
+		<td>The link was resolved successfully</td>
+	</tr>
+	<tr>
+		<td><code>Component_NotInSession</code></td>
+		<td>The PLM Representation Reference holding the target is not loaded</td>
+	</tr>
+	<tr>
+		<td><code>Target_NotInSession</code></td>
+		<td>The PLM Representation Reference holding the target is loaded but not 
+		its containers, hence the target</td>
+	</tr>
+	<tr>
+		<td><code>Relation_Broken</code></td>
+		<td>The link points to a none existing PLM Representation Reference</td>
+	</tr>
+	<tr>
+		<td><code>Link_Broken</code></td>
+		<td>The link points to a none existing target</td>
+	</tr>
+	<tr>
+		<td><code>InvalidLink</code></td>
+		<td>The link is corrupted</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>Establishing an external link can require up to three kinds of information: the 
+target, the Representation Instance and the path of First Instances. They are specified 
+to create a link &quot;intention&quot; which is in turn used to establish the link. 
+The same information can be of course retrieved from an existing link.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCoreModelerReference.htm')">
+		PLM Core Modeler Rerefence</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2008]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

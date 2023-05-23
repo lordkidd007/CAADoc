@@ -1,0 +1,763 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>File Persistency Removal Impacts</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>File Persistency Removal Impacts</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article lists impacts of the file persistency removal in the exposed 
+		view of frameworks.</p>
+		<ul>
+			<li><a href="#CATDocument">CATDocument Removal</a></li>
+			<li><a href="#API1">Interfaces Implemented 
+			on CATDocument</a></li>
+			<li><a href="#API2">De-exposed APIs Without Replacement</a></li>
+			<li><a href="#API3">De-exposed APIs With Migration 
+			Path</a></li>
+			<li><a href="#CATxPDMInterfaces">CATxPDMInterfaces Framework</a></li>
+			<li>
+			<a href="#GetDocument">
+			CATFrmEditor::GetDocument and CATIUIActivate::GetDocument</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATDocument"></a>CATDocument Removal</h2>
+<p>V5 is build around files. These files (CATPart, CATProduct, CATDrawing.) are 
+represented using a CATDocument instance in memory. This CATDocument instance is 
+the central element of architecture:</p>
+<ul>
+	<li>This is the <strong>unit for stream</strong>.<br />
+	It is directly mapped to a file with a storage name, and has the ability to 
+	be streamed through specific interfaces.</li>
+	<li>This is the <strong>root for life cycle management</strong> in session.<br />
+	This is the only object you can try to remove from session (through LifeCycleObject::remove). 
+	It is able to remove all its components (containers and features inside) and 
+	it manages dependencies during remove (a document stay in memory as long as 
+	another has a link to it).</li>
+	<li>This is the<strong> root for interactive editor</strong>.<br />
+	An interactive editor is always associated with a document. This bijection is 
+	used in several commands like Save or Undo. It is also used to retrieve a model 
+	in interactive commands</li>
+	<li>This is the <strong>root for link management</strong> (creation and resolution).<br />
+	All links are created with a relative index to a document. The root for resolution 
+	is always the CATDocument instance (returned by CATILinkableObject::GetDocument). 
+	An object cannot be pointed if there is no associated document.</li>
+	<li>This is the <strong>root for Undo/Redo</strong> behavior.<br />
+	Note that this behavior is true only since R16 SP2. Before, the container was 
+	the only root for Undo/Redo. It was a major cause of data corruption for application 
+	creating data in several containers like SheetMetal.</li>
+</ul>
+<p>With V6, the target is no more to support file persistency, but <strong>database</strong> 
+integration. This will totally change the mapping between CATDocument and all these 
+behaviors. The new key object is the Component. A component is a PLM Object [<a href="#References">1</a>]. 
+It implies:</p>
+<ul>
+	<li>A <strong>PLMType</strong>. An object knows its type (Reference, Representation, 
+	Port, Instance, Representation Instance, or Connection). Different rules apply 
+	depending on this type (on lifecycle for example, a Port can not live without 
+	its reference).</li>
+	<li>A <strong>PLMId</strong>, or PLMIdentification, like a filename for a V5 
+	document. This is the database identification. A big difference with V5 is that 
+	localization is no more part of identification. It is only optional information 
+	for link resolution (database localization is the name of the table with the 
+	object).</li>
+	<li><strong>Open</strong> and <strong>Save</strong> factory to stream and unstream 
+	from database.</li>
+</ul>
+<p>In this article, you will find the impact in term of APIs of this transformation.
+</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="API1"></a>Interfaces Implemented on CATDocument</h2>
+<p>Due to the <em>CATDocument</em> class removal (an implementation class), all 
+the its interface implementations are removed. The following table lists all interfaces, 
+those deleted from the exposed view, and those still exposed, but for which the 
+implementation on the document is no longer valid.</p>
+<table class="fill">
+	<colgroup align="left" span="1">
+	</colgroup>
+	<colgroup span="2">
+	</colgroup>
+	<tr>
+		<th>Interface Name</th>
+		<th>Still Exposed</th>
+		<th>Click Links for More Explanation</th>
+	</tr>
+	<tr>
+		<td>CATIContainer</td>
+		<td>No</td>
+		<td><a href="#CATIContainer">See Migration Path</a>
+		</td>
+	</tr>
+	<tr>
+		<td>CATInit</td>
+		<td>Yes</td>
+		<td><a href="#CATInit">See Migration Path</a></td>
+	</tr>
+	<tr>
+		<td>CATIProviders</td>
+		<td>No</td>
+		<td>no replacement</td>
+	</tr>
+	<tr>
+		<td>CATISelectionSetsFactory</td>
+		<td>Yes</td>
+		<td><a href="#CATISelectionSetsFactory">New implementation</a></td>
+	</tr>
+	<tr>
+		<td>CATINavigateObject</td>
+		<td>Yes</td>
+		<td>You can still use it for a feature, a container, but you cannot anymore 
+		use it on CATDocument</td>
+	</tr>
+	<tr>
+		<td>CATIRedrawEvent</td>
+		<td>Yes</td>
+		<td>You can still use it for a feature, but you cannot anymore use it on 
+		CATDocument</td>
+	</tr>
+	<tr>
+		<td>LifeCycleObject</td>
+		<td>No</td>
+		<td>to delete a feature, read [<a href="#References">11</a>] but you cannot 
+		use it anymore on CATDocument</td>
+	</tr>
+	<tr>
+		<td>CATIObjVisualization</td>
+		<td>No</td>
+		<td>It was only implemented on CATDocument.</td>
+	</tr>
+	<tr>
+		<td>CATInterfaceEvents</td>
+		<td>Yes</td>
+		<td>Do not use this interface whatever the context. It is an useless interface.</td>
+	</tr>
+	<tr>
+		<td>CATILinkableObject</td>
+		<td>No</td>
+		<td><a href="#CATILinkableObject::GetDocument">see Migration Path</a></td>
+	</tr>
+	<tr>
+		<td>CATIDocAlias</td>
+		<td>No</td>
+		<td rowspan="4">These interfaces are useful in V5 to create a new CATDocument 
+		type, and are thus obsolete in V6.</td>
+	</tr>
+	<tr>
+		<td>CATIEditor</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>CATIDocumentEdit</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td>CATIPersistent</td>
+		<td>No</td>
+	</tr>
+	<tr>
+		<td><a href="#CATIDocRoots">CATIDocRoots</a></td>
+		<td>No</td>
+		<td><a href="#CATIDocRoots">See Migration Path</a></td>
+	</tr>
+</table>
+<h3><a name="CATIContainer"></a>CATIContainer</h3>
+<p>The unique method of the interface is <code>ListMembersHere</code>. In V5, its 
+implementation on the <em>CATDocument</em> lists all the document containers. In 
+V6, you should use the RetrieveApplicativeContainer method of the <em>CATIPLMNavRepReference</em> 
+interface.</p>
+<p>For more details about container access, read the referenced article [<a href="#References">10</a>].</p>
+<h3><a name="CATInit"></a>CATInit</h3>
+<p>This interface, still valid to be implemented on an applicative container, but 
+is obsolete on a document. This interface is used in V5 to retrieve the root container 
+of the <em>CATDocument</em> except for the Product document where the <em>
+<a href="#CATIDocRoots">CATIDocRoots</a></em> interface was the right interface.
+</p>
+<p>The <code>GetRootContainer</code> method can be replaced by the <code>RetrieveApplicativeContainer</code> 
+method of the <em>CATIPsiRepRefApplicativeDataAccess</em> class. This method retrieves 
+a container by its name. Some examples of root container name:</p>
+<ul>
+	<li>Part Document: <strong>CATPrtCont</strong> - see the complete migration 
+	path in the Mechanical Modeler adoption article [<a href="#References">7</a>].</li>
+</ul>
+<h3><a name="CATISelectionSetsFactory"></a>CATISelectionSetsFactory
+</h3>
+<p>This interface is implemented in V6 on the PLM Representation Reference.</p>
+<h3><a name="CATIDocRoots"></a>CATIDocRoots</h3>
+<p>This interface, implemented in V5 on the <em>CATDocument</em>, is used to retrieve 
+the root of the Product model, mostly after opening or creating a product. In V6, 
+the create or open operations return the root model, a PLM Core Reference object.
+</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATDocument* pDoc = NULL;
+rc = CATDocumentServices::<strong>OpenDocument</strong>(argv[1],pDoc);
+CATIDocRoots* piDocRootsOnDoc = NULL;
+rc = pDoc-&gt;QueryInterface(IID_CATIDocRoots,(void**) &amp;piDocRootsOnDoc);
+CATListValCATBaseUnknown_var* pRootProducts = piDocRootsOnDoc-&gt;<strong>GiveDocRoots</strong>();
+CATIProduct_var spRootProduct = (*pRootProducts)[1];
+spRootProduct -&gt;GetChildrenCount() ;
+...</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+<strong>CATIPLMProducts</strong> *pPLMProductsOnRef = NULL ;
+<strong>CATOmbLifeCycleRootsBag</strong> Bag;
+<strong>CATAdpOpener</strong> opener(Bag)
+rc= opener.<strong>CompleteAndOpen</strong>(pCurrentId,IID_CATIPLMProducts, (void**) &amp;pPLMProductsOnRef);
+pPLMProductsOnRef-&gt;Count( );
+...</pre>
+<p><code>pPLMProductsOnRef</code> is the newly opened root PLM Product Reference.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="API2"></a>De-exposed APIs without Replacement</h2>
+<p>The following table lists the methods (M), the global functions (F) the classes 
+(C), the interfaces (I) or the enumerations (E) removed from the CAA exposed view 
+without a migration path. The second column gives the reason of this de-exposition.
+</p>
+<table class="fill">
+	<colgroup align="left" span="1">
+	</colgroup>
+	<colgroup span="2" align="center">
+	</colgroup>
+	<tr>
+		<th>Entity</th>
+		<th>Type</th>
+		<th>Explanations</th>
+	</tr>
+	<tr>
+		<td>CATDocEnvManager</td>
+		<td>C</td>
+		<td rowspan="9">The file persistency being replaced by database, all these 
+		APis managing files are obsolete.
+		<p>You must completely review your code.</p>
+		</td>
+	</tr>
+	<tr>
+		<td>CATIsDocLocatorActive</td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td>CATIOmbContainerLinksUpdateStatus</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>CATIDocId</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>CATOmbDocIdFinder</td>
+		<td>C</td>
+	</tr>
+	<tr>
+		<td>CATOmbDocPropertyServices</td>
+		<td>C</td>
+	</tr>
+	<tr>
+		<td>CATIDocEvents</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>CATIDocDescriptor</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>CATIDocEnvironment</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>NewFrom</td>
+		<td>M</td>
+		<td>No replacement.</td>
+	</tr>
+	<tr>
+		<td>CATDocumentServices</td>
+		<td>C</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Save</td>
+		<td>M</td>
+		<td rowspan="6">No replacement.</td>
+	</tr>
+	<tr>
+		<td>IsKnownAsAPersistentType</td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td>GetDocumentLastSaveVersion</td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td>Remove</td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td>SaveAsNew</td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td>SaveAs</td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td>CATIOmbUndoRedoEvents</td>
+		<td>I</td>
+		<td>Document undo/redo is obsolete- Global Undo/Redo is the V6 concept.</td>
+	</tr>
+	<tr>
+		<td>CATOmbWarmStartServices</td>
+		<td>C</td>
+		<td>No warm start in V6.</td>
+	</tr>
+	<tr>
+		<td>CATIExportTypeManager</td>
+		<td>I</td>
+		<td>No save in another format in V6.</td>
+	</tr>
+	<tr>
+		<td>enum CATNameKind (CosLinkable.h)</td>
+		<td>E</td>
+		<td>Required in V5 for CATILinkableObject. Now of no use.</td>
+	</tr>
+	<tr>
+		<td>CATCmdWorkshop</td>
+		<td>C</td>
+		<td rowspan="3">Workshop creation is not possible in V6. You must completely 
+		review your code.</td>
+	</tr>
+	<tr>
+		<td>CATIWorkshop</td>
+		<td>I</td>
+	</tr>
+	<tr>
+		<td>CATWorkshopFactory</td>
+		<td>C</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="API3"></a>De-exposed APIs with Migration Path</h2>
+<p>The following table lists the methods (M), the global functions (F) the classes 
+(C), or the interfaces (I) removed from the CAA exposed View with a migration path. 
+Click the entity to reach the path.</p>
+<table class="fill">
+	<colgroup align="left" span="1">
+	</colgroup>
+	<colgroup span="2" align="center">
+	</colgroup>
+	<tr>
+		<td><strong>Entity</strong></td>
+		<td><strong>Type</strong></td>
+	</tr>
+	<tr>
+		<td><a href="#CATCreateApplicativeContainer">CATCreateApplicativeContainer
+		</a></td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#CATOmbPerform">CATOmbPerformAfterContainerCreation</a>
+		</td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#CATGetApplicativeContainer">CATGetApplicativeContainer</a>
+		</td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td colspan="2"></td>
+	</tr>
+	<tr>
+		<td>CATDocumentServices</td>
+		<td>C</td>
+	</tr>
+	<tr>
+		<td><a href="#ListDocuments">GetDocumentInSession</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#New">New</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#QEOPS1">OpenDocument</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#QEOPS2">Save</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#ListDocuments">ListDocuments</a></td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#CATLockDocument">CATLockDocument/CATUnLockDocument</a>
+		</td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#CATILinkableObject::GetDocument">CATILinkableObject::GetDocument</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#CATOsmExtensionServices::CATActivateExtensions">CATOsmExtensionServices::CATActivateExtensions</a></td>
+		<td>M</td>
+	</tr>
+	<tr>
+		<td><a href="#V4Method">CATV4iGetMaster</a></td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#V4Method">CATV4iGirad</a></td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#V4Method">CATV4iGetV4ElementFromJele</a></td>
+		<td>F</td>
+	</tr>
+	<tr>
+		<td><a href="#CATDocumentIntegrityServices">CATDocumentIntegrityServices</a>
+		</td>
+		<td>C</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATCreateApplicativeContainer"></a>CATCreateApplicativeContainer
+</h3>
+<p>The replacement for <code>CATCreateApplicativeContainer</code> is the <code>CreateApplicativeContainer</code> 
+method of the <em>CATIPsiRepRefApplicativeDataAccess</em> interface. (CAT3DPhysicalRepInterfaces 
+framework). This new method integrates two calls:</p>
+<ul>
+	<li><strong><code>CATInit::Init</code></strong> on the new created container</li>
+	<li><strong><code>CATOmbPerformAfterContainerCreation</code></strong> for the 
+	undo/redo management</li>
+</ul>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATOmbPerform"></a>CATOmbPerformAfterContainerCreation</h3>
+<p>This global function is useless, since the call is now integrated in the
+<code>CreateApplicativeContainer</code> method of the <em>CATIPsiRepRefApplicativeDataAccess</em> 
+interface.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATGetApplicativeContainer"></a>CATGetApplicativeContainer</h3>
+<p>You can choose between two methods:</p>
+<ul>
+	<li>Product APIs: <code>RetrieveApplicativeContainer</code> method of the
+	<em>CATIPsiRepRefApplicativeDataAccess</em> interface (CAT3DPhysicalRepInterfaces 
+	framework).</li>
+	<li>Whathever the modeler: <code>RetrieveApplicativeContainer</code> method 
+	of the <em>CATIPLMNavRepReference</em> interface (CATPLMComponentInterfaces 
+	framework).</li>
+</ul>
+<h3><a name="ListDocuments"></a>ListDocuments or CATDocumentServices::GetDocumentInSession</h3>
+<p>This global function in <em>CATSessionServices</em> header returns all the opened
+<em>CATDocument</em> in V5 This method is replaced by the <code>GetPLMComponentsInSession</code> 
+method of the <em>CATPLMComponentInterfacesServices</em> class. This method retrieves 
+all PLM Core References and PLM Core Representation References loaded in session.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="New"></a>CATDocumentServices::New</h3>
+<p>This API creates a V5 document: a Part, a Product, a Drawing, and so on. In V6, 
+you handle PLM Core Components [<a href="#References">1</a>], and more precisely 
+those which can queried in database thanks to their identifier set of attributes 
+[<a href="#References">2</a>]. So the <code>New</code> API is replaced by methods 
+exposed by each modeler and enabling us to create those kinds of PLM Components.</p>
+<p>For <strong>Product Modeler</strong> the V6 APIs are those which can create PLM 
+Product References [<a href="#References">3</a>] (for V5 CATProduct), and PLM Product 
+Representation Reference [<a href="#References">4</a>] (for V5 CATPart). The referenced 
+articles describe in details how to create those PLM Core object.</p>
+<p>For the Part case, read the <em>Create Part</em> section of the &quot;Mechanical Modeler 
+modifications&quot; [<a href="#References">7</a>] article. The path from the two pieces 
+of code is detailed.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="QEOPS1"></a>CATDocumentServices::Open</h3>
+<p>This API opens a V5 document : a Part, a Product,a Drawing, and so one. Now you 
+query from the database, a PLM Core object, and then you open it. All the new APIs 
+come from the CATPLMIntegrationAccess framework.</p>
+<ul>
+	<li><code>CATAdpQueryServices::GetElementByIdentificationSet</code>
+	<p>This method retrieves from the database a PLM core object using its identifier 
+	set [<a href="#References">2</a>]. This can only be a PLM Reference or a PLM 
+	Representation Reference.</p>
+	</li>
+	<li><code>CATAdpOpener::CompleteAndOpen</code>
+	<p>The method loads a Root PLM Reference and all its structure in memory or 
+	opens a PLM Representation Reference.</p>
+	</li>
+</ul>
+<p>The use case Querying, Expanding and Opening PLM Components [<a href="#References">5</a>] 
+shows the usage of these methods.</p>
+<table class="Remark">
+	<tr>
+		<td><span class="run-in">Warning</span>: To open a feature catalog, the 
+		V6 method is still <code>AccessCatalog</code>. The feature catalogs are 
+		not saved in database, and are always located in the run time view.</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="QEOPS2"></a>CATDocumentServices::Save</h3>
+<p>This method saves <em>one</em> V5 document. The V6 one, <code>CATAdpSaver::Save,</code> 
+saves the input PLM components, and saves also their related PLM components. This 
+propagated save ensure data integrity [<a href="#References">6</a>].</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATLockDocument"></a>CATLockDocument/CATUnLockDocument
+</h3>
+<p>These two methods enable us to hold a V5 document in session. It is the AddRef 
+/ Release methods of the <em>CATDocument</em> class. In V6, the same concept exists 
+for the PLM Reference and PLM Representation Reference added to or removed from 
+a &quot;bag&quot; represented by a <em>CATOmbLifeCycleRootsBag</em> class instance.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATOsmExtensionServices::CATActivateExtensions"></a>CATOsmExtensionServices::CATActivateExtensions</h3>
+<p>Since all your feature extensions are automatically activated in V6, this method 
+is of no use.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATILinkableObject::GetDocument"></a>CATILinkableObject::GetDocument</h3>
+<p>Links are set in V6 between PLM components instead of documents in V5. The
+<code>GetDocument</code> method is consequently replaced by an interface retrieving 
+a PLM component interface pointer.</p>
+<p><strong>V5</strong></p>
+<pre class="code">...
+CATILinkableObject *pLinkObjectOnSpecObj = ....;
+CATDocument * opDocument = NULL ;
+pLinkObjectOnSpecObj-&gt;<strong>GetDocument</strong>(opDocument);
+...</pre>
+<p><strong>V6</strong></p>
+<pre class="code">...
+#include &quot;CATPLMComponentInterfacesServices.h&quot;
+CATIPLMComponent_var spPLMComp ;
+CATBaseUnknown * pObject = .... ;
+rc = <strong>CATPLMComponentInterfacesServices</strong>::<strong>GetPLMComponentOf</strong>(pObject,spPLMComp);
+...</pre>
+<p><code>pObject</code> is for example a <em>CATBaseUnknown</em> pointer on a feature, 
+or a container<code>. spPLMComp</code> is a <em>CATIPLMComponent</em> interface 
+pointer to the PLM component.</p>
+<h3><a name="V4Method"></a>V4 Methods</h3>
+<p>The global functions with a <em>CATDocument</em> pointer as argument: <code>CATV4iGetMaster</code>,
+<code>CATV4iGirad1</code>, and <code>CATV4iGetV4ElementFromJele</code> are replaced 
+in V6 by the same ones but with a <em>CATIPsiRepresentationReferenc</em> pointer 
+instead.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="CATDocumentIntegrityServices"></a>CATDocumentIntegrityServices</h3>
+<p>This class is replaced by the <em>CheckRepresentation</em> batch. This batch 
+can be launched using the <em>CATPLMBatch</em> class [<a href="#References">9</a>].</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CATxPDMInterfaces"></a>CATxPDMInterfaces Framework</h2>
+<p>All the APIs of this framework are obsolete since they handle files.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="GetDocument"></a>CATFrmEditor::GetDocument 
+and CATIUIActivate::GetDocument</h2>
+<p>There is no more direct mapping between editor (<em>CATFrmEditor</em> class) 
+and document (<em>CATDocument</em> class) for two reasons:</p>
+<ul>
+	<li><em>CATDocument</em> is no more the root object.</li>
+	<li>There are some editors with several roots like DELMIA PPR Editor (Product, 
+	Process and Resources roots).</li>
+</ul>
+<p>In these cases, the <code>GetDocument</code> of the <em>CATFrmEditor</em> class 
+returns NULL. So it requests to change all the code using the <code>GetDocument</code> 
+from an editor. In most cases, the final goal is to handle the data model inside 
+the document. Solution to retrieve the <strong>data model</strong> from an interactive 
+editor is to use the <strong>UI-active object</strong>.</p>
+<h3>UI-Active Object Concept</h3>
+<p>The concept of the UI-active object, detailed in the frame article [<a href="#References">8</a>], 
+can be sumed up like this: it is a path of elements from the root to the UI activate 
+element. Just below, a picture to illustrate the concept.</p>
+<p>
+<img alt="UI-active Object Concept" src="images/CAACenPstMigrationUI.png" width="299" height="157"/></p>
+<p>The picture shows an edited PLM Product Reference. <code>CAASampleProduct1
+</code>is the root. If you UI active (double click) the:</p>
+<ul>
+	<li><code>CAASampleProduct1</code>: the UI active object is a path containing 
+	only the root (<code>CAASampleProduct1</code>)</li>
+	<li><code>CAASampleProduct2</code>: the UI active object is a path containing
+	<code>CAASampleProduct1</code> and <code>CAASampleProduct2</code></li>
+	<li><code>CAASampleRepresentation3</code> (a PLM Representation Reference): 
+	the UI active object is a path containing <code>CAASampleProduct1</code>,
+	<code>CAASampleProduct2</code> and the MechanicalPart feature associated with
+	<code>CAASampleRepresentation3</code>.</li>
+</ul>
+<p>if you edit <code>CAASampleRepresentation3</code> in another window, the UI-active 
+object will only contain one element, the <code>MechanicalPart</code> feature.
+</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><strong>Retrieving the UI-Active Object</strong></h3>
+<p>There are three steps:</p>
+<ol>
+	<li><a href="#Editor">Get the editor of the data</a>
+	</li>
+	<li><a href="#Ui-activePath">Get the ui-active path</a></li>
+	<li><a href="#Element">Get the right element in the 
+	path</a></li>
+</ol>
+<p>Here are detailed these steps:</p>
+<ul>
+	<li><strong><a name="Editor"></a>Get the editor of the data
+	</strong>
+	<p>This does not change. The editor remains a <em>CATFrmEditor</em> instance.</p>
+	<p>If you are inside a state command, use <code>the GetEditor</code> method 
+	of the <em>CATStateCommand</em> class. In a state command the <code>GetCurrentEditor</code> 
+	method of the <em>CATFrmEditor</em> class is forbidden (except in the constructor).
+	</p>
+	<p>Otherwise, if you are not inside a state command, you can use the <code>GetCurrentEditor
+	</code>method of the <em>CATFrmEditor</em> class. But be aware that the current 
+	editor is stable and you are not running under a non-current editor.</p>
+	</li>
+	<li><strong><a name="Ui-activePath"></a>Get the ui-active path</strong><p>
+	The ui-active path gives access to the object the user is currently editing. 
+	This object is named the UI active object . The <code>GetUIActiveObject</code> 
+	method of the <em>CATFrmEditor</em> class returns a <em>CATPathElement</em> 
+	instance which is a path in the data tree. This path is set when the user enters 
+	a workshop, using the Start menu or double-clicking on a feature implementing 
+	the <em>CATIUIActivate</em> interface.</p>
+	</li>
+	<li><strong><a name="Element"></a>Get the right element 
+	in the path</strong>
+	<p>The top: the element held by the editor.</p>
+	<pre class="code">...
+path-&gt;<strong>InitToTopElement</strong>();
+CATBaseUnknown *pTop=path-&gt;<strong>NextChildElement</strong>())
+...</pre>
+	<p>The leaf: the UI activated object</p>
+	<pre class="code">...
+path-&gt;<strong>InitToLeafElement</strong>();
+CATBaseUnknown *pLeaf=path-&gt;<strong>NextFatherElement</strong>()
+...</pre>
+	</li>
+</ul>
+<h4><strong>Using the Top UI-active object</strong></h4>
+<p>The Top element in the UI-active object path is the edited element. This element 
+can be:</p>
+<ul>
+	<li>A <strong>PLM Component</strong> for Product, Process, etc.</li>
+	<li>A <strong>Feature</strong>: in the Rep modeler cases: 3D Shape, Drawing, 
+	etc.</li>
+	<li>A <strong>set</strong> of <strong>PLM Components</strong>: DELMIA PPR editor.</li>
+</ul>
+<p>In the first two cases, you can migrate your code such as:</p>
+<ul>
+	<li><strong>Display</strong> the name of the document: use instead the <em>CATIAlias</em> 
+	interface to display the name of the edited PLM Component</li>
+	<li><strong>Retrieve the root feature</strong> of the Rep Modeler&#39;s document: 
+	it is the element in the UI active object.</li>
+</ul>
+<p>In the last cases, you should first use the <code>GetEditedRootPLMComponents</code> 
+method of the <em>CATPLMComponentInterfacesServices</em> class. This method returns 
+the root PLM Component.</p>
+<p>In specific cases, like Process editor, you can use the <em>CATIPLMComponentsSet</em> 
+interface. This interface is implemented by the root element in the UI-active object 
+path. It contains the edited elements. The <code>GetRoots</code> method returns 
+a list of PLM Component.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm');">
+		PLM Core Model Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm');">
+		Understanding PLM Environment</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPstProductModeler/CAAPstTaProductReference.htm');">
+		PLM Product Reference</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPLMAllConcepts/CAAPLMTaAllRepresentation.htm');">
+		PLM Representation Reference Overview</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcQueryOpen.htm')">
+		Querying, Expanding and Opening PLM Object</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAPlmServerAccess/CAAAdpUcSave.htm')">
+		Saving PLM Components</a></td>
+	</tr>
+	<tr>
+		<td>[7]</td>
+		<td><a href="CAACenMmrTaP1P2Migration.htm">Mechanical Modeler Changes</a></td>
+	</tr>
+	<tr>
+		<td>[8]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrTaOverview.htm')">
+		Wintop Frame Overview</a></td>
+	</tr>
+	<tr>
+		<td>[9]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAADlcPLMBatch/CAADlcTaPLMBatchPrinciples.htm')">
+		Launching PLM Batch outside the Batch Monitor Environment</a></td>
+	</tr>
+	<tr>
+		<td>[10]</td>
+		<td><a href="CAACenOmbContainerAdoption.htm">Container Access Changes</a></td>
+	</tr>
+	<tr>
+		<td>[11]</td>
+		<td><a href="CAACenOsmTaSpecsModelerAdoption.htm">Feature Modeler Changes 
+		- Global View</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

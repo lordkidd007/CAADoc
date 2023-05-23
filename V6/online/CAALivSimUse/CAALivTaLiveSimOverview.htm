@@ -1,0 +1,247 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Live Simulation Overview</title>
+<style type="text/css">
+</style>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Live Simulation Overview</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article presents an overview of Live Simulation environment and its related interfaces, then explains how to retrieve specific information using the <code>DELILiveSimContextInfo</code> interface.</p>   
+		<ul>
+			<li><a href="#Part1">Live Simulation Overview</a></li>
+			<li><a href="#Part2">Live Simulation related interfaces and classes</a></li>
+			<li><a href="#Part3">Retrieving Live Simulation specific information</a></li>
+			<li><a href="#InShort">In Short</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>Live Simulation Overview</h2>
+<p>Live Simulation environment enables users to author simulations, execute, analyze, extract reports and generate results.  It introduces the notion of an Active Simulation Object for which an Immersive Applicative Data Browser is displayed (instead of the tree).</p>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Important Terms</span>: 
+		<ul>
+		<li> <strong>Active Simulation Object (ASO)</strong> is a product/resource (sometimes paired with a process function) 
+		that defines the context for the information displayed in the immersive browser tabs.  There is always an 
+		Active Simulation Object in Live Simulation.  When first transitioning to the Live Simulation environment, this object is usually the root product node (if a product context is open) or the root resource (if a PPR context is open), but it may be different depending on the existing session states or pre-selected objects.</li>
+		<li><strong>Immersive Applicative Data Browser</strong> is a contextualized applicative viewer (relative to the Active Simulation Object) that replaces the tree.  It is managed through an immersive multi-tab browser whose content is specified by applications.</li>
+		</ul></td>
+	</tr>
+</table>
+<p>The following picture shows various components of Live simulation environment:</p>
+<p><img onmouseover="this.style.cursor='pointer'" onclick="showImg('images/LiveSimComponents.png', 722, 739)" title="Live Simulation Components. &#13 Click to enlarge" alt="Live Simulation Components" src="images/LiveSimComponentsSmall.png" width="420" height="429">
+</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>Live Simulation related interfaces and classes</h2>
+<p>Several Live Simulation related interfaces have been provided in the <strong>DELLiveInfraU5Itf
+</strong>framework, allowing the CAA partner to integrate their own functionality within the immersive applicative data browser in Live Simulation environment.  Here are 
+the available interfaces:</p>
+<ul>
+				<li><code>DELILiveInfraBrowserCusto</code> - this interface offers services to allow subscribing 
+				workbenches to set the active immersive browser.  It must be implemented on a dummy late-type composed 
+				from <em>name of the CAA workbench + "_BrowserCusto"</em>;</li>
+				<li><code>DELILiveInfraInOutNotif</code> - this interface offers services to inform subscribing workbenches 
+				when Live Simulation is activated/deactivated.  The interface must be implemented on a dummy late-type composed 
+				from the <em>name of CAA workbench + "_LSNotif"</em></li>
+				<li><code>DELILiveInfraSelectable</code> - this interface is used to indicate if an object is considered selectable 
+				in Live Simulation environment.  If this interface is implemented for a given late type, an object of that late-type is 
+				considered selectable (through Select command) in the Live Simulation environment even when Resource Selection mode is 
+				turned ON.  This interface should not be implemented on a late-type that does not implement <code>CATIEdit</code> interface, 
+				the <code>DELILiveInfraSelectableNoEdit</code> interface should be used in that case;</li>
+				<li><code>DELILiveInfraSelectableNoEdit</code> - this interface is used to indicate if an object is considered selectable 
+				in Live Simulation environment.  If this interface is implemented for a given late type, an object of that late-type is 
+				considered selectable (through Select command) in the Live Simulation environment even when Resource Selection mode is turned ON.  
+				This interface should not be implemented on a late-type that implements <code>CATIEdit</code> interface, the <code>DELILiveInfraSelectable</code> 
+				interface should be used in that case;</li>
+				<li><code>DELILiveInfraBrowserAgent</code> - this interface 
+				offers methods to allow display of information in the immersive 
+				browser in Live Simulation. It must be implemented in a class 
+				named <em>"DELLiveSimulation" + application specific string</em>.  <strong>Important note:</strong> you must implement the <code>CATICreateInstance</code> interface for the <em>"DELLiveSimulation" + application specific string</em> component 
+				in order to allow instantiation of your browser agent.</li>
+				<li><code>DELILiveInfraStampProxy</code> - this interface is used by model objects to provide information and actions related to a thumbnail displayed in the immersive browser.</li>
+</ul>
+<p>Sample implementations for the above interface are available in the <strong>CAALiveSimUseItf.edu</strong> framework.</p>
+<p>Live Simulation clients also can take advantage of the following exposed 
+classes:</p>
+<ul>
+				<li><code>DELLiveInfraRefreshNotif</code> class provides a notification that is dispatched every time there is a request to refresh the information displayed in the immersive browser 
+				tabs within the Live Simulation environment (after an undo/redo event or an user-requested browser refresh).  All browser agents (implementations for <code>DELILiveInfraBrowserAgent</code> 
+				interface) should listen to this notification and refresh the displayed thumbnails;</li>
+				<li><code>DELLiveInfraBrowserData</code> class is used to manage information needed to define a browser tab in the immersive browser.  All browser agents (implementations for 
+				<code>DELILiveInfraBrowserAgent</code> interface) must use this class to provide the information needed to populate a browser tab in Live Simulation environment.  This class allows 
+				the user to specify the browser behavior (e.g. supports double-click on thumbnails, displays tooltips for thumbnails, etc.).  It also allows the user to specify what criteria 
+				should be used by default to sort the displayed thumbnails (e.g. by name, by type, by owner, or by active status), how the thumbnails should be displayed by default (e.g. thumbnail 
+				or text mode), and if some or all of the "Arrange by..." buttons should be hidden for that specific browser tab.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part3"></a>Retrieving Live Simulation specific information</h2>
+<p>When integrating functionality in Live Simulation environment, the user may need 
+to retrieve specific information regarding the current context.  The <code>DELILiveSimContextInfo</code> interface implemented on the current editor supports the user's needs 
+in this case.</p>
+<p>The following information is available:</p>
+<ul>
+				<li>The current active simulation object (ASO) 
+				and its corresponding process function (if applicable);</li>
+				<li>The root object;</li>
+				<li>The object that was UI active before 
+				entering Live Simulation;</li>
+				<li>The context of Live Simulation environment.</li>
+</ul>
+<h3>Find the current active simulation object (ASO) and its corresponding process function (if applicable)</h3>
+<p>It is important for the users to know what is the current ASO in order to 
+know which object they are working on and to decide what information 
+(thumbnails) to display in the immersive applicative data browser.&nbsp; The ASO 
+is also used when the user needs to dispatch notifications that would impact the 
+appearance of thumbnails displayed in the immersive browser tabs.</p>
+<p>To retrieve the current ASO and its selected process function (if available) the user needs to first retrieve the current editor, then use 
+methods provided by <code>DELILiveSimContextInfo</code> interface to retrieve the desired information:</p>
+<pre class="code">...
+CATBaseUnknown_var spASOObject;
+CATBaseUnknown_var spProcessFct;
+
+HRESULT rc = E_FAIL;
+
+CATFrmEditor* crtEditor = CATFrmEditor::GetCurrentEditor();
+
+DELILiveSimContextInfo_var spCtxInfo( crtEditor );
+if( NULL_var != spCtxInfo )
+    rc = spCtxInfo->Get_ASO_and_Function( spASOObject, spProcessFct );
+...</pre>
+<p>In the above code snippet, the ASO object was retrieved as a <code>CATBaseUnknown_var</code> pointer.  In some cases it may be useful to retrieve is as a <code>CATPathElement*</code> in order to access its entire hierarchy.&nbsp; 
+A sample code for this case is shown below:</p>
+<pre class="code">...
+CATPathElement* pASOPath = NULL;
+CATBaseUnknown_var spProcessFct;
+
+HRESULT rc = E_FAIL;
+
+CATFrmEditor* crtEditor = CATFrmEditor::GetCurrentEditor();
+
+DELILiveSimContextInfo_var spCtxInfo( crtEditor );
+if( NULL_var != spCtxInfo )
+    rc = spCtxInfo->Get_ASO_and_Function( pASOPath, spProcessFct );
+...</pre>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Note: the returned <code>CATPathElement*</code> pointer must be released by the caller.</span> 
+		</td>
+	</tr>
+</table>
+<h3>Get the root object</h3>
+<p>Sometimes the user needs to find out what is the root object of the data he is working on. 
+Based on the used data case, the root object
+is one of the following:</p>
+<ul>
+				<li>The root product/resource - when the data loaded is a 
+				product/resource;</li>
+				<li>The PPR Context object - when the data loaded is a PPR 
+				Context;</li>
+				<li>The object assigned as context for the 
+				Manufacturing Simulation (may be either a root product/resource 
+				or a PPR Context) - when the data loaded is a Manufacturing 
+				Simulation;</li>
+</ul>
+
+<p>To find the root object the user needs to first retrieve the current editor, then use 
+methods provided by <code>DELILiveSimContextInfo</code> interface to retrieve the desired information:</p>
+<pre class="code">...
+CATBaseUnknown_var spRootObject;
+
+HRESULT rc = E_FAIL;
+
+CATFrmEditor* crtEditor = CATFrmEditor::GetCurrentEditor();
+
+DELILiveSimContextInfo_var spCtxInfo( crtEditor );
+if( NULL_var != spCtxInfo )
+    rc = spCtxInfo->Get_Root_Object( spRootObject );
+...</pre>
+<h3>Retrieve the object that was UI Active before entering Live Simulation 
+environment</h3>
+<p>In some cases it might be useful for the user to know which object was active 
+before entering the Live Simulation context.</p>
+<p>To find the object that was UI Active before entering Live Simulation 
+environment the user needs to first retrieve the current editor, then use 
+methods provided by <code>DELILiveSimContextInfo</code> interface to retrieve the desired information:</p>
+<pre class="code">...
+CATPathElement* pUIActiveObj = NULL;
+
+HRESULT rc = E_FAIL;
+
+CATFrmEditor* crtEditor = CATFrmEditor::GetCurrentEditor();
+
+DELILiveSimContextInfo_var spCtxInfo( crtEditor );
+if( NULL_var != spCtxInfo )
+    rc = spCtxInfo->Get_Original_UIActive( pUIActiveObj );
+...</pre>
+<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Note: the returned <code>CATPathElement*</code> pointer must be released by the caller.</span> 
+		</td>
+	</tr>
+</table><h3>Obtain the context of Live Simulation environment</h3>
+<p>The Live Simulation context information gives the user a quick way to figure out what type of data he is working on, whether is a product/resource, a PPR Context, or a Manufacturing Simulation (MSR).  This 
+information is mostly used for filtering out what gets displayed in the immersive browser tabs (e.g. some commands may only make sense in a MSR context, 
+so they should not be available in product/resource or PPR Context).</p>
+<p>To obtain the context of Live Simulation environment the user needs to first retrieve the current editor, then use 
+methods provided by <code>DELILiveSimContextInfo</code> interface to retrieve the desired information:</p>
+<pre class="code">...
+unsigned int iContext = 0;
+
+HRESULT rc = E_FAIL;
+
+CATFrmEditor* crtEditor = CATFrmEditor::GetCurrentEditor();
+
+DELILiveSimContextInfo_var spCtxInfo( crtEditor );
+if( NULL_var != spCtxInfo )
+    rc = spCtxInfo->Get_Context( iContext );
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has presented an overview of Live Simulation environment, its 
+related interfaces, and the specific information that can be retrieved through <code>DELILiveSimContextInfo</code> interface.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2012]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

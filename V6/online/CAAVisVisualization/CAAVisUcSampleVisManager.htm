@@ -1,0 +1,383 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Using the Visualization Manager</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Using the Visualization Manager</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article discusses the CAAVisManager use case. This use case explains 
+		how to create and implement a specific visualization interface for geometric 
+		components, how to make the visualization manager aware of this interface 
+		to display these components, and how to catch the visualization notification 
+		to manage the PSO and HSO contents. This article focuses on using the visualization 
+		manager.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAVisManager Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAVisManager Do</a></li>
+					<li><a href="#How">How to Launch CAAVisManager</a></li>
+					<li><a href="#Where">Where to Find the CAAVisManager Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The visualization manager is the unique instance of the <em>CATVisManager</em> 
+class that manages the display of all the models in all their windows. It is a key 
+object in the visualization process that needs information about the models to display, 
+such as the root object, the visualization interfaces that the model implements 
+for 3D and 2D viewpoints, the selector to which visualization notifications must 
+be sent, and the PSO (Prehighlighted Set of Objects) and HSO (Highlighted Set of 
+Objects) associated with the model. With this use case, you will learn how to make 
+the visualization manager aware of this information when a model is created or opened, 
+and how to inform it to forget this information when a model is closed. Companion 
+articles of this use case deal with the implementation of a visualization interface 
+of your own [<a href="#References">1</a>], and with catching visualization notifications 
+[<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAVisManager Use Case</h2>
+<p>CAAVisManager is a set of use cases of the CAAVisualization.edu framework that 
+illustrates Visualization framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAVisManager Do</h3>
+<p>CAAVisManager contains a series of modules that make up a small MDI (Multiple 
+Document Interface) application dedicated to showing and explaining the role of 
+the visualization manager. The main objects are:</p>
+<ul>
+	<li>The application itself</li>
+	<li>The application frame window (or main window)</li>
+	<li>The models</li>
+	<li>The model windows: a model can be displayed in several windows</li>
+	<li>The editors: an editor is associated with each model</li>
+	<li>The editor selector</li>
+	<li>The visualization manager</li>
+	<li>The selector.</li>
+</ul>
+<p>Even if the CATIA application is a bit more complex than this application and 
+involves more objects, those listed here, along with their respective roles and 
+relations, are identical, and are just shown to explain what you should do to work 
+with the unique instance of the visualization manager.</p>
+<p>
+<img alt="Visualization Manager UML Diagram" height="388" src="images/CAAVisManager.jpg" width="507"/></p>
+<p>Let's briefly describe them. The application manages two lists: one for the models, 
+and one for the windows that display these models. At all times, one of the models, 
+if any, is active, and is known as such. The application is the parent of the application 
+frame window from the command tree structure standpoint [<a href="#References">3</a> 
+], that is in turn the parent of all the windows. An editor is associated with one 
+and only one model, and is known by the model and by all its windows. A selector 
+is associated with the editor and creates a <em>CATPSO</em> and a <em>CATHSO</em> 
+instances to store pointers to the preselected and selected components respectively. 
+The selector is the parent, again from the command tree structure standpoint, of 
+the <em>CATSelector</em> instance created by the visualization manager for each 
+document. Because of this parent-child relation, the editor selector will receive 
+the notifications affecting the model and coming from the viewers [<a href="#References">4</a>] 
+in which it is displayed and passed to the <em>CATSelector</em> instance. In the 
+same way, to get notifications affecting the viewer background, that is, that do 
+not impact the document itself, a <em>CAT3DIndicator</em> instance is created by 
+the document window and is assigned the editor as parent to catch these notifications 
+that otherwise would be lost. The selector should redefine the <code>AnalyseNotification</code> 
+method to catch these notifications [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the CAAVisManager</h3>
+<p>To launch CAAVisManager, you will need to set up the build time environment, 
+then compile the four CAAVisManager modules along with their prerequisites, set 
+up the run time environment, and then execute the use case [<a href="#References">5</a>]. 
+You cannot launch CAAVisManager itself. CAAVisManager is simply used by the CAAVisManagerAppli 
+use case. Type CAAVisManagerAppli instead of CAAVisManager to display the interactive 
+application along with a viewer that displays the CAAVisManagerDefaultDocument.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAVisManager Code</h3>
+<p>CAAVisManager code is located in the CAAVisualization.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAVisualization.edu\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">5</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>CAAVisManager includes the following modules:</p>
+<table>
+	<colgroup span="1" valign="top">
+	</colgroup>
+	<tr>
+		<td>CAAVisManagerAppli.m</td>
+		<td>Contains the interactive application, the windows and the documents</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerComp.m</td>
+		<td>Contains the geometric components to display</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerImp.m</td>
+		<td>Contains the extension classes required to make the geometric components 
+		displayable</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerInt.m</td>
+		<td>Contains the interfaces implemented by the geometric components, especially 
+		the visualization interface. Their header files are located in the PrivateInterfaces 
+		directory</td>
+	</tr>
+</table>
+<p>CAAVisManagerAppli.m includes the following classes:</p>
+<table>
+	<colgroup span="2" valign="top">
+	</colgroup>
+	<tr>
+		<td>CAAVisManagerApplication</td>
+		<td>Interactive application</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerApplicationFrame</td>
+		<td>Application frame window that hosts the application</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerDocument</td>
+		<td>Base document</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerDefaultDocument</td>
+		<td>Document displayed when launching the use case</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerCGRDocument</td>
+		<td>CGR document</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerWindow</td>
+		<td>Document window</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerEditor</td>
+		<td>Document editor</td>
+	</tr>
+	<tr>
+		<td>CAAVisManagerCmdSelector</td>
+		<td>Selector</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>To use the visualization manager, there are four main steps:</p>
+<ol>
+	<li><a href="#Step1">Retrieving the Visualization Manager</a></li>
+	<li><a href="#Step2">Attaching the Visualization Manager to the Main 3D Viewpoint, 
+		the HSO and the PSO</a></li>
+	<li><a href="#Step3">Attaching the Visualization Manager to the Main 2D Viewpoint, 
+		the HSO and the PSO</a></li>
+	<li><a href="#Step4">Detaching the Visualization Manager</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Retrieving the Visualization Manager</h3>
+<pre class="code">void CAAVisManagerWindow::Attach()
+{
+  CATVisManager            *pVisuMgr  = <strong>CATVisManager::GetVisManager()</strong>;
+  ...</pre>
+<p>The <code>CATVisManager::GetVisManager</code> static method retrieves a pointer 
+to the visualization manager.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Attaching the Visualization Manager to the Main 3D Viewpoint, 
+the HSO and the PSO</h3>
+<pre class="code">  ...
+  CAAVisManagerDocument    *pDocument = _pEditor-&gt;GetDocument();
+  CAAVisManagerCmdSelector *pSelector = _pEditor-&gt;GetSelector();
+
+  if ( (NULL != pDocument) &amp;&amp; (NULL != pDocument-&gt;GetRootContainer()) )
+  {
+    CATBaseUnknown * pRootObject = pDocument-&gt;GetRootContainer();
+    _pRootObjectPath = new CATPathElement(pRootObject);
+  }
+
+  if ( (NULL != _pViewer) &amp;&amp; ( NULL!= _pRootObjectPath) )
+  {
+    CAT3DViewpoint * pMain3DViewpoint = &amp;(_pViewer-&gt;<strong>GetMain3DViewpoint</strong>());
+
+    list&lt;IID&gt; liste_iid_3D;
+    liste_iid_3D += new IID(IID_CATI3DGeoVisu);
+    pVisuMgr-&gt;<strong>AttachTo</strong>   (_pRootObjectPath,
+                          pMain3DViewpoint,
+                          liste_iid_3D,
+                          pSelector);
+    pVisuMgr-&gt;<strong>AttachHSOTo</strong>(_pEditor-&gt;GetHSO(), pMain3DViewpoint);
+    pVisuMgr-&gt;<strong>AttachPSOTo</strong>(_pEditor-&gt;GetPSO(), pMain3DViewpoint);
+    delete liste_iid_3D[0];
+    ...</pre>
+<p>The document and the selector associated with the document editor are both retrieved 
+from the editor, and the document root object is retrieved as a <em>CATPathElement</em> 
+instance. Then the main 3D viewpoint of the 3D viewer is retrieved using the
+<code>GetMain3DViewPoint</code> method. A list of 3D visualization interface IIDs 
+is created and the <em>CATI3DGeoVisu</em> interface IID is added to the list. Then 
+the visualization manager can be attached to the document thanks to the <code>AttachTo</code> 
+method:</p>
+<ul>
+	<li>Through a unique object: its root object path</li>
+	<li>Seen from a given viewpoint: the main 3D viewpoint of the viewer</li>
+	<li>Using a given list of visualization interfaces, limited here to <em>CATI3DGeoVisu</em>, 
+		but that will be used in their appending order if there are several ones
+	</li>
+	<li>The visualization manager will forward the visualization notifications that 
+		affect the document to the editor selector.</li>
+</ul>
+<p>Then the visualization manager is attached for highlighted components to the 
+editor's HSO and to the viewer's main 3D viewpoint using the <code>AttachHSOTo</code> 
+method, and attached for prehighlighted components to the editor's PSO and again 
+to the viewer's main 3D viewpoint using the <code>AttachPSOTo</code> method.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Attaching the Visualization Manager to the 2D Main Viewpoint, 
+the HSO and the PSO</h3>
+<pre class="code">    ...
+    CAT2DViewpoint * pMain2DViewpoint = &amp;(_pViewer-&gt;GetMain2DViewpoint());
+
+    list&lt;IID&gt; liste_iid_2D;
+    liste_iid_2D += new IID(IID_CAAIVis2DGraphVisu);
+    pVisuMgr-&gt;<strong>AttachTo</strong>  (_pRootObjectPath,
+                         pMain2DViewpoint,
+                         liste_iid_2D,
+                         pSelector);
+    pVisuMgr-&gt;<strong>AttachHSOTo</strong>(_pEditor-&gt;GetHSO(), pMain2DViewpoint);
+    pVisuMgr-&gt;<strong>AttachPSOTo</strong>(_pEditor-&gt;GetPSO(), pMain2DViewpoint);
+    delete liste_iid_2D[0];
+    ...
+  }
+}</pre>
+<p>The main 2D viewpoint of the 3D viewer is retrieved using the <code>GetMain2DViewPoint</code> 
+method. A list of 2D visualization interface IIDs is created and the <em>CAAIVis2DGraphVisu</em> 
+interface IID is added to the list. Then the visualization manager can be attached 
+to the document thanks to the <code>AttachTo</code> method:</p>
+<ul>
+	<li>Through a unique object: its root object path</li>
+	<li>Seen from a given viewpoint: the main 2D viewpoint of the viewer</li>
+	<li>Using a given list of visualization interfaces, limited here to <em>CAAIVis2DGraphVisu</em>, 
+		but that will be used in their appending order if there are several ones
+	</li>
+	<li>The visualization manager will forward the visualization notifications that 
+		affect the document to the editor selector that should retrieve them [x].</li>
+</ul>
+<p>Then the visualization manager is attached for highlighted components to the 
+editor's HSO and to the viewer's main 2D viewpoint using the <code>AttachHSOTo</code> 
+method, and attached for prehighlighted components to the editor's PSO and again 
+to the viewer's main 2D viewpoint using the <code>AttachPSOTo</code> method.</p>
+<p>The main 2D viewpoint zoom and origin are reset.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Detaching the Visualization Manager</h3>
+<pre class="code">void CAAVisManagerWindow::Detach()
+{
+  CATVisManager * pVisuManager = <strong>CATVisManager::GetVisManager</strong>();
+
+  if ( (NULL != _pViewer) &amp;&amp; (NULL != _pRootObjectPath) )
+  {
+    CAT3DViewpoint * pMain3DViewpoint = &amp;(_pViewer-&gt;GetMain3DViewpoint());
+
+    pVisuManager-&gt;<strong>DetachFrom</strong>(_pRootObjectPath, pMain3DViewpoint);
+    pVisuManager-&gt;<strong>DetachHSOFrom</strong>(pMain3DViewpoint);
+    pVisuManager-&gt;<strong>DetachPSOFrom</strong>(pMain3DViewpoint);
+
+    CAT2DViewpoint * pMain2DViewpoint = &amp;(_pViewer-&gt;GetMain2DViewpoint());
+
+    pVisuManager-&gt;DetachPSOFrom(pMain2DViewpoint);
+    pVisuManager-&gt;DetachHSOFrom(pMain2DViewpoint);
+    pVisuManager-&gt;DetachFrom(_pRootObjectPath, pMain2DViewpoint);
+  }
+}</pre>
+<p>The <code>CATVisManager::GetVisManager</code> static method retrieves a pointer 
+to the visualization manager. Then the visualization manager is detached from the 
+document and from the viewer's main 3D viewpoint using the <code>DetachFrom</code> 
+method. Then the visualization manager is detached for highlighted and prehighlighted 
+components from the viewer's main 3D viewpoint using the <code>DetachHSOFrom</code> 
+and <code>DetachPSOFrom</code> methods respectively. The same applies to the main 
+2D viewpoint.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This use case shows how to use the visualization manager to make it aware of 
+the visualization interfaces to call for the document to display in both 3D and 
+2D viewpoints, and how to make sure that visualization notifications that affect 
+the document can be retrieved, using the <code>AttachTo</code> method of <em>CATVisManager</em>. 
+It shows also how to attach the visualization manager to the document's editor PSO 
+and HSO using the <code>AttachPSOTo</code> and <code>AttachHSOTo</code> methods 
+of <em>CATVisManager</em> respectively. In addition, it shows how to perform the 
+detachments using the <code>DetachFrom</code>, <code>DetachPSOFrom</code>, and
+<code>DetachHSOFrom</code> methods.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAVisUcSampleCATIVisu.htm">Making a Component Displayable 
+		With CATI3DGeoVisu</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAVisUcSampleCatchNotifications.htm">Catching the Visualization 
+		Notifications</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAASysMiddleware/CAASysTaMidSendReceive.htm">
+		The Send/Receive Communication Protocol</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td><a href="CAAVisTaViewerProtocol.htm">Conveying End User Intent from 
+		Mouse to Controller</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

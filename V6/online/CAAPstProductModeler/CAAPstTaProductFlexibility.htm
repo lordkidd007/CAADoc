@@ -1,0 +1,268 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Product Flexibility</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Product Flexibility</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>While reading the &#8220;Product Instance Position&#8221; article [<a href="#References">1</a>] 
+		you learn the role of the product&#8217;s flexibility to overload product 
+		occurrence matrices. In the current one, you will learn the API to manage 
+		the flexibility, and its related concepts, and how to use them.</p>
+		<ul>
+			<li><a href="#Part1">From Concepts to API</a><ul>
+				<li><a href="#Part11">Concepts by Example</a></li>
+				<li><a href="#Part12">CATIPrdRepositionableDefinition, CATIPrdRepositioned, and
+					CATIPrdRepositionable APIs</a></li>
+				</ul>
+			</li>
+			<li><a href="#Part2">From Scenarios to API</a><ul>
+				<li><a href="#Part21">Grant Instances to Be Repositionable</a></li>
+				<li><a href="#Part22">Grant Instances and Occurrences to Be Repositionable</a></li>
+				<li><a href="#Part23">Retrieve Instances/Occurrences Declared as 
+					Repositionable for a Reference</a></li>
+				<li><a href="#Part24">Working with an Occurrence Model</a></li>
+				</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part1"></a>From Concepts to API</h2>
+<p>The objective of this first chapter is to explain through an example how you 
+can use the APIs. The flexibility concept, like the repositionable / repositioned 
+principles are not re-explained in this technical article.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part11"></a>Concepts by Example</h3>
+<p>The following picture [<a href="#Fig1">Fig.1</a>] presents the schema of an 
+occurrence model where we have used the interactive symbols:</p>
+<ul>
+	<li>An occurrence whose the position <em>cannot be overloaded</em> is prefixed 
+		without specific icon.</li>
+	<li>An occurrence whose the position <em>can be overloaded</em> is prefixed 
+		with a green axis icon.</li>
+	<li>An occurrence whose the position <em>is overloaded</em> is prefixed with 
+		a red axis icon.</li>
+</ul>
+<table>
+	<caption><a name="Fig1">Fig.1</a>An Occurrence Model</caption>
+	<tr>
+		<td>
+		<img alt="An Occurrence Model" height="690" src="images/CAAPstProductFlexibility.gif" width="605"/></td>
+	</tr>
+</table>
+<p>You can observe on this doubleskate that:</p>
+<ul>
+	<li>Any front AxleAssy can be overloaded from its initial position in the skate 
+		context since the two occurrences have an axis icon.</li>
+	<li>The front AxleAssy of Skate S1 is moved to be closer from the board, so 
+		its position is overloaded (see red axis). D1 (overloaded distance) is different 
+		from D2 (original distance coming from skate context)</li>
+	<li>The two wheels of a rear AxleAssy can be overloaded from their initial position 
+		in the skate context since the four occurrences have an axis icon</li>
+	<li>The two wheels of the S2-rear AxleAssy are move on peripheral side, so their 
+		positions are overloaded (see red axis).</li>
+</ul>
+<p>You know thanks to the Product Instance Position article [<a href="#References">1</a>] 
+that you can realize such overloading because some reference are flexible, and some 
+instance/occurrences are declared Repositionable like specified by the next schema.</p>
+<table>
+	<caption><a name="Fig2">Fig.2</a> Flexibility and Occurrence/Instance Repositionable</caption>
+	<tr>
+		<td><img alt="Flexibility and Occurrence/Instance Repositionable" src="images/CAAPstProductFlexibility2.gif"/></td>
+	</tr>
+</table>
+<ul>
+	<li>To replace the initial position of a Front AxleAssy occurrence in the doubleskate 
+		context,
+		<ul>
+			<li>The Skate reference must be flexible.</li>
+			<li>Its instance "Front" AxleAssy must be repositionable.</li>
+		</ul>
+	</li>
+	<li>To replace the initial position of a rear wheel occurrence in the doubleskate:
+		<ul>
+			<li>The AxleAssy reference must be flexible.</li>
+			<li>Its two instances "Wheel" must be repositionable.</li>
+			<li>The Skate reference must be flexible.</li>
+			<li>Its two rear-wheel occurrences must be repositionable.</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part12"></a>CATIPrdRepositionableDefinition, CATIPrdRepositioned, and 
+CATIPrdRepositionable APIs</h3>
+<p>Your need, API point of view, are:</p>
+<ul>
+	<li>I pick up an occurrence of the double skate [<a href="#Fig1">Fig.1</a>]:
+		<ul>
+			<li>Can I overloaded its position ( i.e. has the occurrence a red/green 
+				axis or nothing ?).</li>
+			<li>Is its position already overloaded ( i.e. has the occurrence a red 
+				axis ?).</li>
+		</ul>
+	<p>You use <strong>CATIPrdRepositioned</strong>.</p>
+
+	</li>
+	<li>I pick up a reference object [<a href="#Fig2">Fig.2</a>]:
+		<ul>
+			<li>Is the reference flexible or not Set/Unset its flexibility status.</li>
+			<li>What are its instance / occurrences which are declared as repositionable. 
+				In our example:
+				<ul>
+					<li>For the AxleAssy reference : we have its two wheel instances.</li>
+					<li>For the Skate reference, we have:
+						<ul>
+							<li>The front AxleAssy instance.</li>
+							<li>The rear-left wheel and rear-right wheel occurrences.</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<p>You use <strong>CATIPrdRepositionableDefinition</strong></p>
+	</li>
+	<li>I pick up an instance or an occurrence [<a href="#Fig2">Fig.2</a>]:
+		<ul>
+			<li>Is it repositionable or not?</li>
+			<li>Set/Unset its repositionable status.</li>
+		</ul>
+		<p>You use <strong>CATIPrdRepositionable</strong></p>
+	</li>
+</ul>
+<p>Now, that we have introduced the three interfaces of the ProductStructureInterfaces 
+framework, have a look delver in their use.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Part2"></a>From Scenarios to API</h2>
+<p>This chapter presents the main used scenarios. Their order is representative 
+of the real use. In other words, when selecting an occurrence, if you see that it 
+cannot be overloaded, usually you don't change reference flexibility or instance/occurrence 
+repositionable status. The owner of a reference decides the behavior of its instances 
+or occurrences.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part21"></a>Grant Instances to Be Repositionable</h3>
+<p>In few lines the scenario is as follows:</p>
+<ul>
+	<li>You have a pointer on a product Reference.</li>
+	<li>Use <strong>CATIPrdRepositionableDefinition:: SetFlexible</strong> (*) on 
+		the product Reference.</li>
+	<li>For any <em>direct</em> instances of the product Reference, a Product Instance, 
+		use <strong>CATIPrdRepositionable::SetAsRepositionable</strong> (or
+		<strong>UnsetRepositionable</strong> for removal).</li>
+</ul>
+<p><img alt="Grant Instances to Be Repositionable" src="images/CAAPstProductFlexibility3.png"/></p>
+<p>(*) In another context you can use UnsetFlexible to remove the flexibility. The 
+referenced article [1] explains to you what append when a reference is unset, and 
+existing occurrences are already overloaded.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part22"></a>Grant Instances and Occurrence to Be Repositionable</h3>
+<p>In few lines the scenario is as follows:</p>
+<ul>
+	<li>You have a pointer on a product Reference.</li>
+	<li>Use <strong>CATIPrdRepositionableDefinition::SetFlexible</strong> on the 
+		product Reference.</li>
+	<li>For any <em>direct</em> instances of the product Reference, a Product Instance, 
+		use <strong>CATIPrdRepositionable::SetAsRepositionable</strong>(or
+		<strong>UnsetRepositionable</strong> for removal).
+		<p><img alt="Repositionable Instance" src="images/CAAPstProductFlexibility4.png"/></p>
+	</li>
+	<li>You generate the occurrence model of the product reference
+		<p><img alt="Generated Occurrence Model" src="images/CAAPstProductFlexibility5.png"/></p>
+	</li>
+	<li>For any occurrences (except the first level ones), use <strong>CATIPrdRepositionable::SetAsRepositionable</strong> 
+		(or <strong>UnsetRepositionable</strong> for removal)
+
+		<p><img alt="Repositionable Occurrences" src="images/CAAPstProductFlexibility6.png"/></p>
+		<p>You can use <strong>CATIPrdRepositionable</strong> for one of these six 
+		occurrences in bold.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part23"></a>Retrieve Instances/Occurrences Declared as Repositionable 
+for a Reference</h3>
+<p>This scenario is developed to understand the use of the CATOmbObjectInContext 
+class.</p>
+<ul>
+	<li>You have a pointer to a product Reference.</li>
+	<li>Use <strong>CATIPrdRepositionableDefinition:: ListRepositionables</strong> 
+		on the product Reference.</li>
+</ul>
+<p>This method returns a list of <em>CATOmbObjectInContext</em> class 
+instance pointers. This class is useful because its contents can represent a simple 
+instance like an occurrence, thanks a path of instance.</p>
+
+<p>From each <em>CATOmbObjectInContext</em> class instance, you use 
+its <code>GetPathOfInstances</code> method. The returned path contains one element 
+it is an instance, otherwise it is an occurrence</p>
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Part24"></a>Working with an Occurrence Model</h3>
+<p>In few lines the scenario is as follows:</p>
+<ul>
+	<li>You have a pointer on an occurrence ( except the root).</li>
+	<li>Use <strong>CATIPrdRepositioned::CanBeRepositioned</strong> on the occurrence 
+		to know if the occurrence can have its own position (green/red axis icon?).</li>
+	<li>If the answer to the first question is Yes, then you can use <strong>CATIPrdRepositioned::IsRepositioned</strong> 
+		on the occurrence to know if the occurrence has already its own position. 
+		(red axis icon?).</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>Product Instance Position</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Mar 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

@@ -1,0 +1,1305 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>The SCM Merger</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top">
+      <h1>RADE</h1>
+    </td>
+    <td valign="top">
+      <h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top">
+      <h3><a name="Top"></a>The SCM Merger</h3>
+      <p><em>Merging concurrent changes</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td>
+      <h3>Abstract</h3>
+      <p>This article explains how concurrent changes happen and how to solve
+      conflicting changes using the SCM Merger.
+      <ul>
+        <li><b><a href="#Isolation">Isolation and Exclusivity</a></b></li>
+        <li><a href="#Merging situations"><b>Merging Situations</b></a>
+          <ul>
+            <li><a href="#Merge types">Merge Types</a>
+              <ul>
+                <li><a href="#Change of content">Change of Content</a></li>
+                <li><a href="#Creation">Creation</a></li>
+                <li><a href="#Move/Rename">Move/Rename</a></li>
+              </ul>
+            </li>
+            <li><a href="#Controlling when merges occur">Controlling When Merges
+              Occur</a>
+              <ul>
+                <li><a href="#Collect or synchronization">Collect or
+                  Synchronization</a></li>
+                <li><a href="#Immediate or deferred">Immediate or Deferred -
+                  Automatic or Manual</a></li>
+                <li><a href="#Implicit and automatic merge">Implicit and
+                  automatic merge</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="#Solving a Merge"><b>Solving a Merge</b></a>
+          <ul>
+            <li><a href="#Merge Menus">Merge Menus</a>
+              <ul>
+                <li><a href="#Menu for solving file contents">Menu for Solving
+                  File Contents</a></li>
+                <li><a href="#Menu for solving conflicting names">Menu for
+                  Solving Conflicting Move/Rename</a></li>
+              </ul>
+            </li>
+            <li><a href="#Solving File Contents">Solving Conflicting File
+              Contents</a>
+              <ul>
+                <li><a href="#Basic Merging">Basic Merging</a></li>
+                <li><a href="#Advanced Features">Advanced Features</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><strong><a href="#Solving Conflicting Move/Rename">Solving
+          Conflicting Move/Rename</a></strong></li>
+        <li><strong><a href="#Solving Conflicting Creations">Solving Conflicting
+          Creations</a></strong></li>
+        <li><strong><a href="#Canceling a Merge">Canceling a Merge</a></strong></li>
+        <li><a href="#Refreshing the Current Image"><b>Refreshing the Current
+          Image</b></a></li>
+        <li><a href="#Temporary Directory"><b>Extracting Files into the
+          &quot;ADLMerge&quot; Temporary Directory</b></a></li>
+        <li><a href="#Third Party Tool"><strong>Using a Third Party Tool for
+          Merging File Contents</strong></a></li>
+        <li><a href="#InShort"><b>In Short</b></a></li>
+        <li><a href="#References"><b>References</b></a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Isolation"></a>Isolation and Exclusivity</h3>
+<p>Any change is performed inside a workspace that provides a isolated working
+place. By the way it is possible for several users to do the same changes by
+their sides and to find the two changes in the same workspace through data
+exchanges.<br>
+There are two kinds of changes: those that can be performed concurrently and
+those that only one user can do.</p>
+<p>The default working mode depends on the action and the type of file involved:
+<ul>
+  <li>A text file can be modified by any user at any time</li>
+  <li>A binary file can be modified by only one user at a time</li>
+  <li>A same file cannot be created in two workspaces.</li>
+</ul>
+<p>These default modes can be overridden at any time by using special options:
+<ul>
+  <li>A text file can be modified at a single place by using the -excl option
+    when checking-out the file (adl_co -excl)</li>
+  <li>A binary file can be modified by several users if all of them use the
+    -share_excl option when checking-out the file (adl_co -share_excl)</li>
+  <li>A file can be created in several workspaces in the -force option is used
+    (Note that this should be used in very special situation because the file is
+    often quite different in the different workspaces.)</li>
+</ul>
+<p>When two conflicting changes become in the same workspace, this leads to a
+conflicting situation that must be solved in that workspace in order to obtain a
+consistent workspace content. Those situations are explained in the next
+section.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Merging situations"></a>Merging Situations</h3>
+<table width="100%">
+  <tr>
+    <td align="center">
+      <table>
+        <caption>Fig 1: Path for Conflicting Changes</caption>
+        <tr>
+          <td><img src="images/WsTree8.gif" nosavewidth= "210"height= "240"> </td>
+        </tr>
+      </table>
+    </td>
+    <td>The figure 1 shows a workspace tree in which two workspaces have
+      modified the same file (WS4 and WS6). These files can be delivered and
+      will go through workspaces and this will not lead to a conflict while the
+      two versions of the file don't come in the same workspace. For instance a
+      conflicting situation might occur in:
+      <ul>
+        <li>WS4 if the WS6 delivers its file and this file goes through WS3,
+          WS1, WS2 and last in WS4</li>
+        <li>WS2 if WS4 delivers its file and WS2 gets the version of WS6 through
+          WS3 and WS1</li>
+        <li>WS1 if WS4 delivers its file to WS2 and WS2 delivers it to WS1 and
+          WS6 delivers its file to WS3 and WS3 delivers to WS1</li>
+        <li>etc</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p>Like shown above a merging situation can occur in different workspaces and
+not necessarily in the workspaces where the conflicting changes were made. In
+that case it is not easy for the workspace owner to know how to solve the
+conflict by choosing one file version or merging the two versions. To help the
+user the <strong>adl_solve_merge</strong> [<a href="#Ref5">5</a>] command
+displays information about the conflicting changes like the origin workspaces
+and the date at which they have been done.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Merge types"></a>Merge Types</h4>
+<h5><a name="Change of content"></a>Change of Content</h5>
+<p>When the same file is modified in two workspaces, this leads to generate two
+versions of the same file. When such a merge is to be solved, the two file
+contents must be merged by choosing what has been modified in each version and
+creating a new version integrating all the changes.</p>
+<p>When a merge is to be solved between two versions of the same file, there is
+in fact three versions involved:
+<ul>
+  <li>version 1: the version present in the workspace where the merge occurs</li>
+  <li>version 2: the one created in another workspace and coming in the current
+    workspace</li>
+  <li>ancestor: it correspond to the version of the file from which the two
+    versions have been derived</li>
+</ul>
+<p>There can be several intermediate versions of files between the ancestor
+version and the two conflicting versions because more than one user/workspace
+may have contributed to the modifications before a merge occurs. For that
+reason, the adl_solve_merge [<a href="#Ref5">5</a>] command uses the three
+versions when solving a merge:
+<ul>
+  <li>either when solving the merge automatically</li>
+  <li>or when extracting the three versions to let the user solves the merge
+    manually</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h5><a name="Creation"></a>Creation</h5>
+<p>When the same file is created in two workspaces, the second user who tries to
+create the file is warned that this file (complete path from the root workspace
+directory) is already registered in SCM. However this user can force the
+creation if he/she cannot wait for the other file to come into his/her workspace
+(through the workspace hierarchy). To avoid problem, the better solution is to
+import the first file with adl_import command.</p>
+<p>The two files have no common origin and two files can be completely different
+even they have the same name.
+<p>When the two files are seen in the same workspace (adl_sync for example), SCM
+generates a conflict to be solved and projects the two files under two different
+names:
+<ul>
+  <li>one file is projected with its original name (for instance File3.cpp)</li>
+  <li>the other file is projected with %c1 as suffix (for instance
+    File3.cpp.%c1)</li>
+</ul>
+<p>Note that more than two files can be conflicting, in that case, the files
+will be projected using different suffixes (%c1, %c2, %c3, ...).</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>C:\Temp\W1&gt;<b>adl_mk_elem Fw1/Mod1.m/src/File3.cpp</b>
+Other SCM objects in the same folder whose names conflict with &quot;File3.cpp&quot;:
+	&quot;File3.cpp&quot; (File element) in the workspace W11 in the workspace tree T1
+Looking for an existing SCM object named &quot;File3.cpp&quot;
+#ERR# ADLCMD - 0941: Other SCM objects whose names conflict with &quot;File3.cpp&quot; have been found.
+Choose another name, or use the -force option if you have found no conflicting object in the workspaces specified by the message.
+BEWARE: this option may later create projection conflicts with previously specified objects, in your workspace or in another one.
+
+##### THE COMMAND ENTIRELY OR PARTIALLY FAILED #####</pre>
+      <pre>&nbsp;</pre>
+      <pre>C:\Temp\W1&gt;<b>adl_sync</b>
+Synchronizing the workspace &quot;W11&quot; in the workspace tree &quot;T1&quot;.
+New current modifications:
+Fw1\Mod1.m\src\File3.cpp has been created
+Fw1\Mod1.m\src\File3.cpp%c1 has been moved from Fw1\Mod1.m\src\File3.cpp
+
+<b>Moves created because of projection conflicts:
+Fw1\Mod1.m\src\File3.cpp%c1</b>
+
+Merges to solve:
+Fw1\Mod1.m\src\File3.cpp%c1 Move</pre>
+      <pre>&nbsp;</pre>
+      <pre><b>Extract adl_solve_merge</b>
+Fw1\Mod1.m\src\File3.cpp%c1: Move
+
+Common ancestor:
+0 - Fw1\Mod1.m\src\File3.cpp - <b>PROJECTION CONFLICT</b>
+Created by nle with adl_mk_elem on Tuesday, July 22, 2003 12:55:42 PM in the workspace W11, tree T1.
+
+Changes to merge:
+1 - Fw1\Mod1.m\src\File3.cpp<b>%c1</b>
+Seen as the current one in the workspace.
+Created by nle with adl_sync on Tuesday, July 22, 2003 01:04:33 PM in the workspace W11, tree T1.
+
+2 - Fw1\Mod1.m\src\File3.cpp - <b>PROJECTION CONFLICT</b>
+Created by nle with adl_sync on Tuesday, July 22, 2003 01:04:33 PM in the workspace W11, tree T1.
+
+Enter
+- 0, 1... to choose one of these moves
+- L to list the changes again
+- N to go to the next merge
+- M to come back to the main menu
+- Q to quit
+Your choice:</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h5><a name="Move/Rename"></a>Move/Rename</h5>
+<p>When the same file is renamed to two different names by two users, it is not
+possible for SCM to choose a projected name when the corresponding deliveries
+come into the same workspace. In this case, the adl_solve_merge [<a href="#Ref5">5</a>]
+command displays the original name and the two names and let the user chooses
+the correct name.</p>
+<p>Note that renaming a file may cause other files to be modified, especially if
+it is a header file. However, in that case, the two users may have modified
+other files according to the header file name and this should lead to other
+conflicts (of file contents) in the same workspace.</p>
+<p>A move conflict corresponds to the same file moved into two different
+directories. Like when solving a rename conflict, the adl_solve_merge command
+gives the original location and the two new locations and let the user chooses
+the correct one.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Controlling when merges occur"></a>Controlling When Merges Occur</h4>
+<p>Conflicts occur in workspaces and when this happens, SCM obliges the user to
+solve them before being allowed to continue to work. This rule has been set up
+to be sure that any user works on a consistent set of files.</p>
+<h5><a name="Collect or synchronization"></a>Collect or Synchronization</h5>
+<table width="100%">
+  <tr>
+    <td align="center">
+      <table>
+        <caption>Fig 2: Control Merge</caption>
+        <tr>
+          <td><img src="images/ControlMerge.gif" width="270" height="270"></td>
+        </tr>
+      </table>
+    </td>
+    <td>Considering a workspace and a child workspace, the default working mode
+      forbids conflicts to occur at collect (in &quot;prj&quot; workspace) in
+      figure 2). It means that each promotion from any child workspace will be
+      analyzed to detect if the change set of modified files contains at least
+      one file already modified by another workspace and already collected in
+      the parent workspace. In this case, the promotion will be refused and the
+      user will be warned that some files are conflicting.
+      <p>For instance, if the same file is modified in both &quot;Dev1&quot; and
+      &quot;Dev2&quot; workspaces and if &quot;Dev1&quot; promotes and is
+      collected in &quot;Prj&quot;, &quot;Dev2&quot; won't be allowed to
+      promote.</p>
+      <p>The figure 2 shows the different steps of the process to let Dev2
+      promotes its changes:
+      <ul>
+        <li>it must wait for the publication of its parent workspace
+          (adl_publish)</li>
+        <li>then it synchronizes with the parent workspace: this will lead for
+          conflicts to occur in &quot;Dev2&quot; instead of &quot;Prj&quot;</li>
+        <li>it runs the adl_solve_merge [<a href="#Ref5">5</a>] command to solve
+          the conflicts (can be automatically called during the synchronization)</li>
+        <li>it promotes to &quot;Prj&quot; the new change set of modified files
+          in which the conflicting file corresponds now to the result of the
+          merge between its own version and the one coming from
+          &quot;Dev1&quot;.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p>This default working mode can be modified using the <strong>adl_set_ws</strong>
+[<a href="#ref2">2</a>] command. This command provides the -<em>merge_at_collect</em>
+option that is used for changing the mode associated with a given workspace.
+When a workspace allows merges to occur at collect, it means that any child
+workspace can promote a change (of content or move or rename) that will conflict
+with a change already present in the parent workspace.</p>
+<p>To know the current behavior of a given workspace, run the adl_ds_ws command
+on this workspace:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\users\cga&gt;adl_ds_ws toolssdfint 
+Current workspace:  ToolsSDFINT 
+No current image
+Image(s): 
+   WINDOWS                Windows    Not refreshed   \\addams\home\ToolsSDFINT 
+   UNIX                   Unix       Refreshed       /u/lego/SCMV5/ToolsSDFINT
+Workspace tree:      TOOLSSDF 
+Tool config key:     TOOLSSDF (locally defined) 
+<b>Merge solving delay: Immediate (If necessary, the interactif merger is launched at the end of the command)</b> 
+<b>Merge solving mode:  Automatic (The basic merges are solved automatically without user interaction)</b> 
+<b>Merge at collect:    Forbidden</b> 
+Promotion request:   Allowed from child workspaces to the current workspace 
+Child promotion:     Child workspaces must be synchronized with the last revision for promote 
+Current revision:    147 
+No parent workspace (root workspace) 
+Published:           Yes   last published on Wed May 24 16:02:27 2000 
+     rev 147     Wed May 24 16:02:27 2000   PUBLIC 
+Child collected:     Yes</pre>
+    </td>
+  </tr>
+</table>
+<p>Note that the default mode is to forbid merges at collect because the parent
+workspace is often managed by one user who is not responsible of the child
+workspaces and by the way who is not necessarily able to solve the merges.
+Conversely obliging a child workspace to solve a merge means that the user who
+solves merges is often the one who has done one conflicting change set and knows
+how to fix the conflicts.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h5><a name="Immediate or deferred"></a>Immediate or Deferred - Automatic or
+Manual</h5>
+<p>The adl_set_ws [<a href="#ref2">2</a>] command is used for choosing when the
+adl_solve_merge [<a href="#Ref5">5</a>] command is launched:
+<ul>
+  <li>the -<em>later</em> option is used to prevent any data flow command
+    (adl_collect, adl_sync) to call automatically the adl_solve_merge command</li>
+  <li>the -<em>immediate</em> option is used to let any data flow command to
+    call automatically the adl_solve_merge command.</li>
+</ul>
+<p>It is also possible to control automatic merges (for instance when two
+different parts of a same file are modified by two workspaces). The
+adl_set_merge command provides two options for doing it:
+<ul>
+  <li>the -<em>auto</em> option is used to let SCM solves automatic merges</li>
+  <li>the -<em>no_auto</em> option is used to launch the interactive merger for
+    any merge</li>
+</ul>
+<p>Note: even if two versions of the same file can be merged automatically, this
+does not ensure that the result is correct. If you want to be sure that any
+merge produces a correct result, you must execute <em>adl_set_ws -no_auto</em>
+on your workspace(s) and solve manually any merge that occurs. It is
+interesting, useful and safe to allow automatic merges in case almost all
+programs managed in workspaces are covered by test cases.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h5><a name="Implicit and automatic merge"></a>Implicit and automatic merge</h5>
+<p>When the adl_solve_merge [<a href="#Ref5">5</a>] command is launched, SCM :</p>
+<p>- tries solve implicit merges and<br>
+- tries to solve automatic merges if the -auto option is set for the
+workspace&nbsp; (see the -auto option in <a href="#Immediate or deferred">Immediate
+or Deferred - Automatic or Manual</a> paragraph).</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>E:\users\cga&gt; adl_solve_merge MyRootLocalWs</pre>
+      <pre>Solving implicit and automatic merges in workspace &quot;MyRootLocalWs&quot; in the workspace tree &quot;treelocal&quot;.
+No merge can be solved.</pre>
+      <pre>Solving manual merges in workspace &quot;MyRootLocalWs&quot;</pre>
+      <pre>...</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">This means, that when it is possible, SCM can solve the merge
+according to the following rules:</p>
+<p align="left">&nbsp;</p>
+<h6><a name="Change of content"></a>Change of Content</h6>
+<p>When the same file is modified in two workspaces, this leads to generate two
+versions of the same file.<br>
+When such a merge is to be solved, SCM firstly checks if it can solve it
+implicitly.</p>
+<p>SCM can solve a change of content merge implicitly if the two files fulfil
+the 3 following conditions:<br>
+&nbsp;&nbsp;&nbsp; - the two files have the same content,<br>
+&nbsp;&nbsp;&nbsp; - the two files have the same size,<br>
+&nbsp;&nbsp;&nbsp; - the two files have the same date.</p>
+<p>If the merge cannot be solved implicitly, SCM tries to solve it automatically
+if the workspace allows it (see the -auto option in <a href="#Immediate or deferred">Immediate
+or Deferred - Automatic or Manual</a> paragraph).</p>
+<p>For an automatic change of content merge, SCM launches the merger in an
+automatic mode.</p>
+<p>The merger computes the 3 files (the common ancestor, version 1 and version
+2) to get two sets of differences and compare them.<br>
+The first set of differences is computed by comparing the common ancestor and
+the version 1.<br>
+The second set of differences is computed by comparing the common ancestor and
+the version 2.</p>
+<p>If all the differences computed can be solve automatically, the merger
+produces the result as following :</p>
+<table width="100%">
+  <tr>
+    <th width="23%">Ancestor</th>
+    <th width="22%">Version 1</th>
+    <th width="22%">Version 2</th>
+    <th width="30%">Result</th>
+    <th width="28%">Résolution</th>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">same block</td>
+    <td width="22%">same block</td>
+    <td width="30%">no change: same block</td>
+    <td width="28%">Automatic</td>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">same block</td>
+    <td width="22%">some lines&nbsp; modified</td>
+    <td width="30%">conflicting version&nbsp; is chosen</td>
+    <td width="28%">Automatic</td>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">same block</td>
+    <td width="22%">lines deleted</td>
+    <td width="30%">conflicting version is chosen</td>
+    <td width="28%">Automatic</td>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">some lines modified</td>
+    <td width="22%">some lines modified</td>
+    <td width="30%"><b>a manual merge is needed</b></td>
+    <td width="28%">(*)</td>
+  </tr>
+  <tr>
+    <td width="23%">nothing</td>
+    <td width="22%">nothing</td>
+    <td width="22%">some lines added</td>
+    <td width="30%">conflicting version&nbsp; is chosen</td>
+    <td width="28%">Automatic</td>
+  </tr>
+  <tr>
+    <td width="23%">nothing</td>
+    <td width="22%">some lines added</td>
+    <td width="22%">some lines added</td>
+    <td width="30%"><b>a manual merge is needed</b></td>
+    <td width="28%">(*)</td>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">some lines modified</td>
+    <td width="22%">lines deleted</td>
+    <td width="30%"><b>a manual merge is needed</b></td>
+    <td width="28%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="23%">a block of lines</td>
+    <td width="22%">lines deleted</td>
+    <td width="22%">lines deleted</td>
+    <td width="30%">lines are deleted in the result file</td>
+    <td width="28%">Automatic</td>
+  </tr>
+</table>
+<p>Note (*): the merge can be automatic if the lines added or modified are the
+same in the two files.</p>
+<p>Remark: this mode is the same than the one used by the graphic merger in the
+mode with recommendations.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h6><a name="Creation"></a>Creation / Deletion</h6>
+<p>When the same object is created (adl_mk_xxx), deleted (adl_rm) or recreated
+(adl_unrm) in two different workspaces, SCM tries to solve the merge implicitly.</p>
+<p>This is only possible when the merging conflicts are one of the following
+cases:<br>
+- the same object has been deleted (adl_rm) in two workspaces,<br>
+- the same object has been recreated(adl_unrm) in two workspaces.&nbsp;</p>
+<p>There is no automatic merge possible for this type of change.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h6><a name="Move/Rename"></a>Move/Rename</h6>
+<p>When the same object is renamed or moved int two different workspaces, SCM
+tries to solve the merge implicitly.</p>
+<p>This is only possible if the object has finally:<br>
+&nbsp;&nbsp;&nbsp; - the same name, and<br>
+&nbsp;&nbsp;&nbsp; - the same folder<br>
+in the two workspaces.</p>
+<p>There is no automatic merge possible for this type of change.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<p align="right">&nbsp;</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Solving a Merge"></a>Solving a Merge</h3>
+<p>SCM provides an interactive tool for solving merges when conflicting changes
+come into a given workspace.
+<ul>
+  <li>the <strong>adl_ls_merge</strong> [<a href="#Ref4">4</a>] command lists
+    the merges still to be solved</li>
+  <li>the <strong>adl_solve_merge</strong> [<a href="#Ref5">5</a>] command first
+    displays the merges still to be solved and help the user for solving them</li>
+</ul>
+<p>The adl_solve_merge command can be launched by specifying the workspace where
+are the merges and it is not needed neither this workspace is the current
+working workspace nor to have selected a current working image. Versions of
+files are found in the central repository and possibly extracted in <a href="#Temporary Directory">temporary
+files</a>.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Merge Menus"></a>Merge Menus</h4>
+<p>When the adl_solve_merge [<a href="#Ref5">5</a>] command is launched, it
+displays the list of merges to be solved followed by a first menu. This first
+menu is used for selecting one merge to solve, inhibit the use of the graphic
+tool or quit the adl_solve_merge command.</p>
+<p>Here is an example showing a list of merges and the first menu for solving
+them:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>Solving manual merges in workspace &quot;MergeToolsSDF&quot;
+Merge type: Change of content 
+ 1 - CATToolsInfrastructure.tst/TAFileName01.m/src/main.cpp   TOOLSSDF 
+ 2 - EnoviaDMC/CATVBTDevEnovia.m/src/CATVBTCEnoviaAddin.cpp   TOOLSSDF 
+ 3 - TCKManagement/TCKInstall.m/src/TCKInstall.cpp   TOOLSSDF 
+ 4 - TestAuto/CATODTManager.m/src/mkodt.cpp     TOOLSSDF
+Enter 
+- 1, 2, ...  to solve a merge 
+- G not to use the graphic tool for text file contents 
+- L to list the merges to solve again 
+- Q to quit 
+Your choice:</pre>
+    </td>
+  </tr>
+</table>
+<p>The files or directories involved in each merge are displayed as they could
+be projected in the workspace. Different types of merges are classified and the
+lists are sorted in alphabetical order (upper and lower case are not
+significant).<br>
+Each line is composed of three parts:
+<ul>
+  <li>a number that will be used for selecting the merge</li>
+  <li>a file or directory path</li>
+  <li>the workspace tree the corresponding object belongs to</li>
+</ul>
+<p>The merge lists are followed by a first level menu allowing the user to
+<ul>
+  <li>select a merge to solve<br>
+    as soon as a first merge is selected, the merger will select the next one
+    automatically</li>
+  <li>inhibit the use of the graphic tool for solving changes on file contents<br>
+    in this case, the conflicting versions will be extracted in a <a href="#Temporary Directory">temporary
+    directory</a> and the Merger will let the user to merge the files using
+    his/her favorite tool and will finish by giving the result file</li>
+  <li>to list again the merges to be solved<br>
+    this is useful after having solved some merges and the window has been
+    scrolled. It is also interesting to refresh the list when several users are
+    solving merges in the same workspace (it is allowed by the command)</li>
+  <li>to quit the merger<br>
+    If some merges are not solved, they are still registered and the command can
+    be run again.</li>
+</ul>
+<p>When a merge is selected, whatever its type is (move, change of content,
+creation), the merger displays information about the conflict. The following
+example shows the selection of a merge on a file content:
+<ul>
+  <li>the first part (0 -) is the common ancestor, it means the version of the
+    file from which the two conflicting versions have been created</li>
+  <li>the second part (1 -) corresponds to the first version of the file. In our
+    example, the merger specifies that it is the version that is currently
+    visible in the workspace</li>
+  <li>the third part (2 -) corresponds to the second version of the file.</li>
+</ul>
+<p>For each version, the merger gives the date at which the version was created,
+the author of this version and the workspace where it was created. These
+information are useful when the current user is not responsible of the files to
+be merged and he/she can therefore ask the different authors for helping him/her
+to solve the merges. For instance:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>--------------------------------------------------------------- 
+<a name="SampleMerge1"></a>mkCheckSource.tst/FunctionTests/TestCases/run_parse_BOA01.sh: Change of content
+Common ancestor: 
+0 - Type: Text file, created the Thu Jan  6 16:21:10 2000
+   Created by &quot;<b>caacx</b>&quot; into the workspace &quot;ToolsSDFINT&quot; the Thu Jan  6 16:21:10 2000.
+Changes to merge: 
+1 - Type: Text file, created the Wed Mar 15 16:49:29 2000 
+  <strong> Seen as the current one in the workspace. </strong>
+   Created by &quot;<b>dg</b>&quot; into the workspace &quot;mkCheckSource_dg&quot; the Wed Mar 15 16:49:29 2000.
+2 - Type: Text file, created the Tue May 23 19:41:40 2000 
+   Created by &quot;<b>mbi</b>&quot; into the workspace &quot;MKCSTOOLSCXR4_Fix_mbi&quot; the Tue May 23 19:41:40 2000.</pre>
+    </td>
+  </tr>
+</table>
+<p>Other sub-menus exist that appear regarding the current operation. They are
+described here after.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h5><a name="Menu for solving file contents"></a>Menu for Solving File Contents</h5>
+<p>This menu appears either because there is more than two conflicting versions
+or because the graphic tool is not used or because it was launched but the user
+has quitted it leaving some unresolved merges.</p>
+<table width="100%">
+  <tr>
+    <th width="50%">Choice Displayed in Menu</th>
+    <th width="50%">Purpose</th>
+  </tr>
+  <tr>
+    <td width="50%">1,2, ... to choose one of these contents</td>
+    <td width="50%">The different conflicting versions are displayed and one can
+      be chosen as the merge result.</td>
+  </tr>
+  <tr>
+    <td width="50%">D to change the directory</td>
+    <td width="50%">To change the current working directory if willing to give a
+      file as the result file.</td>
+  </tr>
+  <tr>
+    <td width="50%">P to project the files into the directory</td>
+    <td width="50%">Conflicting files can be extracted in a temporary directory
+      from which other tools can be used for merging them and producing a result
+      file.</td>
+  </tr>
+  <tr>
+    <td width="50%">U to project useful additional contents</td>
+    <td width="50%">One or several additional versions can be projected in the
+      temporary directory. If they exist, they correspond to close versions that
+      have been already integrated in one of the conflicting versions. Comparing
+      them with the conflicting versions may help to understand what are the
+      last changes.</td>
+  </tr>
+  <tr>
+    <td width="50%">F to enter the result file path</td>
+    <td width="50%">To give a file that will be registered as the result file.</td>
+  </tr>
+  <tr>
+    <td width="50%">L to list the changes again</td>
+    <td width="50%">To display information about conflicting versions.</td>
+  </tr>
+  <tr>
+    <td width="50%">N to go to the next merge</td>
+    <td width="50%">To leave the current merge unresolved and go to the next
+      merge to solve.</td>
+  </tr>
+  <tr>
+    <td width="50%">M to come back to the main menu</td>
+    <td width="50%">To leave the current merge unresolved and go back to the
+      main menu to select another merge to solve.</td>
+  </tr>
+  <tr>
+    <td width="50%">Q to quit</td>
+    <td width="50%">To stop the adl_solve_merge command possibly leaving some
+      unresolved merges.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h5><a name="Menu for solving conflicting names"></a>Menu for Solving
+Conflicting Move/Rename</h5>
+<p>This menu appears each time a merge concerning a conflicting Move/Rename is
+selected from the main menu.</p>
+<table width="100%">
+  <tr>
+    <th width="50%">Choice Displayed in Menu</th>
+    <th width="50%">Purpose</th>
+  </tr>
+  <tr>
+    <td width="50%">0, 1... to choose one of these moves</td>
+    <td width="50%">The different conflicting names are displayed and one can be
+      chosen as the final name.</td>
+  </tr>
+  <tr>
+    <td width="50%">L to list the changes again</td>
+    <td width="50%">To display information about conflicting names.</td>
+  </tr>
+  <tr>
+    <td width="50%">M to come back to the main menu</td>
+    <td width="50%">To leave the current merge unresolved and go back to the
+      main menu to select another merge to solve.</td>
+  </tr>
+  <tr>
+    <td width="50%">Q to quit</td>
+    <td width="50%">To stop the adl_solve_merge command possibly leaving some
+      unresolved merges.</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Solving File Contents"></a>Solving Conflicting File Contents</h4>
+<h5><a name="Basic Merging"></a>Basic Merging</h5>
+<p>When merging different file contents a graphic tool is called by the
+adl_solve_merge command if the following conditions are satisfied:
+<ul>
+  <li>the use of the graphic tool is not inhibited ('G' choice in the first
+    level menu)</li>
+  <li>there are at most two versions to merge</li>
+</ul>
+<p>As the graphic tool cannot handle more than two versions, its use is
+automatically inhibited by the adl_solve_merge command.</p>
+<p>When the graphic tool is not inhibited, the <a href="#SampleMerge1">previous
+information</a> are displayed and the tool is automatically launched. It
+displays the contents of the two versions but the common ancestor is not visible
+(it is used for finding out differences). Please refer to the dedicated
+documentation for learning more about using the graphic merger tool [<a href="#References">1</a>].</p>
+<p>If the graphic tool is not used or if it is run but is killed or is stopped
+without solving (and saving) all the conflicting parts, the merger creates a <a href="#Temporary Directory">temporary
+directory </a>in which the three versions (ancestor, version 1, version 2) are
+extracted. It is then possible for the user to run another merging tool or to
+select directly one of the two versions as the merge result. Here are the
+outputs of the adl_solve_merge command after canceling the graphic tool:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre><a name="U Choice"></a>...
+<b>The files have been projected.</b> 
+<b>Notice that neither the files nor the directory will be deleted.</b>
+<b>Projection directory: /tmp/ADLMerge_MergeToolsSDF_TOOLSSDF_90 (current)</b>
+Enter 
+- a number to choose one of these contents 
+- D to change the directory 
+- P to project the files into the directory 
+- U to project useful additional contents
+- F to enter the result file path 
+- L to list the changes again 
+- N to go to the next merge 
+- M to come back to the main menu 
+- Q to quit</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h5><a name="Advanced Features"></a>Advanced Features</h5>
+<p>This section is dedicated to explaining the purpose and usage of the '<a href="#U Choice">U</a>'
+key in the previous menu.<br>
+This option can be used when a basic comparison between the two conflicting
+versions leads to too many differences or when some parts that have been already
+merged are proposed again for merging.</p>
+<p>The purpose of the 'U' key is to search for the previous merges that might
+have been done between two precedent versions of the two conflicting versions.
+If such a merge exists, we can compare the version that was merged at that time
+with one of the current versions and we should reduce the number of differences
+to deal with.</p>
+<p>The following example explains why the same differences are sometimes
+proposed in successive merges and how we can know what is really new.</p>
+<table border="1">
+  <tr>
+    <td valign="top" nowrap>
+      <p align="center">Fig 3: workspace tree - step 1</p>
+      <p align="center"><img src="images/sce_merge1.gif" alt="sce_merge1.gif (1310 bytes)" width="150" height="150"></td>
+    <td valign="top">
+      <p align="center">Fig 4: file contents version graph - step 1<img src="images/sce_merge1_1.gif" alt="sce_merge1_1.gif (1100 bytes)" width="150" height="150"></td>
+    <td valign="top">Step 1: the workspaces WS1 and WS2 are synchronized with
+      the workspace PRJ which contains the version 10 of the file foo.cpp.
+      <p>The file is checked-out and modified in WS1, this creates the version
+      11.</p>
+      <p>The same action is performed in the workspace WS2 and this leads to the
+      creation of the version 12.</p>
+      <p>As WS1 and WS2 were synchronized with the same level of PRJ, the
+      version 10 becomes the origin version (common ancestor) of their own
+      versions of foo.cpp.</td>
+  </tr>
+  <tr>
+    <td valign="top" align="center">
+      <p align="center">Fig 5: workspace tree - step 2</p>
+      <p align="center"><img src="images/sce_merge2.gif" alt="sce_merge2.gif (1346 bytes)" width="150" height="150"></td>
+    <td valign="top" align="center">Fig 6: file contents version graph - step 2<img src="images/sce_merge1_1.gif" alt="sce_merge1_1.gif (1239 bytes)" width="150" height="150"></td>
+    <td valign="top">Step 2: the workspace WS2 promotes its modification and is
+      collected by the workspace PRJ. The version 12 becomes the new current one
+      in PRJ.</td>
+  </tr>
+  <tr>
+    <td valign="top" nowrap align="center">
+      <p align="center">Fig 7: workspace tree - step 3</p>
+      <p><img src="images/sce_merge3_3.gif" alt="sce_merge3_3.gif (1332 bytes)" width="150" height="150"></td>
+    <td valign="top" nowrap align="left">
+      <p align="center">Fig 8: file contents version graph - step 3</p>
+      <p align="center"><img src="images/sce_merge3.gif" alt="sce_merge3.gif (1574 bytes)" width="150" height="210"></td>
+    <td valign="top">Step 3: the workspace PRJ publishes its content and WS1
+      synchronizes on this new level.
+      <p>As the synchronization brings the version 12 of foo.cpp in WS1, there
+      is a conflict between the local version 11 and the version 12 from WS2:
+      this conflict leads to a merge.</p>
+      <p>Assuming that the specific changes from WS2 has been merged with the
+      ones in WS1, we have now a new version number 13. This version 13 is
+      visible only in WS1 and replaces the version 11.</td>
+  </tr>
+  <tr>
+    <td valign="top" nowrap align="center">
+      <p align="center">Fig 9: workspace tree - step 4</p>
+      <p><img src="images/sce_merge4.gif" alt="sce_merge4.gif (1331 bytes)" width="150" height="150"></td>
+    <td valign="top" nowrap align="center">
+      <p align="center">Fig 10: file contents version graph - step 4</p>
+      <p align="center"><img src="images/sce_merge4_4.gif" alt="sce_merge4_4.gif (1770 bytes)" width="150" height="210"></td>
+    <td valign="top">Step 4: the user in WS1 keeps working without delivering
+      his/her workspace but the other user checks-out again foo.cpp in WS2 and
+      add new changes in it.
+      <p>There is a new version number 14 that is created and whose closest
+      ancestor version is 12.</p>
+      <p>At this time: the version 12 is visible in PRJ, 13 is visible in WS1
+      and 14 is visible in WS2</td>
+  </tr>
+  <tr>
+    <td valign="top" nowrap align="center">&nbsp;</td>
+    <td valign="top" nowrap align="center">
+      <p align="center">Fig 11: file contents version graph - steps 5,6</p>
+      <p><img src="images/sce_merge5_5.gif" alt="sce_merge5_5.gif (2039 bytes)" width="150" height="270"></td>
+    <td valign="top">Step 5: the workspace WS2 is collected in PRJ and the new
+      current version of foo.cpp becomes the 14th.
+      <p>Step 6: the workspace PRJ publishes and WS1 synchronizes on this new
+      level. Like in step 3 the synchronization brings a new version of foo.cpp
+      which is in conflict with the local one: there is a merge to solve between
+      the versions 13 and 14.</p>
+      <p>Like shown in the figure 11 the common ancestor is still the version
+      10, therefore the merging of 13 and 14 will be based on the differences
+      between both and 10. So, even if nothing new has been done since the last
+      merge, the user will have to merge again what was specific to the version
+      11.</p>
+      <p>&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top" nowrap align="center" colspan="2"><img src="images/ChoiceU.gif" alt="ChoiceU.gif (11086 bytes)" width="450" height="450"></td>
+    <td valign="top"><u>Using the 'U' key:</u>
+      <p>The system will find that the version 12 has been already merged to
+      produce the version 13, then:
+      <ul>
+        <li>the characteristic of the version 12 will be displayed (see traces
+          below)</li>
+        <li>the corresponding file will be projected in the temporary directory
+          (P1 suffix) in order to let the user compare it with the conflicting
+          versions. For instance the comparison of 12 with 14 will give only the
+          changes performed in 14 and then the only changes that should be
+          integrated in 13 to produce 15.</li>
+      </ul>
+      <p><u>How to proceed?</u></p>
+      <p>The only way to manipulate these additional versions is to project them
+      using the 'U' key, then go into the temporary directory and compare them
+      with the other versions. It's up to the user
+      <ul>
+        <li>to do the comparison between the old version and one new version</li>
+        <li>to choose one of the conflicting versions to be the basis for the
+          merging operation and to integrate in it the differences brought by
+          the comparison. Use the characteristics to learn the origin of the
+          additional versions in order to decide with which new versions they
+          should be compared.</li>
+        <li>to go back in the &quot;solving file contents&quot; sub-menu and to
+          give the result file using the 'F' key.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Solving Conflicting Move/Rename"></a>Solving Conflicting
+Move/Rename</h4>
+<p>To solve a a merge on conflicting names, there is just to choose one of the
+different names as the final name. For instance, the following example shows a
+conflict on a file that was first named &quot;F3.cpp&quot; and that was renamed
+into &quot;Fic3.cpp&quot; by one user and into &quot;File3.cpp&quot; by another
+one. Solving the merge will consists in entering either
+<ul>
+  <li>'0' for going back to the original name</li>
+  <li>'1' for keeping the local name &quot;Fic3.cpp&quot;</li>
+  <li>'2' for choosing the other name &quot;File3.cpp&quot;</li>
+</ul>
+<table class="code">
+  <tr>
+    <td>
+      <pre><a name="SolveMergeSample"></a>---------------------------------------------------------------
+Fw2\mod2.m\src\Fic3.cpp: Move
+
+Common ancestor:
+0 - Fw2\mod2.m\src\<strong>F3.cpp</strong>
+Created by &quot;cga&quot; into the workspace &quot;Prj&quot; the Tue Mar 24 11:53:57 2000.
+
+Changes to merge:
+1 - Fw2\mod2.m\src\<strong>Fic3.cpp</strong>
+<strong>Seen as the current one in the workspace.</strong>
+Created by &quot;tony&quot; into the workspace &quot;Dev2&quot; the Tue Mar 28 10:00:51 2000.
+
+2 - Fw2\mod2.m\src\<strong>File3.cpp</strong>
+Created by &quot;mick&quot; into the workspace &quot;Dev1&quot; the Tue Mar 25 09:58:20 2000.
+
+Enter
+- a number to choose one of these moves
+- L to list the changes again
+- N to go to the next merge
+- M to come back to the main menu
+- Q to quit</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Solving Conflicting Creations"></a>Solving Conflicting Creations</h4>
+<p>Such a merge is to be solved when two users have created two files using the
+same name. To avoid to loose one file, when the two files come in the same
+workspace, SCM renames one of them (using %c1 suffix) and generates a merge on
+the two files.</p>
+<p><img src="../CAAIcons/images/information.gif" alt="information.gif (174 bytes)" width="31" height="30">
+When a workspace refuses any merge at collect [<a href="#ref2">2</a>], there is
+no merge generated when two conflicting creations happen in this workspace and
+one of the file is automatically renamed (using the %c1 suffix).</p>
+<p>When solving such a merge, SCM shows the characteristics of the three
+versions but only the current version can be selected for solving the merge:
+<ul>
+  <li>version '0' is the common ancestor but has no special meaning here</li>
+  <li>version '1' is the file that is currently projected in the workspace</li>
+  <li>version '2' is the conflicting file</li>
+</ul>
+<p>To solve such a merge, select the version '1' to exit from the
+adl_solve_merge command and then you will find the two files projected with two
+names (the usual name and the same with a &quot;%c1&quot; suffix). Then compare
+the two files to know whether
+<ul>
+  <li>they correspond to the same file; then remove the one suffixed by
+    &quot;%c1&quot;</li>
+  <li>they are two different files and the one suffixed with &quot;%c1&quot;
+    must kept the original name;<br>
+    then rename the conflicting file to another name using the adl_mv command
+    and rename back the suffixed one using adl_mv too.</li>
+  <li>they are two different files and the one suffixed with &quot;%c1&quot;
+    must be renamed;<br>
+    then rename it using the adl_mv command.</li>
+</ul>
+<p>The example here-after shows the solving of a conflict:</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>---------------------------------------------------------------
+fw1/Data.doc/dd2.txt%c1: Move</pre>
+      <pre>Common ancestor:
+0 - fw1/Data.doc/dd2.txt - PROJECTION CONFLICT
+Created by &quot;cga&quot; in the workspace &quot;dev2&quot; on Fri Jan 19 15:37:01 2001.</pre>
+      <pre>Changes to merge:
+1 - fw1/Data.doc/<strong>dd2.txt%c1</strong>
+Seen as the current one in the workspace.
+Created by &quot;cga&quot; in the workspace &quot;dev2&quot; on Fri Jan 19 15:38:26 2001.</pre>
+      <pre>2 - fw1/Data.doc/<strong>dd2.txt - PROJECTION CONFLICT</strong>
+Created by &quot;cga&quot; in the workspace &quot;sample&quot; on Fri Jan 18 10:24:32 2001.</pre>
+      <pre>Enter
+- 0, 1... to choose one of these moves
+- L to list the changes again
+- M to come back to the main menu
+- Q to quit
+Your choice: <strong>1
+1 - fw1/Data.doc/dd2.txt%c1</strong></pre>
+      <pre>Command successful.</pre>
+      <pre>Freezing the revision &quot;12&quot; of the workspace &quot;dev2&quot; in the workspace tree &quot;Demo_tree1&quot;.
+Command successful.</pre>
+      <pre>$ &gt; ls -l
+total 2
+-r--r--r-- 1 cga scott 0 Jan 19 15:34 dd.txt
+<strong>-r--r--r-- 1 cga scott 0 Jan 19 15:37 dd2.txt
+-r--r--r-- 1 cga scott 0 Jan 19 15:36 dd2.txt%c1</strong>
+drwxr-xr-x 3 cga scott 512 Jan 19 15:36 lrd</pre>
+      <pre>$ &gt; adl_mv dd2.txt%c1 dd3.txt
+Moving the object &quot;fw1/Data.doc/dd2.txt%c1&quot; to &quot;fw1/Data.doc/dd3.txt&quot; in the workspace &quot;dev2&quot; and the workspace tree &quot;Demo_tree1&quot;.
+Command successful.
+</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Canceling a Merge"></a>Canceling a Merge</h3>
+<p>When a merge has been done but the user thinks that the result is wrong, it
+is possible to use the adl_forget_chg [<a href="#Ref3">3</a>] command to restart
+the file in the state just before the merge, that is to say in the state where
+the adl_solve_merge [<a href="#Ref5">5</a>] should be executed to solve
+remaining merges.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>$ &gt; adl_solve_merge
+...
+here the merger tool is launched on the file XXX and the result saved
+...</pre>
+      <pre>Now the user thinks that what he has done is not correct and wants to restart the merger tool</pre>
+      <pre>$ &gt; adl_forget_chg XXX -chg content -last
+...</pre>
+      <pre>$ &gt; adl_solve_merge
+...</pre>
+    </td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Refreshing the Current Image"></a>Refreshing the Current Image</h3>
+<p>Solving merges is an operation that is performed at database level but the
+resulting files must be extracted from the database to the user file system
+(workspace's image(s)). Considering a current working image and running the
+adl_solve_merge [<a href="#Ref5">5</a>] command:
+<ul>
+  <li>as soon as a first merge is solved, a new choice (&quot;R to refresh the
+    image&quot;) appears in the main menu that can be used for refreshing the
+    current image and projecting the new contents or path names of the solved
+    merges</li>
+  <li>when all the merges are solved, the command ends and refresh automatically
+    the current image</li>
+  <li>if the user stops the adl_solve_merge command without solving all the
+    merges, the current image won't be refreshed and a message will warn the
+    user about it. This is shown in the example here under:</li>
+</ul>
+<table class="code">
+  <tr>
+    <td width="100%">
+      <pre>...
+Enter
+- 1, 2... to solve a merge
+- R to refresh the image
+- G not to use the graphic tool for text file contents
+- L to list the merges to solve again
+- Q to quit
+Your choice: q
+<strong>Run the command adl_refresh</strong>
+<strong>$</strong></pre>
+    </td>
+  </tr>
+</table>
+<p>Notice that the command adl_refresh can be used even there are still some
+merges to be solved.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Temporary Directory"></a><a name="The ADLMerge Temporary Directory"></a>Extracting
+Files into the &quot;ADLMerge&quot; Temporary Directory</h3>
+<p>This directory is created when solving conflicting file contents without
+using the graphic merger [<a href="#References">1</a>].</p>
+<p>Its name is:
+<ul>
+  <li><code>$ADL_TMP/ADLMerge_WS_TREE_NUMBER</code></li>
+  <li><code>%ADL_TMP%\ADLMerge_WS_TREE_NUMBER</code></li>
+</ul>
+<p>where
+<ul>
+  <li><code>ADL_TMP</code> is an environment variable identifying a temporary
+    directory (for instance c:\TEMP or /tmp)</li>
+  <li><code>WS</code> is the name of the workspace for which the adl_solve_merge
+    has been launched</li>
+  <li><code>TREE</code> is the name of the tree WS belongs to</li>
+  <li><code>NUMBER</code> is a number (a counter of the number of merges solved
+    in WS since its creation)</li>
+</ul>
+<p>The adl_solve_merge [<a href="#Ref5">5</a>] command projects in this
+directory all the files displayed when solving a merge. Their names are the
+original names but with a number inserted before each suffix (more convenient
+when using a desktop recognizing file suffixes like &quot;NT Explorer&quot;).
+The following example shows the projection of the conflicting versions of the
+file &quot;admin.cpp&quot;: The number '0' identifies the &quot;common
+ancestor&quot;, the number '1' identifies the version 1 (from the
+&quot;dev2_cga&quot; workspace) and the number '2' identifies the version 2
+(from the &quot;dev1_cga&quot; workspace).</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>---------------------------------------------------------------
+fw_cga\mod_cga.m\src\admin.cpp: Change of content
+
+Common ancestor:
+<strong>0</strong> - Type: Text file, created the Wed May 28 16:00:15 2000
+By &quot;cga&quot; into the workspace &quot;prj_cga&quot; the Wed May 31 16:00:15 2000.
+
+Changes to merge:
+<strong>1</strong> - Type: Text file, created the Wed May 31 16:02:29 2000
+Seen as the current one in the workspace.
+By &quot;cga&quot; into the workspace &quot;dev2_cga&quot; the Wed May 31 16:02:29 2000.
+
+<strong>2</strong> - Type: Text file, created the Wed May 31 16:01:35 2000
+By &quot;cga&quot; into the workspace &quot;dev1_cga&quot; the Wed May 31 16:01:35 2000.
+
+<strong>Projection directory: C:\TEMP\ADLMerge_prj_cga_TOOLSTST_3 (current)</strong>
+
+Enter
+- 0, 1... to choose one of these contents
+- D to change the directory
+- P to project the files into the directory
+- U to project useful additional contents
+- F to enter the result file path
+- L to list the changes again
+- M to come back to the main menu
+- Q to quit
+Your choice: <strong>q</strong>
+
+E:\&gt;<strong>dir C:\TEMP\ADLMerge_prj_cga_TOOLSTST_3</strong>
+Volume in drive C has no label.
+Volume Serial Number is 98C9-78D0
+
+Directory of C:\TEMP\ADLMerge_prj_cga_TOOLSTST_3
+
+31/05/00 16:05 &lt;DIR&gt; .
+31/05/00 16:05 &lt;DIR&gt; ..
+31/05/00 16:05 0 admin.<strong>0</strong>.cpp
+31/05/00 16:05 20 admin.<strong>1</strong>.cpp
+31/05/00 16:05 20 admin.<strong>2</strong>.cpp</pre>
+    </td>
+  </tr>
+</table>
+<p>The temporary directory is not destroyed when the adl_solve_merge command
+ends. There are several reasons for that:
+<ul>
+  <li>Once the files have been extracted in this directory, the user can check
+    them and use any tool to solve the merge. The adl_solve_merge can be stopped
+    and run afterwards, the files will be still there.</li>
+  <li>The user can specify an existing directory for extracting the files. It is
+    not correct to remove it!</li>
+</ul>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h3><a name="Third Party Tool"></a>Using a Third Party Tool for Merging Files'
+Contents</h3>
+<p>The tool that is used for merging files' contents is specified in the working
+environment by the ADL_MERGER variable. Another tool can be used in place of the
+default one by setting this variable with the path to this other tool. In
+addition the new tool must accept the arguments in the order they are passed to
+the default merger, here they are:</p>
+<table border="1">
+  <tr>
+    <td bgcolor="#C0C0C0" nowrap valign="top" align="left"><strong>Position(s)<br>
+      on the command line</strong></td>
+    <td bgcolor="#C0C0C0" nowrap valign="top" align="left"><strong>Value</strong></td>
+    <td bgcolor="#C0C0C0" nowrap valign="top" align="left"><strong>Usage</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td nowrap>-adl</td>
+    <td>always present but can be ignored</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td nowrap>&lt;file name&gt;</td>
+    <td>path to the common ancestor file</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td nowrap>&lt;file name&gt;</td>
+    <td>path to the first version to be merged</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td nowrap>&lt;file name&gt;</td>
+    <td>path to the second version to be merged</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td nowrap>&lt;file name&gt;</td>
+    <td>path to the file that will be considered as the result file</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td nowrap>&lt;file name&gt;</td>
+    <td>
+      <p align="left">the merging error code must be written in this file (0 if
+      OK)</td>
+  </tr>
+  <tr>
+    <td>7, 8, 9, 10, 11</td>
+    <td nowrap>-batch -begcom debug -endcom fin</td>
+    <td>these arguments are optional and appear only when the adl_solve_merge
+      command has been called in &quot;automatic&quot; mode (see adl_set_merge [<a href="#Ref6">6</a>]
+      command)</td>
+  </tr>
+  <tr>
+    <td>12 , 13</td>
+    <td nowrap>-info &lt;file name&gt;</td>
+    <td>optional and can be ignored</td>
+  </tr>
+  <tr>
+    <td>14</td>
+    <td nowrap>-norecom</td>
+    <td>optional and indicates that no common ancestor has been found. In this
+      case the second parameter has been set with the path to the first version
+      to be merged</td>
+  </tr>
+</table>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+<p>adl_set_ws is used for setting merge behavior of a given workspace.<br>
+adl_ls_merge shows the merges.<br>
+adl_solve_merge provides a menu for solving merges. File's contents can be
+merged either by using a graphic tool or by projecting the different versions,
+merging them using any tool and giving the result file to the adl_solve_merge
+command.</p>
+<p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmMerger2UI.htm">The Graphic
+      Merger</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="ref2"></a>[2]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm#adl_set_ws">adl_set_ws:
+      setting workspace's characteristics</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref3"></a>[3]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm#adl_forget_chg">adl_forget_chg:
+      forgetting changes</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref4"></a>[4]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm#adl_ls_merge">adl_ls_merge:
+      listing merges to be solved</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref5"></a>[5]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm#adl_solve_merge">adl_solve_merge:
+      solving merges</a></td>
+  </tr>
+  <tr>
+    <td valign="top"><a name="Ref6"></a>[6]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmUserThemeCmdList.htm#adl_set_merge">adl_set_merge:
+      setting merge's characteristics</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+<table width="1020">
+  <tr>
+    <td valign="top" width="320">Version: <strong>4</strong> [Nov 2003]</td>
+    <td valign="top" width="696">Add a paragraph about implicit and automatic
+      merge</td>
+  </tr>
+  <tr>
+    <td valign="top" width="320">Version: <strong>3</strong> [Jul 2003]</td>
+    <td valign="top" width="696">Add a sample for creation of the same file path</td>
+  </tr>
+  <tr>
+    <td valign="top" width="320">Version: <strong>2</strong> [May 2001]</td>
+    <td valign="top" width="696">Advice for canceling a merge</td>
+  </tr>
+  <tr>
+    <td valign="top" width="320">Version: <strong>1</strong> [May 2000]</td>
+    <td valign="top" width="696">Document creation</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2" width="1018">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+
+</body>
+
+</html>

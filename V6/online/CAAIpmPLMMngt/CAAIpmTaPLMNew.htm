@@ -1,0 +1,237 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM New Command</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM New Command</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows why and how you can use the PLM New command in your 
+		own command.</p>
+		<ul>
+			<li><a href="#Why to Use it">Why Use It?</a></li>
+			<li><a href="#How to Use it">How to Use It?</a>
+			<ul>
+				<li><a href="#Main Steps to Build Your Command">Main Steps to Build 
+				Your Command</a></li>
+				<li><a href="#Which Kind of PLM Objects">Which Kind of PLM Objects?</a></li>
+			</ul>
+			</li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Why to Use it"></a>Why Use It?</h2>
+<p>The PLM New command is the one that you find in the PLM Access menu. Once the 
+PLM Object&#39;s type is chosen, the end user is invited to valuate PLM Attributes. 
+Just below you have two examples.</p>
+<table>
+	<caption><a name="Fig.1">Fig.1</a> PLM New for Product</caption>
+	<tr>
+		<td>
+		<img alt="PLM New for Product" src="images/CAAIpmNewProduct.jpg" width="415" height="335"></td>
+	</tr>
+</table>
+<table>
+	<caption>Fig.2 PLM New for Folder</caption>
+	<tr>
+		<td><img alt="PLM New for Folder" src="images/CAAIpmNewFolder.jpg"></td>
+	</tr>
+</table>
+<p>The <strong>user interface is adapted to the PLM object</strong> since it only 
+displays its PLM Attributes. Moreover the user interface takes into account the
+<strong>UI mask</strong> [<a href="#References">1</a>]: only the PLM Attributes 
+defined by the Create mask of the current PLM object type are presented, and editors 
+are pre-valuated with default values defined by the UI mask. </p>
+<p>When the end user clicks <code>Finish</code>, the created object is edited. The 
+PLM New command calls an explicit API [<a href="#References">2</a>] to create 
+the PLM Object. </p>
+<p>DS exposes services to do the same thing. It means that if your own command launches 
+the exposed PLM New command, first your command is DS compliant, and then you take 
+benefit of the DS Dialog box (no need to re-create it). </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="How to Use it"></a>How to Use it?</h2>
+<p>The CATPLMUIInterface framework proposes two APIs:</p>
+<ul>
+	<li><code>CATPLMNewServicesPublic::GetPLMNewEnginePublic </code>,  to retrieve a <code> CATIPLMNewEnginePublic</code> 
+	interface pointer</li>
+	<li>Create the implementation of<code> CATIPLMNewEngineListenerPublic</code> send this listener to <code> CATIPLMNewEnginePublic </code>by using <code> CATIPLMNewEngineListenerPublic::AssociateListener</code> 
+	service. </li>
+	<li> <code> CATIPLMNewEnginePublic::StartNew </code> to execute the PLM New command</li>
+	<li>Newly created data can be accessed through <code>CAAPuiCreateAndEditNewProdRefCmd::AfterCreation</code>. 
+	It retrieves in <code> CATICkeObject</code> handle.</li> 
+</ul>
+<p>Have a look to these APIs.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Main Steps to Build Your Command"></a>Main Steps to Build Your Command</h3>
+<p>The PLM New command is a shared [<a href="#References">3</a>] state command. 
+This means that:</p>
+<p>Your command can be a simple <i>CATCommand</i>, or a state command. But in all 
+cases, it must be either shared or exclusive otherwise you could not be awaked when 
+the PLM New dialog box is closed.</p>
+<p>Below we give the main steps to insert a PLM New dialog box in your code. </p>
+<ol>
+   <li><a name="1-"></a><strong>Create own implementation of CATIPLMNewEngineListenerPublic Listener</strong>
+	<p>You need to create your own implementation for <code> CATIPLMNewEngineListenerPublic</code>. 
+	This interface has two methods : <code> AfterCreation </code>and <code>CancelCreation</code>
+	<strong>CancelCreation</strong> method will be called if creation of PLM New 
+	is cancelled. </p>
+	<p><strong>AfterCreation</strong> method will be called within execution of 
+	PLM New. This method retrieves the handle of newly created Object of type <code >CATICkeObject_var</code>.</p>
+	<p>Both of this method will be called by <code>CATIPLMNewEnginePublic::StartNew</code> method, so no need to call 
+	explicitly in the code.</p>
+	</li>
+
+	<li><a name="1-"></a><strong>Get PLM New Engine to access PLM New Capability</strong>
+	<p>This piece of code can be integrated, for example, in the activate method 
+	of your CATCommand.</p>
+	<pre class="code">...
+   CATIPLMNewEnginePublic_var spPLMNewEngine;
+   if (SUCCEEDED(hr)) hr = CATPLMNewServicesPublic::GetPLMNewEnginePublic (spPLMNewEngine);
+...</pre>
+	<p><code>_spPLMNewEngine</code> is an argument, a <code>CATIPLMNewEnginePublic</code> 
+	interface pointer.</p>
+	</li>
+	<li><strong>Set The Type of Object to create</strong>
+	<p> It is necessary to set the parameter(s) specifying what kind of PLM Object to create 
+	before executing New command. In this case, we are illustrating with 
+	creating a New Product reference. </p>
+	<pre class="code">...
+<strong>   CATUnicodeString usPLMType = "VPMReference";
+   CATIType_var spTypeOnObject = NULL_var;
+
+   hr =  CATCkePLMNavPublicServices::RetrieveKnowledgeType (usPLMType, spTypeOnObject);
+   if(SUCCEEDED(hr))
+    {
+       if (NULL_var == spTypeOnObject) hr = E_UNEXPECTED;
+       hr = spPLMNewEngine -&gt; SetType (spTypeOnObject);
+    }</strong>
+...</pre>
+	<p><code>SetType</code>  uses <code> CATIType</code> as input argument, 
+	which&nbsp; is retrieved from <code> CATCkePLMNavPublicServices::RetrieveKnowledgeType</code>. 
+	Different types of objects can be created by using this command. This is detailed further, in the 
+	<a href="#Which Kind of PLM Objects">Which Kind of PLM Objects </a>section.</p>
+	</li>
+	<li><strong>Executing PLM New</strong>
+	<p> Once the PLM Type of Objects to be created is finished, Retrieved the implementation of <code>CATIPLMNewEngineListenerPublic</code>
+	.Send this listener to PLM New Engine by using <code>CATIPLMNewEnginePublic::AssociateListener </code>.  </p>
+	<pre class="code">...
+   if(SUCCEEDED(hr)) hr = this -&gt; QueryInterface (IID_CATIPLMNewEngineListenerPublic, (void **) &amp;piPLMNewEngineListener);
+   if (SUCCEEDED(hr) &amp;&amp; NULL != piPLMNewEngineListener)
+    {
+      hr = spPLMNewEngine -&gt; AssociateListener (piPLMNewEngineListener);
+      if(SUCCEEDED(hr))  hr = spPLMNewEngine -&gt; StartNew ();
+    }
+...</pre>
+	<p>After associating a listener to new engine, execute the PLM New command 
+	with <code>CATIPLMNewEnginePublic::StartNew</code>. This method internally calls to 
+	<strong>AfterCreation</strong> to retrieve the handle for newly created object on successful creation of object. 
+	If creation of new objects is cancelled then <strong>CancelCreation</strong> 
+	method will be called.</p>
+	
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Which Kind of PLM Objects"></a>Which Kind of PLM Objects?</h3>
+<p>PLM Modeler types are 
+used to create a PLM Objects of different types. You can use this type name as string in<code> CATCkePLMNavPublicServices::RetrieveKnowledgeType</code> 
+as first argument.</p>
+<p>Only &lt;&lt;<strong>One By One</strong>&gt;&gt;Creation of objects is available.</p>
+<p>Only PLM Objects and functional specialization of this types which are declared as <strong>Newable</strong>  in CAA by the modelers in the 
+PLM Dictionary can be created.
+
+<p>PLM Dictionary contains the information related all types. For details of 
+different PLM Types refer to : <strong><em>End-user-Documentation -&gt; ENOVIA Development and 
+Configuration -&gt; Unified Live Collaboration -&gt; V6 Data Reference Dictionary</em>
+</strong> </p>
+<p><a href="#Fig.3">Fig.3 </a>represents the example of PLM dictionary entry for 
+VPMReference. Here, New (CAA) means this type can be created by using a CAA API. </p>
+
+<table>
+    <caption>Fig.3 PLM Dictionary entry for VPMReference</caption>
+
+	<tr>	
+		<td><a name="Fig.3"><img src="images/CAAIpmNew_Dictionary.jpg"></a></td>
+	</tr>
+</table>
+
+
+
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>In your own command you can launch the PLM New command, set yourself the type 
+of element to create (among an hard-coded list), and then retrieve the created PLM 
+Object. </p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllMask.htm">
+		PLM Security Mask Overview</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllPLMComponentCreation.htm">
+		PLM Component Creation</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAAfrApplicationFrame/CAAAfrTaCommandModel.htm'); return false;">
+		Understanding the Wintop Frame Command Model</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAOmbPLMCompMngt/CAAAdpTaBAGMechanism.htm">
+		Understanding PLM Component Life Cycle</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [March 2009]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

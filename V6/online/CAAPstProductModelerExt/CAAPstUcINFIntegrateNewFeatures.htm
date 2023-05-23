@@ -1,0 +1,591 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Overview</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Overview</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Abstract"></a>Abstract</h2>
+		<p>This article discusses the CAAPstINFIntegrateNewFeatures use case. This 
+		use case explains how to create applicative data ( features) in an applicative 
+		container within a PLM Technological Representation, and how to enable these 
+		features to be integrated in basic DS Application mechanisms such as navigation, 
+		visualization, editing, or CCP/Delete operations.</p>
+		<p>This use case, which is formed by several articles, illustrates the PLM 
+		Technological Representation usage, described by the referenced article 
+		[<a href="#References">1</a>]. It is strongly recommended to read it prior 
+		to proceeding, so that you may take full advantage of each part of this 
+		use case.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAPstINFIntegrateNewFeatures Use Case</a>
+				<ul>
+					<li><a href="#What">What Does CAAPstINFIntegrateNewFeatures 
+						Do</a></li>
+					<li><a href="#How">How to Launch CAAPstINFIntegrateNewFeatures</a></li>
+					<li><a href="#Where">Where to Find the CAAPstINFIntegrateNewFeatures 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#StepByStep">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to illustrate how to create new features in an applicative 
+container within a PLM Technological Representation, and how to integrate these 
+features in the following main basic DS Application mechanisms:</p>
+<ul>
+	<li><strong>Navigation</strong>: this mechanism allows a feature to be visualized 
+		in the specs tree, and to list its children through a collapsable node.</li>
+	<li><strong>Visualization</strong>: this mechanism allows the feature to be 
+		included in the visualization process for its geometry to be visible in 
+		3D</li>
+	<li><strong>Editing</strong>: this mechanism allows the feature to be modified.</li>
+	<li><strong>Cut, Copy, Paste</strong>: this mechanism allows features to be 
+		cut or copied and pasted to and from the same or different containers.</li>
+	<li><strong>Delete</strong>: this mechanism allows a feature to be deleted from 
+		the applicative container, specs tree and viewer while at the same time 
+		deleting any other features whose definition may be dependent on it.</li>
+</ul>
+<p>A new applicative feature can be created in a Product structure without any behaviors. 
+Each behavior can then be added distinctly, without one impacting the other. Each 
+behavior has a UC dedicated for it and the current UC is infact a superset of all 
+these UCs, which together illustrate the coherent integration of new features in 
+DS application.</p>
+<p>Some of the behaviors illustrated here are defined in various DS Application 
+Architecture domains:</p>
+<table class="fill">
+	<tr>
+		<th>Behavior</th>
+		<th>Domain</th>
+	</tr>
+	<tr>
+		<td>specs tree navigation</td>
+		<td>Session</td>
+	</tr>
+	<tr>
+		<td>Geometrical visualization</td>
+		<td>Visualization</td>
+	</tr>
+	<tr>
+		<td>Cut, copy, paste, delete</td>
+		<td>Feature</td>
+	</tr>
+	<tr>
+		<td>Edit</td>
+		<td>Frame</td>
+	</tr>
+	<tr>
+		<td>Edit dialog box</td>
+		<td>Dialog</td>
+	</tr>
+</table>
+<p>A general pre-requisite knowledge of the domain described above may be required 
+to fully understand this sample, but some links with other CAA use cases will be 
+indicated to help you navigate to them. To begin with, you may want to review the 
+basics of the Feature Modeler that you can find in the &quot;Feature Modeler Overview&quot; 
+technical article [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAPstINFIntegrateNewFeatures Use Case</h2>
+<p>The CAAPstINFIntegrateNewFeatures is a use case of the CAAProductStructureExtend.edu 
+framework that illustrates the integration of FeatureModelerExt, ObjectModelerBase, 
+ObjectModelerSystem, Visualization, ApplicationFrame, Dialog and ProductStructureExtItf 
+framework (main framework) capabilities in the Product context.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the CAAPstINFIntegrateNewFeatures Use Case Do</h3>
+<p>This use case is based on three geometrical elements:</p>
+<ul>
+	<li>the <strong>Point</strong>, represented by three coordinates (x, y,z).</li>
+	<li>the <strong>Line</strong>, a segment between two points ( Start and End 
+		).</li>
+	<li>the <strong>Wires</strong>, a broken curve between several points.</li>
+</ul>
+<p>The picture illustrates the three elements.</p>
+<table>
+	<caption>Fig.1: Conceptual Data Model</caption>
+	<tr>
+		<td>
+		<img alt="Conceptual Data Model" src="images/CAAPstINFApplicativeDataModel.png"/></td>
+	</tr>
+</table>
+<ul>
+	<li>The points are represented by a dot ( 1 black, 2 red, 4 green).</li>
+	<li>The line is in red.</li>
+	<li>The wire of 4 points is in green.</li>
+</ul>
+<p>These elements are defined by the <strong>Feature modeler</strong> [<a href="#References">2</a>]. 
+The template of each element, is called the StartUp, is kept in a StartUp Catalog. 
+Our catalog is defined in <a href="CAAPstUcINFBuildCatalog.htm">Defining StartUp 
+Catalog</a> article. Of course, it contains three StartUps:</p>
+<ol>
+	<li><code>CAAPstINFPoint</code> to represent the Point.</li>
+	<li><code>CAAPstINFLine</code> to represent the Line.</li>
+	<li><code>CAAPstINFWire</code> to represent the Wire.</li>
+</ol>
+<p>but it contains another one: CAAPstINFRoot. This element does not exist in the 
+reality, but it is very useful for the modelization. It is the element containing 
+-or more precisely in feature modeler terminology - aggregating - <code>CAAPstINFPoint</code>,
+<code>CAAPstINFLine</code>, and <code>CAAPstINFWire</code> instances.</p>
+<p>The StartUp will be instantiated within an applicative container included in 
+a PLM Technological Representation. The name of the container is <code>CAAPstINContainer</code>, 
+and its type is <code>CAAPstINCont</code>. The article "<a href="CAAPstUcCreateAndInstantiateTechnoRep.htm">Creating 
+PLM Technological Representation</a>" deals with the PLM Technological Representation 
+creation, and &quot;<a href="CAAPstUcINFCreateDocument.htm">Creating Data in PLM 
+Technological Representation</a>&quot; deals with features instantiation.</p>
+<p>With this last article you will see that we have access the features data using 
+interfaces, which are &quot;inherent&quot; to the features. These interfaces have 
+two advantages:</p>
+<ol>
+	<li>Encapsulate the feature attribute by exposing services to access those, 
+		instead of a direct access. The credentials [<a href="#References">3</a>] 
+		aspect is handled by the services, hidden from the user.</li>
+	<li>Ensures a safe data model, by confirming the integrity of the data model. 
+		Examples: the line cannot be created without 2 points, the elements cannot 
+		be created without to be first aggregated by a Root. The article &quot;<a href="CAAPstUcINFIntrinsicFeatBehavior.htm">Inherent 
+		StartUp Behavior</a>&quot; details these interfaces.</li>
+</ol>
+<p>After this brief presentation of the data model, lets us present the interactive 
+aspect of this use case.</p>
+<p>This data model is usable in any VPM Editor workbenches. Indeed, the commands 
+to handle this data model are inside a new Addin of the VPM Editor. This Addin contains 
+a single toolbar &quot;CAA Product Structure INF Use Cases&quot;.</p>
+<table>
+	<caption><a name="Fig2"></a>Fig.2: Commands ToolsBar</caption>
+	<tr>
+		<td>
+		<img alt="Commands ToolsBar" height="56" src="images/CAAPstINFToolbar.png" width="192"/></td>
+	</tr>
+</table>
+<p>The steps involved to create the addin, the toolbar, and the significance of 
+each command is detailed in the article &quot;<a href="CAAPstUcINFAddin.htm">VPM 
+Editor Addin Creation</a>&quot;.</p>
+<p>If you launch the first command, "Create a Techno Rep with CAAPstINFxxx", detailed 
+in the article "<a href="CAAPstUcINFCreateInteractively.htm">Creating Interactively 
+a Data Model</a>&quot; it outputs the following data:</p>
+<table>
+	<caption><a name="Fig3"></a>Fig.3 Create a Techno Rep with CAAPstINFxxx Command</caption>
+	<tr>
+		<td>
+		<img alt="Create a Techno Rep with CAAPstINFxxx Command" src="images/CAAPstINFInteractiveCreation.png"/></td>
+	</tr>
+</table>
+<p>The command has created all the data represented by this picture except the root 
+product, CAAPstProductRef.</p>
+<p>[<a href="#Fig3">Fig.3</a>] is interesting because it shows some &quot;interactive&quot; 
+aspects of this use case. Indeed, you can see that each elements (point, line and 
+wire):</p>
+<ul>
+	<li>Have a <strong>3D visualization</strong>. It is explained by &quot;<a href="CAAPstUcINFVisu.htm">Visualization 
+		StartUp Behavior</a>&quot; and &quot;<a href="CAAPstUcINFVisuProvider.htm">Enabling 
+		Visualization</a>&quot; articles.</li>
+	<li>Are represented in the <strong>specification tree</strong> below a Root 
+		element.
+		<p>Note that below each Wire you have its Points. It is not the case for 
+		the line. It is an implementative choice. All the Specification Tree creation 
+		is detailed by &quot;<a href="CAAPstUcINFNavigate.htm">Enabling Specification 
+		Tree</a>&quot; article.</p>
+	</li>
+</ul>
+<p>These two behaviors ( visualization and specification tree) is possible thanks 
+the code done during the applicative container loading as explained in this article 
+"<a href="CAAPstUcINFInitCont.htm">Initializing the Applicative Container at Runtime</a>".</p>
+<p>On [<a href="#Fig3">Fig.3</a>] you have the default graphic representation of 
+each element, but it is possible to customize the Point, Line and Wire representation:</p>
+<table>
+	<caption>Fig.4: Graphical Properties</caption>
+	<tr>
+		<td>
+		<img alt="Graphical Properties" src="images/CAAPstINFInteractiveCreationWithGraphicProperties.png"/></td>
+	</tr>
+</table>
+<p>When you select an element in the 3D viewer, or in the specification tree, the 
+contextual menu shows the <code>Properties</code> command. Thanks to the &quot;Graphic&quot; 
+tab page, and your code that supports it, the end user can change some properties. 
+Have a look at the article "<a href="CAAPstUcINFGraphicalProperties.htm">Graphical 
+Property Startup Behavior</a>".</p>
+<p>Now, lets us present another command, the one to edit the Point. This command 
+is interesting since it presents the &quot;dynamic&quot; aspect of this use case.</p>
+<table>
+	<caption>Fig.5: Point Edit Command</caption>
+	<tr>
+		<td>
+		<img alt="Point Edit Command" src="images/CAAPstINFEditBefore.png"/></td>
+	</tr>
+</table>
+<p>That you double click <code>Point.2</code>, or select &quot;Point.2 object/definition&quot; 
+command in the contextual menu, the &quot;Point Definition&quot; dialog box shows 
+up to edit <code>Point.2</code> feature. If you change the value from 100 to 50, 
+and then you push OK, <code>Point.2</code>'s position is updated, and so are the 
+line and the wire based on <code>Point.2</code> updated.</p>
+<table>
+	<caption><a name="Fig6">Fig.6: Point Edit Command</a></caption>
+	<tr>
+		<td><img alt="Point Edit Command" src="images/CAAPstINFEditAfter.png"/></td>
+	</tr>
+</table>
+<p>Indeed, with [<a href="#Fig6">Fig.6</a>] you can see the new position of
+<code>Point.2</code> and the new position of the two segments based on <code>Point.2.
+</code>The model's update is explained by the article "<a href="CAAPstUcINFBuildModel.htm">Update 
+Startup Behavior</a>" and the dynamic refresh "<a href="CAAPstUcINFMVCUpdate.htm">Managing 
+View Refresh</a>".</p>
+<p>Now, lets us come back to another &quot;model&quot; aspect of this use case. 
+It is about the feature's deletion. When a feature is being deleted (through feature 
+API, DataCommonProtocolServices class, or Delete command), Feature modeler applies 
+internal rules, like it only deletes the aggregated features of a feature, its does 
+not delete the pointed feature. But this behavior is customizable as you will learn 
+with this article "<a href="CAAPstUcINFDelete.htm">Delete StartUp Behavior</a>&quot;. 
+In our model, when a Point is deleted, lines based on this Point, and the Wire based 
+on two points of which one is that deleted is also deleted.</p>
+<table>
+	<caption>Fig.7: Delete Action</caption>
+	<tr>
+		<td><img alt="Delete Action" src="images/CAAPstINFDelete01.png"/></td>
+	</tr>
+</table>
+<p>You can observe <code>Point.3</code> deletion has implicated the deletion of
+<code>Line.2</code> and <code>Line3</code> and <code>Wire.3</code> is reduced from 
+1 point. The deletion of a Wire due to the deletion of a Point will be seen just 
+hereafter, first we have to introduce Cut / Copy / Paste / Delete commands.</p>
+<p>These commands are natively included in the contextual menu of the PLM Representation 
+Instance. But you can disable them like the following picture shows you:</p>
+<table>
+	<caption>Fig.8: CCP and Delete Avaibility</caption>
+	<tr>
+		<td>
+		<img alt="CCP and Delete Avaibility" src="images/CAAPstINFCtxMenuPoint.png"/></td>
+		<td>
+		<img alt="CCP and Delete Avaibility" src="images/CAAPstINFCtxMenuRoot.png"/></td>
+	</tr>
+</table>
+<p>On left, the contextual menu of the Point (same for Line and Wire), you observe 
+that only Cut, Copy and Delete are available. Paste and Paste Special are grayed. 
+On right, when an element is selected, the contextual menu of the Root only contains 
+Paste and Delete. This capability is explained in the article "<a href="CAAPstUcINFCSOFilter.htm">Exposing 
+Selectively Cut, Copy, Paste, Delete</a>" article.</p>
+<p>Now this Cut, Copy, Delete and Paste commands are based on the CCP protocol 
+as explained in this technical article [<a href="#References">4</a>]. Lets us present 
+what does these commands do with our data model.</p>
+<table>
+	<caption>Fig.9: CCP and Delete Behavior</caption>
+	<tr>
+		<td>
+		<img alt="CCP and Delete Behavior" src="images/CAAPstINFCopyPasteLine.png"/></td>
+		<td>
+		<img alt="CCP and Delete Behavior" src="images/CAAPstINFCutWire.png"/></td>
+	</tr>
+</table>
+<ul>
+	<li>On left, you have the Copy of <code>Line.2</code> following by a Paste on 
+		Root: A new line is created, <code>Line.4</code>, those lines pointing two 
+		new points (<code>Point.4</code> and <code>Point.5)</code>.</li>
+	<li>On right, the result after the cut of <code>Wire.1</code>: When a Wire is 
+		cut, its pointing features are deleted ( due to our customization), so
+		<code>Point.1</code> and <code>Point.2</code> are deleted, and by consequence 
+		due to the Point's deletion behavior, <code>Line.1</code> and <code>Line.2</code> 
+		are deleted, <code>Wire.2</code> is deleted, but not<code> Point.3</code>.</li>
+</ul>
+<p>All the stuff to manage the Cut, Copy, Delete and Paste behavior is explained 
+in the referenced article "<a href="CAAPstUcINFCCP.htm">Cut, Copy and Paste StartUp 
+Behavior</a>".</p>
+<p>The last thing is the contextual menu.</p>
+<table>
+	<caption>Fig.10: Contextual Menu</caption>
+	<tr>
+		<td><img alt="Contextual Menu" src="images/CAAPstINFCntxMenu.png"/></td>
+	</tr>
+</table>
+<p>A command has been added to the default contextual menu - the one of the PLM 
+technological Instance- The article "<a href="CAAPstUcINFContextualMenuCommands.htm">Enabling 
+Contextual Commands</a>" explains how to do that.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the CAAPstINFIntegrateNewFeatures Use Case</h3>
+<p>To launch the CAAPstINFIntegrateNewFeatures use case, you will need to set up 
+the build time environment and then compile the following modules:</p>
+<ul>
+	<li>CAAPstINFModelerItf.m</li>
+	<li>CAAPstINFModeler.m</li>
+	<li>CAAPstINFModelerUI.m</li>
+	<li>CAAPstINFModelerCmd.m</li>
+	<li>CAAPstINFAddin.m</li>
+	<li>CAAPstINFCreateProduct.m</li>
+	<li>CAAPstExtendUtilities.m</li>
+</ul>
+<p>along with their prerequisites [<a href="#References">5</a>]. Several steps must 
+be followed in order to completely execute the use case:</p>
+<ul>
+	<li>By executing the shell commands as described in the
+		<a href="CAAPstUcINFBuildCatalog.htm">Defining a StartUp Catalog</a> Step.
+		<p>You can skip this step, and use the provided Feature catalog. Use the 
+		command mkrtv, it will copy the provided CATfct file to the workspace Runtime 
+		view.</p>
+	</li>
+	<li>By batch, launch the following command:
+		<p>mkrun -c &quot;CAAPstINFCreateProduct repository server user password 
+		SecurityCtx environment &quot;</p>
+		<p>where:</p>
+		<table id="table13" class="border1">
+			<tr>
+				<th>Repository</th>
+				<td>
+				<script type="text/javascript">insertRepository();</script>
+				</td>
+			</tr>
+			<tr>
+				<th>Server</th>
+				<td>The name and port of the server as name:port_number</td>
+			</tr>
+			<tr>
+				<th>User</th>
+				<td>The user name</td>
+			</tr>
+			<tr>
+				<th>Password</th>
+				<td>The user password to authenticate the user</td>
+			</tr>
+			<tr>
+				<th>SecurityCtx</th>
+				<td>a string representing the security context (Role.Organization.Project). 
+				Choose Role as Reviewer (as the use case does not modify the PLM 
+				Data).</td>
+			</tr>
+			<tr>
+				<th>Environment</th>
+				<td>A PLM environment containing PLMProductDS (a PRODUCT's custo)</td>
+			</tr>
+		</table>
+		<p>Nevertheless, in the CAAProductStructureExtend.edu/InputData there is 
+		a 3D XML file containing the result of this batch (*). Import in database 
+		the <code>CAAPstINFProductRef.3dxml</code> file, in database you will have 
+		the CAAPstINFProductRef Product reference.</p>
+		<table>
+			<caption><a name="Fig11"></a>Fig.11: CAAPstINFProductRef.3dxml Contents</caption>
+			<tr>
+				<td>
+				<img alt="CAAPstINFProductRef.3dxml Contents" src="images/CAAPstINFCAAPstINFProductRef3DXML.png"/></td>
+			</tr>
+		</table>
+		<p>[Fig.11] represents the import of the <code>CAAPstINFProductRef.3dxml
+		</code>file so, the picture shows the suffix added by the import.</p>
+		<p>(*) just after the batch execution we have manually changed the PLM_ExternalID 
+		value to have the string &quot;<code>CAAPstINFProductRe</code>f&quot;.</p>
+	</li>
+	<li>Remove the bold characters in the interface dictionary file of the CAAProductStructureExtend.edu 
+		framework:
+		<pre class="code">...
+<strong>#CAA#</strong>CAAPstINFWksAddin     CATIWorkbenchAddin          libCAAPstINFAddin
+<strong>#CAA#</strong>CAAPstINFWksAddin     CATIPRDWorkshopAddin        libCAAPstINFAddin
+...</pre>
+	</li>
+	<li>Launch <strong>V6</strong>. When the application is ready, follow the scenario 
+		described below:
+		<ul>
+			<li><strong>Open</strong> CAAPstINFProductRef with all its representation.</li>
+			<li><strong>Collapse</strong> the &quot;Root&quot; node by selecting 
+				the &quot;+&quot; symbol: notice that this root aggregates seven 
+				features of which five are of type &quot;CAAPstINFPoint&quot;, one &quot;CAAPstINFLine&quot; 
+				and one &quot;CAAPstINFWire&quot; - see [<a href="#Fig11">Fig.11</a>].</li>
+			<li><strong>Double-click</strong> on the &quot;<code>Point.3</code>&quot; 
+				feature: the &quot;Point Definition&quot; dialog box appears.</li>
+			<li><strong>Modify</strong> <strong>the values</strong> of any of the 
+				point coordinates and <strong>select</strong> <strong>OK</strong> 
+				or <strong>press</strong> <strong>Enter</strong>. Notice that the &quot;<code>Point.3</code>&quot; 
+				feature has changed position and that the &quot;<code>Wire.1</code>&quot; 
+				feature has also been updated.</li>
+			<li><strong>Display the contextual menu</strong> on the &quot;<code>Point.1</code>&quot; 
+				feature.</li>
+			<li><strong>Select &quot;Copy&quot;</strong>.</li>
+			<li><strong>Display the contextual menu</strong> on the &quot;Root&quot; 
+				feature. (the second one).</li>
+			<li><strong>Select &quot;Paste&quot;</strong>. Notice that a new feature, &quot;<code>Point.1</code>&quot; 
+				has been created. The new point has the same coordinate values as 
+				the point it is copied from, so both are at the same position in 
+				3D.</li>
+			<li><strong>Double-click</strong> on the new &quot;<code>Point.1</code>&quot; 
+				feature: the &quot;Point Definition&quot; dialog box appears.</li>
+			<li><strong>Modify the values</strong> of any of the point coordinates 
+				and <strong>select OK</strong> or <strong>press Enter</strong>. 
+				Now you can be convinced that there are 2 distinct points.</li>
+			<li><strong>Display the contextual menu</strong> on the old &quot;<code>Point.1</code>&quot; 
+				feature.</li>
+			<li><strong>Select &quot;Delete&quot;</strong>. Notice that the &quot;<code>Point.1</code>&quot; 
+				feature has been deleted like <code>Line.1</code>.</li>
+		</ul>
+	</li>
+	<li><strong>Launch V6</strong>. When the application is ready, follow the scenario 
+		described below:
+		<ul>
+			<li><strong>Launch</strong> <strong>VPM Edito</strong>r (open a PLM 
+				Product Reference, or create a new one).</li>
+			<li><strong>Retrieve</strong> the CAA Product Structure INF Use case 
+				toolbar [<a href="#Fig2">Fig.2</a>].</li>
+			<li>Launch the <strong>Create a Techno Rep with CAAPstINFxxx</strong> 
+				command.</li>
+			<li><strong>Select</strong> the Root Product, or any PLM Product Instance 
+				below the root.</li>
+			<li><strong>Push</strong> the &quot;Create New Techno Rep&quot; button. 
+				You must observe the same data as those shown by [<a href="#Fig3">Fig.3</a>].</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAPstINFIntegrateNewFeatures Code</h3>
+<p>The CAAPstINFIntegrateNewFeatures use case is made of several modules of the 
+CAAProductStructureExtend.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAProductStructureExtend.edu</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">5</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>These modules are:</p>
+<ul>
+	<li><strong>CAAPstINFModelerItf.m</strong> - it contains the interface IID's 
+		and TIE's necessary for the interfaces created to manage the new feature's 
+		data access: <em>CAAIPstINFFactory</em>, <em>CAAIPstINFSubElement</em>,
+		<em>CAAIPstINFPoint</em>, <em>CAAIPstINFLine</em>, 
+		<em>CAAIPstINFWire</em> and <em>CAAIPstINFRoot</em>. The interface header files 
+		can be found in the ProtectedInterfaces file of the CAAProductStructureExtend.edu 
+		framework.</li>
+	<li><strong>CAAPstINFModeler.m</strong> - it contains all the stuff to manage 
+		the <strong>M</strong> (in MVC protocol): The implementation of <em>CAAIPstINFFactory</em>,
+		<em>CAAIPstINFSubElement</em>, <em>CAAIPstINFPoint</em>, <em>CAAIPstINFLine</em>,
+		<em>CAAIPstINFWire</em> and <em>CAAIPstINFRoot</em>, <em>CATIFmFeatureBehaviorCustomization</em>, 
+		as the code to manage the provider and the container loading.</li>
+	<li><strong>CAAPstINFModelerUI.m</strong> - It contains all the stuff to manage 
+		the <strong>V</strong> (in MVC protocol): The implementation of the following 
+		interfaces, <em>CATI3DGeoVisu</em>, <em>CATIModelEvents</em>, <em>CATICSOFilter</em>,
+		<em>CATINavigateObject</em>.</li>
+	<li><strong>CAAPstINFModelerCmd.m</strong> - (<strong>C</strong>, in MVC protocol) 
+		this modules contains the Edit and Create Line/ Point commands. The command 
+		to create a Root, the command to create a PLM Technological representation 
+		and a bundle of features, and the command displaying the contents of the
+		<code>CAAPstINFContainer</code> container.</li>
+	<li><strong>CAAPstINFAddin.m</strong> - this module contains the definition 
+		of the toolbar enabling to create interactively applicative feature within 
+		a new PLM Technological Representation</li>
+	<li><strong>CAAPstINFCreateProduct.m</strong> - This module contains one main 
+		program, CAAPstINFCreateProduct.cpp. It is an executable batch program that 
+		is used to create the CAAPstINFProductRef Product Reference.</li>
+	<li><strong>CAAPstExtendUtilities.m</strong> - it contains global functions 
+		used in several modules.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="StepByStep"></a>Step-by-Step</h3>
+<p>We suggest to read the articles one by one as listed below:</p>
+<ul>
+	<li><strong>Defining StartUp Catalog</strong>: to understand how the Feature 
+		catalog CAAPstINFCatalog is created.</li>
+	<li><strong>Data model and Interfaces</strong>: an article describing all the 
+		interfaces implemented by the StartUps and the applicative container, and 
+		giving a link to the article describing the implementation.</li>
+	<li><strong>VPM Editor Addin Creation</strong>: to have a first glance of the 
+		provided commands to handle the application, and to understand how to add 
+		commands inside VPM Editor.</li>
+	<li><strong>Data Model Usage</strong>: a set of three articles. The first article 
+		describes how to create and instantiate a PLM Technological Representation, 
+		and the second one describes how to use it to instantiate feature inside. 
+		The last one does the same thing as the second but interactively.</li>
+	<li><strong>StartUp Behaviors (Model)</strong>: a set of articles describing 
+		all the interfaces implemented by the StartUp whose implementation are always 
+		useful, in batch as well as interactively.</li>
+	<li><strong>StartUp Behaviors (View)</strong>: a set of articles describing 
+		all the interfaces implemented by the StartUp mainly used in interactive 
+		context.</li>
+	<li><strong>Initializing the Applicative Container at Runtime</strong>: this 
+		article describes what must be done when a container is loaded in session.</li>
+	<li><strong>Interactive Behaviors</strong>: a set of articles describing some 
+		interactive protocols.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The CAAPstIntegratingNewFeatures use case has shown you how to create new features &quot;from 
+scratch&quot; and how to integrate them in a product structure and enable them to 
+have certain basic DS application behavioral capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPstTaTechnoRep.htm">PLM Technological Representation</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAOsmTaOverview.htm">
+		Feature Modeler Overview</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaUnderstandingCredentials.htm">
+		Understanding Credentials</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtTaCCPCustomization.htm">
+		Cut Copy Paste Customization</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [May 2002]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>2</strong> [Oct 2006]</td>
+		<td>Document updated</td>
+	</tr>
+	<tr>
+		<td>Version: <strong>3</strong> [Jan 2011]</td>
+		<td>Document updated</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

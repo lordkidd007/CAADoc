@@ -1,0 +1,420 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
+<title>Understanding PLM Object Family</title>
+</head>
+
+<body>
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Understanding PLM Object Family</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<table class="abstract">
+  <tr>
+    <td>
+      <h2>Abstract</h2>
+      <p>If you have read the PLM Object identifier [<a href="#References">1</a>] 
+		article you have understood that any PLM Object in database has an 
+		unique identifier. Nevertheless, operations requires that the system 
+		is able to group together logically some PLM Objects. A logical group 
+		is a family. This article details this concept, gives some 
+		examples of operations on creating families, and ends with interactive scenarios.</p>
+      <ul>
+        <li><a href="#What Is a PLM Component Family">What Is a PLM Object Family</a><ul>
+        <li><a href="#Logical Identificator versus Physical Identificator">
+		Logical identifier versus Physical Identificator</a></li>
+		<li><a href="#Operations Keeping the Same Logical Identificator">
+		Operations Keeping the Same Logical Identifier</a></li>
+		<li><a href="#PLM Component and Operation Keeping Logical Identifier">
+		PLM Object and Operation Keeping Logical Identifier</a></li>
+      </ul>
+    	</li>
+        <li><a href="#What Is the PLM Component Family Usage">What Is 
+		the PLM Object Family Usage</a><ul>
+			<li><a href="#Retrieve all the Versions of a PLM Component">Retrieve 
+			all the Versions of a PLM Object</a></li>
+			<li><a href="#Retrieve a PLM Component to Reroot a Link">Retrieve a 
+			PLM Object to Re-Root a Link</a></li>
+		</ul></li>
+		<li><a href="#InShort">In Short</a></li>
+		<li><a href="#References">References</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="What Is a PLM Component Family"></a>What Is a PLM Object Family</h2>
+<p>A PLM Object family is a set of PLM Objects with the same logical 
+identifier.&nbsp; Before introducing some examples, a presentation of the 
+logical identifier is necessary.</p>
+<h3><a name="Logical Identificator versus Physical Identificator"></a>Logical 
+identifier versus Physical identifier</h3>
+<p>Each PLM Object has two identifiers: a physical and a logical 
+identifier:</p>
+<ul>
+	<li>The <b>physical</b> identifier identifies uniquely in database the 
+	PLM Object. This identifier is the one that in session you handle with 
+	a <i>CATIAdpPLMIdentificator</i> interface pointer. It enables you to open a 
+	PLM Object in session, or to make operations directly in database. It is 
+	completely described by the referenced article [<a href="#References">1</a>].</li>
+	<li>The <b>logical</b> identifier identifies a set of PLM Objects. You 
+	do not have access to this identifier, it is an internal data. But in the 
+	next, the article describes operations internally based on this logical 
+	identifier.</li>
+</ul>
+<p>In this article, the following formalism will be used to present the physical 
+and logical identifier:</p>
+<table border="0" id="table2">
+	<caption>Fig.1 </caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_Formalisme.gif" width="192" height="42"></td>
+	</tr>
+</table>
+<p>On the left the physical identifier (<b>P</b>) with 
+the value x, and on the right the logical identifier (<b>L</b>) with the value y.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Operations Keeping the Same Logical Identificator"></a>Operations 
+Keeping the Same Logical Identifier</h3>
+<p>In this section we detail two operations, 
+<a href="#PLM Component Versioning">PLM Object versioning</a> [<a href="#References">1</a>] 
+and <a href="#PLM Component Replacement">PLM Object replacement</a>. It shows the logical 
+identifier 
+management. </p>
+<p><b><a name="PLM Component Versioning"></a>PLM Object Versioning</b></p>
+<table border="0" id="table3">
+	<caption><a name="Fig.2">Fig.2</a> Ref1 Versioning Operation- Before</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_versionavant.gif" width="456" height="177"></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.2">Fig.2</a>] just above shows :<ul>
+	<li>All PLM Objects with their own physical identifier [1..4], and 
+	each one with a different logical identifier [A..D]. </li>
+	<li>The root reference, <code>PLM Reference 1</code>, has the version ---. 
+	This PLM Reference aggregates two PLM instances coming from the same <code>
+	PLM Reference 2</code>. </li>
+	</ul>
+	<p>The same PLM Data model after the versioning of <code>PLM Reference 1</code></p>
+<table border="0" id="table4">
+	<caption><a name="Fig.3">Fig.3</a> Ref 1 Versioning Operation- After</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_versionapres.gif" width="446" height="167"></td>
+	</tr>
+</table>
+	<p>First compare [<a href="#Fig.2">Fig.2</a>] and [<a href="#Fig.3">Fig.3</a>] 
+	to observe the physical identifier change due to the versioning:<ul>
+	<li>The root PLM Reference, <code>PLM Reference 1 --A</code>, is a new PLM 
+	Object in database: see the physical identifier has changed. P1 
+	-&gt;P1'</li>
+	<li>The two PLM Instances are new ones : their physical identifier have 
+	changed too</li>
+	<li>The PLM Reference of the two PLM Instances is always <code>PLM Reference 
+	2 ---</code>&nbsp; since the versioning is not recursive. The physical 
+	identifier has not changed (P4)</li>
+	</ul>
+	<p>But now considering the logical identifiers. There is no change. </p>
+	<ul>
+		<li>for <code>PLM Reference 2 ---</code> is it normal because it is exactly the 
+		same PLM Object before and after the operation </li>
+		<li>for the other for PLM Objects, if the physical identifier has 
+		changed, the new PLM Object has kept the same logical identifier. 
+		</li>
+	</ul>
+	<p>we can said that (<code>PLM Reference 1 --A, PLM Reference 1 ---</code>) 
+	are inside the same family LA,&nbsp; (<code>PLM Instance 1 </code>
+	<font face="Verdana">P2</font>,<code>PLM 
+	Instance 1 </code><font face="Verdana">P2</font>' 
+	) are inside the same family LB, and (<code>PLM Instance 2 </code>
+	P3,<code>PLM 
+	Instance 2 </code>P3' 
+	) are inside the same family LC.</p>
+<p>Now considering another example. </p>
+<p><b><a name="PLM Component Replacement"></a>PLM Object 
+	Replacement</b></p>
+<p>The replace operation consists in to change a PLM instance by another one. </p>
+<table border="0" id="table5">
+	<caption>Fig.4 PLM Inst. 1- Replace Operation -Before</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_replaceavant.gif" width="357" height="89"></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.2">Fig.4</a>] is an extract of [<a href="#Fig.2">Fig.2</a>] . 
+The scenario consists in to replace <code>PLM Instance 1 </code>
+	by an instance of another PLM Reference.&nbsp; </p>
+<table border="0" id="table6">
+	<caption><a name="Fig.5">Fig.5</a> PLM Inst. 1- Replace Operation -After</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_replaceapres.gif" width="391" height="298"></td>
+	</tr>
+</table>
+<p>This change is operated in two steps: (*)</p>
+<blockquote>
+	<ol>
+		<li>A new instance of the input PLM Reference (<code>PLM Reference 3)
+		</code>is created. Note that 
+	this new PLM Instance,<code> PLM Instance 3</code>, has the same logical 
+		identifieras <code>PLM Instance 1</code>, the instance to replace.</li>
+		<li><code>PLM Instance 1</code> is deleted and <code>PLM Instance 
+	3</code> is aggregated to <code>PLM Reference 1</code>.</li>
+	</ol>
+</blockquote>
+<p>(*) attention, this methodology can be dependent on the Modeler. [<a href="#Fig.5">Fig.5</a>] 
+presents the Product modeler case. In another modeler, <code>PLM Instance 1
+</code>can be kept, with same identifiers, and its new PLM Reference will be 
+no longer <code>PLM Reference 2</code> but <code>PLM Reference 3</code>. </p>
+<h3><a name="PLM Component and Operation Keeping Logical Identifier"></a>PLM 
+Object and Operation Keeping Logical Identifier</h3>
+<p>This array sums up the operations by PLM Object types keeping the logical 
+identifier</p>
+<table border="1" id="table21">
+	<tr>
+		<td><b>PLM Object</b></td>
+		<td><b>Operations</b></td>
+	</tr>
+	<tr>
+		<td>PLM Reference</td>
+		<td>versioning</td>
+	</tr>
+	<tr>
+		<td>PLM Rep Reference</td>
+		<td>versioning</td>
+	</tr>
+	<tr>
+		<td>PLM Instance </td>
+		<td>versioning owner, replace</td>
+	</tr>
+	<tr>
+		<td>PLM Rep Instance</td>
+		<td>versioning owner, replace</td>
+	</tr>
+	<tr>
+		<td>PLM Port</td>
+		<td>versioning owner </td>
+	</tr>
+	<tr>
+		<td>PLM Connection</td>
+		<td>versioning owner </td>
+	</tr>
+</table>
+<p>&nbsp;</p>
+<p>Now, we have explained what is a family, let's showing its interest.</p>
+<h2><a name="What Is the PLM Component Family Usage"></a>What Is the PLM Object Family Usage</h2>
+<p>This article presents two usages, we begin by the simplest case to explain, 
+but the last one is certainly what the end user will often use interactively. </p>
+<h3 align="left"><a name="Retrieve all the Versions of a PLM Component"></a>
+Retrieve all the Versions of a PLM Object</h3>
+<p align="left">The API to retrieve all the versions of a PLM Object is the 
+following</p>
+<table class="code" id="table7">
+  <tr>
+    <td>
+      <pre>...
+public static HRESULT GetAllVersions( CATIAdpPLMIdentificator*  iComponent, 
+                                      CATLISTP(CATAdpQueryResult)&  oQueryResults)  
+...</pre>
+    </td>
+  </tr>
+</table>
+<p align="left">The first input argument of this method, <i>
+CATAdpVersioningServices</i> class, is the physical identifier of the PLM Object to retrieve all its version. Since all the versions of a 
+PLM Object 
+kept the same logical identifier, the system can retrieve the list from any 
+versioned PLM Object of the same family. </p>
+<p align="left">Considering the little scenario:</p>
+<ul>
+	<li>
+	<p align="left">PLM Reference A: with PLM_ExternalID =&quot;MyCar&quot; , and 
+	v_Version =&quot;---&quot;</li>
+	<li>
+	<p align="left">version it, it creates PLM Reference B: with PLM_ExternalID =&quot;MyCar&quot; , 
+	and v_Version =&quot;--A&quot;</li>
+	<li>
+	<p align="left">change the PLM_ExternalID value of PLM Reference A, 
+	PLM_ExternalID =&quot;MyNewCar&quot; , and v_Version =&quot;---&quot;</li>
+</ul>
+<p align="left">Nevertheless, the system retrieves theses two PLM Objects (&quot;MyNewCar&quot; 
+, v_Version =&quot;---&quot;) and (&quot;MyCar&quot; , v_Version =&quot;--A&quot;) when 
+you ask the all the versions from one of two.</p>
+<script type="text/javascript">insertLinkToTop()</script>
+<h3><a name="Retrieve a PLM Component to Reroot a Link"></a>Retrieve a PLM 
+Object to Re-Root a Link</h3>
+<p>The system thanks to this logical identifier enables to the end user either 
+to repair a <a href="#Broken link scenario:">broken link</a>, or to 
+<a href="#Change link scenario">change a link</a>. This section first explains the 
+principles and then illustrates by interactive scenarios.</p>
+<p><b><a name="Broken link scenario:"></a>Broken link scenario:</b></p>
+<table border="0" id="table14">
+	<caption>Fig.6 Broken Links Principle</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL01.gif" width="368" height="252"></td>
+			</tr>
+</table>
+<p>In this scenario, the Port pointes a geometry inside <code>(PLM Reference 2 
+---).</code> 
+Before the replace of <code>PLM Instance 1</code> by <code>PLM Instance 3</code>, 
+the Port was valid, after the link is broken.&nbsp; </p>
+<table border="0" id="table16">
+	<caption>Fig.7 Interactive Model </caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL02.png" width="298" height="213"></td>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL03.png" width="291" height="215"></td>
+	</tr>
+</table>
+<p>On the left, the model before the replace, on the right after the replace.&nbsp; 
+Note the (!) icon specifying that the links is broken. </p>
+<p>Since <code>PLM Instance 3</code> is an instance of a version of
+<code>PLM Reference 2</code>, interactively you can 
+repair the link. The system is able to find a replace for <code>PLM Instance 
+1, </code>it is <code>PLM Instance 3</code>, and it can find a replace for <code>
+PLM Reference 2 (---)</code>, since it can propose <code>
+PLM Reference 2 (--A).</code></p>
+<table border="0" id="table9">
+</table>
+<p>You can repair the broken link thanks to the 
+&quot;Links and relations&quot; command&nbsp; (Edit menu). In 
+the dialog box [<a href="#Fig.9">Fig.9</a>] first select the option&nbsp;(Replace 
+pointed component logically by a same family's component in session) in the round.</p>
+<table border="0" id="table10">
+	<caption><a name="Fig.9">Fig.9</a> Links and Relation Command</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL04.png" width="565" height="328"></td>
+	</tr>
+</table>
+<p>The command is able to propose <code>PLM Instance 3</code> / P<code>LM 
+reference 2 --A</code> . </p>
+<table border="0" id="table17">
+	<caption>FiG.10 Broken Link is repared</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL05.png" width="611" height="393"></td>
+	</tr>
+</table>
+<p>Note the pointed component is now&nbsp; inside P<code>LM 
+reference 2 --A</code> . </p>
+<table border="0" id="table11">
+	<caption>Fig.11 Publication is now OK</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootBL06.png" width="337" height="224"></td>
+	</tr>
+</table>
+<p>Now the icon of the PLM Port is normal.</p>
+<p>&nbsp;</p>
+<p><b><a name="Change link scenario"></a>Change link scenario:</b></p>
+<table border="0" id="table18">
+	<caption><a name="Fig.12">Fig.12</a> Change Link- principles</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootCL01.gif" width="485" height="169"></td>
+	</tr>
+</table>
+<p align="left">[<a href="#Fig.12">Fig.12</a>] just above &quot;shows&quot; that there is 
+a link (solid line) from the PLM Rep Ref , <code>PLM Rep Reference 1</code> to 
+the <code>PLM Rep Reference 2</code>. The objective is to re-root the link 
+(dashed line) from a new version&nbsp; of <code>PLM Rep Reference 2. </code></p>
+<p align="left">This link can be due to a copy &quot;as result with link&quot; from <code>
+PLM Rep Reference 2 to PLM Rep Reference 1</code> . </p>
+<table border="0" id="table19">
+	<caption><a name="Fig.13">Fig.13</a> Copy as Result with Link</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootCL02.gif" width="633" height="331"></td>
+			</tr>
+</table>
+<p>[<a href="#Fig.13">Fig.13</a>] just above shows that the PartBody from <code>
+PLM Rep Reference 2</code> has been copied inside <code>PLM Rep Reference 1.</code> 
+Now make three versions of <code>PLM Rep Reference 2. </code></p>
+<table border="0" id="table20">
+	<caption>Fig.14 PLM Rep Reference 2 versioning</caption>
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootCL03.png" width="641" height="517"></td>
+	</tr>
+</table>
+<p>[<a href="#Fig.13">Fig.13</a>] just above shows three versions of&nbsp; <code>
+PLM Rep Reference 2 (</code> <code>---)</code> with a magenta face, (--A ) with 
+a yellow face, (--B green) with a green face. Now we launch &quot;Links and 
+relations&quot; command&nbsp; (Edit menu). In the dialog box [<a href="#Fig.9">Fig.9</a>] first select the option&nbsp;(Replace 
+pointed component logically by a same family's component in session) in the round. </p>
+<table border="0" id="table20">
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootCL04.png" width="649" height="396"></td>
+	</tr>
+</table>
+<p>The &quot;Solve the reroute ambiguities&quot; dialog bow appears: It proposes all the 
+possible logical re-root: <code>PLM Rep Reference 2 (</code> <code>--A)</code> 
+and <code>PLM Rep Reference 2 (</code> <code>--B)</code> . We have choose <code>
+Rep Reference 2 (</code> <code>--A).</code></p>
+<table border="0" id="table20">
+	<tr>
+		<td>
+		<img border="0" src="images/CAAPlmComponentFamily_rerootCL05.png" width="577" height="465"></td>
+	</tr>
+</table>
+<p>After the synchronisation, and a local update, you can see that the Body.4 
+inside <code>PLM Rep Reference 1</code> is now with a yellow face<code>.</code></p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has presented the logical identifier concept. Thanks that it 
+is possible to create family of PLM Objects. All elements of a family have 
+the same logical identifier.&nbsp; You do not have API to retrieve and handle 
+this identifier, but nevertheless you can see their usage when you try to 
+make a re-root. The Edit and Relation command is able to propose for a link (broken or not), 
+all the elements of the same family as the current link. It is also called the 
+&quot;logical Re-root&quot;.&nbsp; </p>
+<script type="text/javascript">insertLinkToTop()</script>
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="References"></a>References</h2>
+<table >
+  <colgroup>
+		<col valign="top" span="1">
+	</colgroup>
+    <td valign="top">[1]</td>
+    <td><a href="CAAPlmTaCATIAdpPLMIdentificator.htm">Understanding PLM Object Identification</a></td>
+  </tr>
+  
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<h2><a name="History"></a>History</h2>
+<table >
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Nov 2006]</td>
+    <td valign="top">Document created</td>
+  </tr>
+  <tr>
+<script type="text/javascript">insertLinkToTop()</script>  </tr>
+</table>
+
+<!-- -------------------------------comment---------------------------------- -->
+<script type="text/javascript">insertCopyright();</script>
+</body>
+
+</html>
+
+

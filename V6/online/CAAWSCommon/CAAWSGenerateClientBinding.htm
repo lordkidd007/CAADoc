@@ -1,0 +1,272 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Generating a C# Client Binding</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Generating a C# Client Binding</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article introduces the <strong>.NET3.0 Framework</strong> Web
+		Services support and explains how to use the <strong>Service Model
+		Metadata Tool (svcutil.exe)</strong> in order to generate C# client bindings
+		for <strong>Web services</strong>. These bindings can be used to create
+		client applications that interact with Web services.</p>
+		<ul>
+			<li><a href="#1">.NET Framework Web Services Overview</a></li>
+			<li><a href="#2">Officially Certified Release</a></li>
+			<li><a href="#3">Step-by-step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="1"></a>.NET Framework Web Services Overview</h2>
+<p>The .NET3.0 Framework natively provides support to build Web
+services, as well as to consume them. In the context of V6 Web
+services, only the client side feature of the .NET Framework is
+required:</p>
+<ul>
+	<li><strong>Build time</strong>: the .NET Framework SDK ships with a tool
+	named <strong>Service Model Metadata Tool (svcutil.exe)</strong>. It can be used
+	to generate a C# client binding (or proxy class) based on the WSDL and
+	XSD definitions of a Web service.</li>
+	<li><strong>Runtime</strong>: using the .NET3.0 Framework runtime, the
+	generated C# client binding handles the work of sending and receiving
+	SOAP messages to the target Web service implementation. The SOAP
+	network endpoint URI describing a deployed implementation of the Web service is set on the generated C# proxy class.</li>
+</ul>
+<p>You can refer to the .NET Framework documentation for further
+details on Web services related topics. See [<a href="#References">1</a>]
+for access to some accurate links on the MSDN Web site.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="2"></a>Officially Certified Release</h2>
+<p>The term &quot;certified&quot; is intended to describe the fact
+that a given .NET Framework release has been successfully tested and
+validated in order to consume Web services. As of now, the certified
+release requires:</p>
+<p><strong>Microsoft .NET Framework 3.0 + Software Development Kit.</strong></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="3"></a>Step-by-step</h2>
+<p>Before using svcutil.exe to create the C# proxy, it is important
+to get an understanding of some of the concepts that are related to the
+WSDL documents describing the available Web services. See [<a
+href="#References">2</a>] for an overview of these concepts.</p>
+<ol>
+	<li><a href="#31">Generating the C# Client Binding</a></li>
+	<li><a href="#32">Overview of the Generated Code</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="31"></a>Generating the C# Client Binding</h3>
+<p>The WSDL documents and associated XSDs required to generate a C#
+client binding are available from the runtime view of every product that
+provides Web services. You can refer to [<a href="#References">2</a>]
+in order to determine the exact location of the WSDL interface document
+describing the Web services you wish to consume</p>
+<p>The svcutil.exe tool takes as input WSDL and XSD files describing
+the web service and generates a source file a in managed language (by
+default C#) and a configuration file. The source file contains the code
+of the generated proxy which enables invocation of the web service from
+a .NET program. This source file relies on .NET 3.0 libraries
+(System.Runtime.Serialization.dll and System.ServiceModel.dll) which are
+bundled with the .NET 3.0 framework. The configuration file enables
+declarative configuration of the proxy. By simply modifying this file,
+one can specify timeouts, activate traces, specify authentication
+options... The same results can also be achieved programmatically by
+calling the proper API on the proxy object.</p>
+<p>In order to use the svcutil.exe tool, you need to open up a
+command prompt. Click on <strong>Start</strong> -&gt; <strong>Run</strong> and then type <strong>cmd</strong>.
+From the prompt, browse to the \Bin directory of your .NET Framework 3.0
+SDK installation. By default, it is located in the <strong>C:\Program
+Files\Microsoft SDKs\Windows\v6.0\Bin</strong> directory. For details on the
+svcutil.exe tool options, you can issue the following command: <strong>svcutil
+/?</strong>.</p>
+<p>You are now ready to invoke the svcutil.exe tool, providing as
+input the WSDL and XSD documents describing the Web service you wish
+to consume:</p>
+<pre class="code">svcutil.exe /namespace:<em>&lt;string,string&gt;</em> /directory:<em>&lt;directory&gt;</em> /out:<em>&lt;filename&gt;</em> /config:<em>&lt;filename&gt;</em> <em>&lt;WSDL-document&gt; &lt;schema1&gt; &lt;schema2&gt; ... &lt;schema_i&gt;</em></pre>
+<table class="fill">
+	<tr>
+		<th>/namespace:&lt;string,string&gt;</th>
+		<td>By default, svcutil derives CLR namespaces automatically from
+		the namespaces defined in XSD and WSDL documents. This option
+		overrides the default behavior and specifies how WSDL and XSD
+		namespaces should map to CLR namespaces.
+		<p><strong>Note:</strong> Using the &quot;*&quot; wildcard as in <code>/namespace:*,my.choice.of.namespace</code>
+		causes all the code to be generated in the <code>my.choice.of.namespace</code>
+		namespace.</p></td>
+	</tr>
+	<tr>
+		<th>/directory:&lt;directory&gt;</th>
+		<td>The directory where to put the generated code.</td>
+	</tr>
+	<tr>
+		<th>/out:&lt;filename&gt;</th>
+		<td>The filename of the generated C# proxy.</td>
+	</tr>
+	<tr>
+		<th>/config:&lt;filename&gt;</th>
+		<td>The filename of the generated configuration file.</td>
+	</tr>
+	<tr>
+		<th>&lt;WSDL-document&gt;</th>
+		<td>The path or URI of the input WSDL document.</td>
+	</tr>
+	<tr>
+		<th>&lt;schema1&gt;&lt;schema2&gt;...&lt;schema_i&gt;</th>
+		<td>The schema files the wsdl file depends on.</td>
+	</tr>
+</table>
+
+<p>The following screen capture shows an example of how to invoke
+the svcutil.exe tool.</p>
+<table>
+	<caption><a name="Fig1"></a>Fig.1: Generating the C# Client
+	Binding</caption>
+	<tr>
+		<td><img src="images/CAAWSGenerateClientBinding_SvcUtil.gif" alt="Generating the C# Client Binding"/></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="32"></a>Overview of the Generated Code</h3>
+<p>The svcutil.exe tool generates a proxy file and a configuration file.</p>
+<h4>Generated Proxy File</h4>
+<p>You do not need to have a detailed knowledge of the code which is
+generated by the svcutil.exe tool. There are however several points
+which are worth noting.</p>
+<dl>
+	<dt>Main proxy class</dt>
+	<dd>The svcutil.exe generates one main proxy class per web
+	service. It extends the <code>System.ServiceModel.ClientBase</code>
+	.NET 3.0 class and has a name which ends with "Client". This is the
+	class you need to instantiate in your web service client program. You
+	will use this class to remotely send request messages to the web
+	service and obtain response or fault messages from the web service. It
+	has a programmer-friendly, strongly typed interface which makes
+	invoking a web service method straightforward.</dd>
+	<dt>Support classes</dt>
+	<dd>The svcutil.exe generates many classes to support the main
+	proxy class. Every XSD complex type or element (whether part of a web
+	service request message, web service response message or web service
+	fault message) will yield one corresponding managed class. You do not
+	need to know the name of all these classes in advance: you can let
+	Visual Studio auto-completion mechanism help you. Simply write the name
+	of the web method you want to call on the proxy and let auto-completion
+	guide you on the expected types for input and output parameters. The
+	only exception is for web service faults. Since .NET does not support
+	checked exceptions, you will need to know the exact name of the classes
+	which map to application faults and use
+	FaultException&lt;&lt;FaultClass&gt;&gt; to catch these application
+	level errors.</dd>
+	<dt>Namespace choice</dt>
+	<dd>The source file generated by svcutil.exe is autonomous. It
+	contains the proxy and all the support classes needed by the proxy. If
+	you generate proxies for several web services, you will notice that
+	some of the support classes are generated several times. Indeed, since
+	Dassault Syst&#232;mes web services reuse the same complex types from
+	service to service, the same support classes are generated by
+	svcutil.exe. You can use one of the following approaches to solve this
+	issue:
+	<ul>
+		<li>Invoke svcutil.exe just once, passing it the WSDLs and XSDs
+		for all the services you need to invoke. svcutil.exe will factor the
+		required support classes and generate them just once. This is the
+		recommended approach.</li>
+		<li>Invoke svcutil.exe once per web service, choosing a different
+		CLR namespace at each invocation for the generated code. This approach
+		will require that you write code to convert CLR types from one
+		namespace into the equivalent CLR types from the other namespace if
+		you need to propagate data obtained from one web service to another
+		web service.</li>
+	</ul>
+	</dd>
+</dl>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h4>Generated Configuration File</h4>
+<p>The configuration file contains one endpoint definition per web
+service. Note the value of the <code>name</code> attribute of the <code>endpoint</code>
+element. It uniquely identifies the configuration of this specific
+endpoint. You need to pass this name when you instantiate the proxy so
+that the proxy can be initialized with the correct communication
+parameters. The configuration files generated by svcutil.exe are
+generally more verbose than the one shown below, as they usually specify
+an explicit value for each communication parameter, whereas the example
+shown below is stripped to the bare minimum for clarity and relies of
+the default values for these parameters.</p>
+<pre class="code">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+    &lt;system.serviceModel&gt;
+        &lt;client&gt;
+            &lt;endpoint binding="basicHttpBinding"
+                contract="com.matrixone.jsystem.ws.generated.ping.IPingService"
+                name="IPingServiceBinding" /&gt;
+        &lt;/client&gt;
+    &lt;/system.serviceModel&gt;
+&lt;/configuration&gt;
+		</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort" id="InShort"></a>In Short</h2>
+<p>A C# client binding (or proxy class) can be generated for Web
+services using the .NET 3.0 Service Model Metadata Tool (svcutil.exe).</p>
+<p>The generated C# client binding can be used to consume the
+related Web service implementations that have been deployed on a
+target application server. For more details, please refer to the use
+cases describing how to consume the Web services you wish to use.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAWSLinks.htm">Web Services Links and Resources</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAWSWSDLDefinitions.htm">Web Services and WSDL Definitions</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Nov 2006]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

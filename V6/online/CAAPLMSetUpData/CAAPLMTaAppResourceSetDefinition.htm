@@ -1,0 +1,374 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js"></script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js"></script>
+<title>Defining Application Resource Set</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Defining Application Resource Set</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>A Resource Set is fully defined by an xml file, a CATNls file, and a 
+		CATRrc file. This article describes how to create these three files. All 
+		the steps are illustrated by an example. The last chapter presents the example 
+		interactively.</p>
+		<ul>
+			<li><a href="#Application Resource  Set Description">R<span class="style1">esou</span>rce 
+			Set Description</a><ul>
+				<li><a href="#XML File">XML File</a></li>
+				<li><a href="#Example for XML">Example</a></li>
+			</ul>
+			</li>
+			<li><a href="#Resource Files">Resources Files</a><ul>
+				<li><a href="#CATNLS">CATNls File</a></li>
+				<li><a href="#CATRsc">CATRsc File</a></li>
+				<li><a href="#Example for resources">Example</a></li>
+			</ul>
+			</li>
+			<li><a href="#Example Interactif">Example by Pictures</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Application Resource  Set Description"></a>Resource Set Description</h2>
+<p>The contents of the Resource Set is defined by an xml file whose the structure 
+must be compliant with the <code>AppResourceSetDescription.xsd</code> [<a href="#References">1</a>] 
+schema description file. The xml file must fit 2 following conditions:</p>
+<ul>
+	<li>It must be located in the <code>$OS/resources/knowledge/AppResourceSetDescriptions</code> 
+	directory of the runtime view.</li>
+	<li>It must be named <code>XXXAppResourceSetId.xml</code></li>
+</ul>
+<p>The xml file is located in the runtime view, so its name must be unique. To ensure 
+its uniqueness among DS and customers application, we suggest the following convention:</p>
+<ul>
+	<li>XXX is your brand trigram</li>
+	<li>AppResourceSetId represents the name of your application</li>
+</ul>
+<p>Let us detail its contents.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="XML File"></a>XML File</h3>
+<p>The contents of the XML must at least contains these statements:</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!--XML declaration file for the resources --&gt;
+
+&lt;rsc:<strong>AppResourceSet</strong> <strong>Id</strong>=&quot;<strong>XXXAppResourceSetId</strong>&quot; 
+     xsi:schemaLocation=&quot;urn:com:dassault_systemes:AppResourceSet AppResourceSetDescription.xsd&quot; 
+     xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+     xmlns:rsc=&quot;urn:com:dassault_systemes:AppResourceSet&quot;&gt;
+...
+&lt;/rsc:<strong>AppResourceSet</strong>&gt;
+</pre>
+<p>You can note that the value of the <code>Id</code> attribute of the <code>AppResourceSet</code> 
+element must be the same as the xml file name.</p>
+<p>Then between <code>&lt;rsc:AppResourceSet&gt;</code> and <code>&lt;/rsc:AppResourceSet&gt;</code> 
+you insert your resource item definitions. For each one it is like that:</p>
+<pre class="code">
+&lt;rsc:<strong>SetupData</strong> <strong>Id</strong>=&quot;ResourceItemId&quot; <strong>Type</strong>=&quot;ResourceItemType&quot; <strong>Mandatory</strong>=&quot;false|true&quot; <strong>Mulptiple</strong>=&quot;false|true&quot; &gt;
+...
+&lt;/rsc:<strong>SetupData</strong>&gt;
+</pre>
+<ul>
+	<li>The <code>id</code> attribute (required) of the Resource item must be unique 
+	in the xml file.</li>
+	<li>The <code>type</code> attribute (required) can be &quot;Catalog&quot;,<span lang="fr">
+	</span>&quot;PLMReference&quot;, <span lang="fr">etc</span>. The list is as to day less 
+	than for DS applications. The exhaustive list for CAA is given in the referenced 
+	article [<a href="#References">1</a>].</li>
+	<li>The <code>Mandatory</code> attribute (optional, default=true) allows the 
+	validation of the data connections filled by the administrator; All mandatory 
+	data need to have a correct assigned resource. When a resource is mandatory, 
+	and no data is connected to the Resource table [<a href="#References">2</a>], 
+	a red bullet appears in the UI.</li>
+	<li><code>Multiple</code> (optional, default=false), for several values instead 
+	one.</li>
+</ul>
+<p>For a same Resource item, you can propose sub-items. A sub-item, is a list of 
+items - of same type - but for which you can adjoin a criteria. The administrator 
+will set a value to the criteria to define conditions on the resource data connections. 
+Then, in the runtime, your application will chose the sub-item fitting your required 
+condition. Such criteria is introduced with the &quot;parameter&quot; element.</p>
+<pre class="code">
+&lt;rsc:<strong>Parameter</strong> <strong>Name</strong>=&quot;parametername&quot; <strong>Type</strong>=&quot;ParameterType&quot; <strong>min</strong>=&quot;&quot; <strong>max</strong>=&quot;&quot;  &gt;
+ ...
+&lt;/rsc:<strong>Parameter</strong>&gt;
+</pre>
+<ul>
+	<li>The <code>Name</code> attribute (required) is the parameter name. This name 
+	must be unique for the current Resource item.</li>
+	<li>The <code>Type</code> attribute (required) is the knowledge type of the 
+	parameter. Only the following knowledge types are accepted:
+	<ul>
+		<li>Boolean</li>
+		<li>Integer</li>
+		<li>Real</li>
+		<li>String</li>
+		<li>LENGTH</li>
+		<li>ANGLE</li>
+		<li>ObjectType</li>
+	</ul>
+	</li>
+	<li>The <code>min</code> and <code>max</code> attributes (optional) specify 
+	the minimum and maximum value for a numerical parameter.</li>
+</ul>
+<p>You can pre-defined a set of values for the parameter, using <code>PossibleValue</code>. 
+Between <code>&lt;rsc:Parameter&gt;</code> and <code>&lt;/rsc:Parameter&gt;</code>, you can 
+add several lines like that:</p>
+<pre class="code">
+&lt;rsc:<strong>PossibleValue</strong>&gt;XXX&lt;/rsc:<strong>PossibleValue</strong>&gt;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Example for XML"></a>Example</h3>
+<p>Here the example, CAAMyApplicationResourceSet.xml</p>
+<pre class="code">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+
+&lt;rsc:<strong>AppResourceSet</strong> Id=&quot;<strong>CAAMyApplicationResourceSet</strong>&quot; 
+                     xsi:schemaLocation=&quot;urn:com:dassault_systemes:AppResourceSet AppResourceSetDescription.xsd&quot; 
+                     xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+                     xmlns:rsc=&quot;urn:com:dassault_systemes:AppResourceSet&quot;&gt;
+
+  &lt;rsc:<strong>SetupData</strong> Id=&quot;CAAResource1&quot; Type=&quot;<strong>Catalog</strong>&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource2&quot; Type=&quot;<strong>Chapter</strong>&quot;  <strong>Mandatory</strong>=&quot;false&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource3&quot; Type=&quot;<strong>PLMReference</strong>&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource4&quot; Type=&quot;<strong>PLMRepReference</strong>&quot;&gt;
+      &lt;rsc:<strong>Parameter</strong> Name=&quot;Choice&quot; Type=&quot;String&quot; &gt;
+         &lt;rsc:<strong>PossibleValue</strong>&gt;Choice1&lt;/rsc:PossibleValue&gt;
+         &lt;rsc:PossibleValue&gt;Choice2&lt;/rsc:PossibleValue&gt;
+         &lt;rsc:PossibleValue&gt;Choice3&lt;/rsc:PossibleValue
+      &lt;/rsc:Parameter&gt;
+  &lt;/rsc:SetupData&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource5&quot; Type=&quot;<strong>PowerCopy</strong>&quot;          Mandatory=&quot;false&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource6&quot; Type=&quot;<strong>UserDefinedFeature</strong>&quot; Mandatory=&quot;false&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource7&quot; Type=&quot;<strong>Sheet</strong>&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource8&quot; Type=&quot;<strong>TextDocument</strong>&quot;/&gt;
+  &lt;rsc:SetupData Id=&quot;CAAResource9&quot; Type=&quot;<strong>XMLDocument</strong>&quot;/&gt;
+
+&lt;/rsc:<strong>AppResourceSet</strong>&gt;
+</pre>
+<p>This application contains 9 Resource items. You can see that one, <code>CAAResource4
+</code>contains a parameter section. It means that for this resource item, the administrator 
+could connect several PLM Rep Reference, and for each one, he could set a criteria, 
+one among the three values of the xml file.</p>
+<p><strong>Note</strong> : as of today data having a criteria could not be retrieved 
+by API. Only the first data could be retrieved.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Resource Files"></a>Resource Files</h2>
+<p>You have to define a CATNls and a CATRsc file.s</p>
+<ul>
+	<li>&lt;XXXAppResourceSetId&gt;.CATNls</li>
+	<li>&lt;XXXAppResourceSetId&gt;.CATRsc</li>
+</ul>
+<p>both located in the runtime view : <code>$OS/resources/msgcatalog</code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="CATNLS"></a>CATNLS File</h3>
+<p>The Resource set, each Resource item, and each Parameter can have a NLS Alias 
+and Description. You must declare these NLS strings in the corresponding &lt;AppResourceSetId&gt;.CATNls 
+file with the following naming convention for the NLS keys: &lt;AppResourceSetId&gt;
+</p>
+<table class="fill">
+	<tr>
+		<th>Syntax</th>
+		<th>For <span lang="fr">W</span>hat</th>
+	</tr>
+	<tr>
+		<td>&lt;XXXAppResourceSetId&gt;.Alias</td>
+		<td>Alias of the Resource Set</td>
+	</tr>
+	<tr>
+		<td>&lt;XXXAppResourceSetId&gt;.Description</td>
+		<td>Description of the Resource Set &lt;SetupDataId&gt;</td>
+	</tr>
+	<tr>
+		<td>&lt;ResourceId&gt;.Alias</td>
+		<td>Alias of the Resource item</td>
+	</tr>
+	<tr>
+		<td>&lt;ResourceId&gt;.Description</td>
+		<td>Description of the Resource item</td>
+	</tr>
+	<tr>
+		<td>&lt;ResourceId&gt;.&lt;ParameterName&gt;.Alias</td>
+		<td>Alias of the Parameter &lt;SetupDataId&gt;</td>
+	</tr>
+	<tr>
+		<td>&lt;ResourceId&gt;.&lt;ParameterName&gt;.Description</td>
+		<td>Description of the Parameter</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="CATRsc"></a>CATRsc File</h3>
+<p>You can specify a LongHelpId for your Resource Set, which is the identifier used 
+to launch the V6 documentation specific to the Resource Set. This help identifier 
+must be declared in the &lt;AppResourceSetId&gt;.CATRsc file with the following naming 
+convention:</p>
+<pre class="code">&lt;AppResourceSetId&gt;.LongHelpId = &quot;xxx.yyy&quot;;</pre>
+<p>When a help identifier is specified for a Resource Set , the icon (?) is displayed 
+in the cell &#8216;Description&#8217; of the corresponding line, and the menu item &#8216;Help for 
+xxx &lt;Resource Set Id&gt; (xxx is the alias of the Resource set) is added in the corresponding 
+contextual menu:</p>
+<table>
+	<tr>
+		<td><img alt="" src="images/CAAPLMSetUp_description01.png"></td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<h3><a name="Example for resources"></a>Example</h3>
+<p>Here you have the contents of the C<code>AAMyApplicationResourceSet.CATNls</code> 
+file.</p>
+<pre class="code">
+CAAMyApplicationResourceSet.Alias         = &quot;My Application Resource Set&quot; ;
+CAAMyApplicationResourceSet.Description   = &quot;Example of Resource Set for a CAA Application&quot; ;
+
+CAAResource1.Alias       = &quot;Catalog resource&quot; ;
+CAAResource1.Description = &quot;The resource for a catalog data&quot;;
+
+CAAResource2.Alias       = &quot;Chapter resource&quot; ;
+CAAResource2.Description = &quot;The resource for a Chapter data&quot;;
+
+CAAResource3.Alias       = &quot;PLM Reference resource&quot; ;
+CAAResource3.Description = &quot;The resource for a PLM Reference data&quot;;
+
+CAAResource4.Alias       = &quot;PLM Representation Reference  resource&quot; ;
+CAAResource4.Description = &quot;The resource for a Representation Reference data&quot;;
+CAAResource4.Choice.Alias = &quot;PLM Rep Reference&quot;;
+CAAResource4.Choice.Description = &quot;To give a criteria&quot;;
+
+CAAResource5.Alias       = &quot;Power Copy resource&quot; ;
+CAAResource5.Description = &quot;The resource for a Power Copy data&quot;;
+
+CAAResource6.Alias       = &quot;User Feature resource&quot; ;
+CAAResource6.Description = &quot;The resource for a User Feature (UDF) data&quot;;
+
+CAAResource7.Alias       = &quot;Sheet resource&quot; ;
+CAAResource7.Description = &quot;The resource for a Sheet data&quot;;
+
+CAAResource8.Alias       = &quot;Text file resource&quot; ;
+CAAResource8.Description = &quot;The resource for a Text file (.txt) data&quot;;
+
+CAAResource9.Alias       = &quot;XML resource&quot; ;
+CAAResource9.Description = &quot;The resource for a XML file (.xml) data&quot;;
+</pre>
+<p>And for the <code>CAAMyApplicationResourceSet.CATRsc</code> file.</p>
+<pre class="code">CAAMyApplicationResourceSet.LongHelpId = &quot;xxxx.yyyy&quot;;</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Example Interactif"></a>Example by Pictures</h2>
+<p>The 3 files, <code>CAAMyApplicationResourceSet.xml</code>, <code>CAAMyApplicationResourceSet.CATRsc</code>,
+<code>CAAMyApplicationResourceSet.CATNls</code> are located in the framework CAAPLMSetupDataItf.edu</p>
+<ul>
+	<li><strong>Set the</strong> <code>CAAMyApplicationResourceSet.xml</code> file 
+	in the CNext directory of CAAPLMSetupDataItf.edu<p>The <code>CAAMyApplicationResourceSet.xml</code> 
+	is here:</p>
+	<table>
+		<tr>
+			<td><code>InstallRootDirectory\CAAPLMSetupDataInterfaces.edu\InputData\CAAMyApplicationResourceSet.xml<br>
+			</code></td>
+		</tr>
+	</table>
+	<p>You duplicate (or move) it here:</p>
+	<table>
+		<tr>
+			<td><code>InstallRootDirectory\CAAPLMSetupDataInterfaces.edu\CNext\resources\knowledge\AppResourceSetDescriptions<br>
+			</code></td>
+		</tr>
+	</table>
+	<p>The <code>CAAMyApplicationResourceSet</code>.<code>CATNls</code> and
+	<code>CAAMyApplicationResourceSet</code>.<code>CATRsc</code> files are already 
+	in the CNext directory.</p>
+	</li>
+	<li><strong>Set up the run time</strong> environment[<a href="#References">2</a>].</li>
+	<li>Launch V6</li>
+	<li>Launch the <strong>Project Resource Management</strong> Workbench, (Start/Infrastructure/Project 
+	Resource Management )</li>
+</ul>
+<p>On right of the <code>Project Resource Management</code> editor you can see &quot;My 
+Application Resource Set&quot; - alias for <code>CAAMyApplicationResourceSet</code> .
+</p>
+<table>
+	<tr>
+		<td><img alt="" src="images/CAAPLMSetUp_description02.png"></td>
+	</tr>
+</table>
+<p>Then when you select &quot;create a new Resource Table&quot;. Once the Resource Table object 
+is created, the following dialog box shows up:</p>
+<table>
+	<tr>
+		<td><img alt="" src="images/CAAPLMSetUp_description03.png"></td>
+	</tr>
+</table>
+<p>In the &quot;Logical Name&quot; column you retrieve the 9 resource item by their alias 
+names. Note that &quot;Chapter resource /Power Copy resource/User Feature resource&quot; have 
+a grey bullet, instead red, because the resource is optional.</p>
+<table>
+	<tr>
+		<td><img alt="" src="images/CAAPLMSetUp_description04.png"></td>
+	</tr>
+</table>
+<p>Now except, for the Power Copy and User Feature, we have assigned a data to each 
+resource item. Note the two PLM Representation References to the third resource: 
+one for the criteria &#39;Choice1&quot; and one for the criteria &quot;Choice3&quot;.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>This article has described how to describe your own application resource set. 
+Now we suggest to pursuit with the technical article explaining how your application 
+can retrieve the data in the run-time [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAPLMTaAppResourceSetDefinition.htm">Defining Application 
+		Resource Set</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAPLMUcRetrievingApplicationData.htm">Retrieving Application 
+		Resource Data</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Dec 2010]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

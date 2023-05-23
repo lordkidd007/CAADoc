@@ -1,0 +1,348 @@
+<!DOCTYPE html
+   PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+   <head>
+      <meta http-equiv="Content-Language" content="en-us" />
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+      <script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+      <script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+      <script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+      <title>TagNavigator API Documentation</title>
+   	<style type="text/css">
+.style1 {
+				color: #008000;
+}
+.style3 {
+				color: #FF7900;
+				text-decoration: underline;
+}
+</style>
+   </head>
+   <body onload="highlightSearchTerms();">
+      <table class="DocHeader">
+         <tr>
+            <td class="DocHeader1" style="height: 32px">
+               <h1>TagNavigator API Documentation</h1>
+            </td>
+         </tr>
+         <tr>
+            <td class="tech">Technical Article</td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <table class="abstract">
+         <tr>
+            <td>
+               <h2>Abstract</h2>
+               <p>This article is written for developers who want to initialize 
+				the 6WTagger. By reading this article they will be able 
+				to understand TagNavigator module mechanism, and how to use it. 
+				TagNavigator module will create and manage the view of the 
+				6WTagger, and do all the data cache management. Data managed by 
+				the TagNavigator comes from content components on page which set 
+				their 
+				tags data. Widgets use TagNavigatorProxy module to 
+				communicates with TagNavigator module. (For more information 
+				please see the <a href="CAATgnTagNavigatorProxy.htm">TagNavigatorProxy documentation</a>)<br />
+				Note: this article mainly targets developers who want to 
+				initialize the 6WTagger in the context of 3DDashboard, to 
+				initialize a 6WTagger outside of 3DDashboard a specific part of 
+				this article will explain the point.</p>
+				<ul>
+               	  <li><a href="#Part0">What is the TagNavigator?</a></li>
+                  <li><a href="#Part1">Dependencies</a></li>
+                  <li><a href="#Part2">Initialization  of TagNavigator</a></li>
+                  <li><a href="#Part3">Useful TagNavigator functionalities</a><ul>
+								<li><a href="#Part31">Switch context</a></li>
+								<li><a href="#Part32">Get the filterObj</a></li>
+								<li><a href="#Part33">Clear filters</a></li>
+								<li><a href="#Part35">Kill a context of TagNavigator</a></li>
+								<li><a href="#Part36">Focus on a
+								<span class="style3">widget</span></a></li>
+								<li><a href="#Part37">Unfocus a w<span class="style3">idget</span></a></li>
+
+					</ul>
+					</li>
+                  <li><a href="#InShort">In Short</a></li>
+                  <li><a href="#References">References</a></li>
+               </ul>
+            </td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part0"></a>What is the TagNavigator?</h2>
+      <p>The TagNavigator is a 3DExperience web module. This module have many 
+		roles:<br />
+&nbsp;&nbsp;&nbsp; - Create a view for the 6Wtagger<br />
+&nbsp;&nbsp;&nbsp; - Create and manage instance of the 6WTagger (context)<br />
+&nbsp;&nbsp;&nbsp; - Each instance of 6WTagger has to manage data received from 
+		TagNavigatorProxy instances (aka proxies), and keep a filtering status.<br />
+		A 
+		view of the 6WTagger (TaggerView) is created, and is set into the left 
+		side of the 3DDashboard. TaggerView helps the user to understand and filter all 
+		information in page, and allows to create tags on content.<br />
+		3DDashboard handles tabs navigation, the 6WTagger need to keep its 
+		information by tabs, so each tab should hold an instance of 6WTagger 
+		(context) 
+		which do data management. Each 6Wtagger instance manage its tags 
+		data, and keep its filtering status. Tags data are passed to the 
+		TagNavigator via the proxies.<br />
+		Widgets and Apps initialize one or many TagNavigatorProxy 
+		instances to communicate with the TagNavigator module. A proxy is 
+		registered on a 6WTagger instance(context). (For more information please see the <a href="CAATgnTagNavigatorProxy.htm">TagNavigatorProxy documentation</a>)<br />
+		<br />
+		<strong>Fig.1 TagNavigator module simplified class diagram</strong><br />
+<img alt="TagNavigator" src="images/ClassDiagramTN.png"/><br />
+		<strong>Fig.2 Example of TaggerView</strong><br />
+		<img alt="TagNavigator" src="images/tagnavigator.png"/><br />
+</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part1"></a>Dependencies</h2>
+      <p>All libraries, modules used are available in 
+		runtime view in the folder:<br />
+         &nbsp;&nbsp;&nbsp; <strong>
+         \webapps</strong></p>
+      <p>In order to use TagNavigator you have to add its CSS, TagNavigator has 
+		also a dependency on UIKIT. So please add UIKIT CSS as well. Here is a 
+		documentation about <a href='https://wpdev.ux.dsone.3ds.com/webapps417/UIKITPreview/'>UIKIT</a>.</p>
+      <pre class="code" style="vertical-align: baseline"><span class="style1">&lt;!--CSS--&gt;</span>
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../UIKIT/UIKIT.css&quot;/&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../TagNavigator/TagNavigator.css&quot; media=&quot;all&quot; /&gt;
+</pre>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part2"></a>Initialization of TagNavigator</h2>
+      <p>Initialization of the TagNavigator is composed of 3 steps.</p>
+<ol>
+				<li><strong>Set the TagNavigator options. </strong>This is a 
+				mandatory step. This function requires mandatory parameters.<br />
+				Provide the list of URL servers and tenants list to the TagNavigator. 
+				The TagNavigator will keep a map of tenant/serverUrl, so the 
+				widgets will only need to provide to the TagNavigator the tenant 
+				ID, and the TagNavigator will save the tag in the associated 
+				server URL. (startupParams can be given by mySpace).<br />
+				Provide to the TagNavigator a function that returns the 
+				contextId from the widgetId.<br />
+				At last provide to TagNavigator a lang parameter which is the 
+				language set for your environment.<br />
+				The first API to call is : TagNavigator.set6WTaggerOptions(options)<br />
+				<br />
+				<br />
+</li>
+<li><strong>Get or Create a 6WTagger instance (=context) of TagNavigator. 
+</strong> <br />
+Because the 3DDashboard is working with tabs, you may need different 6Wtagger 
+instances. Theses instances are also called contexts. You can activate or 
+deactivate a context when the user navigate between tabs. A 6WTagger instance 
+keeps its all the specific actions the user has performed in the context; for 
+example : the list of active tags, the expanded predicate sections or the 
+filtering mode under each predicate.<br />
+To get or create (if not already existing) a 6WTagger instance, use this API : 
+TagNavigator.get6WTagger(context)<br />
+				<br />
+<br />
+</li>
+<li><strong>Create the TagNavigator view.</strong> Call the API : TagNavigator.create6WTaggerView(tagger, container, options)<br />
+				<br />
+The parameter &quot;options&quot; is to set 2 callback events into the TagNavigator.<br />
+-
+A click on the close icon <img alt="TagNavigator Close Icon" src="images/Close_pannel_Icon_Over.png"/> trigger the &quot;onClose&quot; callback. Note 
+that the Close Button is visible only if this callback event is set.<br />
+&nbsp;<img alt="TagNavigator Close Icon" src="images/closeIcon.png"/>
+<br />
+<br />
+<br />
+<br />
+-
+A click on a tag will change the filter, and each time the filter is changed, 
+the &quot;onFilterChange&quot; callback is triggered with a filterObj argument, 
+which contains the actual filter on tab.<br />
+				<table style="width: 100%">
+								<tr>
+												<td style="width: 352px"><img alt="TagNavigator Filtering Mode" src="images/filterObj.png"/></td>
+												<td valign="top">				<pre class="code"><span class="style1">//This is an example of what you can get as a filterObj while a onFilterChange event is triggered</span>
+filterObj = {
+    "allfilters": {
+        "ds6w:who/ds6w:responsible": [
+            {
+                "disptext": "LRG",
+                "object": "LRG",
+                "type": "string",
+                "field": [
+                    "V_Owner",
+                    "Owner"
+                ]
+            }
+        ],
+        "ds6w:when/ds6w:starts": [
+            {
+                "disptext": "2013/April/26",
+                "object": "2013",
+                "type": "date",
+                "field": [
+                    "StartDate"
+                ]
+            }
+        ],
+        "ds6w:what/ds6w:radius": [
+            {
+                "disptext": "2 cm",
+                "object": "2 cm",
+                "type": "string",
+                "field": [
+                    "Radius"
+                ]
+            }
+        ]
+    }
+};
+
+</pre>
+</td>
+								</tr>
+				</table>
+
+</li>
+</ol>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part3"></a>Useful TagNavigator instance functionalities</h2>
+		<h3><a name="Part31"></a>Switch context</h3>
+		<p>The TagNavigator can only display only one 6WTagger instance at a time. A 
+		6WTagger instance is also called context. Because the 3DDashboard need 
+		to manage tabs, the 6WTagger needs to manage context. One context per 
+		tab needs to be initialized. when the user navigate from tab to tab. You 
+		can set the 6Wtagger context by calling setAsCurrent API on a 6Wtagger 
+		instance.<br />
+				<br /></p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part32"></a>Get the filterObj</h3>
+<p>If needed the 6WTagger can get the current active filter calling getFilter 
+API.<br />
+				<br />
+<br /></p>
+<table style="width: 100%">
+								<tr>
+												<td style="width: 352px"><img alt="TagNavigator Filtering Mode" src="images/filterObj.png"/></td>
+												<td valign="top">				<pre class="code"><span class="style1">//This is an example of what you can get when getFilter API is called.</span>
+filterObj = {
+    "allfilters": {
+        "ds6w:when": [
+            {
+                "disptext": "2011/June/29",
+                "object": "2011/06",
+                "type": "date",
+                "field": []
+            }
+        ],
+        "ds6w:why/ds6w:fulfills/ds6w:fulfillsPriority": [
+            {
+                "disptext": "P0",
+                "object": "P0",
+                "type": "string",
+                "field": [
+                    "V_Priority"
+                ]
+            }
+        ],
+        "ds6w:what/ds6w:radius": [
+            {
+                "disptext": "1 cm",
+                "object": "1 cm",
+                "type": "string",
+                "field": [
+                    "Radius"
+                ]
+            }
+        ]
+    }
+}
+</pre>
+</td>
+								</tr>
+				</table>
+
+<p>
+Note that TagNavigatorProxy also 
+gets this filter using the &quot;addFilterChangeListener&quot; callback 
+if using the FilteringOnServer mode (Please see 
+<a href="CAATgnTagNavigatorProxy.htm">TagNavigatorProxy documentation</a>).<br />
+		</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part33"></a>Clear filters</h3>
+<p>Call the API clearFilters. It is the same event as a click on 
+the 
+clear filters icon. <img alt="TagNavigator Clear Active Tags" src="images/clearActiveTagsIcon.png"/><br />
+				<br />
+<img alt="TagNavigator Clear Active Tags" src="images/clearActiveTags.png"/>
+<br /></p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part35"></a>Kill a 6WTagger instance of TagNavigator</h3>
+<p>When a user deletes a tab, you should kill its associated 6Wtagger instance (context).
+      The API die should be called to kill a context.<br />
+Note: All proxies registered for this context will also be killed.<br />
+				<br /></p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+      <h3><a name="Part36"></a>Focus on a widget</h3>
+<p>The API focusOnCC can display single widget's tagsdata of the current 
+context. For example if the current context hold many widgets, and the user want 
+to maximize a single widget. You can call focusOnCC to display only the tagsdata of the 
+focused widget.<br />
+				<br/></p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part37"></a>Unfocus a widget</h3>
+<p>When a widget is focused (maximized) and the user want to go back to the 
+current context view (minimize widget), and see all widget's tagsdata, use unfocus API.<br /></p>
+
+
+
+
+
+
+
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="InShort"></a>In Short</h2>
+      <p>This article is written for developers who want to initialize 
+				the 6WTagger on page. By reading this article they will be able 
+				to understand TagNavigator module mechanism, and how to use it. 
+				TagNavigator module creates and manages the view of the 
+				6WTagger, and do all the data cache management. Data managed by 
+				the TagNavigator comes from content components on page which set 
+				their 
+				tags data. Content components use TagNavigatorProxy module to 
+				communicates with TagNavigator module. (For more information 
+				please see the <a href="CAATgnTagNavigatorProxy.htm">TagNavigatorProxy documentation</a>) </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="References"></a>References</h2>
+      <table class="reference">
+         <tr>
+            <td>[1]</td>
+            <td><a href="#">Tools Options</a></td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="History"></a>History</h2>
+      <table class="history">
+         <tr>
+            <td>Version: <strong>1</strong> [Jan 2000]</td>
+            <td>Document created</td>
+         </tr>
+      </table>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <script type="text/javascript">insertCopyright();</script>
+   </body>
+</html>

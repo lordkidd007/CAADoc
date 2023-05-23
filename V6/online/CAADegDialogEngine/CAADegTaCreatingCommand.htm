@@ -1,0 +1,158 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>How to Create a State Dialog Command</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>How to Create a State Dialog Command</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="tech">Technical Article</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article is the state dialog command programmer's guide. Organized 
+		as a step-by-step, it deals with all you can do to program your state dialog 
+		command.</p>
+		<ul>
+			<li><a href="#200000">Creating the State Dialog Class Header</a></li>
+			<li><a href="#InShort">In Short</a>.</li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="200000"></a>Creating the State Dialog Command Class Header</h2>
+<p>This shows how to create the class header file. Assume your class is named CAACommandCmd. 
+The main to do is:</p>
+<ul>
+	<li><strong>Subclassing</strong>: A state dialog command must derive from the 
+		CATStateCommand class, or from one of its subclasses you may have already 
+		created.
+		<pre class="code">class CAACommandCmd : public CATStateCommand</pre>
+	</li>
+	<li><strong>Resources</strong>: they are located in the CAACommandCmd.CATNls 
+		file you will store in your framework's CNext\resources\msgcatalog directory. 
+		Resources of a dialog state command are the prompts you can associate with 
+		each state, and the undo prompts. Declare the file using the <code>CmdDeclareResource</code> 
+		macro. The base class must be set as the second parameter.
+		<pre class="code">CmdDeclareResource(CAACommandCmd, CATStateCommand);</pre>
+	</li>
+	<li><strong>Lifecycle</strong>: the command lifecycle is managed using the command's 
+		constructor and destructor, and using the methods <code>Activate</code>,
+		<code>Desactivate</code>, and <code>Cancel</code>. <code>Activate</code> 
+		is called when your command takes the focus, <code>Desactivate</code> is 
+		called when a shared command takes the focus, and thus leaves your command 
+		on the command stack in its current state, and <code>Cancel</code> is called 
+		when your command completes, or when an exclusive command takes the focus 
+		and requests your command to be deleted.
+		<pre class="code">CATStatusChangeRC Activate   (CATCommand * iCmd, CATNotification * iNotif);
+CATStatusChangeRC Desactivate(CATCommand * iCmd, CATNotification * iNotif);
+CATStatusChangeRC Cancel     (CATCommand * iCmd, CATNotification * iNotif);</pre>
+	</li>
+	<li><strong>Statechart</strong>: the statechart is implemented by overriding 
+		the <code>BuildGraph</code> method. States, transitions, and dialog agents 
+		are created in this method, and guard conditions and action methods are 
+		declared as state and transition parameters.
+		<pre class="code">virtual void BuildGraph();</pre>
+	</li>
+	<li><strong>Dialog agents</strong>: Dialog agents translate end user intents 
+		into end user input. They are instances of the classes CATDialogAgent, an 
+		unspecialized dialog agent that you can use, for example, to monitor end 
+		user input through a dialog box. More specialized dialog agents exist: the 
+		CATIndicationAgent to retrieve a 2D point when the end user left clicks 
+		in either a 2D or a 3D viewer, and the CATPathElementAgent to retrieve the 
+		object the end user has selected. A dialog agent should be declared as a 
+		data member to be created and used in the <code>BuildGraph</code> method, 
+		and used in condition and actions methods. Create as many dialog agents 
+		as you need.
+		<pre class="code">CATDialogAgent      * _daAgent;
+CATIndicationAgent  * _daIndicationAgent;
+CATPathElementAgent * _daSelectionAgent;</pre>
+	</li>
+	<li><strong>Guard conditions</strong>: they are provided as methods of the CAACommandCmd 
+		class. They take a single argument to get data passed, if needed, by the 
+		state dialog command, and must return a CATBoolean.
+		<pre class="code">CATBoolean  GuardConditionMethod1(void * iUsefulData);
+CATBoolean  GuardConditionMethod2(void * iUsefulData);</pre>
+	</li>
+	<li><strong>Actions</strong>: they are also provided as methods of the CAACommandCmd 
+		class. They also take a single argument to get data passed, if needed, by 
+		the state dialog command, and must return a CATBoolean.
+		<pre class="code">CATBoolean  ActionMethod1(void * iUsefulData);
+CATBoolean  ActionMethod2(void * iUsefulData);</pre>
+	</li>
+</ul>
+<p>Once you have completed this step, the header file of your state dialog command 
+class should look like this:</p>
+<pre class="code">#include &quot;CATStateCommand.h&quot;
+
+class CAACommandCmd : public CATStateCommand
+{
+  CmdDeclareResource(CAACommandCmd, CATStateCommand);
+  public :
+    CAACommandCmd();
+    virtual ~CAACommandCmd();
+    CATStatusChangeRC Activate   (CATCommand * iCmd, CATNotification * iNotif);
+    CATStatusChangeRC Desactivate(CATCommand * iCmd, CATNotification * iNotif);
+    CATStatusChangeRC Cancel     (CATCommand * iCmd, CATNotification * iNotif);
+
+    virtual void BuildGraph();
+    CATBoolean  GuardConditionMethod1(void * iUsefulData);
+    CATBoolean  GuardConditionMethod2(void * iUsefulData); 
+    CATBoolean  ActionMethod1(void * iUsefulData);
+    CATBoolean  ActionMethod2(void * iUsefulData);
+
+  private :
+    CATDialogAgent      * _daAgent;
+    CATIndicationAgent  * _daIndicationAgent;
+    CATPathElementAgent * _daSelectionAgent;
+};</pre>
+<p>It can include additional methods and data members, for example, to access the 
+objects your command can work on.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A dialog state command is a dialog command designed as a state machine, each 
+state enabling end user input, that enables the end user to pass from state to state 
+using transitions between these states triggered when requested events happen and 
+when requested guard conditions are satisfied, and that execute the declared actions. 
+It is modeled using a class deriving from the CATStateCommand class.</p>
+<p>The statechart diagram is implemented using the <code>BuildGraph</code> method, 
+and the command life cycle is managed by the <code>Activate</code>, <code>Desactivate</code>, 
+and <code>Cancel</code> methods in addition to the command class constructor and 
+destructor.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2000]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

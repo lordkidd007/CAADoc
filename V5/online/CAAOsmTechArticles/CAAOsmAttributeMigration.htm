@@ -1,0 +1,335 @@
+<html>
+
+  <head>
+  <meta http-equiv="Content-Language" content="fr">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+  <meta name="ProgId" content="FrontPage.Editor.Document">
+  <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+  <script language="JavaScript" src="../CAADocJavaScript/submit.js">
+  </script>
+  <title>Working with Attribute Keys</title>
+  </head>
+
+  <body>
+
+   <table width="100%">
+     <tr>
+       <td valign="top">
+       <h1>3D PLM PPR Hub Open Gateway</h1>
+       </td>
+       <td valign="top">
+       <h2>Feature Modeler</h2>
+       </td>
+       <td rowspan="2" align="right" valign="top">
+       <h3><a name="Top"></a>Working with Attribute Keys</h3>
+       <p><em>Migrating GetAttribute to GetAttrKey</em></td>
+     </tr>
+     <tr>
+       <td class="tech" colspan="2">Technical Article</td>
+     </tr>
+   </table>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <table class="abstract">
+     <tr>
+       <td>
+       <h3>Abstract</h3>
+       <p>This article is intended to help you understand the new way of 
+       accessing and valuating attributes. Specifically, you will learn how to:
+       </p>
+       <ul>
+         <li>Valuate existing attributes with (&quot;new way&quot;) and without (&quot;old 
+         way&quot;) attribute keys </li>
+         <li>Add new attributes to a feature </li>
+         <li>Valuate new attributes the &quot;old&quot; and &quot;new&quot; ways. </li>
+       </ul>
+       <p>Before getting to the article itself, it is important to get an 
+       understanding of what a feature object is and how it is created [<a 
+       href="#References">1</a>]. </p>
+       <ul>
+         <li><b><a href="#Some Important Concepts about Attributes">Some 
+         Important Concepts about Attributes</a></b></li>
+         <li><b><a href="#Loading the Catalog">Loading the Catalog </a></b></li>
+         <li><b><a href="#Creating Feature CAAOsmNovel1">Creating Feature </a>
+         </b></li>
+         <li><b><a href="#Valuating Existing Attributes the Old and New Ways">
+         Valuating Existing Attributes the &quot;Old&quot; and &quot;New&quot; Ways </a></b></li>
+         <li><b><a href="#Adding New Attributes">Adding New Attributes </a></b>
+         </li>
+         <li><b><a href="#Valuating New Attributes the Old and New Ways">
+         Valuating New Attributes the &quot;Old&quot; and &quot;New&quot; Ways</a></b></li>
+         <li><strong><a href="#InShort">In Short</a></strong></li>
+         <li><strong><a href="#References">References</a></strong></li>
+       </ul>
+       </td>
+     </tr>
+   </table>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Some Important Concepts about Attributes"></a>Some Important 
+   Concepts about Attributes</h3>
+   <p>Feature modeler proposes a new way of retrieving attributes. Instead of 
+   using the attribute name directly when retrieving an attribute, you can now 
+   retrieve an attribute key which is used in place of the attribute. The 
+   attribute key based on the StartUp is a global variable. This causes an 
+   improvement in performance since once the attribute key is acquired for a 
+   given StartUp, it need not be acquired again for all subsequent instances of 
+   that StartUp. However, if the attribute key is acquired on a feature 
+   instance, it is valid for that feature only.</p>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Loading the Catalog"></a>Loading the Catalog</h3>
+   <p>Loading the catalog means opening the catalog document and getting a <i>
+   CATICatalog</i> handle that will be needed in order to retrieve StartUps from 
+   the catalog.</p>
+   <table class="code">
+     <tr>
+       <td>
+       <pre>CATUnicodeString stgName = &quot;....&quot;;
+CATICatalog *piCatalog;
+CATUnicodeString clientId(&quot;MyClientId&quot;);
+rc = <b>::AccessCatalog </b>(&amp;stgName,
+	              &amp;clientId,
+		      piRootContainer,
+	              &amp;piCatalog); 
+	
+...</pre>
+       </td>
+     </tr>
+   </table>
+   <p>To open a catalog, use the <code>AccessCatalog </code>global function that 
+   takes the following arguments:</p>
+   <ul>
+     <li><code>stgName</code> - the name of the catalog without the storage path 
+     and with the .CATfct extension. The catalog must be found under the &quot;WS&quot; + 
+     &quot;OS&quot; + resources + graphic directory. </li>
+     <li><code>clientId </code>- the client id defined on the catalog at the 
+     time of its creation. </li>
+     <li><code>piRootContainer</code> - a <i>CATIContainer</i> pointer to the 
+     container in which StartUps from the catalog will be instantiated. </li>
+     <li><code>piCatalog</code> - a <i>CATICatalog</i> pointer to the StartUps 
+     catalog that has been opened. </li>
+   </ul>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Creating Feature CAAOsmNovel1"></a>Creating Feature&nbsp; </h3>
+   <ol>
+     <li>
+     <h4>Retrieving a StartUp </h4>
+     <table class="code">
+       <tr>
+         <td>
+         <pre>CATBaseUnknown *pStartUpOnBU = NULL;
+CATUnicodeString MyStartUpType(&quot;MyStartUpType&quot;);
+rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(<b>&amp;</b>pStartUpOnBU,
+                                        &amp;MyStartUpType,
+		                        &quot;CATISpecObject&quot;);
+...
+
+<b>CATISpecObject *pIStartUpOnSpecObj</b> <b>= (CATISpecObject*) pStartUpOnBU</b>  <b>;</b></pre>
+         </td>
+       </tr>
+     </table>
+     <p>A StartUp is retrieved from the catalog using the<i> CATICatalog</i><code><i>::</i>RetrieveSU
+     </code>method. This method returns a <i>CATBaseUnknown </i>pointer in <code>
+     pStartUpOnBU</code> which is directly cast into a <i>CATISpecObject</i> 
+     pointer (<b><code>pIStartUpOnSpecObj</code></b> ). </li>
+     <li>
+     <h4>Instantiating a StartUp </h4>
+     <table class="code">
+       <tr>
+         <td>
+         <pre>CATUnicodeString InstanceName(&quot;MyInstanceName1&quot;);
+CATISpecObject *<b><span style="font-weight: 400">pIInstanceOnSpecObj1</span></b> = <b><code>pIStartUpOnSpecObj</code></b> -&gt; 
+		<b>Instanciate</b>(InstanceName,
+		            piRootContainer);
+...</pre>
+         </td>
+       </tr>
+     </table>
+     <p>A new feature, &quot;MyInstanceName1&quot; is created in the root container by 
+     instantiating the StartUp &quot;MyStartUpType&quot;.</li>
+   </ol>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Valuating Existing Attributes the Old and New Ways"></a>
+   Valuating Existing Attributes the &quot;Old&quot; and &quot;New&quot; Ways</h3>
+   <ol>
+     <li>
+     <h4>Old way </h4>
+     <table class="code">
+       <tr>
+         <td>
+         <pre>CATISpecAttribute *piTitleAttr = <b><span 
+         style="font-weight: 400">pIInstanceOnSpecObj1</span></b> -&gt; <b>GetAttribute</b>(&quot;Title&quot;);
+if (NULL != piTitleAttr)
+	piTitleAttr -&gt; <b>SetString</b>(&quot;The JungleBook&quot;);
+...</pre>
+         </td>
+       </tr>
+     </table>
+     <p>We valuate an attribute of &quot;MyInstanceName1&quot; the <b>&quot;old&quot;</b> way. This 
+     is done by simply using <code>GetAttribute</code> on the attribute's name 
+     and then performing one of the <code>&quot;Set...&quot;</code> operations of <i>
+     CATISpecAttribute</i> (for example, <code>SetString</code> in this case) to 
+     valuate the attribute.</li>
+     <li>
+     <h4>New way </h4>
+     <ol>
+       <li type="a">Get attribute key
+       <p>In order to valuate another attribute of &quot;MyInstanceName1&quot; the <b>
+       &quot;new&quot;</b> way, we need to get the attribute keys based on the StartUp of 
+       the feature. We then use this attribute key to valuate the attribute. The 
+       advantage of this method is that once the attribute key is retrieved, it 
+       remains valid for valuating the attributes of all other features based on 
+       the same StartUp, thus improving performance. It can even be saved in a 
+       static global variable to be used throughout the application.</p>
+       <table class="code">
+         <tr>
+           <td>
+           <pre>CATISpecAttrAccess *piSpecAttrAccessOnMyStartUp = NULL;
+rc = <b>pIStartUpOnSpecObj</b> -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
+                                 (void**) <b>&amp;piSpecAttrAccessOnMyStartUp</b>);
+...
+
+CATISpecAttrKey *piKeyTitle = <b><span style="font-weight: 400">piSpecAttrAccessOnMyStartUp</span></b>-&gt;<b>GetAttrKey</b>(&quot;Title&quot;);
+...</pre>
+           </td>
+         </tr>
+       </table>
+       <p>First, we need to get a <i>CATISpecAttrAccess</i> handle on the 
+       StartUp (<b><span style="font-weight: 400"><code>pIStartUpOnSpecObj</code>)</span></b>. 
+       Using this handle, (<b><span style="font-weight: 400"><code>piSpecAttrAccessOnMyStartUp</code>),
+       </span></b>we then use the <code>GetAttrKey</code> method to retrieve the 
+       attribute key on the StartUp.</li>
+       <li>Valuate attribute
+       <table class="code">
+         <tr>
+           <td>
+           <pre>CATISpecAttrAccess *piSpecAttrAccessOnInst1 = NULL;
+rc = <b><span style="font-weight: 400">pIInstanceOnSpecObj1</span></b> -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
+                                    (void**) <b>&amp;piSpecAttrAccessOnInst1</b>);
+...
+
+piSpecAttrAccessOnInst1 -&gt; <b>SetString</b>(piKeyTitle , &quot;The JungleBook&quot;);
+
+...</pre>
+           </td>
+         </tr>
+       </table>
+       <p>Once the key has been retrieved, we need to get a <i>
+       CATISpecAttrAccess</i> handle on our feature instance. Using this handle, 
+       we can actually valuate the attribute using a <code>&quot;Set...&quot;</code> 
+       method of <i>CATISpecAttrAccess</i> to which we pass a <i>CATISpecAttrKey</i> 
+       handle to the attribute key and the value the attribute is to receive.</li>
+     </ol>
+     </li>
+   </ol>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Adding New Attributes"></a>Adding New Attributes</h3>
+   <p>Now, let's see how to valuate attributes added to a feature instance, in 
+   other words, attributes that have not been defined on a StartUp.</p>
+   <table class="code">
+     <tr>
+       <td>
+       <pre>CATUnicodeString volume(&quot;Volume&quot;);
+CATISpecAttribute *piVolumeNumber = <b><span style="font-weight: 400">pIInstanceOnSpecObj1</span></b> -&gt; 
+		<b>AddAttribute</b>(volume,tk_integer);		             
+...</pre>
+       </td>
+     </tr>
+   </table>
+   <p>First, we add a new attribute to &quot;MyInstanceName1&quot; by simply using the
+   <code>AddAttribute</code> method of <i>CATISpecObject</i>.</p>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="Valuating New Attributes the Old and New Ways"></a>Valuating New 
+   Attributes the &quot;Old&quot; and &quot;New&quot; Ways</h3>
+   <ol>
+     <li>
+     <h4>Old way </h4>
+     <table class="code">
+       <tr>
+         <td>
+         <pre>CATISpecAttribute *piVolumeAttr = <b><span 
+         style="font-weight: 400">pIInstanceOnSpecObj1</span></b> -&gt; <b>GetAttribute</b>(&quot;Volume&quot;);
+if (NULL != piVolumeAttr)
+	piVolumeAttr -&gt; <b>SetInteger</b>(1);
+...</pre>
+         </td>
+       </tr>
+     </table>
+     <p>The &quot;old&quot; way of valuating the attribute needs to retrieve the attribute 
+     itself (using <code>GetAttribute</code>) before it can valuate it.</li>
+     <li>New way
+     <table class="code">
+       <tr>
+         <td>
+         <pre>CATISpecAttrKey *piKeyVolume = piSpecAttrAccessOnInst1 -&gt; <b>GetAttrKey</b>(&quot;Volume&quot;);
+ ...
+piSpecAttrAccessOnInst1 -&gt; <b>SetInteger</b>(piKeyVolume, 1);                                   
+...</pre>
+         </td>
+       </tr>
+     </table>
+     <p>The &quot;new&quot; way needs to acquire the attribute key (using <code>GetAttrKey</code>) 
+     and then uses this key to valuate the attribute.</p>
+     <p>Note that <i>CATISpecAttrKey</i> handles retrieved through <code>
+     GetAttrKey</code> and <i>CATISpecAttribute</i> handles retrieved through
+     <code>AddAttribute</code> must also be released</li>
+   </ol>
+   <!---------------------------------comment------------------------------------->
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="InShort"></a>In Short</h3>
+   <p>This article has demonstrated how to work with attributes. It has also 
+   explained the concepts behind the migration from working with attributes 
+   directly to working with attribute keys. Specifically, it has illustrated:</p>
+   <ul>
+     <li>Retrieving a <i>CATISpecAttrAccess</i> handle from a <i>CATISpecObject</i> 
+     handle on a feature StartUp </li>
+     <li>Using the <i>CATISpecAttrAccess</i> handle to get the attribute keys of 
+     the StartUp with the <code>GetAttrKey</code> method </li>
+     <li>Valuating attributes using the <code>&quot;Set...&quot;</code> methods of <i>
+     CATISpecAttrAccess</i> </li>
+     <li>Adding new attributes to features using the <code>AddAttribute</code> 
+     method of <i>CATISpecAttribute</i> </li>
+     <li>Valuating new attributes using the <code>GetAttrKey</code> and the
+     <code>&quot;Set...&quot;</code> methods of <i>CATISpecAttrAccess</i> </li>
+   </ul>
+   <p align="right">[<a href="#Top">Top</a>]</p>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="References"></a>References</h3>
+   <table width="100%">
+     <tr>
+       <td valign="top">[1]</td>
+       <td><a href="CAAOsmOverview.htm">Feature Modeler Overview</a></td>
+     </tr>
+     <tr>
+       <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+     </tr>
+   </table>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <h3><a name="History"></a>History</h3>
+   <table width="100%">
+     <tr>
+       <td valign="top">Version: <strong>1</strong> [Feb 2005]</td>
+       <td valign="top">Document created</td>
+     </tr>
+     <tr>
+       <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+     </tr>
+   </table>
+   <hr>
+   <!---------------------------------comment------------------------------------->
+   <p><i>Copyright © 1994-2005, Dassault Systèmes. All rights reserved.</i></p>
+
+  </body>
+
+</html>
+

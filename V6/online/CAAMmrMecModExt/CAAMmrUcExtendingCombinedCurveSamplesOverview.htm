@@ -1,0 +1,455 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
+<link href="../CAADocStyleSheets/caav5.css" rel="stylesheet" type="text/css"/>
+<script src="../CAADocJavaScript/DSDocTocToc.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/DSDocHighlight.js" type="text/javascript">/* */</script>
+<script src="../CAADocJavaScript/submit.js" type="text/javascript">/* */</script>
+<title>Extending a Mechanical Feature using Extension Features and Providers
+</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Extending a Mechanical Feature using Extension Features 
+		and Providers</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This use case explains how to create and integrate an <strong>Extension Feature</strong> 
+		in Part context. The <strong>CAAMmrCCDataExtension</strong> feature extends the combined 
+		Curve features defined and detailed on the CAA Use Cases article &quot;Creating 
+		a New Geometrical Feature: the Combined Curve&quot; [<a href="#References">1</a>]</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#CombinedCurve">What Is a &quot;CAAMmrCCDataExtension&quot;</a></li>
+			<li><a href="#UseCase">The &quot;Extending Combined Curve&quot; Use 
+				Case</a>
+				<ul>
+					<li><a href="#What">What Does the &quot;Extending Combined Curve&quot; 
+						Use Case Do</a></li>
+					<li><a href="#How">How to Launch the &quot;Extending Combined 
+						Curve&quot; Use Case</a></li>
+					<li><a href="#Where">Where to Find the &quot;CAAMmrCCDataExtension&quot; 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step-by-Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case illustrates the sub-section entitled &quot;<strong>Adding Applicative 
+Data</strong>&quot; of &quot;<strong>Mechanical Modeler Extension</strong>&quot; section.</p>
+<p>Its main intent is to show you <strong>Extension Features</strong> specificities [<a href="#References">2</a>] 
+and to explain how to use <strong>Providers</strong>[<a href="#References">3</a>] in order 
+to add data and behaviors to Mechanical Features.</p>
+<p>In this use case, you will learn to:</p>
+<ul>
+	<li><strong>Create</strong> an Extension Feature:
+		<p>How to create a new StartUp of Extension Feature, how to store it in 
+		a feature's catalog and how to instantiate it.</p>
+	</li>
+	<li><strong>Create</strong> Providers:
+		<p>How to define and create new Providers to extend CATPrtCont's [<a href="#References">6</a>] 
+		behaviors to Applicative Container.</p>
+	</li>
+	<li><strong>Integrate</strong> your Extension and your Providers in CATIA
+		<p>As Extension Features are features, they are completely described by 
+		a set of behaviors, in other words interfaces, which have to be implemented 
+		in order to integrate cleanly your new features in CATIA.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CombinedCurve"></a>What Is a &quot;CAAMmrCCDataExtension&quot;</h2>
+<p>The <em><strong>CAAMmrCCDataExtension</strong></em> is an extension feature designed 
+to add a computed data to Combined Curves instantiated in your MechanicalPart. Its 
+aim is to add a parameter - the computed length - to the instantiated CombinedCurve.</p>
+<p>Consequently, a <em><strong>CAAMmrCCDataExtension</strong></em> has only one 
+Input (the base feature it extends) and an Output (The aggregated Parameter representing 
+the computed length).</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The &quot;Extending Combined Curve&quot; Use Case</h2>
+<p>The &quot;Extending Combined Curve&quot; is a use case of the CAAMechanicalModelerExtend.edu 
+framework that illustrates the Mechanical Modeler extended capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does the &quot;Extending Combined Curve&quot; Use Case 
+Do</h3>
+<p>The final intent of this use case is to add a computed data to instantiated Combined 
+Curves and to extend some behaviors (Update, NavigateObject, 3DVisualisation, etc.) 
+on this extension feature. It can be divided into several steps:</p>
+<ol>
+	<li>Creating the new Extension Feature <strong>StartUp</strong> (<strong>CAAMmrCCDataExtension</strong>) 
+		and storing it in the <strong>catalog &quot;CAAMmrCCDataExtensionCatalog.CATfct&quot;</strong> 
+		using &quot;OSM Modeling Language&quot;.
+
+		<p>The CATfct file has been generated using CATfctEditorAssistant tool. 
+		The client authentication is &quot;CAAMmrUseCase&quot;.</p>
+	</li>
+	<li>Creating a command <strong>to instantiate</strong> the new Extension StartUp &quot;CAAMmrCCDataExtension&quot; 
+		into a specific applicative container.
+		<p>This command enables the end user to select a combined curve, and then 
+		uses a global method, <em>CAAMmrAddCCExtension</em>, to create its extension. 
+		This method creates a new instance of Extension Feature using the <code>
+		AddExtension</code> API. This specs modeler API creates the extension on 
+		the Combined curve, and creates the Extension Container <strong>&quot;CAAMmrDataExtensionCont&quot;</strong> 
+		if it doesn't exists. It is possible thanks to a provided CATRsc file associated 
+		with the applicative container.</p>
+	</li>
+	<li>Creating an interface to <strong>modify or retrieve the input specifications</strong> 
+		of the CAAMmrCCDataExtension instances. The <strong>CAAIMmrCCDataExtension</strong> 
+		interface is the CAAMmrCCDataExtension's Interface of Type.
+		<p>In the <em>CATIFmFeatureBehaviorCustomization</em> implementation, or in 
+		the edition command, it is mandatory to have an access to the input specifications 
+		of the new feature. It is the role of this <em>CAAIMmrCCDataExtension</em> 
+		interface.</p>
+		<table>
+			<caption>The CAAIMmrCCDataExtension Interface</caption>
+			<tr>
+				<td>
+				<img alt="" height="49" src="images/CAAMmrCCExtInterfaceType.jpg" width="477"/></td>
+			</tr>
+		</table>
+		<p>With this interface you can retrieve or modify the value of CAAMmrCCDataExtension's 
+		attributes.</p>
+	</li>
+	<li><strong>Integrating the CAAMmrCCDataExtension in CATIA</strong> ( or Implementing 
+		DS Standards Behaviors on <strong>CAAMmrCCDataExtension)</strong>
+		<p>As an Extension Feature is like a traditional feature, we have to take 
+		into account several interfaces to integrate clearly our CAAMmrCCDataExtension 
+		in CATIA.</p>
+		<ul>
+			<li><strong><em>CATIFmFeatureBehaviorCutomization</em></strong> - Building CAAMmrCCDataExtension's 
+				Result
+				<p>As our extension is designed to compute something, we have to 
+				implement <em>CATIFmFeatureBehaviorCustomization</em> Interface. This 
+				interface enables you to build the result of the feature. Reading 
+				this technical article [<a href="#References">5</a>] is strongly 
+				recommended before getting to the use case.</p>
+			</li>
+			<li><strong><em>CATIParmPublisher</em></strong> - Displaying CAAMmrCCDataExtension's 
+				Result
+				<p>As CAAMmrCCDataExtension aggregating parameters, it is interesting 
+				to implement this interface to define which parameters would be 
+				displayable and &quot;pickable&quot; into <em>f(x)</em>.</p>
+			</li>
+			<li><strong><em>CATI3DGeoVisu</em></strong> - Displaying CAAMmrCCDataExtension's 
+				Result
+				<p>We decide to implement <strong><em>CATI3DGeoVisu</em></strong> in order to 
+				display a 3D Representation associated with mathematical result 
+				of CAAMmrCCDataExtension. This consists in displaying the value 
+				computed sticking it on the Extended Combined Curve 3DRepresentation.</p>
+				<p>
+				<img alt="" src="images/CAAMmrExtendedCombinedCurveVisu.jpg" width="240" height="252"/></p>
+				<p>In yellow the combined curve, in purple the text displaying the 
+				length of the curve.</p>
+			</li>
+			<li><em><strong>CATINavigateObject</strong></em> - Displaying CAAMmrCCDataExtension's 
+				parameter under its node in the tree
+				<p>We decided to implement <strong><em>CATINavigateObject</em></strong> on CAAMmrCCDataExtension 
+				in order to make visible it's valuated parameter under its node 
+				in the tree.</p>
+				<p>
+				<img alt="" src="images/CAAMmrExtendedCombinedCurveNavObj.jpg" width="226" height="58"/></p>
+				<p>ComputedLength is the name of the parameter created in the
+				<em>CAAIMmrCCDataExtension</em> interface implementation.</p>
+				<p>Nevertheless this implementation is not mandatory, since there 
+				is a default implementation of this interface on the feature extension 
+				(implemented on the feature whose derives the feature extension).</p>
+			</li>
+			<li><em><strong>CATINavigateFilter</strong></em> - Allowing CAAMmrCCDataExtension's 
+				node in the Spec Tree beneath <em>the combinedcurve</em>
+				<p>This interface enables an application to display or not a child 
+				beneath its parent. This method contains one method <code>IsShown</code>. 
+				You must implement this interface, otherwise the behavior is not 
+				guarantee. This interface is valid for Mechanical Modeler context, 
+				for other context refer you to the modeler's documentation.</p>
+				<p>In the use case we have decided that the extension will be not 
+				displayed beneath the combined curve. Nevertheless we have implemented
+				<em><strong>CATINavigateFilter</strong></em> (<code>IsShown= FALSE)</code>. 
+				The extension will be visible beneath the Part's node thanks the
+				<em>CATINavigateProvider</em> implementation.</p>
+				<p>
+				<img alt="" src="images/CAAMmrExtendedCombinedCurveSpecTree.jpg" width="247" height="457"/></p>
+				<p>If you only want see the extension beneath the combined curve, 
+				implement <em><strong>CATINavigateFilter</strong></em> with <code>IsShown= TRUE</code>, 
+				and do not implement <strong><em>CATINavigateProvider</em></strong>.</p>
+			</li>
+		</ul>
+		<p>In addition, Extension Features are instantiated in a specific Applicative 
+		Container (<strong><em>CAAMmrDataExtensionCont</em></strong>) defined in the CAAMmrAddCCExtension 
+		method.</p>
+		<p>Consequently, we have to define Provider Mechanism to extend CATPrtCont's 
+		Behavior to this Applicative Container. This is done in two times:</p>
+		<ul>
+			<li>Implementing the Providers <strong><em>CATIUpdateProvider / CATINavigateProvider 
+				/ CATIParmProvider / CATI3DVisuProvider</em></strong> - Implementing CAAMmrDataExtensionCont's 
+				Providers.
+				<p>On this articles we show how to implement Providers. 
+				This implementation is done on components (in Object Modeler meaning) 
+				keeping in mind the specific context of Mechanical Part.</p>
+			</li>
+			<li>Declaring those Providers: <strong><em>CATInit</em></strong> - Implementing 
+				CAAMmrDataExtensionCont's Initialization.</li>
+		</ul>
+	</li>
+	<li><strong>Creating Interactively Instances</strong>
+		<p>To create interactively new instances of the <strong>CAAMmrCCDataExtension</strong>,
+		you will create an add-in of the Shape Design apps into which you will 
+		add the CAAMmrCCDataExtension Creation command. </p>
+	</li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch the Extending Combined Curve Use Case</h3>
+<p>To launch the Extending Combined Curve use case, you will need to set up the 
+build time environment, then compile the following modules of the CAAMechanicalModelerExtend.edu 
+framework along with their prerequisites:</p>
+<ul>
+	<li>CAAMmrCombinedCurve.m.</li>
+	<li>CAAMmrCombinedCurveAddIn.m.</li>
+	<li>CAAMmrDebugPrtWksAddin.m.</li>
+	<li>CAAMmrCombinedCurveReplace.m.</li>
+	<li>CAAMmrCombinedSample.m.</li>
+	<li>CAAMmrCombinedCurveUI.m.</li>
+	<li>CAAMmrCreateCombCrvCatalog.m.</li>
+	<li>CAAMmrCombinedCurveSample.m.</li>
+	<li>CAAMmrCCDataExtension.m.</li>
+	<li>CAAMmrCCDataExtensionAddIn.m.</li>
+	<li>CAAMmrCCDataExtensionUI.m.</li>
+</ul>
+<p>Next, let's execute interactively the use case. Several steps must be followed 
+in order to completely execute the use case.</p>
+<p>Launch CATIA. When the application is ready, follow scenarios described below:</p>
+<ul>
+	<li>The <strong>Creation</strong> scenario:
+		<ul>
+		    <li>Launch <kbd>Generative Shape Design</kbd> app from <kbd>3D</kbd> quadrant of the compass</li>
+		    <li>Activate <kbd>CAA MechMod Extend UC</kbd> section of the action 
+			bar.</li>
+			<li>Open a Part including Combined Curves instances
+				<a href="#Note">(*)</a> or Create one &quot;from scratch&quot; [<a href="#References">1</a>].</li>
+			<li>Extend instantiated Combined Curve using the <kbd>MmrCCDataExtension</kbd> 
+				command:
+				<img alt="" height="22" src="images/CAAMmrCCDataExtensionCommandIcon.gif" width="22"/>.</li>
+			<li>The computed length - Extension of CombinedCurve- will appear in 
+				3D and in the tree, beneath the MechanicalPart 
+				node.
+				<p>
+				<img alt="" src="images/CAAMmrExtendedCombinedCurveCapture2.jpg" width="501" height="460"/></p>
+			</li>
+			<li>It is possible to see the computed parameter on f(x) Formulas panel and to 
+				use this value into rules. To do this, just click on <kbd>fx</kbd> icon in the <kbd>Tools</kbd> section of the action bar. 
+				You will note that the computed value is in &quot;read only mode&quot;.
+				<p>
+				<img alt="" height="434" src="images/CAAMmrExtendedCombinedCurveFx.jpg" width="639"/></p>
+				<p>The editor containing the computed value is gray.</p>
+			</li>
+		</ul>
+	</li>
+	<li>The <strong>Edition</strong> scenario:
+		<ul>
+			<li>Double click the <strong>Combined Curve</strong> instance.</li>
+			<li>Change Combined Curve Specs.</li>
+			<li>click <kbd>OK</kbd>, extension value is updated.</li>
+		</ul>
+	</li>
+	<li>The <strong>Open</strong> scenario:
+		<ul>
+			<li>Open a Part including &quot;<strong>Extended CAA Combined Curves</strong>&quot; 
+				instances <a href="#Note">(*)</a>.
+				<p>Check the visualisation in 3D, in the tree and the result of 
+				extension: all extended behaviors are automatically loaded on opening 
+				the part without any user action. (This is due to extension container 
+				specifity: it is loaded automatically on opening the part, which 
+				is not the case for a traditional applicative container.)</p>
+			</li>
+			<li>Change Combined Curve specs.</li>
+			<li>Check modification in 3D.</li>
+		</ul>
+		<p><a name="Note">(*)</a> A &quot;CAAMmrCombinedCurve.3dxml&quot; file is 
+		stored in the InputData directory of the CAAMechanicalModelerExtend.edu 
+		framework, at the path specified below.</p>
+		<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\InputData\CAAMmrCombinedCurve.3dxml\</code></p>
+		<p>where <code>InstallRootFolder</code> [<a href="#References">5</a>] is 
+		the folder where the API CD-ROM is installed.</p>
+		<p>This 3D XML file contains the resulting PLM Representation Reference 
+		with these characteristics:</p>
+		<ul>
+			<li><strong>PLM_ExternalID</strong>: CAAMmrCombinedCurve</li>
+			<li>majorrevision: ---</li>
+		</ul>
+		<p>Please refer to the document [<a href="#References">5</a>] for how to 
+		import and reimport such a 3D XML file in your PLM repository.</p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAMmrCCDataExtension Code</h3>
+<p>The Combined Curve use case is made of a several modules of the CAAMechanicalModelerExtend.edu 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAMechanicalModelerExtend.edu\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">5</a>] is the folder 
+where the API CD-ROM is installed.</p>
+<p>These modules are:</p>
+<ul>
+	<li><strong>CAAMmrCCDataExtension.m</strong> - This module contains the implementations 
+		of the <strong><em>CATIFmFeatureBehabiorCustomization</em></strong> interface (manages 
+		the build operation called during the update of the Extension Feature), 
+		the <em><strong>CAAMmrAddCCExtension</strong></em> implementation (manages the CAAMmrCCDataExtension 
+		StartUp instantiation), the <strong><em>CAAIMmrCCDataExtension</em></strong> interface 
+		(manages the access to the input specifications of the Extension Feature). 
+		Moreover, in this module, you will find the implementations of <em><strong>CATIParmPublisher</strong></em>,
+		<em><strong>CATI3DGeoVisu</strong></em> on the Extension Feature. It also contains the 
+		implementations of <em><strong>CATIUpdateProvider</strong></em>, <em><strong>CATINavigateProvider</strong></em>,
+		<em><strong>CATIParmProvider</strong></em> and <em><strong>CATI3DVisuProvider</strong></em> to extent 
+		CATPrtCont Behavior to Applicative Container and the implementation of
+		<em><strong>CATIInit</strong></em> on the ApplicativeContainer.
+		<ul>
+			<li>CAAIMmrCCDataExtension.cpp, the header file is in the PublicInterfaces 
+				directory of the CAAMechanicalModelerExtend.edu framework.</li>
+			<li>CAAMmrAddCCExtension.cpp, the header file is in the PublicInterfaces 
+				directory of the CAAMechanicalModelerExtend.edu framework.</li>
+			<li>CAAEMmrCCDataExtension.cpp, the header file is in the LocalInterfaces 
+				directory.</li>
+			<li>CAAEMmrCCDataExtensionBehavior.cpp, the header file is in the LocalInterfaces 
+				directory.</li>
+		</ul>
+	</li>
+	<li>CAAEMmrCCDataExtensionParmPublisher.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAEMmrCCDataExtensionVisu.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAEMmrDataExtensionContInit.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAMmrNavigateProvForExtCont.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAMmrParmProvForExtCont.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAMmrUpdateProvForExtCont.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li>CAAMmrVisuProvForExtCont.cpp, the header file is in the LocalInterfaces 
+		directory.</li>
+	<li><strong>CAAMmrCCDataExtensionAddIn.m</strong> - This module contains the implementation 
+		of the <em>CATIShapeDesignWorkshopAddin</em> interface. In other words, it 
+		defines an Add-in to the Generative Shape Design app.
+		<ul>
+			<li>CAAEMmrCCDataExtensionAdn.cpp, the header file is in the LocalInterfaces 
+				directory.</li>
+		</ul>
+	</li>
+	<li><strong>CAAMmrCCDataExtensionUI.m</strong> - This module contains the implementation 
+		of the <em>CATINavigateObject</em>, <em>CATINavigateFilter</em> interfaces and 
+		the implementation of a StateCommand to create and insert and Extension 
+		Feature on an instanciated Combined Curve.<ul>
+			<li>CAAMmrCCDataExtensionStCmd.cpp, the header file is in the LocalInterfaces 
+				directory.</li>
+			<li>CAAEMmrCCDataExtensionNavigateObject.cpp, the header file is in 
+				the LocalInterfaces directory.</li>
+			<li>CAAEMmrCCDataExtensionNavFilter.cpp, the header file is in the LocalInterfaces 
+				directory.</li>
+		</ul>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step-by-Step"></a>Step-by-Step</h2>
+<ul>
+	<li>Creating Extension Feature's catalog.</li>
+	<li>Creating CAAMmrCCDataExtension's creation method.</li>
+	<li>Creating CAAMmrCCDataExtension 's interface of type.</li>
+	<li>Building CAAMmrCCDataExtension's result.</li>
+	<li>Displaying CAAMmrCCDataExtension's result.</li>
+	<li>Implementing CAAMmrDataExtensionCont's providers.</li>
+	<li>Implementing CAAMmrDataExtensionCont's initialization.</li>
+	<li>Creating an add-in in of Shape Design apps.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The CAAMechanicalModelerExtend.edu &quot;Extending Combined Curve&quot; sample 
+shows how to create your own Extension Feature to add parameters and behaviors to 
+Mechanical Features.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td><a href="CAAMmrUcCombinedCurveSamplesOverview.htm">Creating a New Geometrical 
+		Feature: the Combined Curve</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAAMmrTaExtension.htm">Working With Extension Features</a></td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAMmrTaProvidersInMechPart.htm">Working with Providers</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAFmFeatModExt/CAAFmExtUcBuildUpdate.htm">
+		The Build/Update Protocol</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td>
+		<a href="../CAAMmrMecMod/CAAMmrTa3DShape.htm">
+		From the PLM Representation to the 3D Shape</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: 1 [Mar 2007]</td>
+		<td>Document created</td>
+	</tr>
+	<tr>
+		<td>Version: 2 [Jan 2011]</td>
+		<td>Document updated for V6 modifications</td>
+	</tr>
+	<tr>
+		<td>Version: 3 [Mai 2014]</td>
+		<td>Document updated for 3DEXPERIENCE platform migration</td>
+ </tr>
+
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

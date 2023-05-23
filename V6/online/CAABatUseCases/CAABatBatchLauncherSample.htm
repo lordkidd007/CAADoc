@@ -1,0 +1,290 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+<script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+<title>Launching a Batch</title>
+</head>
+
+<body onload="highlightSearchTerms();">
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Launching a Batch</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2>Abstract</h2>
+		<p>This article shows how to launch a Batch from a code source.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAABatBatchLauncherSample Use Case</a>
+			<ul>
+				<li><a href="#What">What Does CAABatBatchLauncherSample Do</a></li>
+				<li><a href="#How">How to Launch CAABatBatchLauncherSample</a></li>
+				<li><a href="#Where">Where to Find the CAABatBatchLauncherSample 
+				Code</a></li>
+			</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#References">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>This use case is intended to show you how to launch batch in a code source, 
+using the Batch APIs.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAABatBatchLauncherSample Use Case</h2>
+<p>CAABatBatchLauncherSample is a use case of the CAABatBatchInfrastructure.edu 
+framework that illustrates Batch infrastructure capabilities.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAABatBatchLauncherSample Do</h3>
+<p>The CAABatBatchLauncherSample &#39;s purpose is to show how to launch and monitor 
+a batch. The example batch takes as input a list of .model files and renames 
+them to .CATPart files.</p>
+<p>To do this, the use case will show how to:</p>
+<ul>
+	<li>Generate a XML describing the input files</li>
+	<li>Use callback to be notified of the end of the batch replay</li>
+	<li>Analyze the generated XML file describing the outputs.</li>
+</ul>
+<p><strong>Warning</strong>: this batch sample does not convert model files to CATPart files. 
+It is only about renaming the files.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAABatBatchLauncherSample</h3>
+<p>To launch CAABatBatchLauncherSample , you will need to set up the build time 
+environment ,then compile CAABatBatchLauncherSample along with its prerequisites, 
+set up the run time environment:</p>
+<ul>
+	<li>Set <code>ADL_ODT_IN</code> variable to the directory where the input files 
+	to rename are located:
+	<p><code>InstallRootFolder\CAADoc\CAABatchInfrastructure.edu\Data.d\</code></p>
+	<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is 
+	the folder where the API CD-ROM is installed.</p>
+	</li>
+	<li>Set <code>BATCH_HOME</code> to a writable directory where all the renamed 
+	files will be copied</li>
+	<li>Execute the use case:
+	<p>launch the start command <code>mkrun -c CAABatBatchLauncherSample</code></p>
+	</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAABatBatchLauncherSample Code</h3>
+<p>The CAABatBatchLauncherSample use case is made of a single function named batchmain 
+located in the CAABatBatchLauncherSample.m module of the CAABatchInfrastructure.edu 
+framework:</p>
+<p><code>InstallRootFolder\CAABatchInfrastructure.edu\CAABatBatchLauncherSample.m\</code></p>
+<p>where <code>InstallRootFolder</code> [<a href="#References">1</a>] is the 
+folder where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>There are seven logical steps in CAABatBatchLauncherSample:</p>
+<ol>
+	<li><a href="#Step1">Generating the XML Input</a></li>
+	<li><a href="#Step2">Retrieving the CATBatClientMonitorCAA Interface</a></li>
+	<li><a href="#Step3">Initializing the CATBatClientMonitorCAA</a></li>
+	<li><a href="#Step4">Initializing the Callbacks</a></li>
+	<li><a href="#Step5">Starting the Batch</a></li>
+	<li><a href="#Step6">Analyzing Output Files and Result Check</a></li>
+	<li><a href="#Step7">Cleaning up</a></li>
+</ol>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step1"></a>Generating the XML Input</h3>
+<pre class="code">...
+CATBatchParameters input_param;
+input_param.BeginBuffer(&quot;BatchSample&quot;, &quot;ParamTest.xml&quot;); 
+
+input_param.BeginInput();
+input_param.InsertFile(&quot;file1&quot;, &quot;CAABatchInfrastructure.edu\\Data.d\\ATTRIBUTCXR1.model&quot;, &quot;&quot;, COMM_FILE_BINARY);
+input_param.InsertFile(&quot;file2&quot;, &quot;CAABatchInfrastructure.edu\\Data.d\\BOBINE.model&quot;, &quot;&quot;, COMM_FILE_BINARY);
+input_param.InsertFile(&quot;file3&quot;, &quot;CAABatchInfrastructure.edu\\Data.d\\CUBE.model&quot;, &quot;&quot;, COMM_FILE_BINARY);
+
+input_param.InsertSimpleArg(&quot;action&quot;, &quot;1&quot;);
+input_param.EndInput();
+
+const char* out_folder = &quot;&quot;;
+input_param.BeginOutput();
+input_param.InsertFolder(&quot;out_dir&quot;, out_folder, &quot;&quot; , COMM_FILE_BINARY, &quot;CATPart&quot;);
+input_param.EndOutput();
+input_param.EndBuffer();
+...</pre>
+<p>To launch a batch, an XML input file must be defined. The first part of 
+the sample aims at generating that XML file, which is not provided as input data 
+in this sample.</p>
+<p>This XML file contains:</p>
+<ul>
+	<li><code>BatchSample</code> is the name of the descriptor file.</li>
+	<li><code>ParamTest.xml</code> is the name of the parameter file.</li>
+	<li><code>XXX\ATTRIBUTCXR1.model</code> is the full path of the input files.</li>
+	<li><code>out_folder</code> attribute is the full path for the output directory. 
+	If this attribute is set to &#8220;&#8221;, such as in the example, the directory defined 
+	with the <code>BATCH_HOME</code> variable is used.</li>
+	<li><code>BeginInput</code> and <code>EndInput</code> are used at the beginning 
+	and the end of the input data section.</li>
+	<li><code>BeginOutput</code> and <code>EndOutput</code> methods 
+	are used at the beginning and the end of output data section.</li>
+</ul>
+<p>The Parameters.dtd file used to check the XML files syntax is provided by the 
+Batch Infrastructure and is used for all batches.</p>
+<p>More details about the parameter file can be found in the use case &quot;Creating 
+a Batch&quot; [<a href="#References">2</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Retrieving the CATBatClientMonitorCAA Interface</h3>
+<pre class="code">...
+  CATBatClientMonitorCAA* cliMonitor = CATBatClientMonitorCAA::GetTheClientMonitorCAA();
+  ...</pre>
+<p>The method <code>GetTheClientMonitorCAA</code> returns a pointer to the interface
+<em>CATBatClientMonitorCAA</em>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Initializing the CATBatClientMonitorCAA</h3>
+<pre class="code">...
+  HRESULT hr = cliMonitor-&gt;InitializeV5Monitoring();
+...</pre>
+<p>The method <code>InitializeV5Monitoring</code> initializes the ability of 
+monitoring batches.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Initializing the Callbacks</h3>
+<pre class="code">...
+  CATBatchEventWatcher evt(&amp;cond_for_exit);
+...</pre>
+<p>A specific object to register callbacks on batch events must be created:
+<code>CATBatchEventWatcher</code>. In this example, the only event we&#39;re looking 
+for is the <code>CATBatchEndNotif</code> (end of the batch execution). When the 
+batch replay is finished, the main can check the result of the file renaming.</p>
+<p>The initialization of the call is done with the <code>AddCallback</code> method 
+that is called by the constructor of the <em>CATBatchEventWatcher</em> class.</p>
+<p>The <em>CATBatchEventWatcher</em> class is defined in an other source of this sample 
+(CATBatchEventWatcher.h and CATBatchEventWatcher.cpp). It contains the call back 
+definition and the notification emission when the batch replay is finished.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Starting the Batch</h3>
+<pre class="code">...
+  CATUnicodeString path_param;
+  input_param.GetFullPath(path_param);
+
+  hr = cliMonitor-&gt;StartV5Batch(path_param, uuid); 
+
+  evt.SetUUID(uuid);
+...</pre>
+<p>The method <code>GetFullPath</code> retrieves the full path of the previously 
+generated XML parameter file.</p>
+<p><code>SetUUID</code> is called after we start the batch because we need 
+to know the batch identifier, uuid, which is an output argument retrieved by a call 
+to the <code>StartV5Batch</code> method. It is a unique identifier that identifies 
+the running batch. It is used as an input argument to get information about the 
+batch execution. In this example, it is used in the <code>SetUUID</code> method 
+to tell the CATBatchEventWatcher which CATBatchEventNotif it must expect.</p>
+<p>At the end of the batch replay, a notification is received by the CATBatchEventWatcher 
+(the callback was initialized in the previous step). The UUID is used to check which 
+batch is ending, and avoids confusion if there are several batches running at the 
+same time.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Analyzing Output Files and Result Check</h3>
+<pre class="code">...
+  CATIBatchCAA* outputParamfile =NULL;
+  if (rc==0)
+  {
+    hr = GetOutputXMLFile(outputParamfile, uuid);
+
+    CATIBatchElementCAA* outputParametersSection = NULL;
+
+    hr = outputParamfile-&gt;get_OutputParametersCAA(outputParametersSection);
+
+    CATIBatchElementsCAA* fileList=NULL;
+    hr = outputParametersSection-&gt;get_FileListCAA(fileList);
+
+    CATIBatchElementCAA* elem = NULL;
+    long fileCount = 0;
+    hr = fileList-&gt;get_Count(fileCount);
+  
+    CATUnicodeString path;
+    for ( int ii = 0; ii&lt;fileCount; ii++ )
+    {
+      hr = fileList-&gt;ItemCAA( ii, elem );
+      elem-&gt;get_Path(path);
+  
+      printf(&quot;Found output &lt;%s&gt;\n&quot;, path.CastToCharPtr());
+    }
+  }
+...</pre>
+<p>The batch has ended. The return code is 0, so the batch ended with success. We 
+now open the generated output file to analyze its content. We retrieve the generated 
+file thanks to the batch uuid, its unique identifier. </p>
+<p>We create an access to the <em>CATIBatchCAA</em> interface to call the methods 
+that will allow us to retrieves all the parameters of the output file. The list 
+of rename file is retrieved, the number of item counted. In this example, the complete 
+paths of renamed files are read with the <code>get_Path</code> method and printed 
+on the standard output so that the end user can check the sample has done its work 
+correctly.</p>
+<p>To check if the sample has done its work correctly, open the <code>$BATCH_HOME</code> 
+directory and check there are the three renamed files: ATTRIBUTCXR1.CATPart, CUBE.CATPart 
+and BOBINE.CATPart.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Cleaning up</h3>
+<pre class="code">CATDeleteFile(path_param.CastToCharPtr());
+
+CATBatchLogCAA::DeleteLogs(uuid);</pre>
+<p>Before leaving, we do some clean up.</p>
+<p><code>CATDeleteFile</code> deletes the input parameter file. The method <code>
+DeleteLogs</code> from the CATBatchLogCAA interface cleans the batch log files.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>A batch can be launched in source code using APIs provided by the BatchInfrastructure 
+framework.</p>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a Use Case</a></td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td><a href="CAABatBatchSample.htm">Creating a Batch</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2007]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>

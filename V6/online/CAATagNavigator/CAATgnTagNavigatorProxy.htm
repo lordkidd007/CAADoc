@@ -1,0 +1,570 @@
+<!DOCTYPE html
+   PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+   <head>
+      <meta http-equiv="Content-Language" content="en-us" />
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <link rel="stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css"/>
+      <script type="text/javascript" src="../CAADocJavaScript/DSDocTocToc.js">/* */</script>
+      <script type="text/javascript" src="../CAADocJavaScript/DSDocHighlight.js">/* */</script>
+      <script type="text/javascript" src="../CAADocJavaScript/submit.js">/* */</script>
+      <title>TagNavigatorProxy API Documentation</title>
+      <style type="text/css">
+         .style1 {
+         color: #008000;
+         }
+         .style2 {
+         color: #FF0000;
+         }
+      .style3 {
+				margin-left: 40px;
+}
+      </style>
+   </head>
+   <body onload="highlightSearchTerms();">
+      <table class="DocHeader">
+         <tr>
+            <td class="DocHeader1">
+               <h1><a name="Top"></a>TagNavigatorProxy API  Documentation</h1>
+            </td>
+         </tr>
+         <tr>
+            <td class="tech">Technical Article</td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <table class="abstract">
+         <tr>
+            <td>
+               <h2>Abstract</h2>
+               <p>This article is written for developers who want to use the 
+				6WTagger inside a widget of 3DDashboard. By reading this article they will be able 
+				to understand how TagNavigatorProxy module works with 
+				TagNavigator module, and how to use it. All data managed by 
+				the TagNavigator comes from the widgets. A widget instantiate one or many TagNavigatorProxy 
+				to feed the TagNavigator with its data.</p>
+               <ul>
+                  <li><a href="#Part0">What is the 6WTagger?</a></li>
+                  <li><a href="#Part0bis">What is TagNavigatorProxy? How does it work with the TagNavigator?</a></li>
+                  <li><a href="#Part1">Dependencies</a></li>
+                  <li><a href="#Part2">Selection of the filtering mode for Tagger6WProxy, and Initialization</a></li>
+                  <li><a href="#Part2bis">Navigation in widget application between proxies</a></li>
+                  <li><a href="#Part2ter">Enable local filtering</a></li>
+					<li><a href="#Part3">Feed the 6WTagger with tags and Filter, 
+					FilteringOnServer</a><ul>
+									<li><a href="#Part31">Filtering tags scenario using addFilterChangeListener
+		(FilteringOnServer)</a></li>
+									<li><a href="#Part32">Filtering your data with dates</a></li>
+								</ul>
+					</li>
+					<li><a href="#Part4">Feed the 6WTagger with tags and Filter, 
+					WithFilteringServices</a><ul>
+									<li><a href="#Part41">Filtering tags scenario using addFilterSubjectsListener
+		(WithFilteringServices)</a></li>
+								</ul>
+					</li>
+                  <li><a href="#Part5">Edition mode: tag creation and tag deletion</a><ul>
+								<li><a href="#Part51">Add tag, addTagCreationListener callback</a></li>
+								<li><a href="#Part52">Delete tag, addTagDeletionListener callback</a></li>
+								<li><a href="#Part53">Unfocus, return to Refinement mode</a></li>
+								<li><a href="#Part54">Callback unfocus selected subjetcs</a></li>
+					</ul>
+					</li>
+					<li><a href="#Part6">Life Cycle</a><ul>
+									<li><a href="#Part61">Unset tags</a></li>
+									<li><a href="#Part62">Kill a TagNavigatorProxy</a></li>
+					</ul>
+					</li>
+					<li><a href="#InShort">In Short</a></li>
+					<li><a href="#References">References</a></li>
+               </ul>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               &nbsp;</td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part0"></a>What is the 6WTagger?</h2>
+      <p>The 6WTagger is a JavaScript component which works with 2 modules, 
+		TagNavigator and TagNavigatorProxy. To understand about the 6WTagger, please read this article. <a href="CAATgnTaTagNavigator.htm">6WTagger 
+		Documentation</a></p>
+		      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part0bis"></a>What is TagNavigatorProxy? How does the 
+		TagNavigatorProxy work with the TagNavigator?</h2>
+		
+		<p>TagNavigatorProxy instance, is initialized in a 3DDashboard's widget to make a 
+		communication with the TagNavigator.&nbsp;&nbsp;&nbsp; <br />
+         Each widgets on page can initialize one or many TagNavigatorProxy 
+		instances (also called proxies) to feed the TagNavigator with tags.<br />
+		<strong>Fig.1 6Wtagger simplified diagram</strong><br />
+		<img alt="TagNavigator" src="images/simplifiedSchemaTN-TNP.png"/></p>
+<p>The module TagNavigatorProxy creates two kinds of Tagger6WProxy (aka. proxy) which will 
+not respond the same way when the user wants to make a refinement. Depending on 
+your environment, you have to choose the filtering mode of your proxy 
+instance.</p>
+<ul>
+				<li><strong>FilteringOnServer</strong>: This is the most common 
+				proxy, choose this filtering mode if your filtering can 
+				be done by the back-end, and you can send to the 6WTagger all 
+				subjects with their tags data.</li>
+				<li><strong>WithFilteringServices</strong>: In this mode the 
+				filtering is done by the 6WTagger, choose this filtering mode 
+				when you need a pagination in your widget, or if you don't have 
+				all subjects with their tags data to pass to the 6WTagger.</li>
+</ul>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part1"></a>Dependencies</h2>
+ <p>All libraries, modules used are available in 
+		runtime view in the folder:<br />
+       <strong>
+         \webapps</strong></p>
+            <p>If you are going to use the ProxyView button, please add UIKIT CSS. Here is a 
+		documentation about <a href='https://wpdev.ux.dsone.3ds.com/webapps417/UIKITPreview/'>UIKIT</a>.</p>
+
+		      <pre class="code" style="vertical-align: baseline"><span class="style1">&lt;!--CSS--&gt;</span>
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;../UIKIT/UIKIT.css&quot;/&gt;
+</pre>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part2"></a>Selection of the filtering mode for Tagger6WProxy, 
+		and Initialization</h2>
+      <p>A proxy interacts with the 6WTagger via Tagger6WProxy.<br />
+		Depending on your environment, you have to choose the filtering mode 
+		of your proxy, which can be <strong>FilteringOnServer</strong> or <strong>
+		WithFilteringServices</strong>.<br />
+		See the schema below to choose the filtering mode you have to use for 
+		your proxy.<br />
+		<strong>Fig.2 Which filtering mode?</strong><br />
+		<img alt="TagNavigator" src="images/filteringMode.png"/>
+      </p>
+            <p>
+               Make a require on &quot;<strong>DS/TagNavigatorProxy/TagNavigatorProxy</strong>&quot; 
+				module then call the initialization API to get an access on 
+				TagNavigatorProxy API. Call createProxy API to get an instance 
+				of proxy.<br />
+				To init a TagNavigatorProxy instance, you need to provide the 
+				widget identifier, the filtering mode, and the tenant 
+				identifier. The tenant id is used by the TagNavigator to get the 
+				server URL where the tags will be stored, indeed the 
+				TagNavigator has a map of all tenant identifier with their tags 
+				server URL.<br />
+				</p>
+				               				<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Important</span>:
+		Because 3DDashboard needs to manage widgets application, the 6WTagger offers the capability to<strong> initialize several proxies in a widget</strong> and APIs to navigate between these contents.</td>
+	</tr>
+</table>
+
+				               				<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Important</span>:
+				If your widget doesn't get its data from a tenant, because it 
+				displays web datas, you don't need to set the tenant identifier. 
+		User will choose where to put his tags on tag creation. 
+				Moreover, the TagNavigator will retrieve explicit tags for web 
+				data from all tenants known by the TagNavigator.</td>
+	</tr>
+</table>
+               				<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: When you call 
+		the createProxy API, your proxy is 
+				initialized with an attribute isProxyReady is set to &quot;false&quot;. 
+				Your proxy is ready to be use when the UWA intercom 
+				communication with the TagNavigator has been initialized. The 
+				attribute isProxyReady is set to &quot;true&quot;.<br />
+		If &quot;isProxyReady&quot; 
+		attribute of TagNavigatorProxy instance remains to false, then you may 
+		have a problem of communication with the TagNavigator in page.</td>
+	</tr>
+</table>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part2bis"></a>Navigation in widget application between proxies</h2>
+            <p>
+               If your widget has several proxies, you can navigate between the 
+				proxies using activate and deactivate API.<br />
+				On proxy initialization, the proxy is active. if you want to 
+				hide a proxy from the TagNavigator, use deactivate API. When 
+				your proxy is hidden, you can use activate API to display 
+				the tags data of your proxy.<br />
+				<img alt="TagNavigator" src="images/activate-deactivate-proxy.png"/><br />
+				<img alt="TagNavigator" src="images/activate-deactivate-proxy2.png"/>
+				</p>
+				               				<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Important</span>: A hidden proxy 
+		will continue to filter itself if the global filter changes (filterchange 
+		callback can be triggered for a hidden proxy).</td>
+	</tr>
+</table>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part2ter"></a>Enable local filtering</h2>
+            <p>
+               The 6Wtagger handles two levels of filtering: filtering dashboard 
+				tab (global filter), and filtering content of proxy (local 
+				level). User should be able to focus on a content list to 
+				activate this local filtering on a specific content. This is 
+				done through a button which can be created through the ProxyView 
+				module.<br />
+				If you don't want to initialize a proxy view button but you need anyway to 
+				have the capability to filter locally, please contact 6WTagger 
+				team.<br />
+				<br />
+               Make a require on &quot;<strong>DS/TagNavigatorProxy/ProxyView</strong>&quot; 
+				module then init a Proxy view instance. Use render to inject the 
+				ProxyView button into the DOM of your widget.<br />
+				This button allows the user to focus on a single proxy and to set a 
+				local filter on the focused proxy. The filter will be applied 
+				only on the focused proxy.<br />
+				<br />
+								<strong>Fig.4 ProxyView button</strong><br />
+				<img alt="TagNavigator" src="images/proxyView.png"/> <br />
+				<br />
+
+				<br />
+				<strong>Fig.4 Local filter</strong><br />
+				<img alt="TagNavigator" src="images/localFilter.png"/>
+				<br />
+				<br />
+				Info: Only one proxy can be focused at a time. For example if 
+				&quot;proxy1&quot; is focused, and the user tries to focus &quot;proxy2&quot; as 
+				well, &quot;proxy1&quot; will be unfocused and the focus goes to the 
+				&quot;proxy2&quot;.<br />
+               </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+      <h2><a name="Part3"></a>Feed the 6WTagger with tags and Filter, FilteringOnServer</h2>
+      <p>Now that the proxy is initialized, it is ready for setting tags into 
+		the 6WTagger.<br />
+		This section describe how to set tags into TagNavigator if your 
+		Tagger6Wproxy is in <strong>FilteringOnServer</strong> mode. It will 
+		also explain the filtering mechanism and should be done to make it work.<br />
+		First use this API to set tags into TagNavigator: setTags<br /></p>
+				<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: Proxy must always send dates &quot;object&quot; attribute in &quot;yyyy/mm/dd&quot; 
+		format. Do not send dates such as &#8216;2012&#8217; or &#8216;2012/03&#8217;. They will be 
+		discarded.</td>
+	</tr>
+</table>
+      <h3><a name="Part31"></a>Filtering tags scenario using addFilterChangeListener
+		(FilteringOnServer)</h3>
+      <p>This is the main callback to implement for filtering management.
+		Each time the user clicks on a tag to refine objects on page, the FilterChangeListener 
+		callback is triggered with the filterObj as argument. The filterObj contains the list of active tags.<br />
+		In FilteringOnServer mode the 6Wtagger needs you to re-set your 
+		tags filtered by the server after the addFilterChangeListener event,&nbsp; the scenario 
+		of refinement is described below:</p>
+	<ul>
+	<li>User clicks on a tag</li>
+	<li>addFilterChangeListener is called with the filterObj.</li>
+	<li>Get the new list of tags from the server according to what is received 
+	as the filterObj</li>
+	<li>Set those tags to the Tagger using setTags()&nbsp;<strong> 
+	<span class="style2">(IF THIS STEP IS NOT 
+	DONE, THE TAGNAVIGATOR WILL REMAIN IN LOADING MODE)</span></strong></li>
+</ul>
+	<p><strong>Fig.3 Refinement scenario</strong></p>
+		<p><img alt="Loading" src="images/refinement.png"/></p>
+	<p>
+		<strong><em>Example</em></strong><br />
+      </p>
+      <table style="width: 100%">
+         <tr>
+            <td style="width: 352px"><img alt="TagNavigator Filtering Mode" src="images/filterObj.png"/></td>
+            <td valign="top">
+               <pre class="code"><span class="style1">//This is an example of what you can get as a filterObj while a addFilterChangeListener callback, so you can filter your tags before setting it into the tagger.</span>
+filterObj = {
+    "allfilters": {
+        "ds6w:when": [
+            {
+                "disptext": "2011/June/29",
+                "object": "2011/06",
+                "type": "date",
+                "field": []
+            }
+        ],
+        "ds6w:why/ds6w:fulfills/ds6w:fulfillsPriority": [
+            {
+                "disptext": "P0",
+                "object": "P0",
+                "type": "string",
+                "field": [
+                    "V_Priority"
+                ]
+            }
+        ],
+        "ds6w:what/ds6w:radius": [
+            {
+                "disptext": "1 cm",
+                "object": "1 cm",
+                "type": "string",
+                "field": [
+                    "Radius"
+                ]
+            }
+        ]
+    }
+}
+<span class="style1">//add the callback function:
+</span><span class="style2">this.OnFilterChange </span>= function(filterObj){    
+	sendFilterToServerAndGetTagsToDisplay(filterObj,{
+            onComplete: function(response){
+                <span class="style1">//send it back to the tagger with setTags method:</span>
+                <span class="style2">taggerProxy.<strong>setTags</strong>(response.tagsData, response.summaryData);</span>
+            },
+            onFailure: function(){
+                UWA.log("Error");
+	 <span class="style2">      taggerProxy.<strong>setTags(</strong>);</span>  <span class="style1">//In error case, please do a setTags anyway or the tagger will remains frozen</span>
+            }
+        }
+    );
+}
+myTaggerProxy.<span class="style2"><strong>addFilterChangeListener</strong></span>(this.OnFilterChange, this);<span class="style1"> //OnFilterChange callback can also be defined on init</span>
+</pre>
+            </td>
+         </tr>
+      </table>
+      <p>You can Add or modify the FilterChangeListener callback by calling the 
+		addFilterChangeListener API.<br />
+				<br />
+		<br /></p>
+		      <h3><a name="Part32"></a>Filtering your data with dates</h3>
+<p>If you receive a filterObj that contains a date (because allfilters[&lt;pred&gt;][&lt;idx&gt;].type is &#8216;date&#8217;), you have to pay attention to the 
+format of the property allfilters[&lt;pred&gt;][&lt;idx&gt;].object :</p>
+<ul>
+	<li>If this property &quot;object&quot; is in the format yyyy, the tagger now expects to 
+	receive &#8211;for the predicate &lt;pred&gt;&#8211; dates tags(*) (by a call to 
+	TagNavigatorProxy.setTags) that are within the year yyyy. Any date tag received 
+	not in the year yyyy will be discarded !</li>
+	<li>If this property &quot;object&quot; is in the format yyyy/mm, the tagger now expects to 
+	receive &#8211;still for the predicate &lt;pred&gt;&#8211; dates tags(*) that are within the 
+	month mm of the year yyyy. Any date tag received not in the month yyyy/mm 
+	will be discarded !</li>
+	<li>If this property &quot;object&quot; is in the format yyyy/mm/dd, the tagger now expects 
+	to receive &#8211;still for the predicate &lt;pred&gt;&#8211; only the date tag yyyy/mm/dd. 
+	Any other date tag for this predicate &lt;pred&gt;&#8211;will be discarded</li>
+</ul>
+
+<p style="height: 38px">(*) In all cases, the proxy must always send dates in the yyyy/mm/dd format. You cannot send dates such as &#8216;2012&#8217; or &#8216;2012/03&#8217;. They will 
+be discarded.<br/>
+Note that with this &#8220;protocol&#8221; to refine/filter with dates, the user cannot 
+anymore performs a &quot;OR&quot; filtering such as &#8216;2012 or 2013&#8217;.<br />
+Note that if month and days should always have 2 digit.
+For example a click on those tags  : 2013 / January / 4, will send as a filter : 2013/01/04
+</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part4"></a>Feed the 6WTagger with tags and Filter, 
+		WithFilteringServices</h2>
+<p>This section describes how to set tags into TagNavigator if your 
+		Tagger6Wproxy is in <strong>WithFilteringServices</strong> 
+				mode and explains the filtering mechanism and what you 
+		should do to make it work.<br />
+		First use this setSubjectsTags API to set tags into TagNavigator.<br />
+				<br />
+<br />
+				</p>
+		<table class="Remark">
+	<tr>
+		<td class="Remark"><span class="run-in">Warning</span>: Proxy must always send dates &quot;object&quot; attribute in &quot;yyyy/mm/dd&quot; 
+		format. Do not send dates such as &#8216;2012&#8217; or &#8216;2012/03&#8217;. They will be 
+		discarded.</td>
+	</tr>
+</table>
+<h3><a name="Part41"></a>Filtering tags scenario using addFilterSubjectsListener
+		(WithFilteringServices)</h3>
+      <p>addFilterSubjectsListener is the callback to implement for filtering management 
+		when working in a &quot;WithFilteringServices&quot; proxy.
+		Each time the user clicks on a tag to refine subjects on page, the addFilterSubjectsListener 
+		callback is triggered with the filteredSubjectList as argument. The 
+		filteredSubjectList contains the list of subjects remains after the 
+		filtering.<br />
+		In WithFilteringServices mode tags data are filtered in the 6WTagger. When the 
+		user clicks on a tag the Tagger6WProxy is notified by the addFilterSubjectsListener event,&nbsp;so the 
+		proxy receive the list of subjects to display in the proxy. The scenario 
+		of refinement is described below:</p>
+	<ul>
+	<li>User clicks on a tag</li>
+	<li>addFilterSubjectsListener is called with the filteredSubjectList</li>
+	<li>The content component display the list of subjects that are in the 
+	filteredSubjectList</li>
+</ul>
+	<p><strong>Fig.3 Refinement scenario</strong></p>
+		<p><img alt="Loading" src="images/refinement2.png"/></p>
+	<p>
+		<strong><em>Example</em></strong><br />
+      </p>
+      <table style="width: 100%">
+         <tr>
+            <td style="width: 352px"><img alt="TagNavigator Filtering Mode" src="images/filterObj.png"/></td>
+            <td valign="top">
+               <pre class="code"><span class="style1">//This is an example of what you can get as a filteredSubjectsList while a addFilterSubjectsListener callback is triggered.</span>
+filteredSubjectsList = {
+   filteredSubjectList: [
+       'subject-1-uri',
+       'subject-2-uri'
+   ]
+}
+<span class="style1">//add the callback function:
+</span><span class="style2">this.OnFilterChange </span>= function(filteredSubjectsList){
+	displaySubjectsIntheList(filteredSubjectsList)
+        }
+    );
+}
+myTaggerProxy.<span class="style2"><strong>addFilterSubjectsListener</strong></span>(this.OnFilterChange, this);<span class="style1">//OnFilterChange callback can also be defined on init</span>
+</pre>
+            </td>
+         </tr>
+      </table>
+      <p>You can add or modify the FilterChangeListener callback by calling the
+		addFilterChangeListener API.<br />
+				<br />
+		<br />
+</p>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="Part5"></a>Edition mode: tag creation and tag deletion</h2>
+      <p>6WTagger has an edition mode which enable the user to create and to delete 
+		explicit tags.<br />
+		Switching the TagNavigator into the Edition mode can be done calling 
+		focus on subjects API, it will enable explicit tags creation and deletion. 
+		Contrary to Implicit tags, Explicit tags are directly visible under the 
+		6Ws predicates and they are created by users instead of being defined by 
+		the tags datasource. In Edition mode only tags related to the selected subjects 
+		are displayed in the 6WTagger view. In edition mode, the user can not 
+		activates tags anymore which is specific to refinement mode.<br />
+		If you have created a proxy without any tenant the explicit tags are 
+		retrieved by the TagNavigator from all the server URLs the TagNavigator 
+		knows. Moreover, the user will has to choose on which tenant he wants 
+		to save his tags on subjects that are not from any tenant.<br />
+				<br />
+		<br />
+      </p>
+       <p class="style3"><strong>Fig3 Tag Creation </strong><br />
+       <img alt="TagNavigator Add Tag" src="images/addTag.png"/></p>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part51"></a>Add tag, addTagCreationListener callback</h3>
+      <p>When the user selects one or many objects on page, TagNavigator 
+		switches into Edition mode, so the user can add explicit tags on these 
+		objects. Explicit tag are tags created by the user, in contrary to 
+		implicit tag. Explicit tags are directly set under the 6W predicates. 
+		(for more explanation about explicit tags see <a href="CAATgnTagNavigator.htm">TagNavigator documentation</a>)<br />
+         <img alt="TagNavigator Add Tag" src="images/addTag.png"/>
+         <br />
+         When a tag is successfully added to a server, the addTagCreationListener 
+		callback is triggered with the tagsEventData.<br />
+		To add or modify addTagCreationListener callback function, use addTagCreationListener 
+		API.<span class="style2"><strong><br />
+		</strong></span><br />
+		<br />
+      </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part52"></a>Delete tag, addTagDeletionListener callback</h3>
+      <p>When the user selects one or many objects on page, TagNavigator 
+		switches into Edition mode, so the user can delete explicit tags on 
+		these objects. (see 
+		<a href="CAATgnTagNavigator.htm">TagNavigator documentation</a>)<br />
+		<br />
+		<strong>Fig4 Tag deletion</strong> <br />
+         <img alt="TagNavigator Add Tag" src="images/deleteTag.png"/>
+         <br />
+         When a tag is successfully deleted of the server, the addTagDeletionListener 
+		callback is triggered with the tagsEventData.<br />
+		To add or modify addTagDeletionListener callback function, use addTagDeletionListener 
+		API.<br />
+				<br />
+		<br />
+      </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      		<h3><a name="Part53"></a>Unfocus, return to Refinement mode</h3>
+
+      <p>To go back to refinement mode call unfocus API. This will unfocus the 
+		selected subjects, and disable tag creation and 
+		tag deletion.<br />
+				<br />
+         <br />
+      </p>
+      
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+		<h3><a name="Part54"></a>Callback unfocus selected subjects</h3>
+
+      <p>-	A proxy is notified when their subjects lose their focus via a callback event. When a user focuses on a subject (=selects a subject) in a proxy, the 6WTagger switches into edition mode on this subject. The edition mode on this subject will be lost if: 
+		<br />
+		- a subject is selected in another proxy,
+<br />
+		- the focus is set on another proxy,
+<br />
+		- the focus is set on another widget.
+<br />
+		In this case, you need potentially to unselect the subject.
+To be warned when this happens, please set addUnfocusSubjectsListener callback event.<br />
+		<br />
+      </p>
+
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+
+      <h2><a name="Part6"></a>Life Cycle</h2>
+      <h3><a name="Part61"></a>Unset tags</h3>
+      <p>To clear all tags of a TagNavigatorProxy. Use unsetTags API.<br />
+				<br />
+		<br />
+      </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h3><a name="Part62"></a>Kill a TagNavigatorProxy</h3>
+      <p>To kill a TagNavigatorProxy, for example if a user remove a proxy, call 
+		kill API.<br />
+				<br />
+		<br />
+      </p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="InShort"></a>In Short</h2>
+  <p>This article is written for developers who want to use the 
+				6WTagger inside a widget of 3DDashboard. By reading this article they will be able 
+				to understand how TagNavigatorProxy module works with 
+				TagNavigator module, and how to use it. All data managed by 
+				the TagNavigator comes from the widgets. A widget instantiate one or many TagNavigatorProxy 
+				to feed the TagNavigator with its data.(For more information 
+				please see the <a href="CAATgnTagNavigator.htm">TagNavigator documentation</a>)</p>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="References"></a>References</h2>
+      <table class="reference">
+         <tr>
+            <td>[1]</td>
+            <td><a href="#">Tools Options</a></td>
+         </tr>
+      </table>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <h2><a name="History"></a>History</h2>
+      <table class="history">
+         <tr>
+            <td>Version: <strong>1</strong> [Jan 2000]</td>
+            <td>Document created</td>
+         </tr>
+      </table>
+      <script type="text/javascript">insertLinkToTop();</script>
+      <!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+      <script type="text/javascript">insertCopyright();</script>
+   </body>
+</html>

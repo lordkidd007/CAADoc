@@ -1,0 +1,1614 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
+<title>Using SCM from Programs</title>
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td valign="top"><h1>RADE</h1>
+    </td>
+    <td valign="top"><h2>Source Code Manager</h2>
+    </td>
+    <td rowspan="2" align="right" valign="top"><h3><a name="Top"></a>Using SCM from Programs</h3>
+    <p><em>Building a customized environment upon SCM</em></td>
+  </tr>
+  <tr>
+    <td class="use" colspan="2">Use Case</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<table class="abstract">
+  <tr>
+    <td><h3>Abstract</h3>
+    <p>This article explains how to use SCM commands from programs (like shell, bat or
+    executable). <ul>
+      <li><a href="#Setting up"><b>Setting Up the Environment</b></a> <ul>
+          <li><a href="#Principles">Principles</a></li>
+          <li><a href="#From a bat or shell program">From a bat or shell Program</a></li>
+          <li><a href="#From an executable">From an Executable</a></li>
+        </ul>
+      </li>
+      <li><a href="#The Program Mode"><strong>The &quot;-program&quot; Option</strong></a> <ul>
+          <li><a href="#Principles2">Principles</a></li>
+          <li><a href="#Commands">Commands</a></li>
+          <li><a href="#Keywords">Keywords</a></li>
+        </ul>
+      </li>
+      <li><a href="#Dealing with blanks and unusual characters"><strong>Dealing With Blanks in
+        File Names</strong></a></li>
+      <li><strong><a href="#Dealing With Strings">Dealing With Strings</a></strong></li>
+      <li><a href="#Redirecting Outputs in Files"><strong>Redirecting Outputs in Files</strong></a></li>
+      <li><a href="#StructureAdlDsChg"><b>Structure of information for
+        adl_promote, adl_ds_promo, adl_ds_chg and adl_diff_ws_rev commands</b></a></li>
+      <li><b><a href="#Structure of information for adl_ds_cs command">Structure 
+      of information for adl_ds_cs command</a></b></li>
+      <li><a href="#StructureAdlCollect"><b>Structure of the information for
+        adl_collect and adl_sync command</b></a></li>
+      <li><a href="#StructureAdlDsWs"><b>Structure of information for adl_ds_ws
+command</b></a></li>
+      <li><a href="#StructureAdlLsXxx"><b>Structure of information for adl_ls_xxx
+        command</b></a></li>
+      <li><a href="#InShort"><b>In Short</b></a></li>
+      <li><b><a href="#References">References</a></b></li>
+      <li><b><a href="#History">History (2.1)</a></b></li>
+    </ul>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Setting up"></a>Setting Up the Environment</h3>
+
+<h4><a name="Principles"></a>Principles</h4>
+
+<p>SCM is provided as a set of commands having one single syntax whatever the current
+operating system is, Windows or UNIX.</p>
+
+<p>These commands are available as soon as the environment has been set by running the
+corresponding profile. Note that two profiles are available depending on the type of
+commands to be used (user or administrator).</p>
+
+<p>In addition, almost all commands operate having a current working workspace (and
+possibly a current working image). So, for a given command, consult its usage to know if a
+&quot;-ws&quot; option is available, if not, it is needed to execute the adl_ch_ws command to set a
+current workspace.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="From a bat or shell program"></a>From a bat or shell program</h4>
+
+<p>When the SCM profile is executed in a shell/bat program, all commands that are executed
+in this shell/bat inherit the environment. In the same way, when a current workspace is
+selected by the adl_ch_ws command, all further commands are executed within this current
+workspace. Here is an example of a shell program:</p>
+
+<table class="code">
+  <tr>
+    <td><pre>#!/bin/ksh
+# Call tck_init to access TCK commands
+. /CAA/solaris_a/code/command/tck_init
+# Set the environment to access CAA tools (including SCM)
+tck_profile V5R18
+# Select a current workspace
+adl_ch_ws $1
+# run commands in this workspace...
+...</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="From an executable"></a>From an Executable</h4>
+
+<p>When commands are run from an executable, they are executed in a dedicated environment
+inherited from the executable environment. So, if SCM commands were available before
+running the executable, they can still be used from it.</p>
+
+<p><a name="adl_ch_ws treatment"></a>However there is one command having a special
+behavior: the <em>adl_ch_ws</em> command.<br>
+This command sets SCM environment variables and also executes the tck_profile command in
+case the TCK associated with the new current workspace is different from the current one.
+As those operations are performed in a sub-environment, the new environment can't be seen
+from the executable and, by the way , the next commands won't be executed in the right
+environment.</p>
+
+<p>So, if a program needs to set the current working workspace while it is running, the <em>adl_ch_ws</em>
+command must be called in a shell/bat program whose purpose will be to call it, then to save all environment variables in a temporary file. This file will be
+loaded by the main program which will change its current environment with the variables read from the file.</p>
+
+<table class="code">
+  <tr>
+    <td><pre>$ cat ch_ws.cpp
+...
+// Execute external program to change the current workspace
+sprintf(cmd, &quot;adl_transfer_ch_ws.sh %s /tmp/ADLTransferMngrTmp.txt&quot;,workspacename);
+int code = system(cmd);
+...
+// Load the new current environment
+FILE *fp = fopen(&quot;/tmp/ADLTransferMngrTmp.txt&quot;, &quot;r&quot;);
+...
+</pre>
+      <pre>$ cat adl_transfer_ch_ws.sh
+#!/bin/ksh
+# $1 is the workspace name
+# $2 is the temporary file into which the new environment will be stored
+adl_ch_ws $1 &gt;/tmp/ADLTransferChWsTmp2.$$ 2&gt;&amp;1
+rtcode=$?
+# If the ch_ws_i command failed, no need to set up the current environment
+if [ $rtcode -ne 0 ]
+then
+	cat /tmp/ADLTransferChWsTmp2.$$
+	\rm -f /tmp/ADLTransferChWsTmp*.$$
+	exit $rtcode
+fi
+# Using ksh, execute with '.'
+. /tmp/ADLTransferChWsTmp1.$$ &gt;&gt;/tmp/ADLTransferChWsTmp2.$$ 2&gt;&amp;1
+rtcode=$?</pre>
+      <pre># Return the new current directory because changed due to adl_ch_ws_i
+pwd &gt; $1
+# Print the new environment variables in the file that will be read by the calling program
+env &gt;&gt; $1
+...
+
+exit $rtcode
+</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="The Program Mode"></a>The &quot;-program&quot; Option</h3>
+
+<h4><a name="Principles2"></a>Principles</h4>
+
+<p>This option is available on commands that are often used in programs. Its purpose is: 
+
+<ul>
+  <li>To restrict the display to information only</li>
+  <li>To provide the same information whatever the current language is (NLS)</li>
+  <li>To provide a format of information that can be used as input for other programs (<em>grep</em>,
+    <em>awk</em>, etc)</li>
+</ul>
+
+<p>Here is an example of the output of a command with and without the &quot;-program&quot; option. We can see that
+using the &quot;-program&quot; option: 
+
+<ul>
+  <li>There is no title for the output</li>
+  <li>NLS comments are replaced by integer or constant string <ul>
+      <li>0 or 1 is used for Boolean values</li>
+      <li>A string is used for enumerate values</li>
+    </ul>
+  </li>
+  <li>The second column has been split into two columns to ease its use by another program</li>
+</ul>
+
+<table class="code">
+  <tr>
+    <td><pre>E:\&gt;adl_ls_tree
+Tree name  Contents server  Database  CAA rules  Change req. mode  Software level
+---------------------------------------------------------------------------------
+MMCXR8        cologne:23500   ADLS11   Not checked    Mandatory          CXR8
+TESTOPENCXR7  cologne:23500   ADLS15   Not checked    Mandatory          CXR7
+TOOLSTST      cologne:23500   ADLS11   Not checked    Optional           CXR8
+TREE1_INDUS   cologne:23500   ADLS11   Not checked    None
+
+E:\&gt;adl_ls_tree <strong>-program</strong>
+MMCXR8  cologne  23500  ADLS11  0  MANDATORY  CXR8
+TESTOPENCXR7  cologne  23500  ADLS15  0  MANDATORY  CXR7
+TOOLSTST  cologne  23500  ADLS11  0  OPTIONAL  CXR8
+TREE1_INDUS  cologne  23500  ADLS11  0  NONE  \0</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h4><a name="Commands"></a>Commands</h4>
+
+<p>The following commands, classified in four groups, provide the -program option. 
+
+<ul>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmDiffWsRev.htm">adl_diff_ws_rev</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmDsChg.htm">adl_ds_chg</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmDsPromo.htm">adl_ds_promo</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmPromote.htm">adl_promote</a></li>
+</ul>
+
+<p>&nbsp;</p>
+
+<ul>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmCollect.htm">adl_collect</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmSync.htm">adl_sync</a></li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmDsWs.htm">adl_ds_ws</a></li>
+</ul>
+
+<p>&nbsp;</p>
+
+<ul>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsCfgBr.htm">adl_ls_cfg_br</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsCo.htm">adl_ls_co</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsPriv.htm">adl_ls_priv</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsContentsServer.htm">adl_ls_contents_server</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsFw.htm">adl_ls_fw</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsMerge.htm">adl_ls_merge</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsOut.htm">adl_ls_out</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsPromo.htm">adl_ls_promo</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsReq.htm">adl_ls_req</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsResp.htm">adl_ls_resp</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsSite.htm">adl_ls_site</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsTransfer.htm">adl_ls_transfer</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsTree.htm">adl_ls_tree</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsType.htm">adl_ls_type</a></li>
+  <li><a href="../CAAWsmQuickRefs/CAAWsmLsWsRev.htm">adl_ls_ws_rev</a></li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<h4><a name="Keywords"></a>Keywords</h4>
+
+<p>For the first four commands (adl_ds_ws, adl_ds_chg, adl_ds_promo and
+adl_diff_ws_rev), there are so many information to display that keywords are
+necessary:
+<ul>
+  <li>A keyword is given at the beginning of each line.&nbsp;
+  <li>Information associated with each keyword are displayed<b> </b>after the
+    keyword.&nbsp;
+  <li>Keywords are the same for the three following commands: adl_ds_chg, adl_diff_ws_rev and adl_ds_promo.&nbsp;
+  <li>Keywords are different for the adl_ds_ws command.</li>
+</ul>
+
+<p>The &quot;-program&quot; option for <b>adl_ds_promo</b>, <b>adl_ds_chg</b>
+and <b>adl_diff_ws_rev</b> commands has the following keywords: </p>
+
+<ul>
+  <li>
+        WS_CONTEXT</li>
+  <li>_SOFT_OBJ</li>
+  <li>_SO_CHG_GRP_CR</li>
+  <li>__SO_CHG</li>
+  <li>___CREATED</li>
+</ul>
+<p>The &quot;-program&quot; option for <b>adl_collect</b> and <b>adl_sync</b>
+commands has the following keywords: </p>
+
+<ul>
+  <li>
+        WS_CONTEXT</li>
+  <li>_SOFT_OBJ</li>
+  <li>_SO_CHG_GRP_CR</li>
+  <li>__SO_CHG</li>
+  <li>___CREATED</li>
+  <li>_SOFT_OBJ_MOVED_OUT_FROM</li>
+  <li>_ATTACHED_COMPONENT</li>
+  <li>_PROJECTION_CONFLICT</li>
+  <li>_MERGE_TO_SOLVE&nbsp;</li>
+</ul>
+<p>The &quot;-program&quot; option for <b>adl_ds_ws</b> command has the following keywords: </p>
+
+<ul>
+  <li>MULTI_TREE_WS</li>
+  <li>_IMAGE</li>
+  <li>__IMAGE_IN_TREE</li>
+  <li>_MULTI_TREE_WS_STATUS</li>
+  <li>_WS</li>
+  <li>__WS_STATUS</li>
+  <li>__WS_SYNC</li>
+  <li>__WS_PUBLICATION</li>
+  <li>__WS_ACTIVE_PROMO_REQ</li>
+  <li>__WS_PROMO_REQ_TO_COLLECT&nbsp;</li>
+</ul>
+<p>The &quot;-program&quot; option for all the adl_ls_xxx commands has no
+keyword.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Dealing with blanks and unusual characters"></a>Dealing With Blanks in File
+Names</h3>
+
+<p>When treating commands' outputs, blanks in strings may cause programs to miss some
+parameters. To avoid that, almost all commands supporting the -program option
+provide the -<em>sep</em> or -<em>separator</em> option in order to specify a
+character or a string as a separator between fields in output</p>
+
+<p>Here is an example of the adl_ls_fw command's output with or without the -sep option.<br>
+Note: we recommend '|' (pipe) as field separator because it does not belong to the character set
+allowed for file names [<a href="#References">1</a>].<br>
+More precisely, here are the rules the separator must follow: 
+
+<ul>
+  <li>it cannot be a digit or an alphabetical character</li>
+  <li>it cannot be an underscore '_'</li>
+  <li>it cannot be a backslash '\'</li>
+</ul>
+
+<table class="code">
+  <tr>
+    <td><pre>E:\&gt;adl_ls_fw <b>-program</b>
+a fw FRAMEWORK 1 cga Demo_tree1
+fw1 FRAMEWORK 1 cga Demo_tree1
+fw1.tst FRAMEWORK 1 cga Demo_tree1
+
+E:\&gt;adl_ls_fw <b>-program -sep &quot;|&quot;</b>
+a fw|FRAMEWORK|1|cga|Demo_tree1
+fw1|FRAMEWORK|1|cga|Demo_tree1
+fw1.tst|FRAMEWORK|1|cga|Demo_tree1</pre>
+    </td>
+  </tr>
+</table>
+
+<p>The -<em>sep</em> option is also used to be sure that any character must be taken. The
+example below shows a file name containing spaces and a quote.</p>
+
+<table class="code">
+  <tr>
+    <td width="100%"><pre>E:\&gt;adl_ls_out <b>-program -sep &quot;|&quot;</b>
++0CHxaBSpiMMg3+++-m+-c_CIQb2R5cn9+3+++-V+6C|a fw
++0CHxaBSpiMMg3+++-m+-c_CHwt2B5cn9+3+++-XU8z|fw1
++0CHxaBSpiMMg3+++-m+-c_CIQaNx5cn9+3+++-WE-f|fw1/PublicInterfaces
++0CHxaBSpiMMg3+++-m+-c_CIQc-h5cn9+3+++-Pk5V|fw1/PublicInterfaces/I'm a file .h
++0CHxaBSpiMMg3+++-m+-c_CIQaNx5cn9+3+++-WE-l|fw1/PublicInterfaces/a file name .h</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="Dealing With Strings"></a>Dealing With Strings</h3>
+
+<p>Information that are considered as strings are transformed when printing them
+in -program mode. Here are the translation rules:</p>
+
+<ul>
+  <li>all the &lt;field separator&gt; characters are replaced by the sequence
+    &quot;\_&quot;</li>
+  <li>all the backslash characters '\' are doubled &quot;\\&quot;</li>
+  <li>all &lt;end of line&gt; are replaced by the sequence &quot;\n&quot;</li>
+  <li>No information is displayed&nbsp; by the sequence &quot;\0&quot;</li>
+</ul>
+
+<table class="code">
+  <tr>
+    <td><pre>E:\&gt;adl_ls_tree
+Tree name Contents server Database CAA rules    Mode  Software level
+---------------------------------------------------------------------
+T10       cologdsy:23500  ADLS11   Not checked  None
+T11       cologdsy:23500  ADLS11   Not checked  None  <b>With|Pipe|</b>
+T1        flam1dsy:23500  ADLS11   Checked      None  <b>V5R10</b>
+T2        flam1dsy:23500  ADLS11   Not checked  None  <b>With\Backslash\
+</b>
+E:\&gt;adl_ls_tree <b>-program -sep &quot;|&quot;</b>
+T10|cologdsy|23500|ADLS11|0|NONE|<b>\0</b>
+T11|cologdsy|23500|ADLS11|0|NONE|<b>With\_Pipe\_</b>
+T1|flam1dsy|23500|ADLS11|1|NONE|<b>V5R10</b>
+T2|flam1dsy|23500|ADLS11|0|NONE|<b>With\\Backslash\\</b></pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="Redirecting Outputs in Files"></a>Redirecting Outputs in Files</h3>
+
+<p>Both on Windows and UNIX platforms, the '&gt;' symbol can be used for redirecting
+programs' outputs into a file. However some SCM commands provide the -<em>out</em> option
+for that purpose. Another interest of this option is that it prevents outputs to be
+registered in users' log files. Those log files exist for administrative reasons and
+contain all commands' outputs. Commands like adl_ls_out cause this log files to become
+very big and the use of the -out option avoids this side effect.</p>
+
+<p>Commands that provide the -<em>out</em> option are: 
+
+<ul>
+  <li>adl_diff_ws_rev</li>
+  <li>adl_ds_chg</li>
+  <li>adl_ds_promo</li>
+  <li>adl_ls_cfg_br</li>
+  <li>adl_collect</li>
+  <li>adl_ls_contents_server</li>
+  <li>adl_ls_fw</li>
+  <li>adl_ls_merge</li>
+  <li>adl_ls_out</li>
+  <li>adl_ls_promo</li>
+  <li>adl_ls_req</li>
+  <li>adl_ls_resp</li>
+  <li>adl_ls_site</li>
+  <li>adl_ls_transfer</li>
+  <li>adl_ls_tree</li>
+  <li>adl_ls_ws</li>
+  <li>adl_ls_ws_rev</li>
+  <li>adl_ls_cs</li>
+  <li>adl_ds_cs</li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="StructureAdlDsChg"></a>Structure of the information for <b>adl_promote</b>,
+<b>adl_ds_promo</b>,
+<b>adl_ds_chg</b> and <b>adl_diff_ws_rev</b> commands</h3>
+
+<p>Each keyword has several information. For each information, several values
+are possible.<br>
+The structures of the information that are described below are given
+according to the following rules: </p>
+
+<ul>
+  <li>the fields are listed in the order they appear in output</li>
+  <li>the &lt;...&gt; notation indicates a string</li>
+  <li>keywords in uppercase are the words that
+    can be found in output</li>
+  <li>a pipe character '|'&nbsp; corresponds to different
+    possible values</li>
+</ul>
+
+<p>&nbsp; </p>
+
+<ul>
+  <li>
+        
+        <b>
+        <a name="WS_CONTEXTInfo"></a>
+        WS_CONTEXT</b>  : for <b>adl_ds_promo</b> and <b>adl_ds_chg</b>, this
+        keyword is followed by information about the workspace specified to the
+        command. For <b>adl_diff_ws_rev</b>, information are related to the most
+        recent workspace version involved in the computation of differences
+        <ul>
+          <li>&lt;WsTreeCaseName&gt; : name of the tree</li>
+          <li>
+    
+    &lt;WsTreeId&gt; : unique database identifier of&nbsp; this tree&nbsp; (computed by SCM)</li>
+          <li>
+    
+    &lt;WsCaseName&gt; : name of the workspace</li>
+          <li>
+    
+    &lt;WsId&gt; : unique database identifier of this workspace (computed by SCM)</li>
+          <li>
+    
+    &lt;CurrentWsRevId&gt; : unique database identifier of the workspace revision (computed by SCM)</li>
+          <li>
+    
+    &lt;CurrentConfigRevId&gt; : unique database identifier of the configuration
+    revision (computed by SCM)</li>
+          <li>
+    
+    &lt;CurrentHistoryRank&gt; : history rank of the workspace in the tree &lt;WsTreeCaseName&gt;</li>
+        </ul>
+  </li>
+  <li><b><a name="_SOFT_OBJInfo"></a>_SOFT_OBJ</b>  : information related to one software object managed in SCM
+    <ul>
+      <li>
+    
+    &lt;SoftObjPath&gt; : relative path to the software object</li>
+      <li>DEL | NOT_DEL : state of the software object, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the software object (computed by SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA | DIR_ELEM | FILE_ELEM : software
+        object type</li>
+      <li>FOLDER | FILE : the software object is a
+        directory or a file</li>
+      <li>COMPONENT | ELEMENT : a component is either a 
+      framework, a module or a data. An element is a directory or a file and 
+      belongs to a component.</li>
+      <li>&lt;ResponsibleName&gt; | &lt;NULL&gt; | &lt;NOT_AVAILABLE&gt; :&nbsp; the name of 
+      the responsible of the object. &lt;NULL&gt; if no responsible is defined for the object. 
+      &lt;NOT_AVAILABLE&gt; if the information is not available for this command (adl_ds_promo, 
+      ...).</li>
+      <li>
+    
+    &lt;OldSoftObjPath&gt; | &lt;NULL&gt; : old relative path to the software object 
+      if the object has been moved. &lt;NULL&gt; if the software object has been 
+      created, deleted or modified.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>
+
+<a name="_SO_CHGInfo"></a>
+
+The following keywords <b>__SO_CHG_GRP_CR</b>, <b>___SO_CHG</b> and <b>____CREATED</b>
+    are always displayed together and:</p>
+<ul>
+  <li>if there is a <b>merge to be solved</b>, there are 2 (or more) groups of (<b>___SO_CHG,
+    ____CREATED)</b></li>
+  <li>for a <b>file creation </b> there are <b>five </b>different<b>  __SO_CHG_GRP_CR </b>types,
+    one for each modification type (CH_DELETED | MOVE | CH_DESCR | CH_CONTENT |
+    CH_EXEC). The content of
+    the ___SO_CHG line is described for each type.</li>
+  <li>for a <b>directory creation</b>, there are <b>three </b>different<b>  __SO_CHG_GRP_CR
+    </b>types, one for each modification type (CH_DELETED | MOVE | CH_DESCR).</li>
+  <li>if the change is associated with a change set, there is one 
+  more line (____<a href="#CHANGE_SET">CHANGE_SET</a>) and also one line per 
+  change request (___<a href="#_CHANGE_REQUEST">_CHANGE_REQUEST</a>) linked with 
+  the change set.</li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+  <li><b>__SO_CHG_GRP_CR</b> contents information related to a modification group
+    in a configuration revision
+    <ul>
+      <li>&lt;GroupId&gt; : unique database identifier of the modification group in the configuration revision</li>
+      <li>CH_DELETED | MOVE | CH_DESCR | CH_CONTENT | CH_EXEC:
+        SCM modification type of the software object</li>
+      <li>
+    &lt;WsCaseName&gt; : workspace name</li>
+      <li>
+    &lt;WsCaseId&gt; : unique database identifier of&nbsp; the workspace &lt;WsCaseName&gt; (computed by SCM)</li>
+      <li>
+    &lt;CommandName&gt; : SCM command which created the modification group
+    in the configuration revision</li>
+      <li>
+    &lt;ModificationDate&gt; : date of the execution of this command
+    &lt;CommandName&gt;, in the following format:
+    Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+    </ul>
+  </li>
+  <li><b>___SO_CHG</b> contents information related to the change itself. Two
+    parts in the data: the first part is the same for five cases, the second
+    part is different, depending on the modification type.
+    <ol>
+      <li><b>___SO_CHG</b>   content for the <b>CH_DELETED</b>  modification:
+        <ul>
+          <li>&nbsp; <u><b>First part:</b></u>
+            common to the five different cases</li>
+          <li>&lt;ModifId&gt; : unique database modification identifier (computed by SCM)</li>
+          <li>CH_DELETED:
+        SCM modification type of the object</li>
+          <li>PROJ | NOT_PROJ  : Projected element or not</li>
+          <li>NOT_TO_MERGE | TO_MERGE : indicates whether merges are allowed
+        or not</li>
+          <li>&nbsp; <u><b>Second part:</b></u>
+            relative to the modification type</li>
+          <li>NOT_DEL | DEL : indicates whether the
+            software object is deleted
+        or not</li>
+          <li>IMPLICIT|AUTOMATIC|MANUAL|NOT_CREATED_BY_MERGE : indicates whether 
+          the change is the result of a merge (type of merge) or not. </li>
+        </ul>
+      </li>
+      <li><b>___SO_CHG</b>  content for the <b>MOVE</b> modification:
+        <ul>
+          <li>&nbsp; <u><b>First part:</b></u>
+            common to the five different cases</li>
+          <li>&lt;ModifId&gt; : unique database modification identifier (computed by SCM)</li>
+          <li>MOVE:
+        SCM modification type of the object</li>
+          <li>PROJ | NOT_PROJ : Projected element or not</li>
+          <li>NOT_TO_MERGE | TO_MERGE : indicates whether merges are allowed
+        or not</li>
+          <li>
+    &nbsp; <u><b>Second part</b>:</u>
+    relative to the modification type</li>
+          <li>
+    &lt;FolderPath&gt; | &lt;NULL&gt; : Path of the folder. &lt;NULL&gt; if
+    software object is a framework</li>
+          <li>DEL | NOT_DEL | &lt;NULL&gt;  : The folder is seen as deleted or not.
+            &lt;NULL&gt; if software object is a framework</li>
+          <li>
+    &lt;FolderId&gt; | &lt;NULL&gt; : unique database identifier of&nbsp; the
+    folder (computed by SCM). &lt;NULL&gt; if software object is a framework</li>
+          <li>&lt;SoftwareObjectName&gt; : software object name</li>
+          <li>IMPLICIT|AUTOMATIC|MANUAL|NOT_CREATED_BY_MERGE : indicates whether 
+          the change is the result of a merge (type of merge) or not. </li>
+        </ul>
+      </li>
+      <li><b>___SO_CHG</b>  content for the <b>CH_CONTENT</b>  modification:
+        <ul>
+          <li>&nbsp; <u><b>First part:</b></u>
+            common to the five different cases</li>
+          <li>&lt;ModifId&gt; : unique database modification identifier (computed by SCM)</li>
+          <li>CH_CONTENT:
+        SCM modification type of the object</li>
+          <li>PROJ | NOT_PROJ  : Projected element or not</li>
+          <li>NOT_TO_MERGE | TO_MERGE : indicates whether merges are allowed
+        or not</li>
+          <li>
+    &nbsp; <u><b>Second part:</b></u>
+    relative to the modification type</li>
+          <li>
+    &lt;FileContentId&gt; : unique database file content identifier (computed by SCM)</li>
+          <li>
+    TEXT|BINARY : type of file content</li>
+          <li>
+    &lt;FileContentDate&gt; : date of the file content in the following format:
+        Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+          <li>
+    &lt;FileContentSize&gt; : Size of the file content in the contents server (size in 
+    bytes)</li>
+          <li>
+    IMPLICIT|AUTOMATIC|MANUAL|NOT_CREATED_BY_MERGE : indicates whether the 
+    change is the result of a merge (type of merge) or not. </li>
+        </ul>
+      </li>
+      <li><b>___SO_CHG</b>  content for the <b>CH_EXEC</b> modification:
+        <ul>
+          <li>&nbsp; <u><b>First part:</b></u>
+            common to the five different cases</li>
+          <li>&lt;ModifId&gt; : unique database modification identifier (computed by SCM)</li>
+          <li>CH_EXEC:
+        SCM modification type of the object</li>
+          <li>PROJ | NOT_PROJ : Projected element or not</li>
+          <li>NOT_TO_MERGE | TO_MERGE : indicates whether merges are allowed
+        or not</li>
+          <li>&nbsp; <u><b>Second part:</b></u>
+            relative to the modification type</li>
+          <li>UNIX_NOT_EXEC | UNIX_EXEC : indicates whether
+            the file is executable on Unix systems or not</li>
+          <li>IMPLICIT|AUTOMATIC|MANUAL|NOT_CREATED_BY_MERGE : indicates whether 
+          the change is the result of a merge (type of merge) or not. </li>
+        </ul>
+      </li>
+      <li><b>___SO_CHG</b>  content for the <b>CH_DESCR</b> modification:
+        <ul>
+          <li>&nbsp; <u><b>First part:</b></u>
+            common to the five different cases</li>
+          <li>&lt;ModifId&gt; : unique database modification identifier (computed by SCM)</li>
+          <li>CH_DESCR:
+        SCM modification type of the object</li>
+          <li>PROJ | NOT_PROJ :  Projected element or not</li>
+          <li>NOT_TO_MERGE | TO_MERGE : indicates whether merges are allowed
+        or not</li>
+          <li>&nbsp; <u><b>Second part:</b></u>
+            relative to the modification type</li>
+          <li>&lt;DescriptionId&gt; | &lt;NULL&gt; : unique database description
+            identifier (computed by SCM). &lt;NULL&gt; if there is no
+            description</li>
+          <li>&lt;Summary&gt;: Text of the summary</li>
+          <li>&lt;FileContentId&gt; | &lt;NULL&gt; : unique database description
+            file content identifier (computed by SCM). &lt;NULL&gt; if there is no
+            description file</li>
+          <li>IMPLICIT|AUTOMATIC|MANUAL|NOT_CREATED_BY_MERGE : indicates whether 
+          the change is the result of a merge (type of merge) or not. </li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+  <li><b>____CREATED</b> contents information related to the modification
+    creation<ul>
+      <li>&lt;UserName&gt; : user modification creation name</li>
+      <li>&lt;UserId&gt; : unique database user identifier (computed by SCM)</li>
+      <li>&lt;CommandName&gt; : SCM command name launched which inducted the modification</li>
+      <li>&lt;ModificationDate&gt; : date of the modification creation, in the following format:
+        Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+      <li>&lt;WsCaseName&gt; : workspace name where the modification has been created</li>
+      <li>&lt;WsCaseId&gt; : unique database identifier of&nbsp; this workspace &lt;WsCaseName&gt; (computed by SCM)</li>
+      <li>&lt;TreeCaseName&gt; : tree name where the modification has been created</li>
+      <li>&lt;TreeCaseId&gt; : unique database identifier of&nbsp; this tree &lt;TreeCaseName&gt;
+    (computed by SCM)</li>
+      <li>&lt;SiteName&gt; : site name where the modification has been created</li>
+      <li>&lt;SiteId&gt; : unique database identifier of this site &lt;SiteName&gt;
+        (computed by SCM) </li>
+    </ul>
+  </li>
+  <li><b>____<a href="#CHANGE_SET">CHANGE_SET</a></b> contents information about 
+  the change set associated with the change </li>
+  <li><b>____<a href="#_CHANGE_REQUEST">_CHANGE_REQUEST</a> </b>contents change 
+  request information of the change set (one line per change request associated 
+  with the change set) (DS only)</li>
+</ul>
+<table class="code">
+<tr>
+<td width="100%"><pre>E:\&gt;adl_ds_promo W11
+Promotion requested by &quot;W11&quot; (workspace revision &quot;W11.T1.93&quot;) in workspace tree &quot;T1&quot; on Monday, July 21, 2003 06:17:42 PM
+MyFw\MyModule.m\src\File1.cpp has been modified
+MyFw\MyModule.m\src\File2.cpp has been deleted
+MyFw\MyModule.m\src\File3.cpp has been created</pre>
+<pre>E:\&gt;adl_ds_promo W11 <b>-program -sep &quot;|&quot;</b>
+<b>WS_CONTEXT</b>|T1|CZBFhM0srgs0++-jgU+3|W11|CZBGc60srgs0++-kAU+C|+0+++5fDlkCsuXb0xg3+++3a+Ap|+0+++5fDlkCsuXb0xg3+++3a+Aq|492
+<b>_SOFT_OBJ</b>|MyFw/MyModule.m/src/File1.cpp|NOT_DEL|DlkBSOXb0xg3+++4i+4h|FILE_ELEM|FILE|ELEMENT|&lt;NOT_AVAILABLE&gt;
+<b>__SO_CHG_GRP_CR</b>|+0+++5cDlkCUuXb0xg3+++3a+-7|CH_CONTENT|W11|CZBGc60srgs0++-kAU+C|adl_ci|2003/07/21-18:02:11
+<b>___SO_CHG</b>|++++0DlkCUuXb0xg3+++3a+-3|CH_CONTENT|PROJ|NOT_TO_MERGE|DlkCUuXb0xg3+++3a+-1|TEXT|2003/07/21-16:01:00|4|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_ci|2003/07/21-18:02:11|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>_SOFT_OBJ</b>|MyFw/MyModule.m/src/File2.cpp|DEL|DlkBYeXb0xg3+++4z+2U|FILE_ELEM|FILE|ELEMENT|&lt;NOT_AVAILABLE&gt;
+<b>__SO_CHG_GRP_CR</b>|+0+++5bDlkCGOXb0xg3+++4u+DU|CH_DELETED|W11|CZBGc60srgs0++-kAU+C|adl_rm|2003/07/21-18:01:13
+<b>___SO_CHG</b>|++++0DlkCGOXb0xg3+++4u+DQ|CH_DELETED|PROJ|NOT_TO_MERGE|DEL|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_rm|2003/07/21-18:01:13|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>_SOFT_OBJ</b>|MyFw/MyModule.m/src/File3.cpp|NOT_DEL|DlkC7eXb0xg3+++3R+Cm|FILE_ELEM|FILE|ELEMENT|&lt;NOT_AVAILABLE&gt;
+<b>__SO_CHG_GRP_CR</b>|+0+++5ZDlkC7eXb0xg3+++3R+D+|CH_DELETED|W11|CZBGc60srgs0++-kAU+C|adl_mk_elem|2003/07/21-18:00:38
+<b>___SO_CHG</b>|++++-DlkC7eXb0xg3+++3R+Cn|CH_DELETED|PROJ|NOT_TO_MERGE|NOT_DEL|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_mk_elem|2003/07/21-18:00:38|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>__SO_CHG_GRP_CR</b>|+0+++5ZDlkC7eXb0xg3+++3R+D-|MOVE|W11|CZBGc60srgs0++-kAU+C|adl_mk_elem|2003/07/21-18:00:38
+<b>___SO_CHG</b>|++++-DlkC7eXb0xg3+++3R+Cp|MOVE|PROJ|NOT_TO_MERGE|MyFw/MyModule.m/src|NOT_DEL|DlkBMuXb0xg3+++5y+82|File3.cpp|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_mk_elem|2003/07/21-18:00:38|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>__SO_CHG_GRP_CR</b>|+0+++5ZDlkC7eXb0xg3+++3R+D0|CH_CONTENT|W11|CZBGc60srgs0++-kAU+C|adl_mk_elem|2003/07/21-18:00:38
+<b>___SO_CHG</b>|++++-DlkC7eXb0xg3+++3R+Cq|CH_CONTENT|PROJ|NOT_TO_MERGE|DlkC7eXb0xg3+++3R+Ck|TEXT|2003/07/21-16:00:30|0|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_mk_elem|2003/07/21-18:00:38|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>__SO_CHG_GRP_CR</b>|+0+++5ZDlkC7eXb0xg3+++3R+D1|CH_EXEC|W11|CZBGc60srgs0++-kAU+C|adl_mk_elem|2003/07/21-18:00:38
+<b>___SO_CHG</b>|++++-DlkC7eXb0xg3+++3R+Cr|CH_EXEC|PROJ|NOT_TO_MERGE|UNIX_NOT_EXEC|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_mk_elem|2003/07/21-18:00:38|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++
+<b>__SO_CHG_GRP_CR</b>|+0+++5ZDlkC7eXb0xg3+++3R+D2|CH_DESCR|W11|CZBGc60srgs0++-kAU+C|adl_mk_elem|2003/07/21-18:00:38
+<b>___SO_CHG</b>|++++-DlkC7eXb0xg3+++3R+Cs|CH_DESCR|PROJ|NOT_TO_MERGE|&lt;NULL&gt;|\0|&lt;NULL&gt;|NOT_CREATED_BY_MERGE
+<b>____CREATED</b>|nle|nle ________________|adl_mk_elem|2003/07/21-18:00:38|W11|CZBGc60srgs0++-kAU+7|T1|CZBFhM0srgs0++-jgU+3|SiteDSY|CgBQnemLDPw-++2V5+++</pre>
+</td>
+</tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<p>&nbsp;</p>
+<h3><b><a name="Structure of information for adl_ds_cs command"></a>Structure of 
+information for adl_ds_cs command</b></h3>
+
+<p>Each keyword has several information. For each information, several values
+are possible.<br>
+The structures of the information that are described below are given
+according to the following rules:&nbsp; </p>
+
+<ul>
+  <li>the fields are listed in the order they appear in output</li>
+  <li>the &lt;...&gt; notation indicates a string</li>
+  <li>keywords in uppercase are the words that
+    can be found in output</li>
+  <li>a pipe character '|'&nbsp; corresponds to different
+    possible values&nbsp; </li>
+</ul>
+
+<p>&nbsp;</p>
+<ul>
+  <li><a name="CHANGE_SET"></a><b></b><b>CHANGE_SET:</b> 
+  information related to one change set managed in SCM<ul>
+    <li>&lt;ChangeSetCaseName&gt; : name of the change set</li>
+    <li>&lt;ChangeSetId&gt; : unique database identifier of&nbsp; this 
+    change set (computed by SCM)</li>
+    <li>DEL | NOT_DEL : state of the change set, deleted or not</li>
+    <li>OPENED | NOT_OPENED : State of the change set : opened or 
+    not</li>
+    <li>&lt;Description&gt; : Description of the change set</li>
+    <li>&lt;WsName&gt; : Workspace where the change set was created</li>
+    <li>&lt;WsId&gt; : unique database identifier of this workspace &lt;WsName&gt; 
+    (computed by SCM)</li>
+    <li>CURRENT | NOT_CURRENT&gt; : indicates if this change set is 
+    current</li>
+  </ul>
+  </li>
+</ul>
+<ul>
+  <li><b><a name="_CHANGE_REQUEST"></a>_CHANGE_REQUEST</b>: 
+  information related to the change requests associated to the change set. One 
+  group per change request. (DS only)<ul>
+    <li>Change request type (DEFECT, HIGHLIGHT, etc...)</li>
+    <li>Change request identifier (&lt;DefectId&gt;, &lt;HighLightId&gt;, 
+    etc...)</li>
+  </ul>
+  </li>
+  <li><b><a name="_CREATED_CS"></a>_CREATED_CS</b> contents 
+  information related to the creation of the change set<ul>
+    <li>&lt;UserName&gt; : user who has created this change set</li>
+    <li>&lt;UserId&gt; : unique database identifier of this user &lt;UserName&gt; 
+    (computed by SCM)</li>
+    <li>&lt;CommandName&gt; : indicates the command from which the 
+    change set was created</li>
+    <li>&lt;CreationDate&gt; : creation date of the change set</li>
+    <li>&lt;WsName&gt; : workspace where the change set was created</li>
+    <li>&lt;WsId&gt; : unique database identifier of this workspace &lt;WsName&gt; 
+    (computed by SCM)</li>
+    <li>&lt;SiteName&gt; : site name where the change set was created</li>
+    <li>&lt;SiteId&gt; : unique database identifier of&nbsp; this site 
+    &lt;SiteName&gt; (computed by SCM)</li>
+    <li>CURRENT | NOT_CURRENT : indicates if this change set is 
+    current</li>
+  </ul>
+  </li>
+  <li><b><a href="#_SOFT_OBJInfo">_SOFT_OBJ</a> </b>One line
+        per software object modified. </li>
+  <li><a href="#_SO_CHGInfo"><b>___SO_CHG</b> and <b>____CREATED</b>
+  </a>One group per software object change. </li>
+  <li><b><a name="____SO_CHG_WS"></a>____SO_CHG_WS</b> contents 
+  information related to the workspace where the workspace through which the 
+  change is seen <ul>
+    <li>&lt;WsName&gt; : Workspace where the change is seen</li>
+    <li>&lt;WsId&gt; : unique database identifier of this workspace &lt;WsName&gt; 
+    (computed by SCM)</li>
+    <li>&lt;WsTreeName&gt; : Workspace tree where the change is seen</li>
+    <li>&lt;WsTreeId&gt; : unique database identifier of this workspace 
+    tree &lt;WsTreeName&gt; (computed by SCM)</li>
+  </ul>
+  </li>
+  <li><b><a name="____SO_CHG_WS_PROPAGATION"></a>____SO_CHG_WS_PROPAGATION</b> contents 
+  information related to the workspaces where the change has been propagated 
+  (information only available if the command adl_ds_cs is used with the -locate_chg 
+  option. One line per workspace where the change has been propagated).<ul>
+    <li>&lt;WsName&gt; : Workspace where the change is seen</li>
+    <li>&lt;WsId&gt; : unique database identifier of this workspace &lt;WsName&gt; 
+    (computed by SCM)</li>
+    <li>&lt;WsTreeName&gt; : Workspace tree where the change is seen</li>
+    <li>&lt;WsTreeId&gt; : unique database identifier of this workspace 
+    tree &lt;WsTreeName&gt; (computed by SCM)</li>
+  </ul>
+  </li>
+</ul>
+<p>&nbsp;</p>
+<table class="code" id="table1">
+<tr>
+<td>
+<pre>E:&gt;adl_ds_cs feb_WsT5T6Feb_6
+Change set: feb_WsT5T6Feb_6 Id: EbRUwHB81V230VXdVQ5h State: Closed Desc: nouveau cs pour wsT5T6feb
+Created by feb with adl_ch_cs on mardi 03 mai 2005 13:30:57 in the workspace WsT5T6Feb.
+Entirely seen in workspace WsT5T6Feb.
+
+Included changes:
+fw1InT5.tst\tot.h's description has been changed
+
+
+E:&gt;adl_ds_cs feb_WsT5T6Feb_6 -program -sep &quot;|&quot;
+CHANGE_SET|feb_WsT5T6Feb_6|EbRUwHB81V230VXdVQ5h|NOT_DEL|NOT_OPENED|nouveau cs pour wsT5T6feb|WsT5T6Feb|EYZ6WXB81V230bGWKP9U|NOT_CURRENT
+_CREATED_CS|feb|feb ________________|adl_ch_cs|2005/05/03-13:30:57|WsT5T6Feb|EYZ6WXB81V230bGWKP9U|DSY Dassault Systemes ADLS1|CgBQnemLDPw-++2V5+++|NOT_CURRENT
+_SOFT_OBJ|fw1InT5.tst\tot.h|NOT_DEL|EbVqdHB81V23-R+CgsZ6|FILE_ELEM|FILE|ELEMENT|&lt;NOT_AVAILABLE&gt;|&lt;NULL&gt;
+___SO_CHG|++++-EbVqdHB81V23-R+CgvWe|CH_DESCR|PROJ|NOT_AVAILABLE|&lt;NULL&gt;|\0|&lt;NULL&gt;|NOT_CREATED_BY_MERGE
+____CREATED|feb|feb ________________|adl_mk_elem|2005/05/04-09:15:48|WsT5T6Feb|EYZ6WXB81V230bGWKP9U|T5feb|EYDNonB81V230XWAG12g|DSY Dassault Systemes ADLS1|CgBQnemLDPw-++2V5+++
+____SO_CHG_WS|T5feb|EYDNonB81V230XWAG12g|WsT5T6Feb|EYZ6WXB81V230bGWLRqV
+</pre>
+</td>
+</tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="StructureAdlCollect"></a>Structure of the information for <b>adl_collect</b>&nbsp;
+and <b>adl_sync</b> commands</h3>
+
+<p>Each keyword has several information. For each information, several values
+are possible.<br>
+The structures of the information that are described below are given
+according to the following rules:&nbsp; </p>
+
+<ul>
+  <li>the fields are listed in the order they appear in output</li>
+  <li>the &lt;...&gt; notation indicates a string</li>
+  <li>keywords in uppercase are the words that
+    can be found in output</li>
+  <li>a pipe character '|'&nbsp; corresponds to different
+    possible values</li>
+</ul>
+
+<p>&nbsp; </p>
+
+<ul>
+  <li>
+        
+        <b>
+        <a href="#WS_CONTEXTInfo">
+        WS_CONTEXT</a> </b>  contents information about the current workspace
+  </li>
+  <li>
+        <b><a href="#_SOFT_OBJInfo">_SOFT_OBJ</a> </b>One line
+        per software object modified.
+  </li>
+  <li>
+        
+
+ <b><a href="#_SO_CHGInfo">_SO_CHG_GRP_CR</a></b><a href="#_SO_CHGInfo">, <b>__SO_CHG</b> and <b>___CREATED</b>
+</a><b> </b>One group per software object change.
+  </li>
+  <li>
+        <b><a name="_SOFT_OBJ_MOVED_OUT_FROMInfo"></a>_SOFT_OBJ_MOVED_OUT_FROM</b>
+        contents information related to software object moved out from a
+        component because the target&nbsp; component is not attached in the
+        current workspace. One line per software object moved out.
+    <ul>
+      <li>
+    
+    &lt;SoftObjPath&gt; : relative path to the software object</li>
+      <li>DEL | NOT_DEL : state of the software object, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the software object (computed by
+        SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA | DIR_ELEM | FILE_ELEM : software
+        object type</li>
+      <li>FOLDER | FILE : the software object is a
+        directory or a file</li>
+      <li>COMPONENT | ELEMENT : the software object is a
+        component or an element. A component is either a
+        framework, a module or a data. An element is a directory or a file and
+        belongs to a component.&nbsp;</li>
+    </ul>
+  </li>
+  <li>
+        <b><a name="_ATTACHED_COMPONENTInfo"></a>_ATTACHED_COMPONENT</b>
+        contents information related to component attached. One line per
+        attached component.
+        <ul>
+      <li>
+    
+    &lt;SoftObjPath&gt; : relative path to the component</li>
+      <li>DEL | NOT_DEL : state of the component, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the software object (computed by
+        SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA : component type</li>
+      <li>FOLDER : the component is always a folder</li>
+      <li>COMPONENT&nbsp;&nbsp;</li>
+        </ul>
+  </li>
+  <li><b><a name="_PROJECTION_CONFLICTInfo"></a>_PROJECTION_CONFLICT</b> contents information related to
+    software object which generates a projection conflict (it is renamed in %cx).
+    One line per projection conflict.
+    <ul>
+      <li>
+    
+    &lt;SoftObjPath&gt; : relative path to the software object</li>
+      <li>DEL | NOT_DEL : state of the software object, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the software object (computed by
+        SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA | DIR_ELEM | FILE_ELEM : software
+        object type</li>
+      <li>FOLDER | FILE : the software object is a
+        directory or a file</li>
+      <li>COMPONENT | ELEMENT : the software object is a
+        component or an element. A component is either a
+        framework, a module or a data. An element is a directory or a file and
+        belongs to a component.&nbsp;</li>
+    </ul>
+  </li>
+  <li><b><a name="#_MERGE_TO_SOLVEInfo">_MERGE_TO_SOLVE</a></b> contents information related to
+    merge to solve (couple of software object and change type). One line per
+    merge to solve.
+    <ul>
+      <li>
+    
+    &lt;SoftObjPath&gt; : relative path to the software object</li>
+      <li>DEL | NOT_DEL : state of the software object, seen as
+        deleted or not</li>
+      <li>&lt;SoftObjId&gt; : unique database identifier of the software object (computed by
+        SCM)</li>
+      <li>FRAMEWORK | MODULE | DATA | DIR_ELEM | FILE_ELEM : software
+        object type</li>
+      <li>FOLDER | FILE : the software object is a
+        directory or a file</li>
+      <li>COMPONENT | ELEMENT : the software object is a
+        component or an element. A component is either a
+        framework, a module or a data. An element is a directory or a file and
+        belongs to a component.&nbsp;</li>
+      <li>CH_DELETED | MOVE | CH_DESCR | CH_CONTENT | CH_EXEC:
+        SCM modification type.</li>
+    </ul>
+  </li>
+</ul>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<h3><a name="StructureAdlDsWs"></a>Structure of the information for <b>adl_ds_ws
+</b>
+command</h3>
+<p>Each keyword has several information, for each information, several values
+are possible. </p>
+
+<ul>
+  <li>the fields are listed in the order they appear in output</li>
+  <li>the &lt;...&gt; notation indicates a string</li>
+  <li> keywords in uppercase are the words that
+    can be found in output</li>
+  <li> the use of &lt;&gt; and keywords in uppercase means that those keywords
+    will be found in output and between &lt;&gt;</li>
+  <li>A pipe character '|' corresponds to different possible values</li>
+  <li>the keyword  UNDETERMINED is used when a given workspace characteristic has
+    been set differently in several trees.</li>
+</ul>
+
+<p>&nbsp;</p>
+
+<ul>
+  <li><b>MULTI_TREE_WS</b> contents general information related to the workspace:
+    <ul>
+      <li>&lt;MultiTreeWsCaseName&gt; : name of the workspace</li>
+      <li>
+    &lt;MultiTreeWsId&gt; : unique database identifier of the workspace</li>
+      <li>
+    &lt;NativeDatabaseId&gt; : name of the database in which the workspace has been created(*)</li>
+    </ul>
+    The following keywords are characteristics of the workspace, useful to control data flow, such as
+        parameters related to the merge,
+        to the promotion or to the  TCK
+    <ul>
+      <li>IMMEDIATE_SOLVE_MERGE | LATER_SOLVE_MERGE | UNDETERMINED
+        : indicates whether merges can be solved inside flow commands (adl_collect,
+        adl_sync, etc)</li>
+      <li>
+    AUTOMATIC_MERGE | NOT_AUTOMATIC_MERGE | UNDETERMINED : indicates whether merges can be solved automatically or by user help</li>
+      <li>
+    PROMO_REQ_LOCKED | PROMO_REQ_NOT_LOCKED | UNDETERMINED : indicates whether promotion requests are allowed or not</li>
+      <li>
+    PROMO_FROM_ANY_WS | PROMO_FROM_CHILD_WS | UNDETERMINED : indicates whether promotion requests can come only from child workspaces or also from the
+    parent workspace</li>
+      <li>
+    SYNC_CMD_ALLOWED | SYNC_CMD_FORBIDDEN | UNDETERMINED : indicates whether a adl_sync command can be run in this workspace</li>
+      <li>
+      PROMOTE_CMD_ALLOWED | PROMOTE_CMD_FORBIDDEN | UNDETERMINED : indicates whether a adl_promote command can be run in this workspace</li>
+      <li>
+    MERGE_AT_COLLECT_ALLOWED | MERGE_AT_COLLECT_FORBIDDEN | UNDETERMINED : indicates whether merges are allowed when running the adl_collect command</li>
+      <li>
+    SYNC_FOR_PROMO | NOT_SYNC_FOR_PROMO | UNDETERMINED : indicates whether child workspaces must synchronize themselves before being allowed to
+    promote</li>
+      <li>
+    FLOW_TRACES_STORED | FLOW_TRACES_NOT_STORED | UNDETERMINED : indicates whether the traces produced by flow commands
+        (adl_collect, etc) are stored</li>
+      <li>
+    DEVELOPMNT | MULTILEVEL | CERTIF | UNDETERMINED : specifies a kind of workspace for the
+        change request management tool (Internal Dassault-Systèmes)</li>
+      <li>
+      DEFAULT | AUTOMATIC | MANUAL | UNDETERMINED : publication type (see adl_set_ws
+        -publication_type)</li>
+      <li>
+    &lt;TckCaseName&gt; : name of the TCK defined on the workspace</li>
+      <li>
+    LOCAL_TCK | INHERITED_TCK : indicates whether the associated  TCK is locally defined or inherited from the parent
+        workspace</li>
+      <li>CHECK_CAA_RULES | NO_CHECK_CAA_RULES|&lt;NULL&gt;|UNDETERMINED : indicates 
+      whether CAA rules are checked or not.&lt;NULL&gt; if it is not defined</li>
+      <li>LOCAL | INHERITED | NOT_AVAILABLE : indicates whether the CAA rules 
+      attribute is locally defined or inherited from the parent
+        workspace</li>
+      <li>NONE|OPTIONAL | MANDATORY|&lt;NULL&gt;|UNDETERMINED : Change
+        request management mode (Internal Dassault-Systèmes). &lt;NULL&gt; if it is 
+      not defined</li>
+      <li>LOCAL|INHERITED | NOT_AVAILABLE : indicates whether the Change
+        request management mode attribute is locally defined or inherited from the parent
+        workspace</li>
+      <li>&lt;SoftwareLevel&gt;|UNDETERMINED : The software level value</li>
+      <li>LOCAL|INHERITED|NOT_AVAILABLE : indicates whether the software level 
+      attribute is locally defined or inherited from the parent
+        workspace</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>_IMAGE</b> contents information related to the image
+    <ul>
+      <li>&lt;ImageCaseName&gt; : name of the image</li>
+      <li>
+    &lt;ImageId&gt; : unique database identifier of this image (computed by SCM)</li>
+      <li>
+    WINDOWS | UNIX : indicates the platform the image has been created on</li>
+      <li>
+    CURRENT | NOT_CURRENT : indicates whether it is the current working image</li>
+      <li>
+    &lt;ImageCaseProjectionPath&gt; : absolute path to the projection root directory</li>
+      <li>
+    &lt;LocalHostName&gt; | &lt;NETWORK&gt; : the &quot;&lt;NETWORK&gt;&quot; string indicates that the image's path is a network path,
+    otherwise the hostname where the image has been created</li>
+      <li>
+    &lt;TckCaseName&gt; : name of the TCK defined on the image</li>
+      <li>
+    LOCAL_TCK | INHERITED_TCK : indicates whether the TCK is locally defined or inherited from the workspace</li>
+      <li>
+    REFRESHED | NOT_REFRESHED : indicates whether the image is refreshed</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>_IMAGE_IN_TREE</b> contents information related to the image
+    <ul>
+      <li>&lt;WsId&gt; : Identifier of the workspace object
+    existing in the same tree (see _WS keyword)</li>
+      <li>
+    &lt;WsTreeCaseName&gt; :
+    Name of the tree(**)</li>
+      <li>
+    &lt;WsTreeId&gt; :
+    Identifier of the tree</li>
+      <li>
+    REFRESHED | NOT_REFRESHED : 
+    Indicates whether the image is refreshed in the tree</li>
+    </ul>
+  </li>
+  <li><b><a href="#CHANGE_SET">_CHANGE_SET</a></b> contents information related 
+  to the current change set in the workspace</li>
+  <li><b><a href="#_CHANGE_REQUEST">__CHANGE_REQUEST</a> </b>contents 
+  information related to the change request associated to the current change set 
+  in the workspace. (DS only)</li>
+</ul>
+
+<ul>
+  <li><b>_MULTI_TREE_WS_STATUS</b> contents information related to the workspace
+    state
+    <ul>
+      <li>SYNCHRONIZED | NOT_SYNCHRONIZED |
+    NOT_AVAILABLE : indicates whether the workspace is
+    globally synchronized
+    or  NOT_AVAILABLE for a root workspace since it has no parent workspace</li>
+      <li>
+    PUBLISHED | NOT_PUBLISHED : indicates whether the workspace is globally published</li>
+      <li>
+    PROMOTED | NOT_PROMOTED | NOT_AVAILABLE | UNDETERMINED : indicates whether the
+        workspace is globally promoted
+    or  NOT_AVAILABLE for a root workspace since it has no parent workspace
+    or  UNDETERMINED if there are some checked-out files</li>
+      <li>
+    COLLECTED | NOT_COLLECTED | NOT_AVAILABLE : indicates whether all pending promotion requests have been collected
+    or  NOT_AVAILABLE for a workspace having no child workspace</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>_WS</b> contents information related to the workspace. The information are displayed tree by tree
+    <ul>
+      <li>&lt;WsCaseName&gt; : name of the workspace</li>
+      <li>
+    &lt;WsId&gt; : unique database identifier of this workspace &lt;WsCaseName&gt; (computed by
+    SCM)</li>
+      <li>
+    &lt;WsTreeCaseName&gt; : name of the tree</li>
+      <li>
+    &lt;WsTreeId&gt; : unique database identifier of this tree (computed by SCM)</li>
+      <li>
+    &lt;CurrentWsRevRank&gt; : last revision number (rank) of the workspace in the tree &lt;WsTreeCaseName&gt;</li>
+      <li>
+    &lt;CurrentWsRevId&gt; : unique database identifier of this workspace revision (computed by
+    SCM)</li>
+      <li>
+    &lt;CurrentHistoryRank&gt; : Current history rank of the workspace &lt;WsCaseName&gt;
+    in the tree &lt;WsTreeCaseName&gt; (internal version number computed by SCM)</li>
+      <li>
+    &lt;ParentWsCaseName&gt; | &lt;NO_PARENT_NAME&gt; : name of the parent workspace in the tree &lt;WsTreeCaseName&gt;
+    or &lt;NO_PARENT_NAME&gt; if the workspace is a root workspace in this tree</li>
+      <li>
+    &lt;ParentWsId&gt; | &lt;NO_PARENT_ID&gt; : unique database identifier of the parent workspace in the tree &lt;WsTreeCaseName&gt;
+    or &lt;NO_PARENT_ID&gt; if the workspace is a root workspace in this tree</li>
+      <li>
+    AUTOMATIC_MERGE | NOT_AUTOMATIC_MERGE : indicates whether merges can be solved automatically or by user help</li>
+      <li>
+    PROMO_REQ_LOCKED | PROMO_REQ_NOT_LOCKED : indicates whether promotion requests are allowed or not</li>
+      <li>
+    PROMO_FROM_ANY_WS | PROMO_FROM_CHILD_WS : indicates whether promotion requests can come only from child workspaces or also from the
+    parent workspace</li>
+      <li>
+    SYNC_CMD_ALLOWED | SYNC_CMD_FORBIDDEN : indicates whether an adl_sync command can be run in this workspace</li>
+      <li>
+      PROMOTE_CMD_ALLOWED | PROMOTE_CMD_FORBIDDEN : indicates whether an adl_promote command can be run in this workspace</li>
+      <li>
+    MERGE_AT_COLLECT_ALLOWED | MERGE_AT_COLLECT_FORBIDDEN : indicates whether merges are allowed when running the adl_collect command</li>
+      <li>
+    SYNC_FOR_PROMO | NOT_SYNC_FOR_PROMO : indicates whether child workspaces must synchronize themselves before being allowed to
+    promote</li>
+      <li>
+    FLOW_TRACES_STORED | FLOW_TRACES_NOT_STORED : indicates whether the traces produced by flow commands
+        (adl_collect, etc) are stored</li>
+      <li>
+    DEVELOPMNT | MULTILEVEL | CERTIF : specifies a kind of workspace for the
+        change request management tool (Internal Dassault-Systèmes)</li>
+      <li>
+      DEFAULT | AUTOMATIC | MANUAL : publication type (see adl_set_ws -publication_type)</li>
+      <li>CHECK_CAA_RULES|NO_CHECK_CAA_RULES|&lt;NULL&gt; : indicates whether CAA 
+      rules are checked or not.&lt;NULL&gt; if it is not defined</li>
+      <li>LOCAL|INHERITED|NOT_AVAILABLE : indicates whether the CAA rules 
+      attribute is locally defined or inherited from the parent
+        workspace</li>
+      <li>NONE|OPTIONAL|MANDATORY|&lt;NULL&gt; : Change
+        request management mode (Internal Dassault-Systèmes). &lt;NULL&gt; if it is 
+      not defined</li>
+      <li>LOCAL|INHERITED|NOT_AVAILABLE : indicates whether the Change
+        request management mode attribute is locally defined or inherited from the parent
+        workspace</li>
+      <li>&lt;SoftwareLevel&gt; : The software level value</li>
+      <li>LOCAL|INHERITED : indicates whether the software level attribute is locally defined or inherited from the parent
+        workspace</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>__WS_STATUS</b> contents information about the current status of the workspace.
+        There is one line of this kind for each tree the workspace exists in
+    <ul>
+      <li>
+    SYNCHRONIZED | NOT_SYNCHRONIZED | NOT_AVAILABLE : indicates whether the workspace is synchronized in the tree &lt;WsTreeCaseName&gt;
+    or  NOT_AVAILABLE for a root workspace since it has no parent workspace</li>
+      <li>
+    PUBLISHED | NOT_PUBLISHED : indicates whether the workspace is published in the tree &lt;WsTreeCaseName&gt;</li>
+      <li>
+    PROMOTED | NOT_PROMOTED | NOT_AVAILABLE : indicates whether the workspace is promoted in the tree &lt;WsTreeCaseName&gt;
+    or  NOT_AVAILABLE for a root workspace since it has no parent workspace</li>
+      <li>
+    COLLECTED | NOT_COLLECTED | NOT_AVAILABLE : indicates whether all pending promotion requests have been collected in the tree
+    &lt;WsTreeCaseName&gt;
+    or  NOT_AVAILABLE for a workspace having no child workspace</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>__WS_SYNC</b> contents information indicating with which parent workspace revision&nbsp; the current
+        workspace is synchronized with. There is one line of this kind for each tree
+    the workspace exists in and if it is not a root workspace
+    <ul>
+      <li>&lt;SyncWsRevRank&gt; : revision number of the parent workspace
+    the current workspace is synchronized with</li>
+      <li>
+    &lt;SyncWsRevId&gt; : unique database identifier of this parent workspace revision (computed by SCM)</li>
+      <li>
+    &lt;LabelList&gt; : a list of strings indicating the labels used when publishing the parent workspace
+    revision;
+    the string  PUBLIC indicates that the parent workspace revision is the last published and
+    without a specific label;
+    the list can be empty if the parent revision is not the last published</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>__WS_PUBLICATION</b> contents information about the publication of the workspace. There is at least
+        one line of this kind for each tree the workspace exists in. If more than
+        one line exists for one tree, this means the same workspace revision has been published
+        several times with different labels
+    <ul>
+      <li>&lt;PublicationId&gt; : unique database identifier of the publication
+    (computed by SCM)</li>
+      <li>
+    &lt;WsRevRank&gt; : the number of the last published workspace revision of the current workspace</li>
+      <li>
+    &lt;WsRevId&gt; : unique database identifier of this published workspace revision (computed by SCM)</li>
+      <li>
+    DEFAULT | CUSTOM :
+    DEFAULT  means a publication without label and  CUSTOM means that a label has been specified</li>
+      <li>
+    &lt;Label&gt; | PUBLIC&nbsp; : 
+    PUBLIC for a publication without label or the label used for publishing</li>
+      <li>
+    &lt;PublicationDate&gt; : date of publication, in the following format:
+    Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>__WS_ACTIVE_PROMO_REQ</b> contents information about the current promotion request. There is one
+        line of this kind in each tree the workspace exists in and in which it has promoted
+        something which has not yet been collected
+    <ul>
+      <li>&lt;PromotionRequestId&gt; : unique database identifier of the last promotion
+    request from the current workspace (computed by SCM)</li>
+      <li>
+    &lt;PromotedWsRevRank&gt; : number of the workspace revision which has been promoted</li>
+      <li>
+    &lt;PromotedWsRevId&gt; : unique database identifier of this workspace revision number (computed by SCM)</li>
+      <li>
+    &lt;CollectorWsId&gt; : unique database identifier of the workspace which is the target of the promotion request</li>
+      <li>
+    &lt;PromotionDate&gt; : date of the promotion request, in the following format:
+    Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li><b>__WS_PROMO_REQ_TO_COLLECT</b> contents information about a pending promotion request. There is one
+        line of this kind in each tree the workspace exists in and for every workspace which has
+        promoted something to the current workspace
+    <ul>
+      <li>&lt;PromotionRequestId&gt; : unique database identifier of a pending promotion
+    request (computed by SCM)</li>
+      <li>
+    &lt;PromotedWsCaseName&gt; : name of the workspace which requested this promotion</li>
+      <li>
+    &lt;PromotedWsId&gt; : unique database identifier of this workspace (computed by SCM)</li>
+      <li>
+    &lt;PromotedWsRevRank&gt; : number of the workspace revision which was promoted</li>
+      <li>
+    &lt;PromotedWsRevId&gt; : unique database identifier of this workspace revision (computed by SCM)</li>
+      <li>
+    &lt;PromotionDate&gt; : date of the promotion request, in the following format:
+        Year/Month/Day-Hour:Minute:Second YYYY/MM/DD-HH:MM:SS</li>
+    </ul>
+  </li>
+</ul>
+
+<p>(*) A multitree workspace may exist in several databases, in this case one database is
+chosen as the &quot;native&quot; database.<br>
+(**) Even if a multitree workspace's image has a single projection, there are several
+instances of this image in each tree.</p>
+
+<table class="code">
+  <tr>
+    <td width="100%"><pre>E:\&gt;adl_ds_ws W11
+Current workspace: W11
+No current image
+
+Workspace tree(s): T1 T2
+Tool config key: user_adls1 (inherited from parent workspace)
+Merge solving delay: Immediate (If necessary, the interactive merger is launched at the end of the command)
+Merge solving mode: Not automatic (Any merge is solved with user interactions)
+Publication mode: Automatic
+Merge at collect: Forbidden
+Promotion request: Allowed from workspaces to the current workspace
+Promotion request: From parent or child workspaces to the current workspace
+Child promotion: For child workspaces, no check on the synchronized status for promote
+adl_promote command: Undetermined (the command is allowed or forbidden according to the workspace tree)
+Flow traces: Not stored
+Synchronized: No
+Published: Yes
+Child collected: Yes
+Promoted: No
+Image(s):
+WINDOWS Windows Refreshed \\carter1dsy\home\users\nle\adele\test\adls1\ImgW11
+UNIX Unix Not refreshed /u/users/lru/Img1W11
+
+Workspace tree: T1
+Current revision: 94
+Parent workspace: W1
+adl_promote command: Allowed
+Synchronized: No (parent revision W1.T1.38)
+Published: Yes last published on Monday, July 21, 2003 06:42:19 PM
+rev 94 Monday, July 21, 2003 06:42:19 PM PUBLIC
+Child collected: Yes
+Promoted: No
+
+Workspace tree: T2
+Current revision: 7
+Parent workspace: W1
+adl_promote command: Forbidden
+Synchronized: Yes (public parent revision W1.T2.3)
+Published: Yes last published on Monday, July 21, 2003 06:02:12 PM
+rev 7 Monday, July 21, 2003 06:02:12 PM PUBLIC
+Child collected: Yes
+Promoted: Yes</pre>
+    <pre>E:\&gt;adl_ds_ws W11 <b>-program -sep &quot;|&quot;</b>
+MULTI_TREE_WS|W11|CZBGc60srgs0++-kAU+7|ADLS11|IMMEDIATE_SOLVE_MERGE|NOT_AUTOMATIC_MERGE|PROMO_REQ_NOT_LOCKED|PROMO_FROM_ANY_WS|SYNC_CMD_ALLOWED|UNDETERMINED|MERGE_AT_COLLECT_FORBIDDEN|NOT_SYNC_FOR_PROMO|FLOW_TRACES_NOT_STORED|DEVELOPMNT|AUTOMATIC|user_adls1|INHERITED_TCK|&lt;NULL&gt;|NOT_AVAILABLE|&lt;NULL&gt;|NOT_AVAILABLE|\0|INHERITED
+_IMAGE|UNIX|CZBGc60srgs0++-kAU+P|UNIX|NOT_CURRENT|/u/users/lru/Img1W11|&lt;NETWORK&gt;|user_adls1|INHERITED_TCK|NOT_REFRESHED
+__IMAGE_IN_TREE|CZBGc60srgs0++-kAU+C|T1|CZBFhM0srgs0++-jgU+3|NOT_REFRESHED
+__IMAGE_IN_TREE|D9kX-R9CbYQ3+++-dU5h|T2|D7w9pc1zmng0++-Ch++2|NOT_REFRESHED
+_IMAGE|WINDOWS|CZGIG-DfLsg3+++-Y+Ba|WINDOWS|NOT_CURRENT|//carter1dsy/home/users/nle/adele/test/adls1/ImgW11|&lt;NETWORK&gt;|user_adls1|INHERITED_TCK|REFRESHED
+__IMAGE_IN_TREE|CZBGc60srgs0++-kAU+C|T1|CZBFhM0srgs0++-jgU+3|REFRESHED
+__IMAGE_IN_TREE|D9kX-R9CbYQ3+++-dU5h|T2|D7w9pc1zmng0++-Ch++2|REFRESHED
+_MULTI_TREE_WS_STATUS|NOT_SYNCHRONIZED|PUBLISHED|NOT_PROMOTED|COLLECTED
+_WS|W11|CZBGc60srgs0++-kAU+C|T1|CZBFhM0srgs0++-jgU+3|94|+0+++5kDlkLseXb0xg3+++5a+9k|499|W1|CZBFus0srgs0++-jhU+4|NOT_AUTOMATIC_MERGE|PROMO_REQ_NOT_LOCKED|PROMO_FROM_ANY_WS|SYNC_CMD_ALLOWED|PROMOTE_CMD_ALLOWED|MERGE_AT_COLLECT_FORBIDDEN|NOT_SYNC_FOR_PROMO|FLOW_TRACES_NOT_STORED|DEVELOPMNT|AUTOMATIC|&lt;NULL&gt;|NOT_AVAILABLE|&lt;NULL&gt;|NOT_AVAILABLE|\0|INHERITED
+_WS_STATUS|NOT_SYNCHRONIZED|PUBLISHED|NOT_PROMOTED|COLLECTED
+__WS_SYNC|38|+-+++0RDlkCpuXb0xg3+++5-+3B
+__WS_PUBLICATION|DlkLuuXb0xg3+++5a++l|94|+0+++5kDlkLseXb0xg3+++5a+9k|DEFAULT|PUBLIC|2003/07/21-18:42:19
+__WS_ACTIVE_PROMO_REQ|DlkG7eXb0xg3+++4q+3M|93|+0+++5fDlkCsuXb0xg3+++3a+Ap|CZBFus0srgs0++-jhU+4|2003/07/21-18:17:42
+_WS|W11|D9kX-R9CbYQ3+++-dU5h|T2|D7w9pc1zmng0++-Ch++2|7|+0++++TDlkC1OXb0xg3+++3R+8-|34|W1|D7w9xc1zmng0++-ChU+4|NOT_AUTOMATIC_MERGE|PROMO_REQ_NOT_LOCKED|PROMO_FROM_ANY_WS|SYNC_CMD_ALLOWED|PROMOTE_CMD_FORBIDDEN|MERGE_AT_COLLECT_FORBIDDEN|NOT_SYNC_FOR_PROMO|FLOW_TRACES_NOT_STORED|DEVELOPMNT|AUTOMATIC|&lt;NULL&gt;|NOT_AVAILABLE|&lt;NULL&gt;|NOT_AVAILABLE|\0|INHERITED
+__WS_STATUS|SYNCHRONIZED|PUBLISHED|PROMOTED|COLLECTED
+__WS_SYNC|3|+-++++7DjPOz8Xb0xg3+++7L++F|PUBLIC
+__WS_PUBLICATION|DlkCV8Xb0xg3+++3a+-G|7|+0++++TDlkC1OXb0xg3+++3R+8-|DEFAULT|PUBLIC|2003/07/21-18:02:12</pre>
+    </td>
+  </tr>
+</table>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<dl>
+  <h3><a name="StructureAdlLsXxx"></a>Structure of the information for <b>adl_ls_xxx
+  </b>commands </h3>
+  <p>In the commands as adl_ls_xxx, the information displayed with the program
+  mode are the same as those displayed in usual mode, but they are given without
+  any presentation. Data are displayed in a shorter way. </p>
+  <p>The date data can be read by a program in a single variable. </p>
+  <p>Sometimes, like for the adl_ls_fw command, more data are displayed with the
+  &quot;-program&quot; mode, and data can be the database identifier (computed
+  by SCM). </p>
+  <p>For all the adl_ls_xxx commands, for more information on each command,
+  please, see the <a href="#Commands"> help of each command</a>. </p>
+  <p>Here are some data transformed by the &quot;-program&quot; mode: </p>
+
+<ul>
+  <li>date</li>
+  <li>keywords</li>
+  <li>characteristics</li>
+  <li>data splitted in two parts</li>
+</ul>
+
+  <p>&nbsp; </p>
+  <div align="left">
+    <table border="1" width="100%">
+      <tr>
+        <td width="50%" align="center"><b>Usual mode</b></td>
+        <td width="50%" align="center"><b>Program mode</b></td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Date and time:</b> Monday, March 26,
+          2001 10:36:32 AM</td>
+        <td width="50%">2001/03/26-10:36:32</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword: </b>Fw</td>
+        <td width="50%">FRAMEWORK</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword: </b>Mod</td>
+        <td width="50%">MODULE</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Attached</td>
+        <td width="50%">1</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Not Attached</td>
+        <td width="50%">0</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Modification</td>
+        <td width="50%">MODIF</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Synchronization</td>
+        <td width="50%">SYNCHRO</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Text</td>
+        <td width="50%">TEXT</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Bin</td>
+        <td width="50%">BINARY</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Not exec</td>
+        <td width="50%">0</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Keyword:</b> Exec</td>
+        <td width="50%">1</td>
+      </tr>
+      <tr>
+        <td width="50%"><b>Revision explicit name:</b> CAADocV5R8.CAACXR8.1</td>
+        <td width="50%">Revision number: 1 and Tree
+          name: CAACXR8</td>
+      </tr>
+    </table>
+  </div>
+  <p align="right">[<a href="#Top">Top</a>] </p>
+  <h3><a name="ExamplesLs"></a>Examples </h3>
+  <p><u>Examples for adl_ls_xxx commands:</u> </p>
+  <p><b>adl_ls_promo: displays</b> all the promotion request for the &quot;MyWs&quot; workspace: </p>
+  <table class="code">
+    <tr>
+      <td><pre><b>adl_ls_promo </b>MyWs
+Promoted Revision    Date of promotion           Date of collect      In revision
+----------------------------------------------------------------------------------
+MyWs.Tree.7  March 23, 2001 10:35:17 AM   March 26, 2001 10:36:32 AM  MyPWs.Tree.2
+MyWs.Tree.9  March 26, 2001 04:05:52 PM   March 26, 2001 04:06:12 PM  MyPWs.Tree.4
+MyWs.Tree.12 March 26, 2001 06:49:40 PM   March 27, 2001 09:49:58 AM  MyPWs.Tree.6
+MyWs.Tree.17 April 06, 2001 04:20:39 PM   April 06, 2001 04:34:23 PM  MyPWs.Tree.7
+MyWs.Tree.20 April 06, 2001 07:28:27 PM   April 06, 2001 07:28:43 PM  MyPWs.Tree.9</pre>
+        <pre><b>adl_ls_promo </b>MyWs<b> -program</b>
+MyWs.Tree.7 2001/03/23-10:35:17 2001/03/26-10:36:32 MyPWs.Tree.2
+MyWs.Tree.9 2001/03/26-16:05:52 2001/03/26-16:06:12 MyPWs.Tree.4
+MyWs.Tree.12 2001/03/26-18:49:40 2001/03/27-09:49:58 MyPWs.Tree.6
+MyWs.Tree.17 2001/04/06-16:20:39 2001/04/06-16:34:23 MyPWs.Tree.7
+MyWs.Tree.20 2001/04/06-19:28:27 2001/04/06-19:28:43 MyPWs.Tree.9</pre>
+      </td>
+    </tr>
+  </table>
+  &nbsp;
+  <p><b>adl_ls_fw: displays </b>all the frameworks of the current workspace
+  &quot;MyWs&quot;:</p>
+<table class="code" >
+<tr>
+<td>
+<pre><b>adl_ls_fw</b>
+Component                        Type    Attachment     Resp.      Ws tree     
+------------------------------------------------------------------------------
+AdeleConfigManagement            Fw      Attached        cga        TOOLSSDF
+AdeleConfigManagement.tst        Fw      Attached        cga        TOOLSSDF
+AdeleSiteManagement              Fw      Attached        yr         TOOLSSDF
+AdeleTools                       Fw      Attached        cga        TOOLSSDF
+</pre>
+<pre><b>adl_ls_fw -program</b>
+AdeleConfigManagement  FRAMEWORK 1 cga TOOLSSDF g5uL+u72f  Component1Id 
+AdeleConfigManagement.tst FRAMEWORK 1 cga TOOLSSDF g5uL+u72f Component2Id
+AdeleSiteManagement FRAMEWORK 1 yr TOOLSSDF g5uL+u72f Component3Id
+AdeleTools FRAMEWORK 1 cga TOOLSSDF g5uL+u72f Component4Id
+</pre>
+</td>
+</tr>
+</table>
+
+<br>
+  <p><b>adl_ls_req: displays </b> all the promotion requests of the workspace
+  &quot;DlPrj2&quot;:</p>
+<table class="code" >
+<tr>
+<td>
+<pre><b>adl_ls_req</b>
+Promotion request from all workspaces to workspace &quot;DlPrj2&quot; in the workspace&nbsp;
+tree &quot;TREE1_INDUS&quot;:
+Promotion requested by &quot;DlTest21&quot; and user dl on Thursday, November 08, 2001&nbsp;
+07:00:17 PM</pre>
+<pre><b>adl_ls_req&nbsp;-program&nbsp;</b>
+TREE1_INDUS DlTest21 2001/11/08-19:00:17 dl</pre>
+</td>
+</tr>
+</table>
+
+<br>&nbsp;
+</dl>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="InShort"></a>In Short</h3>
+
+<p>Except for adl_ch_ws (that needs <a href="#adl_ch_ws treatment">a special treatment)</a>
+SCM commands can be easily launched from any environment.</p>
+
+<p>The -<em>program</em> and -<em>sep</em> options ease the treatment of commands'
+outputs and their use by other programs.</p>
+
+<p align="right">[<a href="#Top">Top</a>]</p>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="References"></a>References</h3>
+
+<table width="100%">
+  <tr>
+    <td valign="top">[1]</td>
+    <td><a href="../CAAWsmQuickRefs/CAAWsmRules.htm#Element">Character set for file
+    names</a></td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<h3><a name="History"></a>History</h3>
+
+<table width="100%">
+  <tr>
+    <td valign="top">Version: <strong>6</strong> [Jan 2004]</td>
+    <td valign="top">Document update. Add field for _SOFT_OBJ keyword</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>5</strong> [Jul 2003]</td>
+    <td valign="top">Document update. Add field for ___SO_CHG and _WS keywords; 
+    Change the samples.</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>4</strong> [Jan 2003]</td>
+    <td valign="top">Document update. Add adl_collect command&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>3</strong> [Oct 2002]</td>
+    <td valign="top">Document update. Add adl_ls_resp command&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>2</strong>  [Nov 2001]</td>
+    <td valign="top">Document update. Insert keywords details&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top">Version: <strong>1</strong> [Jun 2000]</td>
+    <td valign="top">Document creation</td>
+  </tr>
+  <tr>
+    <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
+  </tr>
+</table>
+
+<hr>
+<!---------------------------------comment------------------------------------->
+
+<p><i>Copyright © 2000, Dassault Systèmes. All rights reserved.</i></p>
+</body>
+</html>

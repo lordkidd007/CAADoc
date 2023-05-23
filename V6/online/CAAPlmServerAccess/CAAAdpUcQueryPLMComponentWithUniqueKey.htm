@@ -1,0 +1,506 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+
+<head>
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta content="Microsoft FrontPage 12.0" name="GENERATOR">
+<meta content="FrontPage.Editor.Document" name="ProgId">
+<link href="../CAADocStyleSheets/caav5.css" rel="Stylesheet" type="text/css">
+<script src="../CAADocJavaScript/submit.js" type="text/javascript"></script>
+<title>Querying PLM Object With Unique Key</title>
+</head>
+
+<body>
+
+<table class="DocHeader">
+	<tr>
+		<td class="DocHeader1">
+		<h1><a name="Top"></a>Querying PLM Object With Unique Key</h1>
+		</td>
+	</tr>
+	<tr>
+		<td class="use">Use Case</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<table class="abstract">
+	<tr>
+		<td>
+		<h2><a name="Top"></a>Abstract</h2>
+		<p>This article discusses the <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code> 
+		use case. The Use Case shows how to retrieve one or more PLM Objects of 
+		a specified type from the database through an unique key retrieved from 
+		a set of attribute-values specified by the user as a search criteria. It 
+		thus details the steps involved during the invocation of the API which runs 
+		this query on the database.</p>
+		<ul>
+			<li><a href="#Learn">What You Will Learn With This Use Case</a></li>
+			<li><a href="#UseCase">The CAAAdpQueryPLMComponentWithUniqueKey Use 
+				Case</a>
+				<ul>
+					<li><a href="#What">What Does the CAAAdpQueryPLMComponentWithUniqueKey 
+						Do</a></li>
+					<li><a href="#How">How to Launch CAAAdpQueryPLMComponentWithUniqueKey</a></li>
+					<li><a href="#Where">Where to Find the CAAAdpQueryPLMComponentWithUniqueKey 
+						Code</a></li>
+				</ul>
+			</li>
+			<li><a href="#Step">Step-by-Step</a> </li>
+			<li><a href="#CAARetrieveIDofUniquePLMObject">CAARetrieveIDofUniquePLMObject</a></li>
+			<li><a href="#InShort">In Short</a></li>
+			<li><a href="#History">References</a></li>
+		</ul>
+		</td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="Learn"></a>What You Will Learn With This Use Case</h2>
+<p>The use case helps us learn the steps involved in querying a database for PLM 
+Objects. This query is based on an Unique Key criteria which user learns to retrieve 
+from input arguments before invoking the Query API.</p>
+<p>The Unique Key is a combination of :</p>
+<ul>
+	<li>The type of the PLM Object one is seeking.
+		<ul>
+			<li>We retrieve a list of Types [<a href="#References">1</a>], not necessarily 
+				the authoring custo.</li>
+			<li>Type for query is one from the above list. We retrieve the CATIType 
+				Interface on this type.</li>
+		</ul>
+	</li>
+	<li>A combination of Attribute-value set which uniquely identifies the PLM Component 
+		from database.<ul>
+			<li>Create an <code><strong>AttributeSet</strong></code> object with 
+				the Attribute-value pairs input.</li>
+		</ul>
+	</li>
+</ul>
+<p>You would realize a few important characteristics of the Query APIs. These include:</p>
+<ul>
+	<li>Inside a attribute set, attribute constraint can be combined through a 'AND' 
+		condition or a 'OR' condition. Between two attribute sets, the AND condition 
+		is applied.</li>
+	<li>These attributes should be of only string, double, integer, time, Boolean 
+		types.</li>
+	<li>Wildcard are supported as attribute values on string attribute type.</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="UseCase"></a>The CAAAdpQueryPLMComponentWithUniqueKey Use Case</h2>
+<p><code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code> is a use case 
+of the <code><strong>CAAPLMClientAdapter.edu</strong></code> framework that illustrates 
+the <code><strong>CATPLMIntegrationUse</strong></code> framework capabilities.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="What"></a>What Does CAAAdpQueryPLMComponentWithUniqueKey Do</h3>
+<p>The Use Case simply retrieves an Identificator of a PLM Object by running a query 
+on an underlying database.</p>
+<p>The execution follows through the following steps:</p>
+<ul>
+	<li>The Use Case retrieves a PLM type with the Type Name input by User.</li>
+	<li>It next builds a Set of Attribute-Value from the inputs.</li>
+	<li>Creates a Filter by using the above retrieved CATIType* and attribute set.
+	</li>
+	<li>Runs the query on an underlying database with this Filter. Query fails if 
+		no component with specified criteria found in connected database.</li>
+	<li>If query succeeds then retrieve the identificator of object from retrieved 
+		iterator on output component set. </li>
+	<li>From this identificator an unique key of PLM object can be retrieved.</li>
+	<li>If unicity of Unique Key is guaranteed then query an element in a database 
+		by this unique key.</li>
+	<li>If query succeeds and single element is retrieved then usecase succeeds.</li>
+	<li>If unicity of unique Key is not guranteed or unique is not defined for Object 
+		then use query by Attributes.</li>
+</ul>
+<p>Output of this Use case after importing the 3dxml is : </p>
+<pre class="code">...
+     Success CATCkePLMNavPublicAccessServices ::RetrieveKnowledgeType non custo type  VPMReference
+
+     Unique Key is :IDSET {BASETYPE=PLMProductDS PLM_ExternalID=CAAAdpQueryOpen V_version=--- }  
+
+     Unicity Guranteed
+...</pre>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="How"></a>How to Launch CAAAdpQueryPLMComponentWithUniqueKey </h3>
+<p>To launch <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code>, 
+you will need to set up the build time environment, then compile <code><strong>CAAAdpQueryPLMComponentWithUniqueKey
+</strong></code>along with its prerequisites, set up the run time environment, and 
+then execute the use case [<a href="#References">2</a>].</p>
+<p>To launch the use case execute the command:</p>
+<p><code><strong><a>mkrun -c &quot;</a>CAAAdpQueryPLMComponentWithUniqueKey <a>Repository 
+Server User Password SecurityCtx PLMType AttributeName1 Value1 [AttributeName Value2</a> 
+...]&quot;</strong></code><a> </p>
+<p>where:</p>
+<table class="border1">
+	<tr>
+		<th>Repository</th>
+		<td>
+		<script type="text/javascript">insertRepository();</script>
+		</td>
+	</tr>
+	<tr>
+		<th>Server</th>
+		<td>The name and port of the server as name:port_number</td>
+	</tr>
+	<tr>
+		<th>User</th>
+		<td>The user name</td>
+	</tr>
+	<tr>
+		<th>Password</th>
+		<td>The user password to authenticate the user</td>
+	</tr>
+	<tr>
+		<th>SecurityCtx</th>
+		<td>a string representing the security context (Role.Organization.Project). 
+		Choose Role as Reviewer (since we only browse the PLM Data, no modifications)</td>
+	</tr>
+	<tr>
+		<th>PLMType</th>
+		<td>A String representing PLM Type of object to be searched</td>
+	</tr>
+	<tr>
+		<th>AttributeName1</th>
+		<td>Attribute Name for querying PLM Objects</td>
+	</tr>
+	<tr>
+		<th>Value1</th>
+		<td>Value of PLM Attribute for querying PLM Object</td>
+	</tr>
+	<tr>
+		<th>[AttributeName*]</th>
+		<td>Any More Attribute Names for querying PLM Objects </td>
+	</tr>
+	<tr>
+		<th>[Value*]</th>
+		<td>Any more Value of PLM Attribute for querying PLM Object</td>
+	</tr>
+</table>
+<p>You can directly execute this use case if you know how to locate your own component, 
+i.e. its PLMType and its attributes like: PLMExternal_ID and V_version. If not, 
+you can import a 3D XML file supplied in the CAAPLMClientAdapter.edu framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAPLMClientAdapter.edu\InputData\CAAAdpQueryPLMComponentWithUniqueKey.3dxml</code>
+</p>
+<p>where InstallRootFolder [<a href="#References">1</a>] is the folder where 
+the API CD-ROM is installed.</p>
+<p>Please refer to the document [<a href="#References">2</a>] for how to import 
+and re-import such a 3D XML file in your PLM repository.</p>
+<p>The details of the Root Product in the 3DXML are listed below:</p>
+<ul>
+	<li><a><code>PLM_ExternalID : CAAAdpQueryPLMComponentWithUniqueKey_Root</code></a>
+	</li>
+	<li><a><code>Version : ---</code></a></li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Where"></a>Where to Find the CAAAdpQueryPLMComponentWithUniqueKey Code</h3>
+<p>The <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code> use case 
+is located in the <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code><a><code><strong>.m</strong></code></a> 
+module of the <a><code><strong>CAAPLMClientAdapter</strong><strong>.edu</strong></code></a> 
+framework:</p>
+<p><code>InstallRootFolder\CAADoc\CAAPLMClientAdapter</code>.<code>edu</code><code>\CAAAdpQueryPLMComponentWithUniqueKey.m\</code>
+</p>
+<p>where <code><a><strong>InstallRootFolder</strong></a></code> [<a href="#References">2</a>] 
+is the folder where the API CD-ROM is installed.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<h2><a name="Step"></a>Step-by-Step</h2>
+<p>Following are the main steps in <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code>:</p>
+<ol>
+	<li><a href="#Prolog">Prolog</a></li>
+	<li><a href="#Step2">Creating a List of Attribute-Value Pairs (AttributeSet) 
+		for Query</a></li>
+	<li><a href="#Step3">Retrieving a CATIType*</a></li>
+	<li><a href="#Step4">Querying the Database for Components with Filter</a></li>
+	<li><a href="#Step5">Retrieving the Unique Key of Component Retrieved from Query</a></li>
+	<li><a href="#Step6">Querying the Database for Component with Unique Key</a></li>
+	<li><a href="#Step7">Displaying the Attribute Names and Values for Component 
+		Returned by the Query</a></li>
+	<li><a href="#Epilog">Epilog</a></li>
+</ol>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Prolog"></a>Prolog</h3>
+<p>The <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code> use case 
+begins by creating a session and connecting to the Input Repository. This, being 
+the most fundamental prerequisite for all batch use cases, it is the first step 
+in their execution.</p>
+<p>In this case, we create a session and connect to Repository, details of this 
+can be found in the &quot;<strong>Creating a Basic PLM Batch</strong>&quot; use 
+case article [<a href="#References">3</a>]. This article primarily deals with Opening 
+and Closing a PLM session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step2"></a>Creating a List of Attribute-Value Pairs (AttributeSet) 
+for Query</h3>
+<p>The <code><strong>AttributeSet</strong></code> is the other criteria for the 
+query we run on the database. User inputs the attribute-value sets to precisely 
+define the criteria for the search in the database.</p>
+<pre class="code">   CATAdpPLMQueryAttributeSet iAttributeSetNew;
+  CATAdpAttributeSet iAttributeSet;	
+  if (<strong>FALSE == EmptyQuery</strong>)
+  {
+    for (int AttrIndex=7; AttrIndex &lt;= (7+((NbAttributes-1)*2)); AttrIndex++)
+    {
+      const CATString Attribute(iArgv[AttrIndex]);
+      const CATUnicodeString Value(iArgv[AttrIndex+1]);
+      hr = iAttributeSetNew. AddStringAttribute(AttributeINPUT,AttrValue);
+      hr = iAttributeSet.AddAttribute(AttributeINPUT,AttrValue);
+      AttrIndex++;
+    }
+    ...</pre>
+<p>An <code><strong>AttributeSet</strong></code> object holds these attribute-value 
+sets and thus effectively acts as a filter/criteria for database query/search. The 
+if condition is to ensure that attribute-value sets were input. Else, the <code>
+<strong>AttributeSet</strong></code> is kept empty assuming the query is to be run 
+with an empty AttributeSet<code><strong>.</strong></code></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step3"></a>Retrieving a CATIType*</h3>
+<p>
+<a name="Confirm if the &quot;usable custo&quot; input is one among the valid types">
+</a>Here we Retrieve the CATIType</p>
+<pre class="code">...   
+  CATIType_var spCATITypeOnPLMType ;
+  CATBoolean bPLMType = FALSE;
+  if (SUCCEEDED(hr))
+  {
+    hr = CATCkePLMNavPublicServices::RetrieveKnowledgeType(istrPLMType,spCATITypeOnPLMType);
+    if ( NULL_var == spCATITypeOnPLMType)
+    {
+      hr = CATCkePLMNavCustoAccessPublicServices::RetrieveCustoType(istrPLMType,spCATITypeOnPLMType) ;
+      if ( SUCCEEDED(hr) &amp;&amp; (NULL_var != spCATITypeOnPLMType))
+      {
+        bPLMType = TRUE;
+        cout&lt;&lt;&quot;   Success CATCkePLMNavCustoAccessPublicServices::RetrieveCustoType &quot;&lt;&lt; (spCATITypeOnPLMType-&lt;Name()).ConvertToChar() &lt;&lt; endl;
+      }
+    }
+    else
+    {
+      bPLMType = TRUE;
+      cout&lt;&lt;&quot;   Success CATCkePLMNavPublicAccessServices ::RetrieveKnowledgeType non custo type  &quot;&lt;&lt; (spCATITypeOnPLMType-&lt;Name()).ConvertToChar() &lt;&lt; endl;
+    }  
+  }
+  if( bPLMType == FALSE)
+    cout&lt;&lt;&quot;   RetrieveCustoType AND RetrieveKnowledgeType are Failed, Invalid PLMType : Identify the Correct PLMType in Modeler&quot;&lt;&lt;endl;
+...</pre>
+<p>
+<a name="Retreive the CATIAdpType* type of input &quot;usable custo&quot; from the above list">
+</a></p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step4"></a>Querying the Database for Components with Filter</h3>
+<p>We launch a search in the database to retrieve information of PLM Objects by 
+using filter. This filter is composed of attribute set created in step
+<a href="#Step2">2</a> and PLMType retrieved in step <a href="#Step3">3</a>.</p>
+<ul>
+	<li>Attribute-value sets input (<code><strong>iAttributeSetNew</strong></code>)</li>
+	<li>PLM Type (<code><strong>spCATITypeOnPLMType</strong></code>)</li>
+</ul>
+<pre class="code">...
+    CATAdpPLMQueryFilter iQueryFilter(spCATITypeOnPLMType,iAttributeSetNew);
+    CATAdpPLMComponentsInfos oComponentsInfos;
+
+    if(SUCCEEDED(hr)) hr= CATAdpPLMExtendedQueryServices::GetElementsFromQueryFilter(iQueryFilter, oComponentsInfos);
+...</pre>
+<p>The return of this query is a list of <code><strong>CATAdpPLMComponentsInfos
+</strong></code>objects. These objects contain information of the PLM Objects.
+</p>
+<p>So if the components are to be loaded/opened in the current session, we'll have 
+to seek their Identification from the <code><strong>CATAdpPLMComponentsInfos
+</strong></code>object and explicitly load them in the session.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step5"></a>Retrieving the Unique Key of Component Retrieved from Query</h3>
+<p>we can retrieve <code><strong>CATIAdpPLMIdentificator </strong></code>from
+<code><strong>CATAdpPLMComponentsInfos </strong></code>returned in above query. 
+This can be retrieved from iterator handle on <code><strong>CATAdpPLMComponentsInfos</strong></code>.</p>
+<pre class="code">...
+    CATAdpPLMComponentsInfosIter iterator= oComponentsInfos.GetIterator();
+    CATIAdpPLMIdentificator *oComponent = NULL;
+  
+    hr = iterator.NextInfos( oComponent,oInfos);	
+...</pre>
+<p>By using <code><strong>oComponent</strong></code> of type <code><strong>CATIAdpPLMIdentificator*
+</strong></code>which identifies the unique PLM Object in database, get the Unique 
+Key for Object. </p>
+<pre class="code">...
+    if(SUCCEEDED(hr) &amp;&amp; NULL != oComponent)  
+    hr = CATAdpPLMQueryServices::GetUniqueKey(oComponent,oUniqueKey);
+...
+    hr = oUniqueKey.UnicityGuarantee();
+...</pre>
+<p>Unique Key is a combination of :</p>
+<ol>
+	<li>Type</li>
+	<li>Attribute set which uniquely identifies the element.</li>
+</ol>
+<p>Unicity of Unique Key can be guranteeed by <code><strong>CATAdpPLMQueryServices::GetUniqueKey</strong></code>.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step6"></a>Querying the Database for Component with Unique Key</h3>
+<p>Once unicity of Unique Key is guaranteed then execute the query for PLM Component 
+with this unique Key in connected database.</p>
+<pre class="code">...
+    CATListPtrCATIAdpPLMIdentificator oComponentsIdentifiers;
+    if(SUCCEEDED(hr))  hr = CATAdpPLMQueryServices::GetElementsByUniqueKey(oUniqueKey,oComponentsIdentifiers);
+
+    if(SUCCEEDED(hr) &amp;&amp; oComponentsIdentifiers.Size() != 0 )  opiIdentOnPLMComp = oComponentsIdentifiers[1];
+...</pre>
+<p>This query returns the list of identificators. As per our requirement if query 
+returns single element then only it is succeeded. In such case retrieve the identificator 
+of first element from <code><strong>CATListPtrCATIAdpPLMIdentificator.</strong></code>
+</p>
+<p>If this query fails or unique key is not guranteed or defined on PLM Object then 
+use &quot;<strong>Query PLM Objects by Attributes</strong>&quot; [<a href="#References">6</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Step7"></a>Displaying the Attribute Names and Values for Component 
+Returned by the Query</h3>
+<p>For the References, <code><strong>CATIAdpPLMIdentificator</strong></code> Interface 
+has information to uniquely identify the PLM Object in the database.[<a href="#References">5</a>] 
+From this session object we can seek the <code><strong>IdentifyingSet</strong></code> 
+Attribute values of the PLM Object, whose display adds enormous significance to 
+the query output. We choose the <code><strong>PLM_ExternalID</strong></code> attribute 
+value since that serves our purpose reasonably well here.</p>
+<pre class="code">...
+  <strong>for</strong> (int k=1; <strong>k&lt;=QueryResSize</strong>; k++)
+  {
+    CATAdpIdentificationSet oIdentifyingSet;
+    hr = <strong>CATAdpQueryServices::GetIdentificationSet</strong>(opiIdentOnPLMComp,
+                                                   oIdentifyingSet);
+    if (S_OK == hr)
+    {
+      int current=0;
+      CATString AttributeName;
+      CATUnicodeString AttrValue;
+      <strong>CATString PLMExtID(&quot;PLM_ExternalID&quot;);</strong>
+      while (S_OK == (<strong>oIdentifyingSet.NextAttribute</strong>(current,
+                                                    AttributeName,
+                                                    AttrValue)))
+      {
+        <strong>if</strong> (<strong>PLMExtID == AttributeName</strong>)
+        {
+          <strong>cout &lt;&lt; &quot;Attribute Name : &quot;</strong>
+               <strong>&lt;&lt; AttributeName.getUnicodeString()</strong> &lt;&lt; endl;	
+          <strong>cout &lt;&lt; &quot;Attribute Value: &quot;</strong>
+               <strong>&lt;&lt; AttrValue.ConvertToChar()</strong> &lt;&lt; endl &lt;&lt; endl;
+        }
+      }
+      ...
+    }
+    ...
+  }
+...</pre>
+<p>The <code><strong>IdentificationSet</strong></code> might have a set of attributes 
+which enable us identify a component. But in this case, <code><strong>PLM_ExternalID</strong></code> 
+seems to serve our purpose reasonably well.</p>
+<p>Of course, if the <code><strong>PLM_ExternalID</strong></code> attribute was 
+provided as a query criteria, we run the risk of displaying that attribute-value, 
+yet again in the next step.</p>
+<p><a name="Display the Attribute+value sets of the component"></a>Here we display 
+the values of the attributes for PLM Objects returned by the query. At first glance, 
+the output attribute-values might appear to be exactly similar to those input and 
+hence irrelevant.</p>
+<p>But its important that one realizes that these attribute-values are those actually 
+sought from the database. Hence they are more real, more accurate and more reliable 
+than those input.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h3><a name="Epilog"></a>Epilog</h3>
+<p>The <code><strong>CAAAdpQueryPLMComponentWithUniqueKey</strong></code> use case 
+ends by simply closing the PLM session. Since all PS use cases necessarily conclude 
+by closing the PLM session, we have a dedicated article on this topic viz. &quot;<strong>Creating 
+a Basic PLM Batch</strong>&quot; [<a href="#References">3</a>].</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="CAARetrieveIDofUniquePLMObject"></a>Global Method CAARetrieveIDofUniquePLMObject</h2>
+<p>In earlier section we have seen:</p>
+<ul>
+	<li>Building an attribute set from given set of Attribute-value pairs[]</li>
+	<li>Launch a query to retrieve a identificator of PLM object []</li>
+</ul>
+<p>Since all these services are frequently required in CAA Use Cases we have provided 
+a global routine <code><strong>CAARetrieveIDofUniquePLMObject</strong></code> exposed 
+through the CAAAdpUtilities library of the CAAPLMClientAdapter.edu framework.</p>
+<pre class="code">...     
+<strong>  HRESULT CAARetrieveIDofUniquePLMObject (CATListOfCATString &amp;ilistOfAttribute,
+                                          CATListOfCATUnicodeString &amp;ilistOfValues,
+                                          const char* &amp;iStrPLMType,
+                                          CATIAdpPLMIdentificator* &amp;opiIdentOnPLMComp)</strong>
+...</pre>
+<p>The global routine arguments are:</p>
+<ul>
+	<li><code>listOfAttributes</code>: List of input Attributes, a CATListOfCATString 
+		type [input]</li>
+	<li><code>listOfValues</code>: List of Input Attribute values, a CATListOfCATUnicodeString 
+		type [input]</li>
+	<li><code>iStrPLMType</code>: a PLM type, a char* type [input]</li>
+	<li><code>opiIdentOnPLMComp</code>: Identificator of PLM Object output by query, 
+		a CATIAdpPLMIdentificator* type [input/output]</li>
+</ul>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="InShort"></a>In Short</h2>
+<p>The use case fundamentally queries the database seeking information of PLM Objects 
+which conform to an input criteria.</p>
+<p>The criteria for this search is a combination of the attribute-value sets and 
+the &quot;<code><strong>type</strong></code>&quot; input.</p>
+<p>The query result is a <code><strong>CATIAdpPLMIdentificator*</strong></code> 
+, which contains the identificator of the PLM Object satisfying our search criteria. 
+This information is restricted to only those attribute-values which drove our query 
+on the database. This allowed to retrieve the <code><strong>CATIAdpPLMIdentificator</strong></code> 
+Interface which has information to uniquely identify the PLM Object in the database. 
+From this session object we can seek the Attribute values of the PLM Object, whose 
+display adds enormous significance to the query output.</p>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="References"></a>References</h2>
+<table class="reference">
+	<tr>
+		<td>[1]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllEnvironment.htm">
+		PLM Environment Overview</a> </td>
+	</tr>
+	<tr>
+		<td>[2]</td>
+		<td>
+		<a href="../CAADocUseCases/CAADocRunSample.htm">
+		Building and Launching a CAA Use Case</a> </td>
+	</tr>
+	<tr>
+		<td>[3]</td>
+		<td><a href="CAAAdpUcBasicBatch.htm">Creating a Basic PLM Batch</a></td>
+	</tr>
+	<tr>
+		<td>[4]</td>
+		<td>
+		<a href="../CAAPLMAllConcepts/CAAPLMTaAllCorePrinciples.htm">
+		PLM Core Modeler Overview</a></td>
+	</tr>
+	<tr>
+		<td>[5]</td>
+		<td><a href="CAAPlmTaCATIAdpPLMIdentificator.htm">Understanding PLM Object 
+		Identification</a></td>
+	</tr>
+	<tr>
+		<td>[6]</td>
+		<td><a href="CAAAdpUcQueryPLMComponent.htm">Query PLM object by Attributes</a></td>
+	</tr>
+</table>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<h2><a name="History"></a>History</h2>
+<table class="history">
+	<tr>
+		<td>Version: <strong>1</strong> [Jan 2013]</td>
+		<td>Document created</td>
+	</tr>
+</table>
+<script type="text/javascript">insertLinkToTop();</script>
+<!-- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-comment-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= -->
+<script type="text/javascript">insertCopyright();</script>
+
+</body>
+
+</html>
