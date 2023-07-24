@@ -31,7 +31,37 @@ function CAAlink(iLanguage, iFramework, iInterface, iMethod, iObjectType)
 		  "\nMethod = "+iMethod);
 */
 
-	var url, dir;
+	var url, dir, typ;
+
+	if (!iObjectType)
+	{
+		typ="interface_";
+	}
+	else
+	{
+		typ=iObjectType+"_";
+	}
+
+	if (window.top.CAAInteractiveDocContext != null) 
+  	{
+		// for next release : url = "../interfaces/_index/main.htm";
+		url = "../interfaces/main.htm";
+		if (!!iInterface)
+		{
+			if (!iMethod)
+			{
+				url = "../interfaces/" + typ + iInterface + ".htm";
+			}
+			else
+			{
+				url = "../interfaces/" + typ + iInterface + ".htm#" + iMethod;
+			}
+		}
+		// LDS    alert(url);
+		window.open(url, "_self");
+	}
+	else
+	{
 
 	if (iLanguage == "CPP") {
 		dir = "../../generated/refman/";
@@ -44,23 +74,23 @@ function CAAlink(iLanguage, iFramework, iInterface, iMethod, iObjectType)
 	}
 
 	if (!iFramework) {
-		url = dir + "main.htm";
+		url = dir + "_index/main.htm";
 	} else {
 		if (iFramework == "Deprecated") { // Link to the deprecation page
 			if (iLanguage == "CPP") {
-				url = dir + "Deprecated.htm";
+				url = dir + "_index/Deprecated.htm";
 			} else if (iLanguage == "IDL") {
-				url = dir + "CAADeprecatedIdx.htm";
+				url = dir + "_index/CAADeprecatedIdx.htm";
 			}
 		} else if (iFramework == "HOME") {  // Link to the static home page
-			url = dir + "main.htm";
+			url = dir + "_index/main.htm";
 		} else if (iFramework == "TREE") {  // Link to the class hierarchy page
-			url = dir + "tree.htm";
+			url = dir + "_index/tree.htm";
 		} else if (iFramework == "INDEX") { // Link to the master index page
 			if (iLanguage == "CPP") {
-				url = dir + "HomeIdx.htm";
+				url = dir + "_index/HomeIdx.htm";
 			} else if (iLanguage == "IDL") {
-				url = dir + "CAAHomeIdx.htm";
+				url = dir + "_index/CAAHomeIdx.htm";
 			}
 		} else { 
 			if (!iObjectType && !iInterface) {
@@ -130,7 +160,9 @@ function CAAlink(iLanguage, iFramework, iInterface, iMethod, iObjectType)
 									if (curGrandChild.nodeType == 1 && curGrandChild.getAttribute('href').search(motif)!=-1) {
 									//alert("i = "+i+" -- href = "+curGrandChild.getAttribute('href'));
 										url = url.replace(/\.htm/,"");
-										url = url + "/" + curGrandChild.getAttribute('href') + ".htm";
+                    // In R20, .htm is added in the XML file
+										//url = url + "/" + curGrandChild.getAttribute('href') + ".htm";
+										url = url + "/" + curGrandChild.getAttribute('href');
 										if (iMethod) {
 											url = url + "#" + iMethod;
 										}
@@ -161,12 +193,28 @@ function CAAlink(iLanguage, iFramework, iInterface, iMethod, iObjectType)
 		//window.open(url, "CAAPage");
 		window.open(url, window.name);
 	}
+	} // Test on interactive context
 }
 
 // PSR function was missing
 function CAAlinkHtm(iUrl)
 {
   window.open(iUrl, window.name);
+}
+
+function insertLinkToTop()
+{
+	document.writeln('<table>');
+	document.writeln('<tr>');
+	document.writeln('<td width="100%"><hr class="top"></td>');
+	document.writeln('<td><a href="#Top" class="top"><img src="../CAAIcons/images/butix_top.gif" alt="Top"></a></td>');
+	document.writeln('</tr>');
+	document.writeln('</table>');
+}
+
+function insertCopyright()
+{
+	document.writeln('<p class="copyright"><i>Copyright &#169; 1999-2011, Dassault Syst&#232;mes. All rights reserved.</i><br>');
 }
 
 // For doc samples

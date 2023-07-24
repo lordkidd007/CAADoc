@@ -2,7 +2,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <title>Managing Directories and Files</title>
@@ -115,7 +115,7 @@ close the directory, there are six main steps:</p>
   </tr>
   <tr>
     <td valign="top"><a href="#Step1">1</a></td>
-    <td valign="top">Check the access permissions</td>
+    <td valign="top">Checking the Operating System</td>
   </tr>
   <tr>
     <td valign="top"><a href="#Step2">2</a></td>
@@ -123,23 +123,20 @@ close the directory, there are six main steps:</p>
   </tr>
   <tr>
     <td valign="top"><a href="#Step3">3</a></td>
-    <td valign="top">Check that the directory path doesn't already exists</td>
-  </tr>
-  <tr>
-    <td valign="top"><a href="#Step4">4</a></td>
     <td valign="top">Create the directory and the files</td>
   </tr>
   <tr>
-    <td valign="top"><a href="#Step5">5</a></td>
+    <td valign="top"><a href="#Step4">4</a></td>
     <td valign="top">Scan the created directory</td>
   </tr>
   <tr>
-    <td valign="top"><a href="#Step6">6</a></td>
+    <td valign="top"><a href="#Step5">5</a></td>
     <td valign="top">Close the directory</td>
   </tr>
 </table>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
+<!--  IR-208388V5-6R2014 - This setp is replaced with computer OD check
 
 <h4><a name="Step1"></a>Checking the Access Permissions</h4>
 <p>The two command line parameters are retrieved in <code>WrkDir</code> and <code>DirName</code>
@@ -162,10 +159,60 @@ one should be created are checked using the <code>CATFileAccess</code> global
 function, with the parameter <code>W_OK</code>, that makes <code>CATFileAccess</code>
 checks for writing permission. If this permission is not available, the status
 returned is <code>CATLibError</code>, and the program ends.
+-->
+<h4><a name="Step1"></a>Checking the Operating System</h4>
+<p>The two variables <code>Platform</code> and <code>OS</code> contain the UNIX 
+or Windows platform type and the operating system respectively.</p>
+<table class="code">
+  <tr>
+    <td>
+      <pre>...
+  unsigned short Platform=0;
+  unsigned short OS=0;
+  
+  OS = ::CATGetOperatingSystem( &amp;Platform);
+  
+  if ( CATWindowsPlatform == Platform )
+    cout &lt;&lt; "Windows Platform and ";
+  else
+    cout &lt;&lt; "Unix  Platform and ";
+    
+  switch (OS)
+  {
+    case CATOsAIX :
+      cout &lt;&lt; " Operating System is AIX \n";
+      break;
+    case CATOsSOLARIS :
+      cout &lt;&lt; " Operating System is SOLARIS \n";
+      break;
+    ...
+    case CATOsWindowsNT :
+      cout &lt;&lt; " Operating System is WindowsNT\n";
+      break;
+    ...
+    case CATUnknownOS :
+      cout&lt;&lt; " Operating System is Unknown\n ";
+      break;
+    default:
+      cout &lt;&lt; "Error: Unknown platform!\n";
+      exit (-2);
+      break;
+  }
+  cout &lt;&lt; endl;
+...</pre>
+    </td>
+  </tr>
+</table>
+<p>The UNIX or Windows platform type and the operating system are first 
+retrieved using the <code>CATGetOperatingSystem</code> global function. Then the 
+operating system value is checked against the supported ones, and the program 
+exits if the operating system found is not supported.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="Step2"></a>Creating a Directory Path</h4>
+<!--  IR-208388V5-6R2014 - This setp is replaced with computer OD check
 <p>The access permissions enables the creation of a directory in <code>WrkDir</code>.</p>
+-->
 <table class="code">
   <tr>
     <td>
@@ -181,44 +228,7 @@ directory <code>DirName</code> in <code>WrkDir</code>. This pathname is returned
 in <code>Path</code>.
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
-<h4><a name="Step3"></a>Checking That the Directory Path Doesn't Already Exist</h4>
-<table class="code">
-  <tr>
-    <td>
-      <pre>...
-  status = ::<b>CATFileAccess</b>(Path, F_OK);
-  if (<b>CATLibSuccess</b> == status)
-  {
-    cout &lt;&lt; &quot; A file or directory named &quot; &lt;&lt; DirName &lt;&lt; &quot; already exists&quot; &lt;&lt;endl;
-    CATFileInfo Stat;
-    status = ::<b>CATGetFileInfo</b>(Path, &amp;Stat);
-    if (CATLibError == status)
-    {
-      cout &lt;&lt; &quot; Can't access to file information&quot; &lt;&lt; endl;
-      exit (-1);
-    }
-    if (S_IFDIR != (Stat.st_mode &amp; S_IFDIR))
-    {
-      cout &lt;&lt; Path &lt;&lt; &quot; is a file&quot; &lt;&lt; endl;
-      exit (-1);
-    }
-    else
-      cout &lt;&lt; &quot;Directory &quot; &lt;&lt; Path &lt;&lt; &quot; already exists &quot; &lt;&lt; endl;
-  }
-...</pre>
-    </td>
-  </tr>
-</table>
-<p>The <code>CATFileAccess</code> global function checks that a file with the
-pathname <code>Path</code> doesn't already exist. <code>F_OK</code> requests
-file (or directory) existence checking. If the file exists, the <code>CATGetFileInfo</code>
-global function retrieves the file information in the <code>Stat</code>
-structure. Then, <code>Stat</code> is used to determine whether <code>Path</code>
-refers to a file or a directory. If a file exists, nothing else can be done, and
-the programs stops, but if this is a directory, it will be used.</p>
-<p align="right">[<a href="#Top">Top</a>]</p>
-<!---------------------------------comment------------------------------------->
-<h4><a name="Step4"></a>Creating the Directory and the Files</h4>
+<h4><a name="Step3"></a>Creating the Directory and the Files</h4>
 <p>The access permissions enables the creation of a directory in <code>WrkDir</code>.</p>
 <table class="code">
   <tr>
@@ -253,7 +263,7 @@ with the names <code>FILE0</code>, <code>FILE1</code>, and so on up to <code>FIL
 format.
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
-<h4><a name="Step5"></a>Scanning the Created Directory</h4>
+<h4><a name="Step4"></a>Scanning the Created Directory</h4>
 <p>The files created are now scanned, and their file names displayed.</p>
 <table class="code">
   <tr>
@@ -290,7 +300,7 @@ and whether the end of the directory is reached by returning 1 or 0 in <code>End
 1 meaning that the end is reached.
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
-<h4><a name="Step6"></a>Closing the Directory</h4>
+<h4><a name="Step5"></a>Closing the Directory</h4>
 <p>The directory can now be closed.</p>
 <table class="code">
   <tr>

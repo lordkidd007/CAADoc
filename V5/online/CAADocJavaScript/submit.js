@@ -60,23 +60,23 @@ function CAAlink(iLanguage, iFramework, iObjectType, iInterface, iMethod)
 	}
 
 	if (!iFramework) {
-		url = dir + "main.htm";
+		url = dir + "_index/main.htm";
 	} else {
 		if (iFramework == "Deprecated") { // Link to the deprecation page
 			if (iLanguage == "CPP") {
-				url = dir + "Deprecated.htm";
+				url = dir + "_index/Deprecated.htm";
 			} else if (iLanguage == "IDL") {
-				url = dir + "CAADeprecatedIdx.htm";
+				url = dir + "_index/CAADeprecatedIdx.htm";
 			}
 		} else if (iFramework == "HOME") {  // Link to the static home page
-			url = dir + "main.htm";
+			url = dir + "_index/main.htm";
 		} else if (iFramework == "TREE") {  // Link to the class hierarchy page
-			url = dir + "tree.htm";
+			url = dir + "_index/tree.htm";
 		} else if (iFramework == "INDEX") { // Link to the master index page
 			if (iLanguage == "CPP") {
-				url = dir + "HomeIdx.htm";
+				url = dir + "_index/HomeIdx.htm";
 			} else if (iLanguage == "IDL") {
-				url = dir + "CAAHomeIdx.htm";
+				url = dir + "_index/CAAHomeIdx.htm";
 			}
 		} else { 
 			if (!iObjectType && !iInterface) {
@@ -121,6 +121,7 @@ function CAAlink(iLanguage, iFramework, iObjectType, iInterface, iMethod)
 							} else {
 								type = curchild.getAttribute("type");
 							}
+							//alert("Type = "+iObjectType+" -- Name = "+iInterface+" -- "+curchild.nodeName+" -- "+type+" -- "+iObjectType);
 							if (iObjectType && iInterface && curchild.nodeName=="ITEM" && type==iObjectType) {
 								//alert("Type = "+iObjectType+" -- Name = "+iInterface);
 								var motif = iObjectType+"_"+iInterface;
@@ -148,7 +149,11 @@ function CAAlink(iLanguage, iFramework, iObjectType, iInterface, iMethod)
 										//alert ("url = "+url);
 										found = "yes";
 										break;
-									}
+                  } else if (curGrandChild.nodeType == 1 && curGrandChild.getAttribute('href').search("_"+iObjectType+"_"+iInterface)!=-1 && iObjectType=="function") {
+                    url = dir + iFramework + "/" + curGrandChild.getAttribute('href');
+                    found = "yes";
+                    break;
+                  }
 								}
 								if (found=="yes") { break; }
 							}
@@ -163,6 +168,7 @@ function CAAlink(iLanguage, iFramework, iObjectType, iInterface, iMethod)
 			}
 		}
 	}
+//alert('url = '+url);
 //window.open(url, "CAAPage");
 //window.open(url, window.name);
 	if (NS7) {
@@ -183,29 +189,29 @@ function CAAlinkJava(iPackage, iInterface, iMethod)
 
   if (!iPackage)
   {
-    url = "../../docs/api/index.html";
+    url = "../../docs/api/_index/main.htm";
   }
   else
   {
     if (iPackage == "Deprecated")
     {
-      url = "../../docs/api/deprecated-list.html";
+      url = "../../docs/api/_index/jDeprecatedIdx.htm";
     }
     else
     {
       if (!iInterface)
       {
-        url = dir + iPackage + ".html";
+        url = "../../docs/api/_index/pkg/com.dassault_systemes." + iPackage + ".htm";
       }
       else
       {
         if (!iMethod)
         {
-          url = dir + iPackage + "/" + iInterface + ".html";
+          url = dir + iPackage + "/" + iInterface + ".htm";
         }
         else
         {
-          url = dir + iPackage + "/" + iInterface + ".html#" + iMethod;
+          url = dir + iPackage + "/" + iInterface + ".htm#" + iMethod;
         }
       }
     }
@@ -225,4 +231,54 @@ function CAAlinkJava(iPackage, iInterface, iMethod)
 //    window.open(url, "CAAPage");
     window.open(url, window.name);
   }
+}
+
+function insertLinkToTop()
+{
+	document.writeln('<table>');
+	document.writeln('<tr>');
+	document.writeln('<td width="100%"><hr class="top"></td>');
+	document.writeln('<td><a href="#Top" class="top"><img src="../CAAIcons/images/butix_top.gif" alt="Top"></a></td>');
+	document.writeln('</tr>');
+	document.writeln('</table>');
+}
+
+function insertCopyright()
+{
+	document.writeln('<p class="copyright"><em>Copyright &#169; 1999-2014, Dassault Syst&#232;mes. All rights reserved.</em></p>');
+}
+
+function showImage(image) {
+	if (!IE) {
+		var newImage = null;
+		newImage = new Image();
+		newImage.src = image;
+		newImage.onload = function() {
+			var W=newImage.width + 40;
+			var H=newImage.height + 40;
+			window.open(newImage.src, '_blank', 'width='+W+', height='+H+', toolbar=no, scrollbar=no, resizable=no, menubar=no');
+		};
+	} else {
+		var loaded = false;
+		function loadHandler() {
+			if (loaded) {
+				return;
+			}
+			loaded = true;
+		var W=newImage.width + 40;
+		var H=newImage.height + 40;
+		window.open(newImage.src, '_blank', 'width='+W+', height='+H+', toolbar=no, scrollbar=no, resizable=no, menubar=no');		
+
+		}
+		var newImage = null;
+		newImage = new Image();
+		newImage.src = image;
+		newImage.onload = loadHandler;
+		if (newImage.complete) {
+			loadHandler();
+		}
+//		var W=newImage.width + 40;
+//		var H=newImage.height + 40;
+//		window.open(newImage.src, '_blank', 'width='+W+', height='+H+', toolbar=no, scrollbar=no, resizable=no, menubar=no');		
+	}
 }

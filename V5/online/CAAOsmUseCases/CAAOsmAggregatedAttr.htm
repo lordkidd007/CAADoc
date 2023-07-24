@@ -2,10 +2,16 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <title>Aggregating Features to Features</title>
+<style type="text/css">
+.style1 {
+	color: #FF7900;
+	text-decoration: underline;
+}
+</style>
 </head>
 
 <body>
@@ -63,7 +69,7 @@ attributes, how to create them and how to assign them to features. Through this
 use case, you will also learn some important aspects recommended when
 programming with features. Specifically, you will learn how to:
 <ul>
-  <li>Load an existing catalog containing StartUps</li>
+  <li>Get a CATOsmSUHandler on existing catalog containing StartUps</li>
   <li>Create new features by instantiating StartUps</li>
   <li>Valuate feature attributes</li>
   <li>Add an existing feature to another feature as an aggregated attribute.</li>
@@ -71,11 +77,17 @@ programming with features. Specifically, you will learn how to:
 <p>Before getting to the use case itself, it is important to get an
 understanding of what a feature object is and how it is created <a href="#References">[1]</a>.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
+<hr>
+<p><b>Note :-</b> Use-Case with the same scenario as of this use-case but with the use of V6 APIs is available 
+<a href="#References">[<span class="style1">5]</span></a>. Please read the Preparing for V6 Feature Modeler-Overview article 
+[<a href="#References">4</a>]</p>
+<hr>
+
 <!---------------------------------comment------------------------------------->
 
-<h3><a name="UseCase"></a>The CAAOsmAggregatedAttri Use Case</h3>
+<h3><a name="UseCase"></a>The CAAOsmAggregatedAttr Use Case</h3>
 <p>CAAOsmAggregatedAttr is a use case of the CAAObjectSpecsModeler.edu framework
-that illustrates ObjectSpecsModeler framework capabilities.</p>
+that illustrates ObjectSpecsLegacy framework capabilities.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
@@ -83,9 +95,8 @@ that illustrates ObjectSpecsModeler framework capabilities.</p>
 <p>The goal of the CAAOsmAggregatedAttr use case is to illustrate adding
 features to features as <b>tk_component</b> attributes. These features are said
 to be &quot;aggregated&quot;.
-<p>Several chapters for a given novel, <b>The Three Musketeers, </b>are
-described here. This use case uses the catalog defined in the CAAOsmCatalogSU
-use case <a href="#References">[2] </a>which contains StartUps from the
+<p>Several chapters for a given novel, <b>The Three Musketeers, </b>are 
+described here. This use case uses the catalog CAAOsmCatalogSU which contains StartUps from the
 &quot;Book&quot; example. We want to assign titles to the chapters and describe
 their length by giving the first and last page numbers they cover. The
 &quot;CAAOsmChapter&quot; StartUp is retrieved from the catalog. Its attributes
@@ -105,7 +116,7 @@ environment, then compile CAAOsmAggregatedAttr along with its prerequisites, set
 up the run time environment, and then execute the sample.&nbsp;</p>
 <p>mkrun -c &quot;CAAOsmAggregatedAttr CAAOsmCatalogSU.CATfct DocumentStorageName.CATPart&quot;</p>
 <p> This is fully
-described in the referenced article <a href="#References">[3]</a>. When
+described in the referenced article <a href="#References">[2]</a>. When
 launching the use case, you must pass the following arguments:</p>
 <ul>
   <li><b>CAAOsmCatalogSU</b>.<b>CATfct</b> - is the name of the catalog
@@ -141,7 +152,7 @@ installation. It is made of a unique source file named CAAOsmAggregatedAttr.cpp.
 <p>There are eight logical steps in the CAAOsmAggregatedAttr:</p>
 <ol>
   <li><a href="#Create_doc">Prolog</a></li>
-  <li><a href="#Load_Catalog">Loading the Catalog</a></li>
+  <li><a href="#Load_Catalog">Get a CATOsmSUHandler on the StartUps of the Catalog</a></li>
   <li><a href="#Create_Chapter">Creating Three Features from the
     &quot;CAAOsmChapter&quot; StartUp</a></li>
   <li><a href="#Create_Novel1">Creating the Feature &quot;CAAOsmNovel1&quot;</a></li>
@@ -157,86 +168,64 @@ installation. It is made of a unique source file named CAAOsmAggregatedAttr.cpp.
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="Create_doc"></a>Prolog</h4>
-<p>See the referenced article <a href="#References">[4]</a> for a detailed
+<p>See the referenced article <a href="#References">[3]</a> for a detailed
 description of the steps to go through when creating a new document.</p>
 <p>In this use case, we create a new &quot;Part&quot; document: <i>CATDocument</i>
 <code>*pDoc</code>, and retrieve its root container: <i>CATIContainer</i> <code>*piRootContainer</code>.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
-<h4><a name="Load_Catalog"></a>Loading the Catalog</h4>
-<p>Loading the catalog means opening the catalog document and getting a <i>CATICatalog</i>
-handle that will be needed in order to retrieve StartUps from the catalog.</p>
+<h4><a name="Load_Catalog"></a>Getting the CATOsmSUHandler on the StartUps of the Catalog</h4>
+<p>It means getting a handler on the StartUps of the catalog that will be needed in order to retrieve StartUps from the catalog.</p>
 <table class="code">
   <tr>
     <td>
-      <pre>CATUnicodeString stgName = argv[1];
-CATICatalog *piCatalog;
+      <pre>CATUnicodeString CatalogName = argv[1];
+CATUnicodeString chapterSUType(&quot;CAAOsmChapter&quot;);
 CATUnicodeString clientId(&quot;CAAOsmClientId&quot;);
-rc = <b>::AccessCatalog </b>(&amp;stgName,
-                      &amp;clientId,
-		      piRootContainer,
-	              &amp;piCatalog); 
 
-if (SUCCEEDED(rc)) cout &lt;&lt; &quot;Catalog accessed OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   cout &lt;&lt; &quot;ERROR on AccessCatalog&quot; &lt;&lt; endl &lt;&lt; flush;
-   piRootContainer -&gt; <b>Release</b>();
-   return 5;
-}</pre>
+CATOsmSUHandler <strong>chapterSUHandler</strong>(chapterSUType, clientId, CatalogName);
+
+</pre>
     </td>
   </tr>
 </table>
-<p>To open a catalog, use the <code>AccessCatalog </code>global function that
+<p>To Retrieve a StartUp, use the RetrieveSU function of CATOsmSUHandler that
 takes the following arguments:</p>
 <ul>
-  <li><code>catalogName</code> - the name of the catalog without the storage
-    path and with the .CATfct extension. The catalog must be found under the
-    &quot;WS&quot; + &quot;OS&quot; + resources + graphic directory.</li>
-  <li><code>clientId </code>- the client id defined on the catalog at the time
-    of its creation.</li>
-  <li><code>piRootContainer</code> - a <i>CATIContainer</i> pointer to the
-    container in which StartUps from the catalog will be instantiated.</li>
-  <li><code>piCatalog</code> - a <i>CATICatalog</i> pointer to the StartUps
-    catalog that has been opened.</li>
+  <li><code>spChapterSU</code> - the CATOsmSUHandler object</li>
 </ul>
-<p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="Create_Chapter"></a>Creating Three Features from the
 &quot;CAAOsmChapter&quot; StartUp</h4>
 <ol>
-  <li>Retrieve &quot;CAAOsmChapter&quot; StartUp
+  <li>Instantiate the &quot;CAAOsmChapter&quot; StartUp <br>
     <table class="code">
       <tr>
         <td>
-          <pre>CATBaseUnknown *pChapterSU = NULL;
-CATUnicodeString chapterSUType(&quot;CAAOsmChapter&quot;);
-rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(<b>&amp;pChapterSU</b>,
-                                        &amp;chapterSUType, 
-		                        &quot;CATISpecObject&quot;);
-if (NULL != pChapterSU) cout &lt;&lt; &quot;CAAOsmChapter StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else 
-{
-   <i>(Process ERROR:  Release pointers and return.)</i>
-}</pre>
-          <pre>// Get a CATISpecObject handle on the CAAOsmChapter StartUp
+          <pre>
+CATISpecObject_var spChapterSU = NULL_var;
+rc = chapterSUHandler.RetrieveSU(spChapterSU);
 
-<b>CATISpecObject *piChapterSU = (CATISpecObject*) pChapterSU;</b></pre>
+if (SUCCEEDED(rc)) cout &lt;&lt; &quot;Catalog retrieved OK&quot; &lt;&lt;endl &lt;&lt; flush;
+else
+{
+   cout &lt;&lt; &quot;ERROR on RetrieveSU&quot; &lt;&lt; endl &lt;&lt; flush;
+   piRootContainer -&gt; Release();
+   return 5;
+}
+</pre>
         </td>
       </tr>
     </table>
-    <p>A StartUp is retrieved from the catalog using the<i> CATICatalog</i><code><i>::</i>RetrieveSU
-    </code>method. This method returns a <i>CATBaseUnknown </i>pointer in <code>pChapterSU</code>
-    which is directly cast into a <i>CATISpecObject</i> pointer (<code>piChapterSU</code>).
-    The <i>CATBaseUnknown</i> <code>pChapterSU</code> pointer must be released
-    when no longer needed.</p>
+    <p>A StartUp is instantiated using <code>Instanciate</code> method of 
+	CATOsmSUHandler which returns directly the smart pointer of CATISpecObject</p>
   </li>
   <li>Get attribute keys
     <table class="code">
       <tr>
         <td>
           <pre>CATISpecAttrAccess *piSpecAttrAccessOnChapt = NULL;
-rc = piChapterSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
+rc = spChapterSU-&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
                                    (void**) <b>&amp;piSpecAttrAccessOnChapt</b>);
 if (FAILED(rc)) 
 {
@@ -274,32 +263,36 @@ piSpecAttrAccessOnChapt -&gt; <b>Release</b>();</pre>
     handle with which we execute the <code>GetAttrKey</code> method in order to
     get the attribute keys.</p>
   </li>
-  <li>Instantiate &quot;CAAOsmChapter&quot; StartUp
+  <li>Instantiate &quot;CAAOsmChapter&quot; StartUp <br>
     <table class="code">
       <tr>
         <td>
           <pre>CATUnicodeString chapter1(&quot;CAAOsmChapter1&quot;);
-CATISpecObject *piChaptInst1 = piChapterSU -&gt;
-		<b>Instanciate</b>(chapter1,
-		            piRootContainer);
-if (NULL != piChaptInst1) cout &lt;&lt; &quot;CAAOsmChapter SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
+CATISpecObject_var spChapterInst1 = NULL_var;
+rc = chapterSUHandler.Instanciate(spChapterInst1, piRootContainer, chapter1);
+if (SUCCEEDED(rc))
 {
-   <i>(Process ERROR:  Release pointers and return.)</i>
-}</pre>
+	cout &lt;&lt; &quot;CAAOsmChapter SU instance 1 created OK &quot;&lt;&lt;endl ;&lt;&lt; flush;
+}
+else
+	{
+		cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmChapter SU&quot;&lt;&lt;  endl ;&lt;&lt; flush;
+		piRootContainer -&gt;Release();
+		return 7;
+	}</pre>
         </td>
       </tr>
     </table>
     <p>Now we are finally ready to create a first feature object by
     instantiating the StartUp &quot;CAAOsmChapter&quot;. This is done using the <code>Instanciate</code>
-    method of <i>CATISpecObject</i>.</p>
+    method of <i>CAT</i><em>OsmSUHandler.</em></p>
   </li>
   <li>Valuate &quot;CAAOsmChapter1&quot; attributes
     <table class="code">
       <tr>
         <td>
           <pre>CATISpecAttrAccess *piSpecAttrAccessOnChapt1 = NULL;
-rc = piChaptInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
+rc = spChapterInst1-&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
                                     (void**) <b>&amp;piSpecAttrAccessOnChapt1</b>);
 if (FAILED(rc)) 
 {
@@ -335,23 +328,33 @@ based on the StartUp &quot;CAAOsmNovel&quot;.</p>
 <table class="code">
   <tr>
     <td>
-      <pre>CATBaseUnknown *pNovelSU = NULL;
-CATUnicodeString novelSUType(&quot;CAAOsmNovel&quot;);
-rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(<b>&amp;pNovelSU</b>,
-                                        &amp;novelSUType,
-	                               &quot;CATISpecObject&quot;);
-if (NULL != pNovelSU) cout &lt;&lt; &quot;CAAOsmNovel StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   <i>(Process ERROR:  Release pointers and return.)</i>
-}
+      <pre>
+      // Get a handler of CATOsmSUHandler on StartUp "CAAOsmNovel"
+
+CATBaseUnknown *pNovelSU = NULL;
+CATUnicodeString novelSUType("CAAOsmNovel");
+
+CATOsmSUHandler novelSUHandler(novelSUType, clientId, CatalogName);
+
 // Get a CATISpecObject handle on the CAAOsmNovel StartUp
 
-<b>CATISpecObject *piNovelSU = (CATISpecObject*) pNovelSU;</b>
-// Retrieve the CAAOsmNovel's attribute key &quot;NovelChapter&quot;
+CATISpecObject_var spNovelSU = NULL_var;
+rc = novelSUHandler.RetrieveSU(spNovelSU);
+
+if (SUCCEEDED(rc))
+	cout &lt;&lt; &quot;CAAOsmNovel SU retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
+else
+{
+	cout &lt;&lt; &quot;ERROR in retrieveing CAAOsmNovel SU&quot; &lt;&lt; endl &lt;&lt; flush;
+	piRootContainer -&gt; Release();
+	return 3;
+}
+      
+      
+ // Retrieve the CAAOsmNovel's attribute key &quot;NovelChapter&quot;
 
 CATISpecAttrAccess *piSpecAttrAccessOnNovel = NULL;
-rc = piNovelSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
+rc = pNovelSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
                                  (void**) <b>&amp;piSpecAttrAccessOnNovel</b>);
 if (FAILED(rc)) 
 {
@@ -369,16 +372,17 @@ piSpecAttrAccessOnNovel -&gt; <b>Release</b>();
 
 // Get an instance of the CAAOsmNovel StartUp
 
-CATUnicodeString novel1(&quot;CAAOsmNovel1&quot;);
-CATISpecObject *piNovelInst1 = piNovelSU -&gt; 
-		<b>Instanciate</b>(novel1,
-		            piRootContainer);
-pNovelSU -&gt; <b>Release</b>();
-if (NULL != piNovelInst1) cout &lt;&lt; &quot;CAAOsmNovel SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else 
+CATISpecObject_var spNovelInst1 = NULL_var;
+rc = novelSUHandler.Instanciate(spNovelInst1, piRootContainer, novel1);
+if (SUCCEEDED(rc))
+	cout &lt;&lt; &quot;CAAOsmNovel SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+else
 {
-   <i>(Process ERROR:  Release pointers and return.)</i>
-}</pre>
+	cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmNovel SU&quot; &lt;&lt; endl &lt;&lt; flush;
+	piRootContainer -&gt; Release();
+	return 3;
+}
+</pre>
     </td>
   </tr>
 </table>
@@ -402,22 +406,21 @@ feature is ever deleted, so are the &quot;children&quot; features. Moreover, the
   <tr>
     <td>
       <pre>CATISpecAttrAccess *piSpecAttrAccessOnNov1 = NULL;
-rc = piNovelInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
+rc = spNovelInst1-&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
                                     (void**) <b>&amp;piSpecAttrAccessOnNov1</b>);
-piNovelInst1 -&gt; <b>Release</b>();
+
 if (FAILED(rc)) 
 {
    <i>(Process ERROR:  Release pointers and return.)</i>
 }
 
 piSpecAttrAccessOnNov1 -&gt; <b>SetSpecObject</b>(piKeyNovelChapter,
-                                        piChaptInst1);
+                                        spChaptInst1);
 piSpecAttrAccessOnNov1 -&gt; <b>SetSpecObject</b>(piKeyNovelChapter,
-                                        piChaptInst2);
+                                        spChaptInst2);
 piSpecAttrAccessOnNov1 -&gt; <b>SetSpecObject</b>(piKeyNovelChapter,
-                                        piChaptInst3);
-piChaptInst2 -&gt; <b>Release</b>();
-piChaptInst3 -&gt; <b>Release</b>();</pre>
+                                        spChaptInst3);
+</pre>
     </td>
   </tr>
 </table>
@@ -427,8 +430,6 @@ to which we pass a handle to the attribute key of the novel chapter that we
 retrieved on the &quot;CAAOsmNovel&quot; StartUp and the <i>CATISpecObject</i>
 handle to the feature instance of the different chapters to be aggregated by
 &quot;CAAOsmNovel1&quot;.</p>
-<p>Note that <code>piChaptInst1</code> is not yet released because it will be
-used later.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="scan_chapter"></a>Scanning Through the List of
@@ -471,15 +472,14 @@ Feature</h4>
 <table class="code">
   <tr>
     <td>
-      <pre>CATISpecObject *piChaptInst1Father = piChaptInst1 -&gt; <b>GetFather</b>();
+      <pre>CATISpecObject *piChaptInst1Father = spChaptInst1 -&gt; <b>GetFather</b>();
 if (NULL != piChaptInst1Father)
 {
    cout &lt;&lt; &quot;The 'ChapterInst1' parent feature is &quot; &lt;&lt; endl;
    cout &lt;&lt; piChaptInst1Father -&gt; <b>GetName</b>().ConvertToChar() &lt;&lt; endl;
 }
 piChaptInst1Father -&gt; <b>Release</b>();
-
-piChaptInst1 -&gt; <b>Release</b>();</pre>
+</pre>
     </td>
   </tr>
 </table>
@@ -512,13 +512,13 @@ description of the steps to go through when saving a document.</p>
 <p>This use case has demonstrated how to use aggregated attributes.
 Specifically, it has illustrated:</p>
 <ul>
-  <li>Loading a catalog using the <code>AccessCatalog</code> global function</li>
+  <li>Getting the CATOsmSUHandler on the StartUps of the Catalog</li>
   <li>Retrieving StartUps from the catalog using the <code>RetrieveSU</code>
-    method of <i>CATICatalog</i></li>
+    method of <em>CATOsmSUHandler</em> </li>
   <li>Retrieving the StartUp's attribute keys using the <code>GetAttrKey</code>
     method of <i>CATISpecAttrAccess</i></li>
-  <li>Creating a new feature by instantiating a StartUp or an already existing
-    feature using the <code>Instanciate</code> method of <i>CATISpecObject</i></li>
+  <li>Creating a new feature by instantiating a StartUp using the <code>Instanciate</code> method of 
+	<em>CATOsmSUHandler</em> </li>
   <li>Valuating feature attributes using the &quot;<code>Set</code>...&quot;
     methods of <i>CATISpecAttrAccess</i></li>
   <li>Assigning several feature objects as <code>tk_list</code> <code>tk_component</code>
@@ -541,18 +541,26 @@ Specifically, it has illustrated:</p>
   </tr>
   <tr>
     <td valign="top">[2]</td>
-    <td><a href="CAAOsmCatalogSU.htm">Creating StartUps in Catalogs</a></td>
-  </tr>
-  <tr>
-    <td valign="top">[3]</td>
     <td><a href="../CAADocUseCases/CAADocRunSample.htm">Building
       and Launching a CAA V5 Use Case</a></td>
   </tr>
   <tr>
-    <td valign="top">[4]</td>
+    <td valign="top">[3]</td>
     <td><a href="../CAAOmbUseCases/CAAOmbNewDoc.htm">Creating
       a New Document</a></td>
   </tr>
+     <tr>
+    <td valign="top">[4]</td>
+    <td>
+	<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAV5V6FmExtTechArticles/CAAV5V6FeatureModelerExtOverview.htm')">
+		Preparing for V6 Feature Modeler-Overview </a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAV5V6OsmUcAggregatedAttr.htm">Aggregated Attribute Use-Case 
+	with V6 APIs</a></td>
+  </tr>
+
   <tr>
     <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
   </tr>

@@ -2,7 +2,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <title>Creating Combined Curve's Factory Interface</title>
@@ -154,7 +154,6 @@ framework there is the CATIMmrCombCrvFactory.h file.</p>
   <li><a href="#Step1">Defining the Combined Curve Factory Interface</a></li>
   <li><a href="#Step2">Implementing the Combined Curve Factory Interface</a>
     <ul>
-      <li><a href="#Step3">Retrieving the Combined Curve's StartUp</a></li>
       <li><a href="#Step4">Creating a Combined Curve Instance</a></li>
 		<li><a href="#Step6">Subscribing to repository for Configuration Data 
 		Storage</a></li>
@@ -163,6 +162,9 @@ framework there is the CATIMmrCombCrvFactory.h file.</p>
       <li><a href="#Step5">Setting Default Values for the Instance Attributes</a></li>
     </ul>
 </ul>
+
+
+
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
@@ -218,7 +220,7 @@ TIE_CAAIMmrCombCrvFactory( CAAEMmrCombCrvFactory);</pre>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
-<h4><a name="Step3"></a>Retrieving the Combined Curve's StartUp</h4>
+<h4><a name="Step4"></a>Creating a Combined Curve Instance</h4>
 <p>To create a new Combined Curve Instance, all you need to do is to instantiate
 the Combined Curve StartUp. To do so, you first have to retrieve this StartUp. It has been stored in the
 Combined Curve Catalog file named CAAMmrCombinedCurveCatalog.CATfct [<a href="#References">5</a>].</p>
@@ -234,62 +236,36 @@ HRESULT rc = QueryInterface( IID_CATIContainer , ( void**) &amp;piContainerOnThi
     </td>
   </tr>
 </table>
-<p>Then, the <code>AccessCatalog</code> global function opens the Combined Curve
-Catalog.</p>
+<p>Then, we construct a <code>CATOsmSUHandler </code>object on the 
+&quot;CombinedCurve&quot; StartUp:</p>
 <table class="code">
   <tr>
     <td>
       <pre>...
-CATICatalog * piCombinedCurveCatalog = NULL;
-CATUnicodeString StorageName = &quot;CAAMmrCombinedCurveCatalog.CATfct&quot;;
-CATUnicodeString ClientId = &quot;SAMPLES&quot;;
-rc = ::<b>AccessCatalog</b>( &amp;StorageName, &amp;ClientId, piContainerOnThis , 
-                             &amp;piCombinedCurveCatalog);
-...</pre>
-    </td>
-  </tr>
-</table>
-<p><code>CATICatalog::RetrieveSU</code> method finally retrieves the Combined
-Curve StartUp.</p>
-<table class="code">
-  <tr>
-    <td>
-      <pre>...
-CATBaseUnknown *pCombinedCurveStartup = NULL;
 CATUnicodeString StartupType = &quot;CombinedCurve&quot;;
-
-piCombinedCurveCatalog-&gt;<b>RetrieveSU</b>( &amp;pCombinedCurveStartup ,
-                                    &amp;StartupType ,
-                                    &quot;CATISpecObject&quot; );
-...
-
-<b>CATISpecObject</b> *piSpecOnCombinedCurveStartup = NULL;
-rc = pCombinedCurveStartup-&gt;QueryInterface( IID_CATISpecObject , 
-                                        ( void**) &amp;piSpecOnCombinedCurveStartup );
-
+CATUnicodeString ClientId = &quot;SAMPLES&quot;;
+CATUnicodeString StorageName = &quot;CAAMmrCombinedCurveCatalog.CATfct&quot;;
+<b>CATOsmSUHandler</b> ccSUHandler(StartupType, ClientId, StorageName);
 ...</pre>
     </td>
   </tr>
 </table>
-<p align="right">[<a href="#Top">Top</a>]</p>
-<!---------------------------------comment------------------------------------->
-
-<h4><a name="Step4"></a>Creating a Combined Curve Instance</h4>
-<p>The Combined Curve instance is created by instantiating the Combined Curve
-StartUp.</p>
+<p>Finally we instantiated the Combined Curve StartUp with the <code>Instanciate
+</code>method. Note that we have chosen not to give our instance a specific name 
+by omitting the third argument.</p>
 <table class="code">
   <tr>
     <td>
       <pre>...
+CATISpecObject_var spCombinedCurveSU = NULL_var;
 
-*opiSpecOnCombinedCurve = piSpecOnCombinedCurveStartup-&gt;<b>Instanciate</b>( NULL_string , 
-                                                                              piContainerOnThis);
-
+rc = ccSUHandler.<b>Instanciate</b>(spCombinedCurveSU, piCBUOnThis);
 ...</pre>
     </td>
   </tr>
 </table>
 <p>You have just created your first Combined Curve instance!</p>
+
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 

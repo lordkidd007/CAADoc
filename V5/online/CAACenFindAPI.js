@@ -57,7 +57,7 @@ function CAAlink(iLanguage, iFramework, iObjectType, iInterface, iMethod)
 
   if (!iFramework)
   {
-    url = dir + "main.htm";
+    url = dir + "_index/main.htm";
   }
   else
   {
@@ -102,23 +102,23 @@ function CAAlinkJava(iPackage, iInterface, iMethod)
 
   if (!iPackage)
   {
-    url = "../docs/api/index.html";
+    url = "../docs/api/_index/main.htm";
   }
   else
   {
     if (!iInterface)
     {
-      url = dir + iPackage + ".html";
+      url = dir + iPackage + ".htm";
     }
     else
     {
       if (!iMethod)
       {
-        url = dir + iPackage + "/" + iInterface + ".html";
+        url = dir + iPackage + "/" + iInterface + ".htm";
       }
       else
       {
-        url = dir + iPackage + "/" + iInterface + ".html#" + iMethod;
+        url = dir + iPackage + "/" + iInterface + ".htm#" + iMethod;
       }
     }
   }

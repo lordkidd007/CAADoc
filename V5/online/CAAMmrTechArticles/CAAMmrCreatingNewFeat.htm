@@ -2,7 +2,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <script language="JavaScript" src="../CAADocJavaScript/submit.js"></script>
@@ -186,29 +186,23 @@ should be part of:</p>
 
 <h3><a name="Creating the new derived startup"></a>Creating the New Derived
 StartUp</h3>
+
 <p>The StartUp is a feature prototype that describes the data structure of all
 feature instances that will be created from it. The new StartUp must be created
 in a .<b>CATFct</b> catalog file. Here are the steps needed to realize the
 creation of a new StartUp:</p>
 <ol>
-  <li><a name="step 1"></a>Create a catalog (using the <i>CreateCatalog</i>
-    global function) or open an existing catalog (using the <i>UpgradeCatalog</i> global
-    function) that will contain the new derived StartUp.&nbsp;</li>
-  <li><a name="Step 2"></a>Use the generic StartUp Factory to create the new derived StartUp
-    (using the <i>CATOsmSUFactory</i> global function)</li>
-  <li><a name="Step 3"></a>Add new attributes to the StartUp (using the <code>AddAttribute</code>
-    method)</li>
-  <li><a name="Step 4"></a>Save the catalog (using the <i>SaveCatalog</i> global
-    function)</li>
+  <li><a name="step 1"></a>Create a new OSM file or update an existing one for 
+	the new derived StartUp.&nbsp;</li>
+  <li><a name="Step 2"></a>Define the new derived StartUp</li>
+  <li><a name="Step 3"></a>Add new attributes to the derived StartUp</li>
+  <li><a name="Step 4"></a>Generate the catalog from the OSM</li>
   <li>Create or modify the CatalogNameNLS.CATNls file to set an NLS name to the
     new StartUp.</li>
 </ol>
-<p>You can execute the forth first operations in a main batch program which will create/modify the .CATFct
-file. This file is used as input to the factory that will instantiate the
-StartUp in a document.</p>
-<p>These five steps are described in more details in the following articles:</p>
+<p>These five steps are described in more detail in the following articles:</p>
 <ul>
-  <li>&quot;Deriving New StartUps Using a Generic factory&quot; [<a href="#References">5</a>],&nbsp;
+  <li>&quot;Creating an Externally Derived StartUp&quot; [<a href="#References">5</a>],&nbsp;
     the reference use case&nbsp;</li>
   <li>&quot;Creating
       Combined Curve's Catalog&quot; [<a href="#References">6</a>], a use case
@@ -217,6 +211,8 @@ StartUp in a document.</p>
 <p>Once created, the StartUp should be able to be instantiated; See the &quot;<a href="#Creating the Factory">Creating the New Derived StartUp Factory</a>&quot;
 section below. Each feature instance should also be modifiable, as you will see
 in the next section.</p>
+
+
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h3><a name="Creating the interface of type"></a>Creating an Interface&nbsp;of
@@ -256,8 +252,8 @@ CATImplementClass ( SourceName,
 <p>The <code>CATImplementClass</code> macro means that <code>SourceName</code> is a data extension of&nbsp;<i>
 </i><code>NameOfTheNewStartup</code>. The third argument
 must always be set to <i>CATBaseUnknown</i> or <i>CATNull</i> for any kind of
-extension.&nbsp; <code>NameOfTheNewStartup </code>is the name set in the <code>CATOsmSUFactory</code>
-global function (see <a href="#Step 4">step 4</a> of the previous section)</p>
+extension.&nbsp; <code>NameOfTheNewStartup </code>is the name of the StartUp 
+described in the Catalog. </p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <h3><a name="Creating the Factory"></a>Creating the New Derived StartUp Factory</h3>
 <p>This paragraph explains how to create instances of the new StartUp. To
@@ -360,23 +356,20 @@ following:</p>
     <pre><a href="#Getting a pointer on container">Get a CATIContainer pointer on &quot;this&quot;</a></pre>
   </li>
   <li>
-    <pre><a href="#Opening the catalog">Open the catalog which contains the newly derived StartUp</a></pre>
+    <pre><a href="#Opening the catalog">Create a &quot;handler&quot; on the newly derived StartUp</a></pre>
   </li>
   <li>
-    <pre><a href="#retrieving the new derived startup">Retrieve the newly derived StartUp</a></pre>
-  </li>
-  <li>
-    <pre><a href="#Creating an instance">Create an instance of the newly derived StartUp</a></pre>
-  </li>
+	<pre><a href="#Creating an instance">Create an instance of the derived StartUp</a></pre>
+	</li>
 	<li>
-    <pre><a href="#Subscribes to repository for Configuration Data Storage">Subscribes to repository for Configuration Data Storage</a></pre>
-  </li>
+	<pre><a href="#Subscribes to repository for Configuration Data Storage">Subscribes to repository for Configuration Data Storage</a></pre>
+	</li>
 	<li>
-    <pre><a href="#Gets Feature Type Information for BackUp / StartUp management">Gets Feature Type Information for BackUp / StartUp management - Only if you use a Geometrical Feature</a></pre>
-  </li>
+	<pre><a href="#Gets Feature Type Information for BackUp / StartUp management">Gets Feature Type Information for BackUp / StartUp management - Only if you use a Geometrical Feature</a></pre>
+	</li>
 	<li>
-    <pre><a href="#setting default values">Set default values for the attributes of the new feature instance</a></pre>
-  </li>
+	<pre><a href="#setting default values">Set default values for the attributes of the new feature instance</a></pre>
+	</li>
   </ol>
 
 }
@@ -394,63 +387,41 @@ rc = QueryInterface( IID_CATIContainer , ( void**)&amp;pIContainer);
         </td>
       </tr>
     </table>
-  <p>2) <a name="Opening the catalog"></a>  Open the catalog which contains the newly derived StartUp</p>
+  <p>2) <a name="Opening the catalog"></a>Create a &quot;handler&quot; on the newly derived StartUp</p>
       <table class="code" width="685">
       <tr>
-        <td width="677"><pre>
-    CATICatalog * pICatalog = NULL;
+        <td width="677"><pre>...
+    CATUnicodeString <b>StorageName</b> = &quot;NameOfTheCatalog.CATfct&quot;;
+    CATUnicodeString <b>ClientId</b> = &quot;MyCatalogClientId&quot;;
+    CATUnicodeString <b>StartupType</b> = &quot;NameOfTheNewStartup&quot;;
 
-    CATUnicodeString StorageName = &quot;NameOfTheCatalog.CATfct&quot;;
-
-    CATUnicodeString ClientId = &quot;MyCatalogClientId&quot;;
-
-    rc = ::<b>AccessCatalog</b>( &amp;StorageName, &amp;ClientId, pIContainer, &amp;pICatalog);
-        </pre></td>
+    CATOsmSUHandler <b>StartupHandler</b>(StartupType, ClientId, StorageName);
+...</pre></td>
       </tr>
     </table>
-  <p>To open the catalog, you can use the <code> AccessCatalog</code> global function. The
-  parameters of this function are:</p>
+  <p>The
+  parameters of the &quot;handler&quot; constructor are:</p>
   <ul>
-  <li><b>StorageName</b> : The name of the catalog to open. It is the name used
-  in the <code> CreateCatalog</code> global function but without the complete path.
-    see the &quot;<a href="#step 1">Create a Catalog for the New Derived StartUp</a>&quot;
-    step&nbsp;</li>
-  <li><b>ClientId</b> : The identifier of the catalog, set by the <code>SetClientId</code>
-    method - see the &quot;<a href="#step 1">Create a Catalog for the New Derived StartUp</a>&quot;
-    step</li>
-  <li><b>pIContainer</b>:&nbsp;&nbsp;pointer on the specification container&nbsp;in
-    which instantiation occurs.&nbsp;</li>
-  <li><b>pICatalog</b>: the output interface pointer on the catalog</li>
+  <li><b>StartupType: </b>the name of our derived StartUp</li>
+  <li><b>ClientId</b> : The client id of the catalog containing the derived 
+	StartUp</li>
+  <li><b>StorageName</b> : The name of the catalog</li>
   </ul>
-  <p>3) <a name="retrieving the new derived startup"></a>  Retrieve the newly derived StartUp</p>
-      <table class="code" width="533">
-      <tr>
-        <td width="525"><pre>...
-CATBaseUnknown *pStartup = NULL;
-CATUnicodeString StartupType = &quot;NameOfTheNewStartup&quot;;
-rc = pICatalog-&gt;<b>RetrieveSU</b>( &amp;pStartup , &amp;StartupType ,&quot;CATISpecObject&quot; );                                      
-...</pre>
-        </td>
-      </tr>
-    </table>
-<p>The <code>RetrieveSU</code> method retrieves from the catalog the StartUp
-  whose the name was defined in the &quot;<a href="#Step 2">Use the Generic StartUp Factory to Create the New Derived StartUp</a>&quot;
-  step.</p>
-<p>4) <a name="Creating an instance"></a>  Create an instance of the newly derived StartUp</p>
+
+ <p>3) <a name="Creating an instance"></a>  Create an instance of the derived StartUp</p>
       <table class="code" width="739">
       <tr>
         <td width="731"><pre>...
-CATISpecObject *pISpecObjectOnStartup = NULL;
-rc = pStartup-&gt;QueryInterface( IID_CATISpecObject , ( void**)&amp;pISpecObjectOnStartup );
-
-(*pISpecObjectOnInstance) = pISpecObjectOnStartup-&gt;<b>Instanciate</b>( NULL_string ,
-                                                                    pIContainer );
+    CATISpecObject_var <b>spISpecObjectOnInstance</b>;
+    rc = StartupHandler.Instanciate(spISpecObjectOnInstance, pIContainer);
 ...</pre>
         </td>
       </tr>
     </table>
-  <p><code>pISpecObjectOnInstance</code> is the output argument of the method.&nbsp;</p>
-<p>5) <a name="Subscribes to repository for Configuration Data Storage"></a>
+  <p>The instance is returned via a smart pointer on the <i>CATISpecObject</i> 
+	interface: <code>spISpecObjectOnInstance</code> </p>
+
+<p>4) <a name="Subscribes to repository for Configuration Data Storage"></a>
 Subscribes to repository for Configuration Data Storage</p>
 <p>As Mechanical Modeler and CGM algorithms are versioned, feature instances are 
 &quot;software level dependant&quot;.<br>
@@ -470,7 +441,7 @@ method of CATMmrAlgoConfigServices.<br>
       </tr>
     </table>
   <p><code>pISpecObjectOnInstance</code> is the output argument of the method.&nbsp;</p>
-<p>6) <a name="Gets Feature Type Information for BackUp / StartUp management">
+<p>5) <a name="Gets Feature Type Information for BackUp / StartUp management">
 </a>Gets Feature Type Information for BackUp / StartUp management - Only if you 
 use a Geometrical Feature</p>
 <p>BackUp / StartUp is a specific mode which occurs when something goes wrong 
@@ -505,7 +476,7 @@ rc = <b>CATMmrFeatureAttributes::SetFeatureType</b>(*pISpecObjectOnInstance, Fea
   <p><b><i>Note:</i></b> This step is not to do if your feature is not 
 	geometrical or if it is a &quot;Solid feature&quot; i.e. derivate from <b>
 	MechanicalFormFeature, MechanicalContextualFeature.</b></p>
-<p>7) <a name="setting default values"></a>  Set default values for the attributes of the
+<p>6) <a name="setting default values"></a>  Set default values for the attributes of the
 new feature instance</p>
   <p>By using the interface described in &quot;<a href="#Creating the interface of type">Creating an
   Interface of Type</a>&quot; section, you can apply default values for the attributes.</p>
@@ -533,7 +504,7 @@ In this case, you should derived from GSMTool or MechanicalSet startUps,
 depending on what kind of features you want to aggregate.</p>
 <p>The main steps necessary to create the new StartUp are:</p>
 <ul>
-  <li>Creating the new derived StartUp using to the generic factory (<i>CATOsmSUFactory</i>)</li>
+  <li>Define the new derived StartUp using OSM - create the catalog.</li>
   <li>Creating an interface of type to retrieve or set the values of the
     feature's attributes</li>
   <li>Creating the new derived StartUp factory interface&nbsp;</li>
@@ -566,8 +537,8 @@ depending on what kind of features you want to aggregate.</p>
   </tr>
   <tr>
     <td valign="top" width="50">[5]</td>
-    <td width="795"> <a href="../CAAOsmUseCases/CAAOsmGenericDerivedSUFactory.htm">Deriving
-      New StartUps Using a Generic factory</a></td>
+    <td width="795"> <a href="../CAAOsmTechArticles/CAAOsmTaMaintainingCatalogs.htm">
+    Managing Startup Catalogs</a></td>
   </tr>
   <tr>
     <td valign="top" width="50">[6]</td>

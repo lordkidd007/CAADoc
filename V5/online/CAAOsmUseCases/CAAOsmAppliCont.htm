@@ -2,10 +2,17 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <title>Creating Features in an Applicative Container</title>
+<style type="text/css">
+.style1 {
+	color: #FF7900;
+	text-decoration: underline;
+}
+</style>
+
 </head>
 
 <body>
@@ -71,41 +78,35 @@ recommended that you use the feature modeler. Two different cases are possible:<
     the feature can be instantiated in a special user-defined applicative
     container.</li>
 </ol>
-<p>In the first case, the following steps are necessary:</p>
-<ul>
-  <li>Creating a &quot;.<code>CATfct</code>&quot; catalog using the <code>CreateCatalog</code>
-    method of <i>CATCatalogFactoryServices</i>, as shown in the CAAOsmCatalogSU
-    use case [<a href="#References">1</a>]</li>
-  <li>Using the <i>CATICatalog</i> pointer acquired from the creation of the
-    catalog, execute the <code>OpenPrereqCatalog</code> method in order to open
-    the catalog containing the deriving StartUp.</li>
-  <li>Creating a new StartUp using the <code>CreateStartUpInCatalog</code>
-    method of <i>CATICatalog</i>, passing in the &quot;supertype&quot; parameter
-    the type of the deriving StartUp found in the existing catalog.</li>
-  <li>Creating a new feature from this StartUp using the <code>Instanciate</code>
-    method of <i>CATISpecObject</i>.</li>
-</ul>
 <p>In the second case, the following steps are necessary:</p>
 <ul>
   <li>Creating a user-defined applicative container within a structured
     standard-type document using the <code>CATCreateApplicativeContainer</code>
     global function</li>
   <li>Retrieving a StartUp from an existing catalog using the <code>RetrieveSU</code>
-    method of <i>CATICatalog</i></li>
+    method of <i>CATOsmSUHandler</i></li>
   <li>Instantiating the StartUp to create a new feature within the applicative
-    container using the <code>Instanciate</code> method of <i>CATISpecObject</i></li>
+    container using the <code>Instanciate</code> method of <i>CATOsmSUHandler</i></li>
   <li>Retrieving the applicative container using the <code>CATGetApplicativeContainer</code>
     global function in order to list its members using the <code>ListMembers</code>
     method of <i>CATIClientContainer</i>.</li>
 </ul>
 <p>This use case illustrates the second case only.</p>
 <p>Before getting to the use case itself, you should have a good understanding
-of what a feature object is and how it is created [<a href="#References">2</a>].</p>
+of what a feature object is and how it is created [<a href="#References">1</a>].</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
+<hr>
+<p><b>Note :-</b> Use-Case with the same scenario as of this use-case but with the use of V6 APIs is available 
+<a href="#References">[<span class="style1">5]</span></a>. Please read the Preparing for V6 Feature Modeler-Overview article 
+[<a href="#References">4</a>]</p>
+<hr>
+
+
+
 <h3><a name="UseCase"></a>The CAAOsmAppliCont Use Case</h3>
 <p>CAAOsmAppliCont is a use case of the CAAObjectSpecsModeler.edu framework that
-illustrates ObjectSpecsModeler framework capabilities.</p>
+illustrates ObjectSpecsLegacy framework capabilities.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
@@ -145,7 +146,7 @@ the run time environment, and then execute the sample.&nbsp;</p>
 <p>mkrun -c &quot;CAAOsmAppliCont CAAOsmCatalogSU.CATfct
 DocumentStorageName.CATPart&quot;</p>
 <p> This is fully described
-in the referenced article [<a href="#References">3</a>]. When launching the use
+in the referenced article [<a href="#References">2</a>]. When launching the use
 case, you must pass the following arguments:</p>
 <ul>
   <li><b>CAAOsmCatalogSU</b>.<b>CATfct</b> - is the name of the catalog without
@@ -195,7 +196,7 @@ installation. It is made of a unique source file named CAAOsmAppliCont.cpp.
 
 <!---------------------------------comment------------------------------------->
 <h4><a name="Prolog"></a>Prolog</h4>
-<p>See the referenced article [<a href="#References">4</a>] for a detailed
+<p>See the referenced article [<a href="#References">3</a>] for a detailed
 description of the steps to go through when creating a new document.</p>
 <p>In this use case, we create a new &quot;Part&quot; document: <i>CATDocument</i>
 <code>*pDoc</code>, and retrieve its root container: <i>CATIContainer</i> <code>*piRootContainer</code>.</p>
@@ -264,78 +265,49 @@ method must be called <b>after</b> the initialization.&nbsp;&nbsp;</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
-<h4><a name="LoadCatalog"></a>Loading the Catalog</h4>
-<p>Loading the catalog means opening the catalog document and getting a <i>CATICatalog</i>
-handle that will be needed in order to retrieve StartUps from the catalog.</p>
+<h4><a name="LoadCatalog"></a>Getting the CATOsmSUHandler on the StartUps of the Catalog</h4>
+<p>It means getting a handler on the StartUps of the catalog that will be needed in order to retrieve 
+those StartUps from the catalog.</p>
 <table class="code">
   <tr>
     <td>
-      <pre>CATUnicodeString stgName = argv[1];
-CATICatalog *piCatalog;
-CATUnicodeString clientId(&quot;CAAOsmClientId&quot;);
-rc = <b>::AccessCatalog</b> (&amp;stgName,
-	              &amp;clientId,
-		      piApplicativeContainer,
-	              &amp;piCatalog); 
+      <pre>
+CATUnicodeString <strong>CatalogName</strong> = argv[1];
+CATUnicodeString <strong>clientId</strong>("CAAOsmClientId");
+CATUnicodeString <strong>addOpSUType</strong>("CAAOsmAdd");
+      
+CATOsmSUHandler <strong>addOpSUHandler</strong>(addOpSUType, clientId, CatalogName);
 
-if (SUCCEEDED(rc)) cout &lt;&lt; &quot;Catalog accessed OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   cout &lt;&lt; &quot;ERROR on AccessCatalog&quot; &lt;&lt; endl &lt;&lt; flush;
-   pApplicativeContainer -&gt; <b>Release</b>();
-   return 6;
-}</pre>
+</pre>
     </td>
   </tr>
 </table>
-<p>To open a catalog, use the <code>AccessCatalog </code>global function that
-takes the following arguments:</p>
-<ul>
-  <li><code>stgName</code> - the name of the catalog without the storage path
-    and with the .CATfct extension. The catalog must be found under the
-    &quot;WS&quot; + &quot;OS&quot; + resources + graphic directory.</li>
-  <li><code>clientId </code>- the client id defined on the catalog at the time
-    of its creation.</li>
-  <li><code>piApplicativeContainer</code> - a <i>CATIContainer</i> pointer to
-    the applicative container in which StartUps from the catalog will be
-    instantiated.</li>
-  <li><code>piCatalog</code> - a <i>CATICatalog</i> pointer to the StartUps
-    catalog that has been opened.</li>
-</ul>
-<p align="right">[<a href="#Top">Top</a>]</p>
 
 <!---------------------------------comment------------------------------------->
 <h4><a name="RetrieveSU"></a>Retrieving a StartUp from the Catalog</h4>
 <table class="code">
   <tr>
     <td>
-      <pre>CATBaseUnknown *pAddOpSU = NULL;
-CATUnicodeString addOpSUType(&quot;CAAOsmAdd&quot;);
-rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(&amp;<b>pAddOpSU</b>, 
-                                        &amp;addOpSUType,
-	                                &quot;CATISpecObject&quot;);
-piCatalogOnContainer -&gt; <b>Release</b>();
-piCatalogOnContainer = NULL;
+      <pre>
+// Get a CATISpecObject handle on the CAAOsmAdd StartUp  &amp; retrieve it
+   
+    CATISpecObject_var spaddOpSU = NULL_var;
 
-if (NULL != pAddOpSU) cout &lt;&lt; &quot;CAAOsmAdd StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   cout &lt;&lt; &quot;ERROR in retrieving CAAOsmAdd StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
-   pApplicativeContainer -&gt; <b>Release</b>();
-   <b>return</b> 7;
-}
-
-// Get a CATISpecObject handle on the CAAOsmAdd StartUp
-
-<b>CATISpecObject *piAddOpSU = (CATISpecObject*) pAddOpSU;</b></pre>
+    rc = addOpSUHandler.RetrieveSU(spaddOpSU);
+    if (NULL_var != spaddOpSU  &amp;&amp; SUCCEEDED(rc))
+		cout &lt;&lt; &quot;CAAOsmAdd StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
+    else
+	{
+		cout &lt;&lt; &quot;ERROR in retrieving CAAOsmAdd StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
+		return 6;
+	}
+      
+</pre>
     </td>
   </tr>
 </table>
-<p>A StartUp is retrieved from the catalog using the<i> </i><i>CATICatalog</i><code><i>::</i>RetrieveSU
-</code>method. This method returns a <i>CATBaseUnknown </i>pointer in <code>pAddOpSU</code>
-which is directly cast into a <i>CATISpecObject</i> pointer (<code>piAddOpSU</code>).
-The <i>CATBaseUnknown</i> <code>pAddOpSU</code> pointer must be released when no
-longer needed.</p>
+<p>A StartUp is retrieved from the catalog using the<i> </i> <em>CATOsmSUHandler</em><code><i>::</i>RetrieveSU
+</code>method. This method returns a <i>CATISpecObject </i>smart<i> </i>pointer in <code>spaddOpSU</code>.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 
 <!---------------------------------comment------------------------------------->
@@ -343,32 +315,27 @@ longer needed.</p>
 <table class="code">
   <tr>
     <td>
-      <pre>CATISpecObject *piAddOpInst1 = piAddOpSU -&gt; 
-	<b>Instanciate</b>(CATUnicodeString(&quot;CAAOsmAdd1&quot;),
-	            pApplicativeContainer);
-pAddOpSU -&gt; <b>Release</b>();
-pAddOpSU = NULL;
+      <pre>
+      	CATUnicodeString Add1("CAAOsmAdd1");
 
-pApplicativeContainer -&gt; <b>Release</b>();
-pApplicativeContainer = NULL;
-
-if (NULL != piAddOpInst1) cout &lt;&lt; &quot;CAAOsmAdd instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else 
-{
-   cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmAdd SU&quot; &lt;&lt; endl &lt;&lt; flush;
-   <b>return</b> 8;
-}
-
-piAddOpInst1 -&gt; <b>Release</b>();
-piAddOpInst1 = NULL;</pre>
+	CATISpecObject_var spAddOpInst1 = NULL_var;
+	rc = addOpSUHandler.Instanciate(spAddOpInst1, piApplicativeContainer, Add1);
+    if (NULL_var != spAddOpInst1 &amp;&amp; SUCCEEDED(rc))
+		cout &lt;&lt; "CAAOsmAdd SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+    else
+	{
+		cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmAdd SU&quot; &lt;&lt; endl &lt;&lt; flush;
+	    piApplicativeContainer -&gt; Release();
+		return 3;
+	}
+</pre>
     </td>
   </tr>
 </table>
 <p>A new feature is created in the applicative container by instantiating the
 StartUp that was retrieved from the catalog. This is done using the <code>Instanciate</code>
-method of <i>CATISpecObject</i>. This method needs to know the new feature's
-name and the container in which it will be created. Note that the <i>CATBaseUnknown</i>
-<code>pAddOpSU</code> pointer is released here since it will no longer be used.</p>
+method of <em>CATOsmSUHandler</em>. This method needs to know the new feature's 
+name and the container in which it will be created.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 
 <!---------------------------------comment------------------------------------->
@@ -523,11 +490,11 @@ it. Specifically, it has illustrated:</p>
 <ul>
   <li>Creating a new applicative container using the <code>CATCreateApplicativeContainer</code>
     global function</li>
-  <li>Loading a catalog using the <code>AccessCatalog</code> global function</li>
+  <li>Getting the <em>CATOsmSUHandler</em> on the StartUps of the Catalog</li>
   <li>Retrieving a StartUp from the catalog using the <code>RetrieveSU</code>
-    method of <i>CATICatalog</i></li>
+    method of <em>CATOsmSUHandler</em></li>
   <li>Creating a new feature in the applicative container by instantiating the
-    StartUp using the <code>Instanciate</code> method of <i>CATISpecObject</i></li>
+    StartUp using the <code>Instanciate</code> method of <em>CATOsmSUHandler</em></li>
   <li>Saving and removing the new document from the session using the <code>SaveAs</code>
     and <code>Remove</code> static methods of <i>CATDocumentServices</i></li>
   <li>Retrieving the applicative container using the <code>CATGetApplicativeContainer</code>
@@ -542,23 +509,32 @@ it. Specifically, it has illustrated:</p>
 <table width="100%">
   <tr>
     <td valign="top">[1]</td>
-    <td><a href="CAAOsmCatalogSU.htm">Creating StartUps in Catalogs</a></td>
-  </tr>
-  <tr>
-    <td valign="top">[2]</td>
     <td><a href="../CAAOsmTechArticles/CAAOsmOverview.htm">Feature
       Modeler Conceptual Overview</a></td>
   </tr>
   <tr>
-    <td valign="top">[3]</td>
+    <td valign="top">[2]</td>
     <td><a href="../CAADocUseCases/CAADocRunSample.htm">Building
       and Launching a CAA V5 Use Case</a></td>
   </tr>
   <tr>
-    <td valign="top">[4]</td>
+    <td valign="top">[3]</td>
     <td><a href="../CAAOmbUseCases/CAAOmbNewDoc.htm">Creating
       a New Document</a></td>
   </tr>
+       <tr>
+    <td valign="top">[4]</td>
+    <td>
+	<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAV5V6FmExtTechArticles/CAAV5V6FeatureModelerExtOverview.htm')">
+		Preparing for V6 Feature Modeler-Overview </a></td>
+  </tr>
+    <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAV5V6OsmUcAppliCont.htm">Working with AppliCont Use-Case 
+	with V6 APIs</a></td>
+  </tr>
+
+
   <tr>
     <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
   </tr>

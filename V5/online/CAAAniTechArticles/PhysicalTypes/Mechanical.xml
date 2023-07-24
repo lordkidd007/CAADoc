@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2007 (http://www.altova.com) by MUP (DASSAULT SYSTEMES) -->
 <!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by JND (DASSAULT SYSTEMES) -->
-<sim:PhysicalDescriptionDirectory xmlns:sim="urn:com:dassault_systemes:Simulation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:com:dassault_systemes:Simulation Simulation.xsd" Version="51800">
+<sim:PhysicalDescriptionDirectory xmlns:sim="urn:com:dassault_systemes:Simulation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:com:dassault_systemes:Simulation Simulation.xsd" Version="52100">
 	<sim:PhysicalDescriptionPackage PackageName="Internal PhysicalDescriptionPackage">
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="GENERIC_SET" DfltName="Generic Set"/>
@@ -343,6 +343,10 @@
 			<sim:Child ID="SPRAY_SOL_SET"/>
 			<sim:Child ID="DEPOSITION_SOL_SET"/>
 			<sim:Child ID="PAINT_SOL_SET"/>
+			<sim:Child ID="MAGNETIC_FIELD_STATIC_3D_SOLUTION_SET"/>
+			<sim:Child ID="MAGNETIC_FIELD_TRANSIENT_RESPONSE_3D_SOLUTION_SET"/>
+			<sim:Child ID="MAGNETIC_FIELD_STATIC_SECTION_SOLUTION_SET"/>
+			<sim:Child ID="MAGNETIC_FIELD_TRANSIENT_RESPONSE_STATIC_SOLUTION_SET"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="MECHANICAL_STATIC_LINEAR" DfltName="Mechanical static linear solution set"/>
@@ -553,11 +557,13 @@
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="TRANSFER_FUNCTIONS" DfltName="Transfer functions set"/>
 			<sim:Child ID="TRANSFER_FUNCTION"/>
+			<sim:Child ID="DESIGN_VARIABLE_ID"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="LOAD_FUNCTIONS" DfltName="Load functions set"/>
 			<sim:Child ID="LOAD_FUNCTION"/>
 			<sim:Child ID="PRESSURE_CONTRIBUTION"/>
+			<sim:Child ID="DESIGN_VARIABLE_ID"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="TRANSFER_VECTORS" DfltName="Transfer vectors set"/>
@@ -568,6 +574,7 @@
 			<sim:Child ID="LOAD_VECTOR"/>
 			<sim:Child ID="DATA_CASE"/>
 			<sim:Child ID="RPM"/>
+			<sim:Child ID="DESIGN_VARIABLE_ID"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="DATA_SOURCE" DfltName="Data source set"/>
@@ -654,6 +661,9 @@
 			<sim:Child ID="RVAC"/>
 			<sim:Child ID="RPM"/>
 			<sim:Child ID="MEAN_QUADRATIC_PRESSURE"/>
+			<sim:Child ID="FAILURE_CRITERION"/>
+			<sim:Child ID="DAMPING_ENERGY"/>
+			<sim:Child ID="DAMPING_ENERGY_DENSITY"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="ENVIRONMENT" DfltName="Environment set"/>
@@ -801,6 +811,7 @@
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="FUNCTIONS" DfltName="Functions set"/>
 			<sim:Child ID="FUNCTION"/>
+			<sim:Child ID="DRIVING_POINT_RESIDUE"/>
 		</sim:Set>
 		<sim:Set Category="UNDEFINED">
 			<sim:Identifier ID="SENSORS" DfltName="Sensors set"/>
@@ -1070,6 +1081,7 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Load>
 		<sim:Load>
 			<sim:Identifier ID="LOAD_ENFORCED_VELOCITY" DfltName="3D enforced velocity"/>
@@ -1078,6 +1090,7 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Load>
 		<sim:Load>
 			<sim:Identifier ID="LOAD_ENFORCED_ACCELERATION" DfltName="3D enforced acceleration"/>
@@ -1085,6 +1098,8 @@
 				<sim:ReferTo ID="LOCAL_AXIS"/>
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
+			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Load>
 		<sim:Load>
 			<sim:Identifier ID="LOAD_POINT_FORCE" DfltName="3D point force"/>
@@ -1093,6 +1108,7 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Load>
 		<sim:Load>
 			<sim:Identifier ID="LOAD_POINT_MOMENT" DfltName="3D point moment"/>
@@ -1472,6 +1488,7 @@
 			</sim:Child>
 			<sim:Child ID="OFFSET_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Mass>
 		<sim:Mass>
 			<sim:Identifier ID="MASS_LINEIC_MASS" DfltName="3D lineic mass"/>
@@ -2172,6 +2189,7 @@
 			<sim:Child ID="COMPRESSIVE_STRESS_LIMIT_Y"/>
 			<sim:Child ID="SHEAR_STRESS_LIMIT_XY"/>
 			<sim:Child ID="SHEAR_STRESS_LIMIT_YZ"/>
+			<sim:Child ID="THLAY"/>
 		</sim:Material>
 		<sim:Material>
 			<sim:Identifier ID="MATERIAL_HONEYCOMB" DfltName="Honeycomb material" Comments="true"/>
@@ -2408,6 +2426,9 @@
 				<sim:ReferTo ID="LOCAL_AXIS"/>
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS"/>
+			<sim:Child ID="SURFACE_OFFSET">
+				<sim:ReferTo ID="LOCAL_AXIS"/>
+			</sim:Child>
 			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA3" Position="ELEMENT"/>
 			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD4" Position="ELEMENT"/>
 			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA6" Position="ELEMENT"/>
@@ -2437,6 +2458,9 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS"/>
 			<sim:Child ID="MATERIAL_ANGLE">
+				<sim:ReferTo ID="LOCAL_AXIS"/>
+			</sim:Child>
+			<sim:Child ID="SURFACE_OFFSET">
 				<sim:ReferTo ID="LOCAL_AXIS"/>
 			</sim:Child>
 			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA3" Position="ELEMENT"/>
@@ -2665,6 +2689,7 @@
 			<sim:Child ID="ORIENTATION_VECTOR"/>
 			<sim:Child ID="ORIENTATION_POINT"/>
 			<sim:Child ID="ORIENTATION_NODE"/>
+			<sim:Child ID="FRICTION_RATIO"/>
 			<sim:ApplyTo ID="ELEMENT_CONSTRAINT_3D_AXIAL" Position="ELEMENT"/>
 			<sim:ApplyTo ID="ELEMENT_CONSTRAINT_3D_JOIN_SHELL_TO_SHELL" Position="ELEMENT"/>
 			<sim:ApplyTo ID="ELEMENT_CONSTRAINT_3D_JOIN_SOLID_TO_SHELL" Position="ELEMENT"/>
@@ -2823,11 +2848,13 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:Restraint>
 			<sim:Identifier ID="RESTRAINT_TEMPERATURE" DfltName="Temperature restraint"/>
 			<sim:Child ID="TEMPERATURE" Mandatory="true"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:Restraint>
 			<sim:Identifier ID="RESTRAINT_CONTACT" DfltName="3D contact restraint"/>
@@ -2854,6 +2881,7 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:Restraint>
 			<sim:Identifier ID="RESTRAINT_INITIAL_VELOCITY" DfltName="Initial velocity restraint"/>
@@ -2865,6 +2893,7 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:Restraint>
 			<sim:Identifier ID="RESTRAINT_INITIAL_ACCELERATION" DfltName="Initial acceleration restraint"/>
@@ -2876,11 +2905,13 @@
 			</sim:Child>
 			<sim:Child ID="LOCAL_AXIS" Combinable="false"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:Restraint>
 			<sim:Identifier ID="RESTRAINT_INITIAL_TEMPERATURE" DfltName="Initial temperature restraint"/>
 			<sim:Child ID="TEMPERATURE" Mandatory="true"/>
 			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
 		</sim:Restraint>
 		<sim:VirtualMesh Category="VIRTUALNODE">
 			<sim:Identifier ID="VIRTUAL_NODE" DfltName="Virtual Node"/>
@@ -3087,7 +3118,7 @@
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
 			<sim:Identifier ID="MODAL_TRANSFORM" DfltName="Modal transformation"/>
 		</sim:Characteristic>
-		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="ENERGY">
 			<sim:Identifier ID="MODAL_STIFFNESS" DfltName="Modal stiffness"/>
 		</sim:Characteristic>
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="INERTIAMOMENT">
@@ -4026,7 +4057,7 @@
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
 			<sim:Identifier ID="SPRING_DAMPER_LOCATION" DfltName="Spring-damper location"/>
 		</sim:Characteristic>
-		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="LENGTH">
 			<sim:Identifier ID="SURFACE_OFFSET" DfltName="Surface offset"/>
 		</sim:Characteristic>
 		<sim:Characteristic MathType="SCALAR" ValueType="SHORT">
@@ -4149,7 +4180,7 @@
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
 			<sim:Identifier ID="SENSITIVITY_SLOPE" DfltName="Sensitivity slope"/>
 		</sim:Characteristic>
-		<sim:Characteristic MathType="SYMMETRICALTENSOR" ValueType="REAL" Unit="FREQUENCY" Dimension="3">
+		<sim:Characteristic MathType="SYMMETRICALTENSOR" ValueType="REAL" Unit="PERCENTAGE" Dimension="3">
 			<sim:Identifier ID="STRAIN_RATE" DfltName="Strain rate"/>
 		</sim:Characteristic>
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="DISPLACEMENT_OVER_MOMENT">
@@ -4316,6 +4347,9 @@
 		</sim:Characteristic>
 		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="PRESSURE">
 			<sim:Identifier ID="TRESCA_CRITERION" DfltName="Tresca criterion"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
+			<sim:Identifier ID="THLAY" DfltName="Thickness Layer"/>
 		</sim:Characteristic>
 	</sim:PhysicalDescriptionPackage>
 	<sim:PhysicalDescriptionPackage PackageName="CENIT PhysicalDescriptionPackage">
@@ -4545,6 +4579,303 @@
 		</sim:Characteristic>
 		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Dimension="3" Unit="NONE">
 			<sim:Identifier ID="FIBER_DIR_3" DfltName="Fiber in third direction"/>
+		</sim:Characteristic>
+	</sim:PhysicalDescriptionPackage>
+	<sim:PhysicalDescriptionPackage PackageName="LMS R19 PhysicalDescriptionPackage">
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="ENERGY">
+			<sim:Identifier ID="DAMPING_ENERGY" DfltName="Damping energy"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="PRESSURE">
+			<sim:Identifier ID="DAMPING_ENERGY_DENSITY" DfltName="Damping energy density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="DOUBLE" Dimension="3">
+			<sim:Identifier ID="DRIVING_POINT_RESIDUE" DfltName="Driving point residu"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="CHARACTER">
+			<sim:Identifier ID="DESIGN_VARIABLE_ID" DfltName="Design variable identifier"/>
+		</sim:Characteristic>
+	</sim:PhysicalDescriptionPackage>
+	<sim:PhysicalDescriptionPackage PackageName="SAMTECH R21PhysicalDescriptionPackage">
+		<sim:Set Category="SET">
+			<sim:Identifier ID="ELECTRICAL_STATIC_LINEAR" DfltName="Electrical static linear solution set"/>
+			<sim:Child ID="VOLTAGE_SCALAR"/>
+			<sim:Child ID="CURRENT_DENSITY_VECTOR"/>
+			<sim:Child ID="JOULE_HEATING_SCALAR"/>
+		</sim:Set>
+		<sim:Load>
+			<sim:Identifier ID="LOAD_VOLTAGE_FIELD" DfltName="Voltage field"/>
+			<sim:Child ID="VOLTAGE_SCALAR" Mandatory="true"/>
+			<sim:ApplyTo ID="ELEMENT_BAR_3D_BAR2" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BAR_3D_BAR3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR2" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR2_CURVED" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHEAR_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_TRIA3" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_TRIA6" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_QUAD8" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA5" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_HEXA8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA10" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA13" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA15" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_HEXA20" Position="ELEMENT"/>
+		</sim:Load>
+		<sim:Load>
+			<sim:Identifier ID="LOAD_CURRENT_SOURCE" DfltName="Current source load"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR" Mandatory="true"/>
+			<sim:ApplyTo ID="NODE" Position="NODE"/>
+		</sim:Load>
+		<sim:Load>
+			<sim:Identifier ID="LOAD_CURRENT_DENSITY" DfltName="Current density load"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR" Mandatory="true"/>
+			<sim:ApplyTo ID="ELEMENT_SHEAR_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA3" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA6" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD8" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_TRIA3" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA3" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA6" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD8" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA5" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA6" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_HEXA8" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA10" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA13" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA15" Position="FACE"/>
+		</sim:Load>
+		<sim:Load>
+			<sim:Identifier ID="LOAD_JOULE_HEATING" DfltName="Joule heating load"/>
+			<sim:Child ID="JOULE_HEATING_SCALAR" Mandatory="true"/>
+			<sim:ApplyTo ID="ELEMENT_BAR_3D_BAR2" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BAR_3D_BAR3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR2" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR2_CURVED" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_BEAM_3D_BAR3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHEAR_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_TRIA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SHELL_3D_QUAD8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLATE_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA3" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_TRIA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_MEMBRANE_3D_QUAD8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_TRIA3" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_QUAD4" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_TRIA6" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_PLANE_STRAIN_3D_QUAD8" Position="FACE"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA4" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA5" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA6" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_HEXA8" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_TETRA10" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PYRA13" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_PENTA15" Position="ELEMENT"/>
+			<sim:ApplyTo ID="ELEMENT_SOLID_3D_HEXA20" Position="ELEMENT"/>
+		</sim:Load>
+		<sim:Material>
+			<sim:Identifier ID="MATERIAL_ISOTROPIC_ELECTRICAL" DfltName="Isotropic material with electrical properties" Comments="false"/>
+			<sim:Child ID="DENSITY"/>
+			<sim:Child ID="ELECTRICAL_CONDUCTIVITY_SCALAR"/>
+			<sim:Child ID="MAGNETIC_PERMEABILITY_SCALAR"/>
+		</sim:Material>
+		<sim:Restraint>
+			<sim:Identifier ID="RESTRAINT_VOLTAGE" DfltName="Voltage restraint"/>
+			<sim:Child ID="VOLTAGE_SCALAR" Mandatory="true"/>
+			<sim:ApplyTo ID="NODE" Position="NODE"/>
+			<sim:ApplyTo ID="VIRTUAL_NODE" Position="DOF"/>
+		</sim:Restraint>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="VOLTAGE">
+			<sim:Identifier ID="VOLTAGE_SCALAR" DfltName="Voltage"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="CURRENT_DENSITY">
+			<sim:Identifier ID="CURRENT_DENSITY_SCALAR" DfltName="Current density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="CURRENT_DENSITY" Dimension="3">
+			<sim:Identifier ID="CURRENT_DENSITY_VECTOR" DfltName="Current density vector"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="JOULE_HEATING">
+			<sim:Identifier ID="JOULE_HEATING_SCALAR" DfltName="Joule heating"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="MAGNETIC_PERMEABILITY">
+			<sim:Identifier ID="MAGNETIC_PERMEABILITY_SCALAR" DfltName="Magnetic permeability"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="ELECTRICAL_CONDUCTIVITY">
+			<sim:Identifier ID="ELECTRICAL_CONDUCTIVITY_SCALAR" DfltName="Electrical Conductivity"/>
+		</sim:Characteristic>
+	</sim:PhysicalDescriptionPackage>
+	<sim:PhysicalDescriptionPackage PackageName="Japan R21PhysicalDescriptionPackage">
+		<sim:Set Category="UNDEFINED">
+			<sim:Identifier ID="MAGNETIC_FIELD_STATIC_3D_SOLUTION_SET" DfltName="3D Static Magnetic Field solution set"/>
+			<sim:Child ID="MAGNETIC_FIELD_VECTOR"/>
+			<sim:Child ID="MAGNETIZATION_VECTOR"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR"/>
+			<sim:Child ID="CURRENT"/>
+			<sim:Child ID="STORED_ENERGY"/>
+			<sim:Child ID="SURFACE_FORCE_DENSITY_VECTOR"/>
+			<sim:Child ID="LORENTZ_FORCE_DENSITY"/>
+			<sim:Child ID="VECTOR_FORCE"/>
+			<sim:Child ID="TORQUE_SCALAR"/>
+			<sim:Child ID="MAGNETIC_FLUX_DENSITY_VECTOR"/>
+			<sim:Child ID="ELECTRIC_POTENTIAL"/>
+			<sim:Child ID="POWER_DENSITY_SCALAR"/>
+			<sim:Child ID="POWER_SCALAR"/>
+			<sim:Child ID="PERMEANCE_COEFFICIENT"/>
+			<sim:Child ID="MAGNETIC_FLUX_SCALAR"/>
+		</sim:Set>
+		<sim:Set Category="UNDEFINED">
+			<sim:Identifier ID="MAGNETIC_FIELD_STATIC_SECTION_SOLUTION_SET" DfltName="Section Static Magnetic Field solution set"/>
+			<sim:Child ID="MAGNETIC_FIELD_VECTOR"/>
+			<sim:Child ID="MAGNETIZATION_VECTOR"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR"/>
+			<sim:Child ID="CURRENT"/>
+			<sim:Child ID="STORED_ENERGY"/>
+			<sim:Child ID="SURFACE_FORCE_DENSITY_VECTOR"/>
+			<sim:Child ID="LORENTZ_FORCE_DENSITY"/>
+			<sim:Child ID="TRANSLATIONAL_VELOCITY"/>
+			<sim:Child ID="VECTOR_FORCE"/>
+			<sim:Child ID="TORQUE_SCALAR"/>
+			<sim:Child ID="MAGNETIC_FLUX_DENSITY_VECTOR"/>
+			<sim:Child ID="ELECTRIC_FIELD_VECTOR"/>
+			<sim:Child ID="ELECTRIC_POTENTIAL"/>
+			<sim:Child ID="POWER_DENSITY_SCALAR"/>
+			<sim:Child ID="POWER_SCALAR"/>
+			<sim:Child ID="MAGNETIC_VECTOR_POTENTIAL_ID"/>
+			<sim:Child ID="PERMEANCE_COEFFICIENT"/>
+			<sim:Child ID="MAGNETIC_FLUX_SCALAR"/>
+		</sim:Set>
+		<sim:Set Category="UNDEFINED">
+			<sim:Identifier ID="MAGNETIC_FIELD_TRANSIENT_RESPONSE_STATIC_SOLUTION_SET" DfltName="Section Transient Response Magnetic Field solution set"/>
+			<sim:Child ID="MAGNETIC_FIELD_VECTOR"/>
+			<sim:Child ID="MAGNETIZATION_VECTOR"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR"/>
+			<sim:Child ID="CURRENT"/>
+			<sim:Child ID="STORED_ENERGY"/>
+			<sim:Child ID="TRANSLATIONAL_VELOCITY"/>
+			<sim:Child ID="ROTATIONAL_VELOCITY"/>
+			<sim:Child ID="TRANSLATIONAL_DISPLACEMENT"/>
+			<sim:Child ID="ROTATIONAL_DISPLACEMENT"/>
+			<sim:Child ID="SURFACE_FORCE_DENSITY_VECTOR"/>
+			<sim:Child ID="LORENTZ_FORCE_DENSITY"/>
+			<sim:Child ID="VECTOR_FORCE"/>
+			<sim:Child ID="TORQUE_SCALAR"/>
+			<sim:Child ID="MAGNETIC_FLUX_DENSITY_VECTOR"/>
+			<sim:Child ID="ELECTRIC_FIELD_VECTOR"/>
+			<sim:Child ID="POWER_DENSITY_SCALAR"/>
+			<sim:Child ID="POWER_SCALAR"/>
+			<sim:Child ID="PERMEANCE_COEFFICIENT"/>
+			<sim:Child ID="MAGNETIC_FLUX_SCALAR"/>
+		</sim:Set>
+		<sim:Set Category="UNDEFINED">
+			<sim:Identifier ID="MAGNETIC_FIELD_TRANSIENT_RESPONSE_3D_SOLUTION_SET" DfltName="3D Transient Response Magnetic Field solution set"/>
+			<sim:Child ID="MAGNETIC_FIELD_VECTOR"/>
+			<sim:Child ID="MAGNETIZATION_VECTOR"/>
+			<sim:Child ID="CURRENT_DENSITY_SCALAR"/>
+			<sim:Child ID="CURRENT"/>
+			<sim:Child ID="STORED_ENERGY"/>
+			<sim:Child ID="TRANSLATIONAL_VELOCITY"/>
+			<sim:Child ID="ROTATIONAL_VELOCITY"/>
+			<sim:Child ID="TRANSLATIONAL_DISPLACEMENT"/>
+			<sim:Child ID="ROTATIONAL_DISPLACEMENT"/>
+			<sim:Child ID="SURFACE_FORCE_DENSITY_VECTOR"/>
+			<sim:Child ID="LORENTZ_FORCE_DENSITY"/>
+			<sim:Child ID="VECTOR_FORCE"/>
+			<sim:Child ID="TORQUE_SCALAR"/>
+			<sim:Child ID="MAGNETIC_FLUX_DENSITY_VECTOR"/>
+			<sim:Child ID="ELECTRIC_FIELD_VECTOR"/>
+			<sim:Child ID="ELECTRIC_POTENTIAL"/>
+			<sim:Child ID="POWER_DENSITY_SCALAR"/>
+			<sim:Child ID="POWER_SCALAR"/>
+			<sim:Child ID="PERMEANCE_COEFFICIENT"/>
+			<sim:Child ID="MAGNETIC_FLUX_SCALAR"/>
+		</sim:Set>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="MAGNETIC_FIELD" Dimension="3">
+			<sim:Identifier ID="MAGNETIC_FIELD_VECTOR" DfltName="Magnetic Field"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="MAGNETIZATION" Dimension="3">
+			<sim:Identifier ID="MAGNETIZATION_VECTOR" DfltName="Magnetization"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="LINEARCURRENTDENSITY">
+			<sim:Identifier ID="SURFACE_CURRENT_DENSITY_SCALAR" DfltName="Surface Current Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="COURANT" Dimension="3">
+			<sim:Identifier ID="CURRENT" DfltName="Current"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="ENERGY">
+			<sim:Identifier ID="STORED_ENERGY" DfltName="Stored Energy"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="LENGTH" Dimension="3">
+			<sim:Identifier ID="TRANSLATIONAL_DISPLACEMENT" DfltName="Translational Displacement"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="ANGLE">
+			<sim:Identifier ID="ROTATIONAL_DISPLACEMENT" DfltName="Rotational Displacement"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="ENERGYDENSITY" Dimension="3">
+			<sim:Identifier ID="SURFACE_FORCE_DENSITY_VECTOR" DfltName="Surface Force Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="VOLFORCE" Dimension="3">
+			<sim:Identifier ID="LORENTZ_FORCE_DENSITY" DfltName="Lorentz Force Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="FORCE" Dimension="3">
+			<sim:Identifier ID="VECTOR_FORCE" DfltName="Vector Force"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="TORQUE">
+			<sim:Identifier ID="TORQUE_SCALAR" DfltName="Torque"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="MAGNETICFLUXDENSITY" Dimension="3">
+			<sim:Identifier ID="MAGNETIC_FLUX_DENSITY_VECTOR" DfltName="Magnetic Flux Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="ELECTRICFIELDSTRENGTH" Dimension="3">
+			<sim:Identifier ID="ELECTRIC_FIELD_VECTOR" DfltName="Electric Field"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="VOLTAGE">
+			<sim:Identifier ID="ELECTRIC_POTENTIAL" DfltName="Electric Potential"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="SURFACE_POWER_DENSITY">
+			<sim:Identifier ID="SURFACE_JOULE_LOSS_DENSITY" DfltName="Surface Joule Loss Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="POWER_DENSITY">
+			<sim:Identifier ID="POWER_DENSITY_SCALAR" DfltName="Power Density"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="POWER">
+			<sim:Identifier ID="POWER_SCALAR" DfltName="Power"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="VECTOR" ValueType="REAL" Unit="MAGNETICVECTORPOTENTIAL" Dimension="3">
+			<sim:Identifier ID="MAGNETIC_VECTOR_POTENTIAL_ID" DfltName="Magnetic Vector Potential"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="NONE">
+			<sim:Identifier ID="PERMEANCE_COEFFICIENT" DfltName="Permeance Coefficient"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL" Unit="MAGNETIC_FLUX">
+			<sim:Identifier ID="MAGNETIC_FLUX_SCALAR" DfltName="Magnetic Flux"/>
+		</sim:Characteristic>
+	</sim:PhysicalDescriptionPackage>
+	<sim:PhysicalDescriptionPackage PackageName="LMS R21PhysicalDescriptionPackage">
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
+			<sim:Identifier ID="POWER_ATTENUATION" DfltName="Power Attenuation"/>
+		</sim:Characteristic>
+		<sim:Characteristic MathType="SCALAR" ValueType="REAL">
+			<sim:Identifier ID="TRANSMISSION_LOSS" DfltName="Transmission Loss"/>
 		</sim:Characteristic>
 	</sim:PhysicalDescriptionPackage>
 </sim:PhysicalDescriptionDirectory>

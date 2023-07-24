@@ -2,7 +2,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <link rel="Stylesheet" type="text/css" href="../CAADocStyleSheets/caav5.css">
 <title>The Build/Update Mechanism</title>
@@ -70,15 +70,23 @@ understanding of what a feature object is, how it is created, as well as how the
 Build/Update Mechanism actually works [<a href="#References">1</a>].</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
+<hr>
+<p><b>Note :-</b> Use-Case with the same scenario as of this use-case but with the use of V6 APIs is available 
+<a href="#References">[<span class="style1">5]</span></a>. Please read the Preparing for V6 Feature Modeler-Overview article 
+[<a href="#References">4</a>]</p>
+<hr>
+
+
+
 <h3><a name="UseCase"></a>The CAAOsmBuildUpdate Use Case</h3>
 <p>CAAOsmBuildUpdate is a use case of the CAAObjectSpecsModeler.edu framework
-that illustrates ObjectSpecsModeler framework capabilities.</p>
+that illustrates ObjectSpecsLegacy framework capabilities.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 
 <h4><a name="What"></a>What Does CAAOsmBuildUpdate Do</h4>
 <p>The CAAOsmBuildUpdate use case uses two feature StartUps, &quot;CAAOsmAdd<code>&quot;</code>
-and &quot;CAAOsmSquare&quot;, that were created in the CAAOsmCatalogSU use case <a href="#References">[2]</a>.
+and &quot;CAAOsmSquare&quot;, that were created in the CAAOsmCatalogSU.
 The features created from these StartUps, &quot;CAAOsmAdd1&quot; and
 &quot;CAAOsmSquare1&quot;, are inter-related: When the values of the attributes
 of one are changed, the values of the attributes of the other must be updated.
@@ -118,7 +126,7 @@ the run time environment, and then execute the sample.&nbsp;</p>
 <p>mkrun -c &quot;CAAOsmBuildUpdate CAAOsmCatalogSU.CATfct
 DocumentStorageName.CATPart&quot;</p>
 <p> This is fully described
-in the referenced article [<a href="#References">3</a>]. When launching the use
+in the referenced article [<a href="#References">2</a>]. When launching the use
 case, you must pass the following arguments:</p>
 <ul>
   <li><b>CAAOsmCatalogSU</b>.<b>CATfct</b> - is the name of the catalog without
@@ -153,7 +161,8 @@ installation. It is made of a unique source file named CAAOsmBuildUpdate.cpp.
 <p>There are nine logical steps in CAAOsmBuildUpdate:</p>
 <ol>
   <li><a href="#create_doc">Prolog</a></li>
-  <li><a href="#load_catalog">Loading the Catalog</a></li>
+  <li><a href="#Getting_the_CATOsmSUHandler">Getting the CATOsmSUHandler on the 
+	StartUps of the Catalog</a></li>
   <li><a href="#create_catadd">Creating the <code>CAAOsmAdd1</code> Feature</a></li>
   <li><a href="#build_catadd">Defining the Build Operation for CAAOsm<code>Add</code></a></li>
   <li><a href="#create_catsquare">Creating the <code>CAAOsmSquare1</code>
@@ -167,50 +176,29 @@ installation. It is made of a unique source file named CAAOsmBuildUpdate.cpp.
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="create_doc"></a>Prolog</h4>
-<p>See the referenced article <a href="#References">[4]</a> for a detailed
+<p>See the referenced article <a href="#References">[3]</a> for a detailed
 description of the steps to go through when creating a new document.</p>
 <p>In this use case, we create a new &quot;Part&quot; document: <i>CATDocument</i>
 <code>*pDoc</code>, and retrieve its root container: <i>CATIContainer</i> <code>*piRootContainer</code>.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
-<h4><a name="load_catalog"></a>Loading the Catalog</h4>
-<p>Loading the catalog means opening the catalog document and getting a <i>CATICatalog</i>
-handle that will be needed in order to retrieve StartUps from the catalog.</p>
+<h4><a name="Getting_the_CATOsmSUHandler">Getting the CATOsmSUHandler on the 
+StartUps of the Catalog</a></h4>
+<p>It means getting a handler on the StartUps of the catalog that will be needed 
+in order to retrieve StartUps from the catalog.</p>
 <table class="code">
   <tr>
     <td>
-      <pre>CATUnicodeString stgName = argv[1];
-CATICatalog *piCatalog;
+      <pre>CATUnicodeString CatalogName= argv[1];
 CATUnicodeString clientId(&quot;CAAOsmClientId&quot;);
-rc = <b>::AccessCatalog</b> (&amp;stgName,
-                      &amp;clientId,
-	              piRootContainer,
-		      &amp;piCatalog); 
-	
-if (SUCCEEDED(rc)) cout &lt;&lt; &quot;Catalog accessed OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   cout &lt;&lt; &quot;ERROR on AccessCatalog&quot; &lt;&lt; endl &lt;&lt; flush;
-   piRootContainer -&gt; <b>Release</b>();
-   return 5;
-}</pre>
+CATUnicodeString addOpSUType("CAAOsmAdd");
+
+CATOsmSUHandler <strong>addOpSUHandler</strong>(addOpSUType, clientId, CatalogName);
+
+</pre>
     </td>
   </tr>
 </table>
-<p>To open a catalog, use the <code>AccessCatalog </code>global function that
-takes the following arguments:</p>
-<ul>
-  <li><code>stgName</code> - the name of the catalog without the storage path
-    and with the .CATfct extension. The catalog must be found under the
-    &quot;WS&quot; + &quot;OS&quot; + resources + graphic directory.</li>
-  <li><code>clientId </code>- the client id defined on the catalog at the time
-    of its creation.</li>
-  <li><code>piRootContainer</code> - a <i>CATIContainer</i> pointer to the
-    container in which StartUps from the catalog will be instantiated.</li>
-  <li><code>piCatalog</code> - a <i>CATICatalog</i> pointer to the StartUps
-    catalog that has been opened.</li>
-</ul>
-<p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="create_catadd"></a>Creating the <code>Add1</code> Feature</h4>
 <ol>
@@ -218,20 +206,22 @@ takes the following arguments:</p>
     <table class="code">
       <tr>
         <td>
-          <pre>CATBaseUnknown *pAddSU = NULL;
-CATUnicodeString addSUType(&quot;CAAOsmAdd&quot;);
-rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(<b>&amp;pAddSU</b>,
-                                        &amp;addSUType,
-	                               &quot;CATISpecObject&quot;);
-if (NULL != pAddSU) cout &lt;&lt; &quot;CAAOsmAdd StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   <i>(Process ERROR:  Release pointers and return.)</i>
-}
+          <pre>
 
 // Get a CATISpecObject handle on the CAAOsmAdd StartUp
 
-<b>CATISpecObject *piAddSU = (CATISpecObject*) pAddSU;</b></pre>
+	CATISpecObject_var spaddOpSU = NULL_var;
+
+	rc = addOpSUHandler.RetrieveSU(spaddOpSU);
+	if (NULL_var != spaddOpSU &amp;&amp; SUCCEEDED(rc))
+		cout &lt;&lt; &quot;CAAOsmAdd StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
+    else
+	{
+		cout &lt;&lt; &quot;ERROR in retrieving CAAOsmAdd StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
+		return 6;
+	}
+
+</pre>
         </td>
       </tr>
     </table>
@@ -239,16 +229,15 @@ else
     &quot;CAAOsmAdd&quot; of type &quot;CAAOsmAdd&quot; defined in the<i>
     CAAOsmCatalogSU</i> use case. In order to create it, we must first retrieve
     the StartUp from the catalog. A StartUp is retrieved from the catalog using
-    the<i> CATICatalog</i><code><i>::</i>RetrieveSU </code>method. This method
-    returns a <i>CATBaseUnknown </i>pointer in <code>pAddSU</code> which is
-    directly cast into a <i>CATISpecObject</i> pointer (<code>piAddSU</code>).</p>
+    the<i> </i> <em>CATOsmSUHandler</em><code><i>::</i>RetrieveSU </code>method. This method
+    directly returns a <em>CATISpecObject_var </em>pointer in <code>spaddOpSU.</code></p>
   </li>
   <li>Get &quot;CAAOsmAdd&quot; StartUp's attribute keys
     <table class="code">
       <tr>
         <td>
           <pre>CATISpecAttrAccess *piSpecAttrAccessOnAdd = NULL;
-rc = piAddSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
+rc = spaddOpSU-&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
                                (void**) <b>&amp;piSpecAttrAccessOnAdd</b>);
 if (FAILED(rc))
 {
@@ -285,16 +274,21 @@ piSpecAttrAccessOnAdd -&gt; <b>Release</b>();</pre>
     <table class="code">
       <tr>
         <td>
-          <pre>CATUnicodeString add1(&quot;CAAOsmAdd1&quot;);
-CATISpecObject *piAddInst1 = piAddSU -&gt; 
-		<b>Instanciate</b>(add1,
-		            piRootContainer);
-pAddSU -&gt; <b>Release</b>();
-if (NULL != piAddInst1) cout &lt;&lt; &quot;CAAOsmAdd instance created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+          <pre>
+CATUnicodeString Add1(&quot;CAAOsmAdd1&quot;);
+CATISpecObject_var spAddOpInst1 = NULL_var;
+
+rc = addOpSUHandler.Instanciate(spAddOpInst1, piRootContainer, Add1);
+if (NULL_var != spAddOpInst1 &amp;&amp; SUCCEEDED(rc))
+	cout &lt;&lt; &quot;CAAOsmAdd SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
 else
 {
-   (<i>Process ERROR:  Release pointers and return.)</i>
-}</pre>
+	cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmAdd SU&quot; &lt;&lt; endl &lt;&lt; flush;
+	piRootContainer -&gt; Release();
+	return 3;
+}
+
+</pre>
         </td>
       </tr>
     </table>
@@ -306,7 +300,7 @@ else
       <tr>
         <td>
           <pre>CATISpecAttrAccess *piSpecAttrAccessOnAdd1 = NULL;
-rc = piAddInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
+rc = spAddOpInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess,
                                   (void**) <b>&amp;piSpecAttrAccessOnAdd1</b>);
 if (FAILED(rc))
 {
@@ -443,18 +437,21 @@ defined in the<i> CAAOsmCatalogSU</i> use case.</p>
           <pre><i>(... Continued)</i>
 CATBaseUnknown *pSquareSU = NULL;
 CATUnicodeString squareSUType(&quot;CAAOsmSquare&quot;);
-rc = piCatalogOnContainer -&gt; <b>RetrieveSU</b>(<b>&amp;pSquareSU</b>,
-                                        &amp;squareSUType,
-	                               &quot;CATISpecObject&quot;);
-piCatalogOnContainer -&gt; <b>Release</b>();
-if (NULL != pSquareSU) cout &lt;&lt; &quot;CAAOsmSquare StartUp retrieved OK&quot; &lt;&lt; endl &lt;&lt; flush;
-else
-{
-   (<i>Process ERROR:  Release pointers and return.)</i>
-}
+CATOsmSUHandler squareSUHandler(squareSUType, clientId, CatalogName);
+
 // Get a CATISpecObject handle on the CAAOsmSquare StartUp
 
-<b>CATISpecObject *piSquareSU = (CATISpecObject*) pSquareSU;</b></pre>
+	CATISpecObject_var spSquareSU = NULL_var;
+
+	rc = squareSUHandler.RetrieveSU(spSquareSU);
+	if (NULL_var != spSquareSU &amp;&amp; SUCCEEDED(rc))
+		cout &lt;&lt; &quot;CAAOsmSquare StartUp retrieved OK&quot; &lt;&lt;  endl &lt;&lt; flush;
+    else
+	{
+		cout &lt;&lt; &quot;ERROR in retrieving CAAOsmSquare StartUp&quot; &lt;&lt; endl &lt;&lt; flush;
+		return 6;
+	}
+</pre>
         </td>
       </tr>
     </table>
@@ -467,7 +464,7 @@ else
       <tr>
         <td>
           <pre>CATISpecAttrAccess *piSpecAttrAccessOnSq = NULL;
-rc = piSquareSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
+rc = spSquareSU -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
                                   (void**) <b>&amp;piSpecAttrAccessOnSq</b>);
 if (FAILED(rc))
 {
@@ -499,17 +496,21 @@ piSpecAttrAccessOnSq -&gt; <b>Release</b>();</pre>
     <table class="code">
       <tr>
         <td>
-          <pre>CATUnicodeString square1(&quot;CAAOsmSquare1&quot;);
-CATISpecObject *piSqInst1 = piSquareSU -&gt;
-		<b>Instanciate</b>(square1,
-		            piRootContainer);
-piRootContainer -&gt; <b>Release</b>();
-pSquareSU -&gt; <b>Release</b>();
-if (NULL != piSqInst1) cout &lt;&lt; &quot;CAAOsmSquare instance created OK&quot; &lt;&lt; endl &lt;&lt; flush;
+          <pre>
+CATUnicodeString square1(&quot;CAAOsmSquare1&quot;);
+CATISpecObject_var spSqInst1 = NULL_var;
+
+rc = squareSUHandler.Instanciate(spSqInst1, piRootContainer, square1);
+
+if (NULL_var != spSqInst1 &amp;&amp; SUCCEEDED(rc))
+	cout &lt;&lt; &quot;CAAOsmSquare SU instance 1 created OK&quot; &lt;&lt; endl &lt;&lt; flush;
 else
 {
-   (<i>Process ERROR:  Release pointers and return.)</i>
+	cout &lt;&lt; &quot;ERROR in creating instance 1 of CAAOsmSquare SU&quot; &lt;&lt; endl &lt;&lt; flush;
+	piRootContainer -&gt; Release();
+	return 3;
 }
+          
 <i>(... Continued after description of the &quot;Square&quot; Build operation.)</i></pre>
         </td>
       </tr>
@@ -611,7 +612,7 @@ CAAOsm<code>Square1</code></h4>
   <tr>
     <td>
       <pre>CATISpecAttrAccess *piSpecAttrAccessOnSq1 = NULL;
-rc = piSqInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
+rc = spSqInst1 -&gt; <b>QueryInterface</b>(IID_CATISpecAttrAccess, 
                                  (void**) <b>&amp;piSpecAttrAccessOnSq1</b>);
 if (FAILED(rc))
 {
@@ -619,10 +620,9 @@ if (FAILED(rc))
 }
 
 piSpecAttrAccessOnSq1-&gt;<b>SetSpecAttribute</b>(piKeyNum,
-		                        piAddInst1,
+		                        spAddInst1,
 					piKeySum);
 
-piAddInst1 -&gt; <b>Release</b>();
 piKeySum -&gt; <b>Release</b>();
 piKeyNum -&gt; <b>Release</b>();</pre>
     </td>
@@ -638,10 +638,9 @@ feature and referencing the &quot;CAAOsmAdd1&quot; feature, the
 &quot;CAAOsmSquare1&quot; attribute key &quot;Num&quot; as parameters:</p>
 <ul>
   <li>piKeyNum - &quot;CAAOsmquare1&quot; attribute &quot;Num&quot;</li>
-  <li>piAddInst1 - &quot;CAAOsmAdd1&quot; feature</li>
+  <li>spAddInst1 - &quot;CAAOsmAdd1&quot; feature</li>
   <li>piKeySum - &quot;CAAOsmAdd1&quot; attribute &quot;Sum&quot;</li>
 </ul>
-<p align="right">[<a href="#Top">Top</a>]</p>
 <!---------------------------------comment------------------------------------->
 <h4><a name="update"></a>Updating CAAOsm<code>Square1</code></h4>
 <p>Now that the features have been created and their Build operations defined,
@@ -672,7 +671,7 @@ let's see what happens when an<code> <b>Update</b> </code>is requested on the
   <tr>
     <td width="154">
       <pre>...	
-piSqInst1 -&gt; <b>Update</b>();
+spSqInst1 -&gt; <b>Update</b>();
 ...</pre>
     </td>
   </tr>
@@ -695,7 +694,7 @@ piKeySquare -&gt; <b>Release</b>();</pre>
     </td>
   </tr>
 </table>
-<p>See the referenced article [<a href="#References">4</a>] for a detailed
+<p>See the referenced article [<a href="#References">3</a>] for a detailed
 description of the steps to go through when saving a document.</p>
 <p align="right">[<a href="#Top">Top</a>]</p>
 <hr>
@@ -721,18 +720,26 @@ to use it to update one's features. Specifically, it has illustrated:</p>
   </tr>
   <tr>
     <td valign="top">[2]</td>
-    <td><a href="CAAOsmCatalogSU.htm">Creating StartUps in Catalogs</a></td>
-  </tr>
-  <tr>
-    <td valign="top">[3]</td>
     <td><a href="../CAADocUseCases/CAADocRunSample.htm">Building
       and Launching a CAA V5 Use Case</a></td>
   </tr>
   <tr>
-    <td valign="top">[4]</td>
+    <td valign="top">[3]</td>
     <td><a href="../CAAOmbUseCases/CAAOmbNewDoc.htm">Creating
       a New Document</a></td>
   </tr>
+      <tr>
+    <td valign="top">[4]</td>
+    <td>
+	<a href="#" onclick="javascript:CAAlinkOutOfPreqs('CAAV5V6FmExtTechArticles/CAAV5V6FeatureModelerExtOverview.htm')">
+		Preparing for V6 Feature Modeler-Overview </a></td>
+  </tr>
+  <tr>
+    <td valign="top">[5]</td>
+    <td><a href="CAAV5V6OsmUcBuildUpdate.htm">Build-Update Use-Case 
+	with V6 APIs</a></td>
+  </tr>
+
   <tr>
     <td valign="top" align="right" colspan="2">[<a href="#Top">Top</a>]</td>
   </tr>

@@ -333,10 +333,6 @@ Sub CATMain()
     Dim objPspApplicationTub As PspApplication
     Set objPspApplicationTub = GetApplication(catPspIDLCATTubing)
     
-    ' Get piping application
-    Dim objPspApplicationPip As PspApplication
-    Set objPspApplicationPip = GetApplication(catPspIDLCATPiping)
-    
     ' Get gListFactory
     Set gListFactory = gPspWorkbench.GetInterface("CATIAPspTempListFactory", objPspApplicationTub )      
     If (gListFactory Is Nothing) Then
@@ -352,14 +348,7 @@ Sub CATMain()
     If (ParentProductTub Is Nothing) Then
       Err.Raise 9999,sDocPath,"Unable to get tubing parent product"
     End If
-    ShowTraceOutputLine "Tubing part place parent product name = " & ParentProductTub.Name
-
-    Dim ParentProductPip As Product
-    Set ParentProductPip = FindProduct(gRootProduct, "CAAPspEduPipes.1")
-    If (ParentProductPip Is Nothing) Then
-      Err.Raise 9999,sDocPath,"Unable to get parent product"
-    End If
-    ShowTraceOutputLine "Piping part place parent product name = " & ParentProductPip.Name
+    ShowTraceOutputLine "Tubing part place parent product name = " & ParentProductTub.Name   
  
     ' ------------------------------------------------------------------------- 
     ' Add parts to hold points
@@ -370,13 +359,7 @@ Sub CATMain()
     Dim PartForPointsTub As Part
     Set PartForPointsTub = Nothing
     Dim PartForPointsGeoSetTub As OrderedGeometricalSet
-    Set PartForPointsGeoSetTub = Nothing
-    Dim PartForPointsProductPip As Product
-    Set PartForPointsProductPip = Nothing
-    Dim PartForPointsPip As Part
-    Set PartForPointsPip = Nothing
-    Dim PartForPointsGeoSetPip As OrderedGeometricalSet
-    Set PartForPointsGeoSetPip = Nothing
+    Set PartForPointsGeoSetTub = Nothing 
     
     Dim PartForPointsDoc As Document
     
@@ -390,18 +373,6 @@ Sub CATMain()
     Set PartForPointsGeoSetTub = PartForPointsTub.OrderedGeometricalSets.Add
     If (PartForPointsTub Is Nothing Or PartForPointsGeoSetTub Is Nothing) Then
       Err.Raise 9999,sDocPath,"Unable to add part to hold tubing points"
-    End If
-    
-    Set PartForPointsProductPip = ParentProductPip.Products.AddNewComponent("Part", "PartForPointsPiping")
-    ShowTraceOutputLine "Part for tubing points product name = " & PartForPointsProductPip.Name
-    If (Not (PartForPointsProductPip is Nothing) ) Then
-      Set PartForPointsDoc = PartForPointsProductPip.GetMasterShapeRepresentation(TRUE)
-      Set PartForPointsPip = PartForPointsDoc.Part
-    End If 
-    ShowTraceOutputLine "Part for piping points name = " & PartForPointsPip.Name
-    Set PartForPointsGeoSetPip = PartForPointsPip.OrderedGeometricalSets.Add
-    If (PartForPointsPip Is Nothing Or PartForPointsGeoSetPip Is Nothing) Then
-      Err.Raise 9999,sDocPath,"Unable to add part to hold piping points"
     End If
 
     '-----------------------------------------------------------------------
@@ -430,7 +401,7 @@ Sub CATMain()
     ' Place Tube
     '-----------------------------------------------------------------------
     '-----------------------------------------------------------------------
-    Set objInstancePartOfReference = GetPspPhysicalProduct(objPspApplicationPip, catPspIDLCATTUB, "T-003")
+    Set objInstancePartOfReference = GetPspPhysicalProduct(objPspApplicationTub, catPspIDLCATTUB, "T-003")
     Set objReferencePart = GetReferencePart(objInstancePartOfReference)
     Set LogicalLine = GetLogicalLine(objInstancePartOfReference) 
     Standard = "SSTL"
@@ -475,7 +446,7 @@ Sub CATMain()
     Else
       ShowObjectID "Placed part", PlacePartRef
     End If
- 
+	
     '-----------------------------------------------------------------------
     ' View and Test Part Data
     '-----------------------------------------------------------------------
@@ -491,7 +462,7 @@ Sub CATMain()
     ' Place Tube with bends
     '-----------------------------------------------------------------------
     '-----------------------------------------------------------------------
-    Set objInstancePartOfReference = GetPspPhysicalProduct(objPspApplicationPip, catPspIDLCATTUB, "T-004")
+    Set objInstancePartOfReference = GetPspPhysicalProduct(objPspApplicationTub, catPspIDLCATTUB, "T-004")
     Set objReferencePart = GetReferencePart(objInstancePartOfReference)
     Set LogicalLine = GetLogicalLine(objInstancePartOfReference) 
     Standard = "SSTL"
@@ -557,6 +528,47 @@ Sub CATMain()
       Err.Raise 9999,sDocPath,"Bad placed product"
     End If
     ShowProductInfo objPlacePartProduct, "Placed part", ParentProductTub
+    
+    ' ------------------------------------------------------------------------- 
+    ' Setup Piping application data 
+    ' ------------------------------------------------------------------------- 
+     ' Get piping application
+    Dim objPspApplicationPip As PspApplication
+    Set objPspApplicationPip = GetApplication(catPspIDLCATPiping)
+    
+    '-----------------------------------------------------------------------
+    ' Get part parent products.
+    '-----------------------------------------------------------------------
+    
+    Dim ParentProductPip As Product
+    Set ParentProductPip = FindProduct(gRootProduct, "CAAPspEduPipes.1")
+    If (ParentProductPip Is Nothing) Then
+      Err.Raise 9999,sDocPath,"Unable to get parent product"
+    End If
+    ShowTraceOutputLine "Piping part place parent product name = " & ParentProductPip.Name
+    
+    ' ------------------------------------------------------------------------- 
+    ' Add parts to hold points
+    ' Parts created under placement part parent because points are interpretted as relative to that parent.
+    ' ------------------------------------------------------------------------- 
+    Dim PartForPointsProductPip As Product
+    Set PartForPointsProductPip = Nothing
+    Dim PartForPointsPip As Part
+    Set PartForPointsPip = Nothing
+    Dim PartForPointsGeoSetPip As OrderedGeometricalSet
+    Set PartForPointsGeoSetPip = Nothing
+    
+    Set PartForPointsProductPip = ParentProductPip.Products.AddNewComponent("Part", "PartForPointsPiping")
+    ShowTraceOutputLine "Part for tubing points product name = " & PartForPointsProductPip.Name
+    If (Not (PartForPointsProductPip is Nothing) ) Then
+      Set PartForPointsDoc = PartForPointsProductPip.GetMasterShapeRepresentation(TRUE)
+      Set PartForPointsPip = PartForPointsDoc.Part
+    End If 
+    ShowTraceOutputLine "Part for piping points name = " & PartForPointsPip.Name
+    Set PartForPointsGeoSetPip = PartForPointsPip.OrderedGeometricalSets.Add
+    If (PartForPointsPip Is Nothing Or PartForPointsGeoSetPip Is Nothing) Then
+      Err.Raise 9999,sDocPath,"Unable to add part to hold piping points"
+    End If
     
     '-----------------------------------------------------------------------
     '-----------------------------------------------------------------------
@@ -691,7 +703,7 @@ Sub CATMain()
       Err.Raise 9999,sDocPath,"Bad placed product"
     End If
     ShowProductInfo objPlacePartProduct, "Placed part", ParentProductPip
-    
+        
     '-----------------------------------------------------------------------
     ' Clean up model
     '-----------------------------------------------------------------------
